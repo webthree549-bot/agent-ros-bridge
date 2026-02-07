@@ -1,0 +1,22 @@
+# Global Framework Config
+logger:
+  log_dir: "logs/"
+  log_file: "openclaw_ros_bridge.log"
+  max_file_size: 10485760
+  max_rotated_logs: 5
+  file_save: true
+monitor:
+  enabled: true
+  monitor_interval: 1.0
+  ros_topic: "/openclaw/monitor/metrics"
+plugin:
+  default_business_id: "openclaw_001"
+  auto_load: true
+realtime:
+  enabled: false
+  priority: 90
+  cpu_affinity: [0,1]
+system:
+  node_respawn: true
+  fallback_strategy: "safe_state"
+  max_retry_attempts: 15

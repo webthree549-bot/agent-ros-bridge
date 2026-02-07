@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  ros1-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros1
+    container_name: openclaw-ros1-bridge
+    network_mode: host
+    privileged: true
+    environment:
+      - ROS_TYPE=ros1
+      - ROS_DISTRO=noetic
+      - MOCK_MODE=false
+    volumes:
+      - ../logs:/app/logs
+      - ../config:/app/config
+    restart: unless-stopped
+
+  ros2-humble-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros2.humble
+    container_name: openclaw-ros2-humble-bridge
+    network_mode: host
+    privileged: true
+    environment:
+      - ROS_TYPE=ros2
+      - ROS_DISTRO=humble
+      - MOCK_MODE=false
+    volumes:
+      - ../logs:/app/logs
+      - ../config:/app/config
+    restart: unless-stopped

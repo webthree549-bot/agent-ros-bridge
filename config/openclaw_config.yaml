@@ -1,0 +1,20 @@
+# OpenClaw v1.x/v2.x Config
+default_version: "v2"
+openclaw_versions:
+  v1:
+    tcp_host: "127.0.0.1"
+    tcp_port: 8888
+    recv_buffer_size: 4096
+    send_timeout: 10
+    recv_timeout: 10
+    reconnect_attempts: 10
+  v2:
+    tcp_host: "127.0.0.1"
+    tcp_port: 9999
+    recv_buffer_size: 8192
+    send_timeout: 10
+    recv_timeout: 10
+    reconnect_attempts: 15
+global:
+  tcp_reconnect: true
+  heartbeat_interval: 3.0

@@ -1,0 +1,12 @@
+# ROS1 Noetic Config
+ros1_versions:
+  noetic:
+    env_path: "/opt/ros/noetic/setup.bash"
+    build_cmd: "catkin_make"
+    catkin_ws: "catkin_ws"
+    node_prefix: "ros1_"
+global:
+  default_qos: 10
+  realtime:
+    enabled: false
+    priority: 80

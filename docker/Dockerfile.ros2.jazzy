@@ -1,0 +1,10 @@
+FROM osrf/ros:jazzy-desktop-full
+WORKDIR /app
+ENV ROS_TYPE=ros2
+ENV ROS_DISTRO=jazzy
+COPY . /app
+RUN pip3 install -r requirements.txt
+RUN chmod +x scripts/*.sh
+RUN ./scripts/build.sh
+ENTRYPOINT ["/app/docker/docker-entrypoint.sh"]
+CMD ["/bin/bash"]

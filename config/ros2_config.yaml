@@ -1,0 +1,15 @@
+# ROS2 Humble/Jazzy Config
+ros2_versions:
+  humble:
+    env_path: "/opt/ros/humble/setup.bash"
+    build_cmd: "colcon build --symlink-install"
+    node_prefix: "ros2_"
+  jazzy:
+    env_path: "/opt/ros/jazzy/setup.bash"
+    build_cmd: "colcon build --symlink-install"
+    node_prefix: "ros2_"
+global:
+  default_qos: 10
+  realtime:
+    enabled: false
+    priority: 90

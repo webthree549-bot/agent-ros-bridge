@@ -1,0 +1,84 @@
+# ROS
+.catkin_workspace
+.catkin_tools/
+
+# ROS1
+catkin_ws/build/
+catkin_ws/devel/
+catkin_ws/install/
+catkin_ws/log/
+*.rosinstall
+
+# ROS2
+build/
+install/
+log/
+build_*/
+install_*/
+log_*/
+setup_*.sh
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Test
+test_coverage/
+.pytest_cache/
+.benchmarks/
+
+# Docker
+docker/.dockerignore
+docker/build/
+*.dockerfile
+docker-compose.override.yml
+
+# Docs
+docs/_build/
+docs/api/_build/
+
+# Embedded
+jetson_stats/
+rpi.gpio/
+
+# Config
+.env
+.env.local
+*.secrets.yaml

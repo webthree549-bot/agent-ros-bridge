@@ -1,0 +1,13 @@
+# Fault Recovery Config
+global:
+  recovery_enabled: true
+  max_recovery_attempts: 5
+  recovery_delay: 1.0
+  fallback_strategy: "safe_state"
+communication:
+  ros_disconnect:
+    strategy: "reconnect_node"
+    max_retries: 5
+  openclaw_disconnect:
+    strategy: "reconnect_tcp"
+    max_retries: 10

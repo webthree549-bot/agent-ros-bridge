@@ -1,0 +1,11 @@
+# Debug Config
+logging:
+  level: "INFO"
+  console_logging: true
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+monitoring:
+  metrics: ["cpu", "memory", "latency"]
+  realtime_dashboard: true
+debug:
+  mock_mode_default: false

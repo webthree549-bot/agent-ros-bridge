@@ -1,0 +1,17 @@
+# HAL Config
+sensors:
+  dht22:
+    pin: 4
+    sample_freq: 1.0
+  usb_cam:
+    device: "/dev/video0"
+    resolution: "640x480"
+actuators:
+  l298n:
+    pins: [17, 18, 22, 23]
+    max_speed: 255
+  robotiq_2f_85:
+    serial_port: "/dev/ttyUSB0"
+    max_grip_force: 100
+global:
+  auto_detect: true
