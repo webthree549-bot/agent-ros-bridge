@@ -8,16 +8,20 @@
 Universal ROS1/ROS2 + OpenClaw Adaptive Bridge Framework for **Embodied Intelligence**. A production-grade solution that connects OpenClaw AI Agents with ROS1/ROS2 ecosystems, supporting seamless hardware integration, real-time scheduling, fault resilience, and full-stack observability. Designed for embedded deployment (Jetson/RPi) and cross-platform development (Ubuntu/WSL2), with one-click automation and Docker isolation.
 
 ## Core Features
-### 🔌 Full ROS Compatibility
-- Native support for **ROS1 Noetic (LTS)** / **ROS2 Humble/Jazzy** (auto-detect/manual specify)
-- Unified ROS1/ROS2 API (rospy/rclpy isolated in communication layer, no business code changes)
-- Built-in ROS1/ROS2 message auto-conversion & parameter service compatibility layer
-- Auto-adaptive build systems: Catkin (ROS1) / Colcon (ROS2) with isolated build directories
+### 🔌 Full ROS Compatibility (Version Agnostic)
+- **Native support for ROS1 Noetic / ROS2 Humble / ROS2 Jazzy** - fully version agnostic
+- **Auto-detection**: Detects ROS version at runtime via environment or system inspection
+- **Unified API**: Same code works across ROS1/ROS2 without modifications
+- **Communication layer isolation**: rospy/rclpy implementation details hidden from business logic
+- **Auto-adaptive build**: Catkin (ROS1) / Colcon (ROS2) automatically selected
+- **Future-proof**: Adding new ROS distributions requires only config updates, no code changes
 
-### 🤖 Seamless OpenClaw Integration
-- OpenClaw v1.x/v2.x auto-adaptation (TCP config, data format, skill spec)
-- Standardized bidirectional protocol conversion: ROS Message ↔ OpenClaw JSON
-- Auto-reconnection & heartbeat detection for stable AI Agent ↔ hardware communication
+### 🤖 Seamless OpenClaw Integration (Version Agnostic)
+- **OpenClaw v1.x / v2.x auto-adaptation** - runtime version detection from config
+- **Protocol conversion**: ROS Message ↔ OpenClaw JSON (handles v1.x prefixing vs v2.x raw format)
+- **TCP config auto-loading**: Different ports/timeouts per OpenClaw version (v1: 8888, v2: 9999)
+- **Auto-reconnection & heartbeat** for stable AI Agent ↔ hardware communication
+- **Business ID injection**: Automatic metadata tagging for multi-tenant deployments
 
 ### 🦿 Embodied Intelligence Critical Capabilities
 - **Hardware Abstraction Layer (HAL)**: Unified sensor/actuator interface (temperature, camera, arm, motor, etc.)

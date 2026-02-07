@@ -4,15 +4,17 @@
 import json
 import time
 from typing import Dict, Any, Optional
+from openclaw_ros_bridge.version.version_manager import version_manager
 
 class DataConverter:
     """ROS ↔ OpenClaw Data Converter - version-agnostic protocol translation"""
     def __init__(self):
-        self.oc_version = "v2"
-        self.ros_type = "ros2"
-        self.business_id = "default_001"
-        self.oc_data_prefix = ""
-        self.mock_mode = False
+        self.oc_version = version_manager.OC_VER
+        self.ros_type = version_manager.ROS_TYPE
+        self.ros_distro = version_manager.ROS_DISTRO
+        self.business_id = version_manager.get_oc_param("business_id", "default_001")
+        self.oc_data_prefix = version_manager.get_oc_param("data_prefix", "")
+        self.mock_mode = version_manager.MOCK_MODE
 
     def _add_oc_metadata(self, data: Dict[str, Any], data_type: str) -> Dict[str, Any]:
         """Add OpenClaw v1.x/v2.x metadata to data (prefix, business ID, type)"""
