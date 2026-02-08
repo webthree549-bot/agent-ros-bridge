@@ -55,3 +55,23 @@ class RecoveryManager:
 
 # Singleton instance
 recovery_manager = RecoveryManager()
+
+
+def main():
+    """Main entry point for console script"""
+    import signal
+    import sys
+    import time
+
+    def signal_handler(sig, frame):
+        logger.info("Shutting down recovery manager...")
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    logger.info("Recovery manager running. Press Ctrl+C to exit.")
+
+    # Keep running until interrupted
+    while True:
+        time.sleep(1)

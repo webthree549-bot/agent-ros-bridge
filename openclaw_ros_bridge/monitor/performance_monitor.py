@@ -60,3 +60,26 @@ class PerformanceMonitor:
 
 # Global Performance Monitor Instance
 perf_monitor = PerformanceMonitor()
+
+
+def main():
+    """Main entry point for console script"""
+    import signal
+    import sys
+
+    def signal_handler(sig, frame):
+        logger.info("Shutting down performance monitor...")
+        perf_monitor.stop_monitoring()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    perf_monitor.start_monitoring()
+    logger.info("Performance monitor running. Press Ctrl+C to exit.")
+
+    # Keep running until interrupted
+    while True:
+        time.sleep(1)
+        metrics = perf_monitor.get_metrics_report()
+        logger.info(f"CPU: {metrics['cpu']}%, Memory: {metrics['memory']}%, Messages: {metrics['total_messages']}")

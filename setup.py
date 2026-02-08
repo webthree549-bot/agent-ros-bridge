@@ -4,26 +4,50 @@ import os
 package_name = 'openclaw_ros_bridge'
 here = os.path.abspath(os.path.dirname(__file__))
 
-# Load long description from README.md
-with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+# Load long description from README.md (gracefully handle missing file)
+readme_path = os.path.join(here, 'README.md')
+if os.path.exists(readme_path):
+    with open(readme_path, encoding='utf-8') as f:
+        long_description = f.read()
+else:
+    long_description = 'Universal ROS1/ROS2 + OpenClaw Adaptive Bridge Framework for Embodied Intelligence'
 
-# Load requirements from requirements.txt
-with open(os.path.join(here, 'requirements.txt'), encoding='utf-8') as f:
-    requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+# Load requirements from requirements.txt (gracefully handle missing file)
+requirements_path = os.path.join(here, 'requirements.txt')
+if os.path.exists(requirements_path):
+    with open(requirements_path, encoding='utf-8') as f:
+        requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+else:
+    requirements = []  # Will use package defaults
+
+# Build data_files safely
+launch_files = []
+if os.path.isdir('launch'):
+    launch_files = [os.path.join('launch', f) for f in os.listdir('launch') if f.endswith('.launch.py')]
+
+config_files = []
+if os.path.isdir('config'):
+    config_files = [os.path.join('config', f) for f in os.listdir('config') if f.endswith('.yaml')]
+
+greenhouse_files = []
+if os.path.isdir('demo/greenhouse'):
+    greenhouse_files = [os.path.join('demo/greenhouse', f) for f in os.listdir('demo/greenhouse') if f.endswith(('.py', '.yaml'))]
+
+arm_files = []
+if os.path.isdir('demo/arm_manipulation'):
+    arm_files = [os.path.join('demo/arm_manipulation', f) for f in os.listdir('demo/arm_manipulation') if f.endswith(('.py', '.yaml'))]
 
 setup(
     name=package_name,
     version='1.0.0',
-    packages=find_packages(exclude=['test', 'demo', 'scripts', 'config', 'docker', 'docs']),
+    packages=find_packages(),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'launch'), [os.path.join('launch', f) for f in os.listdir('launch') if f.endswith('.launch.py')]),
-        (os.path.join('share', package_name, 'config'), [os.path.join('config', f) for f in os.listdir('config') if f.endswith('.yaml')]),
-        (os.path.join('share', package_name, 'demo/greenhouse'), [os.path.join('demo/greenhouse', f) for f in os.listdir('demo/greenhouse') if f.endswith(('.py', '.yaml'))]),
-        (os.path.join('share', package_name, 'demo/arm_manipulation'), [os.path.join('demo/arm_manipulation', f) for f in os.listdir('demo/arm_manipulation') if f.endswith(('.py', '.yaml'))]),
+        (os.path.join('share', package_name, 'launch'), launch_files),
+        (os.path.join('share', package_name, 'config'), config_files),
+        (os.path.join('share', package_name, 'demo/greenhouse'), greenhouse_files),
+        (os.path.join('share', package_name, 'demo/arm_manipulation'), arm_files),
     ],
     install_requires=requirements,
     zip_safe=True,

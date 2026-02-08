@@ -8,7 +8,7 @@
   <license>MIT</license>
   <url type="repository">https://github.com/your-username/openclaw-ros-bridge</url>
   <author email="dev@openclaw-ros.org">OpenClaw-ROS Dev Team</author>
-  <keywords>ROS ROS1 ROS2 OpenClaw EmbodiedIntelligence HAL Robotics AI</keywords>
+  <!-- Keywords removed for ROS package format 3 compatibility -->
 
   <!-- ROS1/ROS2 Dual Build Dependencies -->
   <buildtool_depend>ament_python</buildtool_depend>
