@@ -64,6 +64,7 @@ setup(
             'version_manager = openclaw_ros_bridge.version.version_manager:main',
             'performance_monitor = openclaw_ros_bridge.monitor.performance_monitor:main',
             'fault_recovery_manager = openclaw_ros_bridge.fault.recovery_manager:main',
+            'openclaw_tcp_server = openclaw_ros_bridge.communication.openclaw_tcp_server:main',
             # Demos
             'greenhouse_plugin = demo.greenhouse.greenhouse_plugin:main',
             'arm_manipulation_plugin = demo.arm_manipulation.arm_plugin:main',

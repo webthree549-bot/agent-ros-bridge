@@ -1,7 +1,7 @@
 ---
 name: openclaw-ros-bridge
 description: Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems.
-homepage: https://github.com/DHAI0205/openclaw-ros-bridge
+homepage: https://github.com/webthree549-bot/openclaw-ros-bridge
 metadata:
   {
     "openclaw":
@@ -54,7 +54,7 @@ ros2-jazzy-bridge
 ### 2. Run a Demo (Mock Mode - No Hardware Required)
 
 ```bash
-cd /Volumes/2nd-HD/openclaw-ros-bridge
+cd <path-to-openclaw-ros-bridge>
 
 # With mock mode (no ROS/hardware required)
 ./scripts/run_demo.sh --greenhouse --mock
@@ -106,7 +106,7 @@ docker ps | grep ros
 ### Demos
 
 ```bash
-cd /Volumes/2nd-HD/openclaw-ros-bridge
+cd <path-to-openclaw-ros-bridge>
 
 # Greenhouse (agricultural robotics)
 export MOCK_MODE=true
@@ -120,7 +120,7 @@ export MOCK_MODE=true
 ### Development
 
 ```bash
-cd /Volumes/2nd-HD/openclaw-ros-bridge
+cd <path-to-openclaw-ros-bridge>
 
 # Build the project
 ./scripts/build.sh
@@ -166,7 +166,7 @@ All configs are in `config/`:
 ### Workflow 1: Test Without Hardware (Mock Mode)
 
 ```bash
-cd /Volumes/2nd-HD/openclaw-ros-bridge
+cd <path-to-openclaw-ros-bridge>
 export MOCK_MODE=true
 export ROS_DISTRO=jazzy
 ./scripts/run_demo.sh --greenhouse
@@ -235,7 +235,7 @@ class MyRobotPlugin(BasePlugin):
 ## Docker Deployment
 
 ```bash
-cd /Volumes/2nd-HD/openclaw-ros-bridge
+cd <path-to-openclaw-ros-bridge>
 
 # Build images
 ./scripts/docker_build.sh
@@ -282,7 +282,7 @@ ros2 topic type /greenhouse/sensors
 
 ```bash
 # Fix script permissions
-chmod +x /Volumes/2nd-HD/openclaw-ros-bridge/scripts/*.sh
+chmod +x scripts/*.sh
 
 # Fix Docker permissions (macOS)
 sudo dseditgroup -o edit -a $USER -t user docker
@@ -316,18 +316,90 @@ sudo dseditgroup -o edit -a $USER -t user docker
 
 | File | Purpose |
 |------|---------|
-| `/tmp/ros2-jazzy.sh` | ROS2 Jazzy container helper |
-| `/Volumes/2nd-HD/openclaw-ros-bridge/scripts/run_demo.sh` | Run demos |
-| `/Volumes/2nd-HD/openclaw-ros-bridge/scripts/build.sh` | Build project |
-| `/Volumes/2nd-HD/openclaw-ros-bridge/config/` | All configuration files |
-| `/Volumes/2nd-HD/openclaw-ros-bridge/demo/` | Example plugins |
+| `scripts/openclaw_assist_greenhouse.sh` | **🤖 Interactive AI-assisted control** |
+| `scripts/gh_control.sh` | **Simple command-line control** |
+| `scripts/demo_openclaw_greenhouse.sh` | **🌱 Automated demo** |
+| `scripts/docker_start.sh` | Start ROS Docker container |
+| `scripts/run_demo.sh` | Run ROS demos |
+| `scripts/start_openclaw_server.sh` | Start TCP server for OpenClaw |
+| `scripts/build.sh` | Build project |
+| `config/` | All configuration files |
+| `demo/` | Example plugins |
 
-## Links
+## Documentation
 
-- **Repository**: `/Volumes/2nd-HD/openclaw-ros-bridge`
-- **Docs**: `/Volumes/2nd-HD/openclaw-ros-bridge/docs/`
-- **README**: `/Volumes/2nd-HD/openclaw-ros-bridge/README.md`
-- **Version Agnostic Guide**: `/Volumes/2nd-HD/openclaw-ros-bridge/docs/VERSION_AGNOSTIC.md`
+| Document | Description |
+|----------|-------------|
+| `README.md` | Project overview and quick start |
+| `docs/DEMO_OPENCLAW_GREENHOUSE.md` | **🌱 Run OpenClaw + Greenhouse Demo** |
+| `docs/MACOS_SETUP_GUIDE.md` | **Complete macOS setup from scratch** |
+| `docs/DOCKER_PORT_SETUP.md` | **Docker port mapping for macOS** |
+| `docs/ARCHITECTURE.md` | Detailed architecture and design patterns |
+| `docs/MACOS_DOCKER_DEPLOYMENT.md` | macOS + Docker networking details |
+| `docs/VERSION_AGNOSTIC.md` | Version-agnostic design principles |
+
+### 🌱 Quick Demo: OpenClaw Controls Greenhouse
+
+```bash
+# One command to run the complete demo
+./scripts/demo_openclaw_greenhouse.sh
+```
+
+This starts:
+- Docker container with ROS2
+- TCP server for OpenClaw connection
+- AI agent that reads sensors and controls actuators
+
+See `docs/DEMO_OPENCLAW_GREENHOUSE.md` for details.
+
+### 🤖 Interactive Control via OpenClaw AI
+
+Control the greenhouse through OpenClaw AI assistance:
+
+```bash
+# Start interactive assistant
+./scripts/openclaw_assist_greenhouse.sh
+
+# Or use quick commands
+./scripts/gh_control.sh status          # Check conditions
+./scripts/gh_control.sh fan on          # Turn on fan
+./scripts/gh_control.sh valve open      # Water plants
+./scripts/gh_control.sh auto            # AI autopilot mode
+```
+
+Then tell me what to do:
+- "Check the temperature"
+- "Turn on the fan"
+- "Water the plants"
+- "Run autopilot for 5 cycles"
+
+### macOS + Docker Port Setup
+
+For macOS users connecting OpenClaw to Docker:
+
+```bash
+# 1. Start container with port mapping
+./scripts/docker_start.sh --jazzy
+
+# 2. Start TCP server inside container
+./scripts/start_openclaw_server.sh
+
+# 3. OpenClaw on macOS connects to: localhost:9999
+```
+
+See `docs/DOCKER_PORT_SETUP.md` for detailed instructions.
+
+### Quick Start for macOS Users
+
+New to the project? Start here:
+
+```bash
+# 1. Read the complete setup guide
+cat docs/MACOS_SETUP_GUIDE.md
+
+# 2. Follow the 8-step setup process
+#    (Docker → OpenClaw → Build → Test → Run)
+```
 
 ## Tips
 

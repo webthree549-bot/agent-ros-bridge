@@ -1,6 +1,6 @@
 # openclaw-ros-bridge v1.0.0
-[![CI Auto Test](https://github.com/your-username/openclaw-ros-bridge/actions/workflows/ci-auto-test.yml/badge.svg)](https://github.com/your-username/openclaw-ros-bridge/actions/workflows/ci-auto-test.yml)
-[![Docker Build](https://github.com/your-username/openclaw-ros-bridge/actions/workflows/docker-build.yml/badge.svg)](https://github.com/your-username/openclaw-ros-bridge/actions/workflows/docker-build.yml)
+[![CI Auto Test](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci-auto-test.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci-auto-test.yml)
+[![Docker Build](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/docker-build.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/docker-build.yml)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![ROS1 Noetic/ROS2 Humble/Jazzy](https://img.shields.io/badge/ROS-1%2F2-orange.svg)](https://www.ros.org/)
@@ -71,7 +71,7 @@ Install all dependencies via `pip3 install -r requirements.txt` (auto-resolved f
 
 ### Step 1: Clone the Repository
 ```bash
-git clone https://github.com/your-username/openclaw-ros-bridge.git
+git clone https://github.com/webthree549-bot/openclaw-ros-bridge.git
 cd openclaw-ros-bridge
 ```
 
@@ -190,12 +190,12 @@ We follow **Semantic Versioning (SemVer)** - see [CHANGELOG.md](CHANGELOG.md) fo
 - `PATCH`: Bug fixes (backward-compatible)
 
 ### Issue Reporting
-Submit issues via [GitHub Issues](https://github.com/your-username/openclaw-ros-bridge/issues) using the provided templates. Include **environment details, reproduction steps, and logs** for fast debugging.
+Submit issues via [GitHub Issues](https://github.com/webthree549-bot/openclaw-ros-bridge/issues) using the provided templates. Include **environment details, reproduction steps, and logs** for fast debugging.
 
 ## Maintainers
 - **Author**: OpenClaw-ROS Dev Team
 - **Email**: dev@openclaw-ros.org
-- **GitHub**: [your-username/openclaw-ros-bridge](https://github.com/your-username/openclaw-ros-bridge)
+- **GitHub**: [webthree549-bot/openclaw-ros-bridge](https://github.com/webthree549-bot/openclaw-ros-bridge)
 
 ## Acknowledgments
 - ROS Official Team for ROS1/ROS2 ecosystem

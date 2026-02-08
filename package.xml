@@ -6,7 +6,7 @@
   <description>Universal ROS1/ROS2 + OpenClaw Adaptive Bridge Framework for Embodied Intelligence. Native support for ROS1 Noetic/ROS2 Humble/Jazzy, OpenClaw v1.x/v2.x, Hardware Abstraction Layer, fault self-recovery, real-time scheduling, and full-stack observability.</description>
   <maintainer email="dev@openclaw-ros.org">OpenClaw-ROS Dev Team</maintainer>
   <license>MIT</license>
-  <url type="repository">https://github.com/your-username/openclaw-ros-bridge</url>
+  <url type="repository">https://github.com/webthree549-bot/openclaw-ros-bridge</url>
   <author email="dev@openclaw-ros.org">OpenClaw-ROS Dev Team</author>
   <!-- Keywords removed for ROS package format 3 compatibility -->
 

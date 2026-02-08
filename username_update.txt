@@ -1,0 +1,8 @@
+Done. Replaced all instances of 'DHAI0205' and 'your-username' with 'webthree549-bot' in:
+
+1. **SKILL.md** - homepage URL
+2. **README.md** - clone URL, badge URLs, issues URL, GitHub link
+3. **package.xml** - repository URL
+4. **docs/MACOS_SETUP_GUIDE.md** - clone URLs
+
+All project references now point to webthree549-bot/openclaw-ros-bridge

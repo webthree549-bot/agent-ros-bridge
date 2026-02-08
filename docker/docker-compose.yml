@@ -5,7 +5,12 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.ros1
     container_name: openclaw-ros1-bridge
-    network_mode: host
+    # Use host network on Linux, port mapping on macOS
+    # network_mode: host  # Linux only
+    ports:
+      - "9999:9999"  # OpenClaw TCP (v2)
+      - "8888:8888"  # OpenClaw TCP (v1)
+      - "9090:9090"  # rosbridge websocket
     privileged: true
     environment:
       - ROS_TYPE=ros1
@@ -14,6 +19,7 @@ services:
     volumes:
       - ../logs:/app/logs
       - ../config:/app/config
+      - ..:/app
     restart: unless-stopped
 
   ros2-humble-bridge:
@@ -21,7 +27,12 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.ros2.humble
     container_name: openclaw-ros2-humble-bridge
-    network_mode: host
+    # Use host network on Linux, port mapping on macOS
+    # network_mode: host  # Linux only
+    ports:
+      - "9999:9999"  # OpenClaw TCP (v2)
+      - "8888:8888"  # OpenClaw TCP (v1)
+      - "9090:9090"  # rosbridge websocket
     privileged: true
     environment:
       - ROS_TYPE=ros2
@@ -30,4 +41,27 @@ services:
     volumes:
       - ../logs:/app/logs
       - ../config:/app/config
+      - ..:/app
+    restart: unless-stopped
+
+  ros2-jazzy-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros2.jazzy
+    container_name: openclaw-ros2-jazzy-bridge
+    # Use host network on Linux, port mapping on macOS
+    # network_mode: host  # Linux only
+    ports:
+      - "9999:9999"  # OpenClaw TCP (v2)
+      - "8888:8888"  # OpenClaw TCP (v1)
+      - "9090:9090"  # rosbridge websocket
+    privileged: true
+    environment:
+      - ROS_TYPE=ros2
+      - ROS_DISTRO=jazzy
+      - MOCK_MODE=false
+    volumes:
+      - ../logs:/app/logs
+      - ../config:/app/config
+      - ..:/app
     restart: unless-stopped

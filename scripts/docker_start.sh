@@ -84,6 +84,18 @@ if ! docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^${IMAGE_NAME}
     docker pull "$IMAGE_NAME" || error "Failed to pull image. Check Docker and network."
 fi
 
+# Detect OS for network mode
+OS=$(uname -s)
+if [[ "$OS" == "Darwin" ]]; then
+    # macOS - use port mapping (host network doesn't work)
+    log "Detected macOS - using port mapping for OpenClaw connection"
+    NETWORK_ARGS="-p 9999:9999 -p 9090:9090"
+else
+    # Linux - can use host network
+    log "Detected Linux - using host networking"
+    NETWORK_ARGS="--network host"
+fi
+
 # Create and start container
 log "Creating container $CONTAINER_NAME..."
 docker run -it \
@@ -94,7 +106,7 @@ docker run -it \
     -e "DISPLAY=${DISPLAY:-}" \
     -e "ROS_DISTRO=$ROS_DISTRO" \
     -e "MOCK_MODE=${MOCK_MODE:-false}" \
-    --network host \
+    $NETWORK_ARGS \
     --privileged \
     "$IMAGE_NAME" \
     bash -c "
