@@ -1,0 +1,25 @@
+#!/bin/bash
+# Quick setup - run this first
+
+cd "$(dirname "$0")"
+
+echo "🔧 Setting up OpenClaw Robot Control..."
+echo ""
+
+# Make all scripts executable
+chmod +x openclaw-robot
+chmod +x openclaw-robot-skill
+chmod +x openclaw-robot-test
+chmod +x openclaw-robot-fix
+chmod +x openclaw-robot-diagnose
+chmod +x openclaw-robot-debug-server
+
+echo "✅ Scripts are now executable"
+echo ""
+echo "Quick start:"
+echo "  1. Deploy:  ./openclaw-robot deploy"
+echo "  2. Test:    ./openclaw-robot-test"
+echo "  3. Control: ./openclaw-robot-skill status"
+echo ""
+echo "If you get connection errors:"
+echo "  ./openclaw-robot-fix"
