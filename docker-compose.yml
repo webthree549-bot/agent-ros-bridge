@@ -1,15 +1,12 @@
 version: '3.8'
 
 services:
-  # ==========================================
-  # OpenClaw Gateway - ROS2 Humble
-  # ==========================================
-  gateway-humble:
+  bridge:
     build:
       context: .
-      dockerfile: docker/Dockerfile.humble
-    image: openclaw/ros-bridge:humble
-    container_name: openclaw-gateway-humble
+      dockerfile: docker/Dockerfile
+    image: agent-ros-bridge:latest
+    container_name: agent-ros-bridge
     restart: unless-stopped
     ports:
       - "8765:8765"    # WebSocket
@@ -17,103 +14,15 @@ services:
       - "9999:9999"    # TCP
       - "9090:9090"    # Metrics
     environment:
-      - OPENCLAW_LOG_LEVEL=INFO
+      - AGENT_ROS_BRIDGE_LOG_LEVEL=INFO
       - ROS_DOMAIN_ID=0
     volumes:
       - ./config:/app/config:ro
       - ./logs:/app/logs
     networks:
-      - openclaw-network
-    command: ["python", "-m", "openclaw_ros_bridge.gateway_v2", "--config", "/app/config/gateway.yaml"]
-
-  # ==========================================
-  # OpenClaw Gateway - ROS2 Jazzy
-  # ==========================================
-  gateway-jazzy:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.jazzy
-    image: openclaw/ros-bridge:jazzy
-    container_name: openclaw-gateway-jazzy
-    restart: unless-stopped
-    ports:
-      - "8766:8765"    # WebSocket
-      - "50052:50051"  # gRPC
-      - "10000:9999"   # TCP
-    environment:
-      - OPENCLAW_LOG_LEVEL=INFO
-      - ROS_DOMAIN_ID=0
-    volumes:
-      - ./config:/app/config:ro
-      - ./logs:/app/logs
-    networks:
-      - openclaw-network
-    profiles:
-      - jazzy
-
-  # ==========================================
-  # Prometheus - Metrics Collection
-  # ==========================================
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: openclaw-prometheus
-    restart: unless-stopped
-    ports:
-      - "9091:9090"
-    volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    networks:
-      - openclaw-network
-    profiles:
-      - monitoring
-
-  # ==========================================
-  # Grafana - Metrics Visualization
-  # ==========================================
-  grafana:
-    image: grafana/grafana:latest
-    container_name: openclaw-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - openclaw-network
-    profiles:
-      - monitoring
-
-  # ==========================================
-  # MQTT Broker (Optional)
-  # ==========================================
-  mqtt:
-    image: eclipse-mosquitto:latest
-    container_name: openclaw-mqtt
-    restart: unless-stopped
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - mqtt-data:/mosquitto/data
-    networks:
-      - openclaw-network
-    profiles:
-      - mqtt
+      - agent-ros-bridge-network
+    command: ["agent-ros-bridge", "--config", "/app/config/bridge.yaml"]
 
 networks:
-  openclaw-network:
+  agent-ros-bridge-network:
     driver: bridge
-
-volumes:
-  prometheus-data:
-  grafana-data:
-  mqtt-data:

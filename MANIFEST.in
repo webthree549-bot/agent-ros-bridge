@@ -7,8 +7,8 @@ include SECURITY.md
 include Makefile
 include .env.example
 
-recursive-include openclaw_ros_bridge *.py
-recursive-include openclaw_ros_bridge py.typed
+recursive-include agent_ros_bridge *.py
+recursive-include agent_ros_bridge py.typed
 recursive-include tests *.py
 recursive-include docs *.md *.rst *.yml *.yaml
 recursive-include config *.yaml *.yml
