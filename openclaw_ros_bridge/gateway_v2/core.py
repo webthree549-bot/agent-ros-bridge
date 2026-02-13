@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""OpenClaw Gateway - Universal Robot Gateway
+"""Agent ROS Bridge - Universal ROS Bridge
 
 The next-generation architecture for robot-AI connectivity.
 Multi-protocol, multi-robot, cloud-native.
@@ -19,7 +19,7 @@ from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("openclaw_gateway")
+logger = logging.getLogger("agent_ros_bridge")
 
 
 # =============================================================================
@@ -330,8 +330,8 @@ class Plugin(ABC):
     version: str = "0.0.1"
     
     @abstractmethod
-    async def initialize(self, gateway: OpenClawGateway) -> None:
-        """Initialize plugin with gateway reference"""
+    async def initialize(self, bridge: Bridge) -> None:
+        """Initialize plugin with bridge reference"""
         pass
     
     @abstractmethod
@@ -349,19 +349,19 @@ class PluginManager:
     
     def __init__(self):
         self.plugins: Dict[str, Plugin] = {}
-        self.gateway: Optional[OpenClawGateway] = None
+        self.bridge: Optional[Bridge] = None
     
-    def set_gateway(self, gateway: OpenClawGateway) -> None:
-        """Set gateway reference"""
-        self.gateway = gateway
+    def set_bridge(self, bridge: Bridge) -> None:
+        """Set bridge reference"""
+        self.bridge = bridge
     
     async def load_plugin(self, plugin: Plugin) -> None:
         """Load and initialize a plugin"""
-        if self.gateway is None:
-            raise RuntimeError("Gateway not set")
+        if self.bridge is None:
+            raise RuntimeError("Bridge not set")
         
         self.plugins[plugin.name] = plugin
-        await plugin.initialize(self.gateway)
+        await plugin.initialize(self.bridge)
         logger.info(f"Loaded plugin: {plugin.name} v{plugin.version}")
     
     async def unload_plugin(self, name: str) -> None:
@@ -387,8 +387,8 @@ class PluginManager:
 # Main Gateway
 # =============================================================================
 
-class OpenClawGateway:
-    """Universal robot gateway - main entry point"""
+class Bridge:
+    """Agent ROS Bridge - main entry point"""
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}

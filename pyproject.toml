@@ -3,20 +3,21 @@ requires = ["hatchling>=1.18.0", "hatch-vcs>=0.3.0"]
 build-backend = "hatchling.build"
 
 [project]
-name = "openclaw-ros-bridge"
-description = "Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems"
+name = "agent-ros-bridge"
+description = "Agent ROS Bridge - Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 authors = [
-    {name = "OpenClaw ROS Team", email = "dev@openclaw-ros.org"},
+    {name = "Agent ROS Bridge Team", email = "dev@agent-ros-bridge.org"},
 ]
 keywords = [
     "ros",
     "ros2",
     "robotics",
     "ai",
-    "openclaw",
+    "agent",
+    "bridge",
     "gateway",
     "iot",
     "automation",
@@ -51,7 +52,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Transport protocols
 transports = [
     "websockets>=11.0",
     "grpcio>=1.56.0",
@@ -59,22 +59,18 @@ transports = [
     "paho-mqtt>=1.6.0",
 ]
 
-# ROS connectors
 ros2 = [
     "rclpy>=3.3.0",
 ]
 
-# Industrial connectors
 industrial = [
     "pymodbus>=3.5.0",
 ]
 
-# Drone connectors
 drones = [
     "pymavlink>=2.4.30",
 ]
 
-# Development tools
 dev = [
     "black>=23.7.0",
     "ruff>=0.0.280",
@@ -84,7 +80,6 @@ dev = [
     "commitizen>=3.6.0",
 ]
 
-# Testing
 test = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
@@ -97,7 +92,6 @@ test = [
     "aioresponses>=0.7.4",
 ]
 
-# Documentation
 docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.1.0",
@@ -107,37 +101,34 @@ docs = [
     "mkdocs-section-index>=0.3.0",
 ]
 
-# Security
 security = [
     "bandit[toml]>=1.7.5",
     "safety>=2.3.0",
 ]
 
-# All extras
 all = [
-    "openclaw-ros-bridge[transports,ros2,industrial,drones,dev,test,docs,security]",
+    "agent-ros-bridge[transports,ros2,industrial,drones,dev,test,docs,security]",
 ]
 
 [project.urls]
-Homepage = "https://github.com/webthree549-bot/openclaw-ros-bridge"
-Documentation = "https://openclaw-ros-bridge.readthedocs.io"
-Repository = "https://github.com/webthree549-bot/openclaw-ros-bridge"
-Issues = "https://github.com/webthree549-bot/openclaw-ros-bridge/issues"
-Changelog = "https://github.com/webthree549-bot/openclaw-ros-bridge/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/webthree549-bot/agent-ros-bridge"
+Documentation = "https://agent-ros-bridge.readthedocs.io"
+Repository = "https://github.com/webthree549-bot/agent-ros-bridge"
+Issues = "https://github.com/webthree549-bot/agent-ros-bridge/issues"
+Changelog = "https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CHANGELOG.md"
 
 [project.scripts]
-openclaw-gateway = "openclaw_ros_bridge.gateway_v2.__main__:main"
-openclaw-ros-bridge = "openclaw_ros_bridge.gateway_v2.__main__:main"
+agent-ros-bridge = "agent_ros_bridge.gateway_v2.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "openclaw_ros_bridge/_version.py"
+version-file = "agent_ros_bridge/_version.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/openclaw_ros_bridge",
+    "/agent_ros_bridge",
     "/tests",
     "/docs",
     "/scripts",
@@ -150,18 +141,14 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["openclaw_ros_bridge"]
+packages = ["agent_ros_bridge"]
 
-# ==========================================
-# Black - Code formatter
-# ==========================================
 [tool.black]
 line-length = 100
 target-version = ["py38", "py39", "py310", "py311", "py312"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
   \.eggs
   | \.git
   | \.hg
@@ -174,9 +161,6 @@ extend-exclude = '''
 )/
 '''
 
-# ==========================================
-# isort - Import sorting
-# ==========================================
 [tool.isort]
 profile = "black"
 line_length = 100
@@ -186,33 +170,30 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
-known_first_party = ["openclaw_ros_bridge"]
+known_first_party = ["agent_ros_bridge"]
 
-# ==========================================
-# Ruff - Fast Python linter
-# ==========================================
 [tool.ruff]
 target-version = "py38"
 line-length = 100
 select = [
-    "E",   # pycodestyle errors
-    "F",   # Pyflakes
-    "W",   # pycodestyle warnings
-    "I",   # isort
-    "N",   # pep8-naming
-    "D",   # pydocstyle
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "SIM", # flake8-simplify
-    "ARG", # flake8-unused-arguments
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "D",
+    "UP",
+    "B",
+    "C4",
+    "SIM",
+    "ARG",
 ]
 ignore = [
-    "D100",  # Missing docstring in public module
-    "D104",  # Missing docstring in public package
-    "D107",  # Missing docstring in __init__
-    "D203",  # 1 blank line required before class docstring (conflicts with D211)
-    "D213",  # Multi-line docstring summary should start at the second line
+    "D100",
+    "D104",
+    "D107",
+    "D203",
+    "D213",
 ]
 exclude = [
     ".git",
@@ -229,11 +210,8 @@ convention = "google"
 
 [tool.ruff.per-file-ignores]
 "tests/*" = ["D", "ARG"]
-"**/__init__.py" = ["F401"]  # Unused imports in __init__.py
+"**/__init__.py" = ["F401"]
 
-# ==========================================
-# MyPy - Type checking
-# ==========================================
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
@@ -249,9 +227,6 @@ pretty = true
 module = "tests.*"
 disallow_untyped_defs = false
 
-# ==========================================
-# Pytest - Testing
-# ==========================================
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
@@ -277,16 +252,13 @@ filterwarnings = [
 ]
 asyncio_mode = "auto"
 
-# ==========================================
-# Coverage - Test coverage
-# ==========================================
 [tool.coverage.run]
-source = ["openclaw_ros_bridge"]
+source = ["agent_ros_bridge"]
 branch = true
 omit = [
     "*/tests/*",
     "*/test_*",
-    "openclaw_ros_bridge/_version.py",
+    "agent_ros_bridge/_version.py",
 ]
 
 [tool.coverage.report]
@@ -305,21 +277,15 @@ skip_covered = false
 [tool.coverage.html]
 directory = "htmlcov"
 
-# ==========================================
-# Bandit - Security linter
-# ==========================================
 [tool.bandit]
-skips = ["B101"]  # Skip assert_used warnings in tests
+skips = ["B101"]
 exclude_dirs = ["tests"]
 
-# ==========================================
-# Commitizen - Commit message format
-# ==========================================
 [tool.commitizen]
 name = "cz_conventional_commits"
 version = "1.0.0"
 version_files = [
-    "openclaw_ros_bridge/__init__.py:__version__",
+    "agent_ros_bridge/__init__.py:__version__",
     "pyproject.toml:version",
 ]
 style = [

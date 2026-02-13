@@ -1,21 +1,17 @@
 ---
-name: openclaw-ros-bridge
+name: agent-ros-bridge
 version: 2.0.0
-description: Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems.
-author: OpenClaw ROS Team
-homepage: https://github.com/webthree549-bot/openclaw-ros-bridge
-repository: https://github.com/webthree549-bot/openclaw-ros-bridge.git
+description: Agent ROS Bridge - Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
+author: Agent ROS Bridge Team
+homepage: https://github.com/webthree549-bot/agent-ros-bridge
+repository: https://github.com/webthree549-bot/agent-ros-bridge.git
 license: MIT
 metadata:
   {
     "openclaw":
       {
         "emoji": "🤖",
-        "requires": 
-          {
-            "bins": ["docker", "python3"],
-            "python": ">=3.8",
-          },
+        "requires": { "bins": ["docker", "python3"] },
         "install":
           [
             {
@@ -26,54 +22,31 @@ metadata:
             },
             {
               "id": "python3",
-              "kind": "manual", 
+              "kind": "manual",
               "label": "Python 3.8+",
               "instruction": "Install Python 3.8 or higher from https://python.org",
             },
-            {
-              "id": "install",
-              "kind": "script",
-              "label": "Install Skill",
-              "command": "./install.sh",
-            },
           ],
         "category": "robotics",
-        "tags": 
-          [
-            "ros",
-            "ros2", 
-            "robotics",
-            "iot",
-            "automation",
-            "gateway",
-            "embodied-intelligence",
-            "webhook",
-            "grpc",
-            "mqtt"
-          ],
-        "commands":
-          {
-            "start": "openclaw-gateway --config ./config/gateway.yaml",
-            "demo": "openclaw-gateway --demo",
-            "docker": "docker-compose up -d",
-            "test": "./scripts/run_tests.sh",
-          },
+        "tags": ["ros", "ros2", "robotics", "iot", "automation", "bridge", "embodied-intelligence"],
       },
   }
 ---
 
-# 🤖 OpenClaw ROS Bridge
+# 🤖 Agent ROS Bridge
 
-**Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems.**
+**Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.**
 
-[![CI](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml)
-[![Release](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/release.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/release.yml)
-[![PyPI](https://img.shields.io/pypi/v/openclaw-ros-bridge.svg)](https://pypi.org/project/openclaw-ros-bridge/)
+[![CI](https://github.com/webthree549-bot/agent-ros-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/webthree549-bot/agent-ros-bridge/actions/workflows/ci.yml)
+[![Release](https://github.com/webthree549-bot/agent-ros-bridge/actions/workflows/release.yml/badge.svg)](https://github.com/webthree549-bot/agent-ros-bridge/actions/workflows/release.yml)
+[![PyPI](https://img.shields.io/pypi/v/agent-ros-bridge.svg)](https://pypi.org/project/agent-ros-bridge/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+---
 
 ## What It Does
 
-This skill provides the **infrastructure** for OpenClaw to communicate with ROS-based systems:
+This skill provides the **infrastructure** for AI agents to communicate with ROS-based systems:
 
 - **Generic ROS communication** - Send/receive messages to any ROS topic
 - **Hardware abstraction** - Unified interface for sensors and actuators
@@ -85,11 +58,10 @@ This skill provides the **infrastructure** for OpenClaw to communicate with ROS-
 
 ```bash
 # Via ClawHub
-openclaw skills add openclaw-ros-bridge
+openclaw skills add agent-ros-bridge
 
 # Or manually
-git clone https://github.com/webthree549-bot/openclaw-ros-bridge.git
-cd openclaw-ros-bridge
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
 ./install.sh
 ```
 
@@ -99,12 +71,12 @@ The bridge is **application-agnostic**. It provides the communication infrastruc
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    OpenClaw AI Agent                        │
+│                    AI Agent                                 │
 └──────────────────┬──────────────────────────────────────────┘
                    │ WebSocket/gRPC/MQTT
                    ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              OpenClaw ROS Bridge (Generic)                  │
+│              Agent ROS Bridge (Generic)                     │
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │  TCP Server - Core Communication Layer             │   │
 │  │  • ping, get_status, list_handlers (built-in)      │   │
@@ -132,7 +104,7 @@ The bridge is **application-agnostic**. It provides the communication infrastruc
 
 ## Quick Start
 
-### 1. Start ROS Bridge Container
+### 1. Start Bridge Container
 
 ```bash
 # Start Docker container with ROS2 Jazzy
@@ -148,7 +120,7 @@ The bridge is **application-agnostic**. It provides the communication infrastruc
 
 ```bash
 # Start the application-agnostic bridge
-./scripts/start_openclaw_server.sh
+./scripts/start_bridge.sh
 
 # Test connection
 python3 -c "
@@ -164,7 +136,7 @@ print(json.loads(s.recv(4096).decode()))
 
 ```bash
 # Run the greenhouse demo (application built on the bridge)
-./demo/greenhouse/scripts/demo_openclaw.sh
+./demo/greenhouse/scripts/demo.sh
 
 # Or run greenhouse demo in mock mode (no ROS/hardware required)
 export MOCK_MODE=true
@@ -178,7 +150,7 @@ The generic bridge provides these built-in commands:
 | Command | Description |
 |---------|-------------|
 | `ping` | Health check |
-| `get_status` | Get ROS bridge status and registered handlers |
+| `get_status` | Get bridge status and registered handlers |
 | `list_handlers` | List available command handlers |
 
 Applications register additional handlers. See `demo/greenhouse/` for an example.
@@ -213,19 +185,19 @@ docker ps | grep ros
 
 ```bash
 # Greenhouse demo (agricultural robotics)
-./demo/greenhouse/scripts/demo_openclaw.sh
+./demo/greenhouse/scripts/demo.sh
 ./demo/greenhouse/scripts/run_demo.sh --mock
 
 # Control greenhouse manually
-./demo/greenhouse/scripts/gh_control.sh status
-./demo/greenhouse/scripts/gh_control.sh fan on
-./demo/greenhouse/scripts/gh_control.sh valve open
+./demo/greenhouse/scripts/control.sh status
+./demo/greenhouse/scripts/control.sh fan on
+./demo/greenhouse/scripts/control.sh valve open
 ```
 
 ### Development
 
 ```bash
-cd <path-to-openclaw-ros-bridge>
+cd <path-to-agent-ros-bridge>
 
 # Build the project
 ./scripts/build.sh
@@ -235,9 +207,9 @@ cd <path-to-openclaw-ros-bridge>
 
 # Check version detection
 python3 -c "
-from openclaw_ros_bridge import version_manager
+from agent_ros_bridge import version_manager
 print(f'ROS: {version_manager.ROS_TYPE} {version_manager.ROS_DISTRO}')
-print(f'OpenClaw: {version_manager.OC_VER}')
+print(f'Bridge: {version_manager.VERSION}')
 "
 ```
 
@@ -250,9 +222,6 @@ print(f'OpenClaw: {version_manager.OC_VER}')
 export ROS_DISTRO=jazzy          # humble, jazzy, noetic
 export ROS_TYPE=ros2             # ros1, ros2
 
-# OpenClaw Version
-export OPENCLAW_VERSION=v2       # v1, v2
-
 # Operation Mode
 export MOCK_MODE=true            # true = simulation, false = real hardware
 export HAL_HARDWARE=auto         # auto, dht22, bme280, robotiq_2f_85, etc.
@@ -262,7 +231,7 @@ export HAL_HARDWARE=auto         # auto, dht22, bme280, robotiq_2f_85, etc.
 
 All configs are in `config/`:
 - `ros2_config.yaml` - ROS2 Humble/Jazzy settings
-- `openclaw_config.yaml` - TCP ports, timeouts
+- `bridge_config.yaml` - TCP ports, timeouts
 - `hal_config.yaml` - Hardware abstraction settings
 - `fault_config.yaml` - Recovery policies
 
@@ -274,8 +243,8 @@ To build your own application on the bridge:
 
 ```python
 # my_app/my_plugin.py
-from openclaw_ros_bridge.communication.openclaw_tcp_server import openclaw_server
-from openclaw_ros_bridge.hal import sensor_hal, actuator_hal
+from agent_ros_bridge.communication.tcp_server import bridge_server
+from agent_ros_bridge.hal import sensor_hal, actuator_hal
 
 class MyRobotPlugin:
     def register(self, server):
@@ -298,18 +267,18 @@ class MyRobotPlugin:
 
 ```python
 # my_app/my_server.py
-from openclaw_ros_bridge.communication.openclaw_tcp_server import openclaw_server
+from agent_ros_bridge.communication.tcp_server import bridge_server
 from my_app.my_plugin import MyRobotPlugin
 
 # Initialize plugin
 plugin = MyRobotPlugin()
-plugin.register(openclaw_server)
+plugin.register(bridge_server)
 
 # Start server
-openclaw_server.start()
+bridge_server.start()
 ```
 
-### 3. Use from OpenClaw
+### 3. Use from AI Agent
 
 ```python
 # Core commands (always available)
@@ -330,7 +299,7 @@ See `demo/greenhouse/` for a complete working example.
 
 ```bash
 export MOCK_MODE=true
-./scripts/start_openclaw_server.sh
+./scripts/start_bridge.sh
 
 # Or run greenhouse demo in mock mode
 ./demo/greenhouse/scripts/run_demo.sh --mock
@@ -339,7 +308,7 @@ export MOCK_MODE=true
 ### Workflow 2: Read Sensor Data
 
 ```python
-from openclaw_ros_bridge import sensor_hal, ros2_comm
+from agent_ros_bridge import sensor_hal, ros2_comm
 
 # Initialize
 sensor_hal.init_hardware()
@@ -352,7 +321,7 @@ print(f"Temp: {data['temperature']}°C, Humidity: {data['humidity']}%")
 ### Workflow 3: Control Actuators
 
 ```python
-from openclaw_ros_bridge import actuator_hal
+from agent_ros_bridge import actuator_hal
 
 # Initialize
 actuator_hal.init_hardware()
@@ -367,7 +336,7 @@ actuator_hal.safe_state()
 ## Docker Deployment
 
 ```bash
-cd <path-to-openclaw-ros-bridge>
+cd <path-to-agent-ros-bridge>
 
 # Build images
 ./scripts/docker_build.sh
@@ -391,10 +360,10 @@ docker-compose -f docker/docker-compose.yml down
 docker info
 
 # Restart container
-docker restart ros2-jazzy-bridge
+docker restart agent-ros-bridge
 
 # Check logs
-docker logs ros2-jazzy-bridge
+docker logs agent-ros-bridge
 ```
 
 ### ROS Topics Not Showing
@@ -424,27 +393,27 @@ sudo dseditgroup -o edit -a $USER -t user docker
 ## Project Structure
 
 ```
-openclaw-ros-bridge/
-├── openclaw_ros_bridge/          # Core bridge (application-agnostic)
-│   ├── communication/            # TCP server, ROS communicators
-│   │   └── openclaw_tcp_server.py  # Generic TCP server
-│   ├── hal/                      # Hardware abstraction layer
-│   ├── ros1/                     # ROS1 support
-│   ├── ros2/                     # ROS2 support
+agent-ros-bridge/
+├── agent_ros_bridge/               # Core bridge (application-agnostic)
+│   ├── communication/              # TCP server, ROS communicators
+│   │   └── tcp_server.py           # Generic TCP server
+│   ├── hal/                        # Hardware abstraction layer
+│   ├── ros1/                       # ROS1 support
+│   ├── ros2/                       # ROS2 support
 │   └── ...
-├── demo/                         # Application examples
-│   └── greenhouse/               # Greenhouse demo (application)
-│       ├── greenhouse_plugin.py  # Plugin implementation
-│       ├── greenhouse_server.py  # Server launcher
-│       ├── scripts/              # Demo scripts
-│       └── README.md             # Demo documentation
-├── scripts/                      # Core bridge scripts
-│   ├── docker_start.sh           # Container management
-│   ├── start_openclaw_server.sh  # Generic server launcher
+├── demo/                           # Application examples
+│   └── greenhouse/                 # Greenhouse demo (application)
+│       ├── greenhouse_plugin.py    # Plugin implementation
+│       ├── greenhouse_server.py    # Server launcher
+│       ├── scripts/                # Demo scripts
+│       └── README.md               # Demo documentation
+├── scripts/                        # Core bridge scripts
+│   ├── docker_start.sh             # Container management
+│   ├── start_bridge.sh             # Generic server launcher
 │   └── ...
-├── config/                       # Configuration files
-├── docs/                         # Documentation
-└── README.md                     # Project readme
+├── config/                         # Configuration files
+├── docs/                           # Documentation
+└── README.md                       # Project readme
 ```
 
 ## Documentation
@@ -469,7 +438,20 @@ openclaw-ros-bridge/
 
 ## Links
 
-- **GitHub**: https://github.com/webthree549-bot/openclaw-ros-bridge
-- **Documentation**: https://openclaw-ros-bridge.readthedocs.io
-- **PyPI**: https://pypi.org/project/openclaw-ros-bridge/
-- **Issues**: https://github.com/webthree549-bot/openclaw-ros-bridge/issues
+- **Documentation**: https://agent-ros-bridge.readthedocs.io
+- **GitHub**: https://github.com/webthree549-bot/agent-ros-bridge
+- **PyPI**: https://pypi.org/project/agent-ros-bridge/
+- **Docker Hub**: https://hub.docker.com/r/agent-ros-bridge/agent-ros-bridge
+- **Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
+
+## License
+
+MIT License - See [LICENSE](https://github.com/webthree549-bot/agent-ros-bridge/blob/main/LICENSE)
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CONTRIBUTING.md)
+
+---
+
+**Made with ❤️ by the Agent ROS Bridge Team**
