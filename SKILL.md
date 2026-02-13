@@ -1,38 +1,134 @@
 ---
 name: openclaw-ros-bridge
+version: 2.0.0
 description: Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems.
+author: OpenClaw ROS Team
 homepage: https://github.com/webthree549-bot/openclaw-ros-bridge
+repository: https://github.com/webthree549-bot/openclaw-ros-bridge.git
+license: MIT
 metadata:
   {
     "openclaw":
       {
         "emoji": "🤖",
-        "requires": { "bins": ["docker"] },
+        "requires": 
+          {
+            "bins": ["docker", "python3"],
+            "python": ">=3.8",
+          },
         "install":
           [
             {
               "id": "docker",
               "kind": "manual",
-              "label": "Docker Desktop (macOS)",
+              "label": "Docker Desktop",
               "instruction": "Install Docker Desktop from https://www.docker.com/products/docker-desktop",
             },
+            {
+              "id": "python3",
+              "kind": "manual", 
+              "label": "Python 3.8+",
+              "instruction": "Install Python 3.8 or higher from https://python.org",
+            },
+            {
+              "id": "install",
+              "kind": "script",
+              "label": "Install Skill",
+              "command": "./install.sh",
+            },
           ],
+        "category": "robotics",
+        "tags": 
+          [
+            "ros",
+            "ros2", 
+            "robotics",
+            "iot",
+            "automation",
+            "gateway",
+            "embodied-intelligence",
+            "webhook",
+            "grpc",
+            "mqtt"
+          ],
+        "commands":
+          {
+            "start": "openclaw-gateway --config ./config/gateway.yaml",
+            "demo": "openclaw-gateway --demo",
+            "docker": "docker-compose up -d",
+            "test": "./scripts/run_tests.sh",
+          },
       },
   }
 ---
 
-# OpenClaw ROS Bridge
+# 🤖 OpenClaw ROS Bridge
 
-Connect OpenClaw AI agents to ROS1/ROS2 robots and embodied intelligence systems.
+**Universal ROS1/ROS2 bridge for OpenClaw AI agents to control robots and embodied intelligence systems.**
+
+[![CI](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml)
+[![Release](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/release.yml/badge.svg)](https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/release.yml)
+[![PyPI](https://img.shields.io/pypi/v/openclaw-ros-bridge.svg)](https://pypi.org/project/openclaw-ros-bridge/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 ## What It Does
 
-This skill enables OpenClaw to:
-- **Control robots** via ROS (Robot Operating System)
-- **Read sensor data** (temperature, cameras, LiDAR, etc.)
-- **Send actuator commands** (motors, arms, grippers)
-- **Run in simulation** (mock mode without physical hardware)
-- **Deploy to embedded systems** (Jetson, Raspberry Pi)
+This skill provides the **infrastructure** for OpenClaw to communicate with ROS-based systems:
+
+- **Generic ROS communication** - Send/receive messages to any ROS topic
+- **Hardware abstraction** - Unified interface for sensors and actuators
+- **Plugin architecture** - Build applications on top of the bridge
+- **Version agnostic** - Works with ROS1 (Noetic) and ROS2 (Humble/Jazzy)
+- **Simulation ready** - Mock mode for testing without hardware
+
+## Quick Install
+
+```bash
+# Via ClawHub
+openclaw skills add openclaw-ros-bridge
+
+# Or manually
+git clone https://github.com/webthree549-bot/openclaw-ros-bridge.git
+cd openclaw-ros-bridge
+./install.sh
+```
+
+## Architecture
+
+The bridge is **application-agnostic**. It provides the communication infrastructure, and applications (like greenhouse control, arm manipulation) are built as plugins on top.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    OpenClaw AI Agent                        │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ WebSocket/gRPC/MQTT
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│              OpenClaw ROS Bridge (Generic)                  │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  TCP Server - Core Communication Layer             │   │
+│  │  • ping, get_status, list_handlers (built-in)      │   │
+│  │  • Plugin-registered handlers (application)        │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Transport Layer                                     │   │
+│  │  • WebSocket (8765) • gRPC (50051) • MQTT • TCP    │   │
+│  └─────────────────────────────────────────────────────┘   │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│  │   ROS2      │    │   ROS1      │    │    HAL      │     │
+│  │Communicator │    │Communicator │    │(Hardware    │     │
+│  └─────────────┘    └─────────────┘    │ Abstraction)│     │
+│                                         └─────────────┘     │
+└──────────────────┬──────────────────────────────────────────┘
+                   │
+        ┌─────────┴─────────┐
+        ▼                   ▼
+┌──────────────┐    ┌──────────────┐
+│  Greenhouse  │    │  Arm Robot   │
+│    Demo      │    │   (Future)   │
+└──────────────┘    └──────────────┘
+     (Applications built on the bridge)
+```
 
 ## Quick Start
 
@@ -46,36 +142,46 @@ This skill enables OpenClaw to:
 ./scripts/docker_start.sh --jazzy    # ROS2 Jazzy (default)
 ./scripts/docker_start.sh --humble   # ROS2 Humble
 ./scripts/docker_start.sh --noetic   # ROS1 Noetic
-
-# Use the helper script (if available)
-ros2-jazzy-bridge
 ```
 
-### 2. Run a Demo (Mock Mode - No Hardware Required)
+### 2. Run Generic TCP Server
 
 ```bash
-cd <path-to-openclaw-ros-bridge>
+# Start the application-agnostic bridge
+./scripts/start_openclaw_server.sh
 
-# With mock mode (no ROS/hardware required)
-./scripts/run_demo.sh --greenhouse --mock
-
-# With local ROS installation
-./scripts/run_demo.sh --greenhouse
-
-# With Docker container (auto-detected)
-./scripts/run_demo.sh --greenhouse
+# Test connection
+python3 -c "
+import socket, json
+s = socket.socket()
+s.connect(('localhost', 9999))
+s.send(json.dumps({'action': 'ping'}).encode() + b'\n')
+print(json.loads(s.recv(4096).decode()))
+"
 ```
 
-### 3. Check ROS Topics
+### 3. Try a Demo Application
 
 ```bash
-# Inside Docker container
-ros2 topic list
-ros2 topic echo /greenhouse/sensors
+# Run the greenhouse demo (application built on the bridge)
+./demo/greenhouse/scripts/demo_openclaw.sh
 
-# Or from host using helper
-ros2-jazzy-bridge ros2 topic list
+# Or run greenhouse demo in mock mode (no ROS/hardware required)
+export MOCK_MODE=true
+./demo/greenhouse/scripts/run_demo.sh --mock
 ```
+
+## Core Commands
+
+The generic bridge provides these built-in commands:
+
+| Command | Description |
+|---------|-------------|
+| `ping` | Health check |
+| `get_status` | Get ROS bridge status and registered handlers |
+| `list_handlers` | List available command handlers |
+
+Applications register additional handlers. See `demo/greenhouse/` for an example.
 
 ## Available Commands
 
@@ -103,18 +209,17 @@ ros2-jazzy-bridge ros2 doctor
 docker ps | grep ros
 ```
 
-### Demos
+### Demos (Application Examples)
 
 ```bash
-cd <path-to-openclaw-ros-bridge>
+# Greenhouse demo (agricultural robotics)
+./demo/greenhouse/scripts/demo_openclaw.sh
+./demo/greenhouse/scripts/run_demo.sh --mock
 
-# Greenhouse (agricultural robotics)
-export MOCK_MODE=true
-./scripts/run_demo.sh --greenhouse
-
-# Arm manipulation (industrial robotics)
-export MOCK_MODE=true
-./scripts/run_demo.sh --arm
+# Control greenhouse manually
+./demo/greenhouse/scripts/gh_control.sh status
+./demo/greenhouse/scripts/gh_control.sh fan on
+./demo/greenhouse/scripts/gh_control.sh valve open
 ```
 
 ### Development
@@ -161,18 +266,74 @@ All configs are in `config/`:
 - `hal_config.yaml` - Hardware abstraction settings
 - `fault_config.yaml` - Recovery policies
 
+## Building Applications
+
+To build your own application on the bridge:
+
+### 1. Create a Plugin
+
+```python
+# my_app/my_plugin.py
+from openclaw_ros_bridge.communication.openclaw_tcp_server import openclaw_server
+from openclaw_ros_bridge.hal import sensor_hal, actuator_hal
+
+class MyRobotPlugin:
+    def register(self, server):
+        # Register custom commands
+        server.register_handler("move_arm", self.handle_move_arm)
+        server.register_handler("gripper", self.handle_gripper)
+    
+    def handle_move_arm(self, cmd):
+        x, y, z = cmd.get('x'), cmd.get('y'), cmd.get('z')
+        # Your control logic here
+        return {"status": "ok", "position": [x, y, z]}
+    
+    def handle_gripper(self, cmd):
+        state = cmd.get('state')  # 'open' or 'close'
+        # Your control logic here
+        return {"status": "ok", "state": state}
+```
+
+### 2. Launch with Plugin
+
+```python
+# my_app/my_server.py
+from openclaw_ros_bridge.communication.openclaw_tcp_server import openclaw_server
+from my_app.my_plugin import MyRobotPlugin
+
+# Initialize plugin
+plugin = MyRobotPlugin()
+plugin.register(openclaw_server)
+
+# Start server
+openclaw_server.start()
+```
+
+### 3. Use from OpenClaw
+
+```python
+# Core commands (always available)
+{"action": "ping"}
+{"action": "get_status"}  # Shows registered handlers
+{"action": "list_handlers"}
+
+# Your custom commands
+{"action": "move_arm", "x": 0.5, "y": 0.2, "z": 0.1}
+{"action": "gripper", "state": "close"}
+```
+
+See `demo/greenhouse/` for a complete working example.
+
 ## Common Workflows
 
 ### Workflow 1: Test Without Hardware (Mock Mode)
 
 ```bash
-cd <path-to-openclaw-ros-bridge>
 export MOCK_MODE=true
-export ROS_DISTRO=jazzy
-./scripts/run_demo.sh --greenhouse
+./scripts/start_openclaw_server.sh
 
-# In another terminal
-ros2-jazzy-bridge ros2 topic echo /greenhouse/sensors
+# Or run greenhouse demo in mock mode
+./demo/greenhouse/scripts/run_demo.sh --mock
 ```
 
 ### Workflow 2: Read Sensor Data
@@ -182,14 +343,10 @@ from openclaw_ros_bridge import sensor_hal, ros2_comm
 
 # Initialize
 sensor_hal.init_hardware()
-ros_comm = get_ros_communicator()
 
 # Read temperature/humidity
 data = sensor_hal.read("env")
 print(f"Temp: {data['temperature']}°C, Humidity: {data['humidity']}%")
-
-# Publish to ROS topic
-ros_comm.publish("/sensors/environment", SensorMsg, data)
 ```
 
 ### Workflow 3: Control Actuators
@@ -200,36 +357,11 @@ from openclaw_ros_bridge import actuator_hal
 # Initialize
 actuator_hal.init_hardware()
 
-# Turn on fan
-actuator_hal.write({"fan": True})
-
-# Open valve
-actuator_hal.write({"valve": True})
+# Turn on device
+actuator_hal.write({"motor": True})
 
 # Emergency stop
 actuator_hal.safe_state()
-```
-
-### Workflow 4: Create Custom Plugin
-
-```python
-# File: my_robot_plugin.py
-from openclaw_ros_bridge import BasePlugin
-
-class MyRobotPlugin(BasePlugin):
-    def run(self):
-        while self.is_running:
-            # Read sensors
-            sensor_data = self.sensor_hal.read("env")
-            
-            # Your AI logic here
-            if sensor_data['temperature'] > 30:
-                self.actuator_hal.write({"fan": True})
-            
-            # Send to OpenClaw
-            self.send_to_openclaw(sensor_data)
-            
-            sleep(1.0)
 ```
 
 ## Docker Deployment
@@ -283,128 +415,61 @@ ros2 topic type /greenhouse/sensors
 ```bash
 # Fix script permissions
 chmod +x scripts/*.sh
+chmod +x demo/greenhouse/scripts/*.sh
 
 # Fix Docker permissions (macOS)
 sudo dseditgroup -o edit -a $USER -t user docker
 ```
 
-## Architecture Overview
+## Project Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    OpenClaw AI Agent                        │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ TCP/IP JSON
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              OpenClaw ROS Bridge                            │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │   ROS2      │    │   ROS1      │    │    HAL      │     │
-│  │Communicator │    │Communicator │    │(Hardware    │     │
-│  └─────────────┘    └─────────────┘    │ Abstraction)│     │
-│                                         └─────────────┘     │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Physical Hardware                              │
-│     (Sensors, Motors, Arms, Cameras, etc.)                  │
-└─────────────────────────────────────────────────────────────┘
+openclaw-ros-bridge/
+├── openclaw_ros_bridge/          # Core bridge (application-agnostic)
+│   ├── communication/            # TCP server, ROS communicators
+│   │   └── openclaw_tcp_server.py  # Generic TCP server
+│   ├── hal/                      # Hardware abstraction layer
+│   ├── ros1/                     # ROS1 support
+│   ├── ros2/                     # ROS2 support
+│   └── ...
+├── demo/                         # Application examples
+│   └── greenhouse/               # Greenhouse demo (application)
+│       ├── greenhouse_plugin.py  # Plugin implementation
+│       ├── greenhouse_server.py  # Server launcher
+│       ├── scripts/              # Demo scripts
+│       └── README.md             # Demo documentation
+├── scripts/                      # Core bridge scripts
+│   ├── docker_start.sh           # Container management
+│   ├── start_openclaw_server.sh  # Generic server launcher
+│   └── ...
+├── config/                       # Configuration files
+├── docs/                         # Documentation
+└── README.md                     # Project readme
 ```
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `scripts/openclaw_assist_greenhouse.sh` | **🤖 Interactive AI-assisted control** |
-| `scripts/gh_control.sh` | **Simple command-line control** |
-| `scripts/demo_openclaw_greenhouse.sh` | **🌱 Automated demo** |
-| `scripts/docker_start.sh` | Start ROS Docker container |
-| `scripts/run_demo.sh` | Run ROS demos |
-| `scripts/start_openclaw_server.sh` | Start TCP server for OpenClaw |
-| `scripts/build.sh` | Build project |
-| `config/` | All configuration files |
-| `demo/` | Example plugins |
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
 | `README.md` | Project overview and quick start |
-| `docs/DEMO_OPENCLAW_GREENHOUSE.md` | **🌱 Run OpenClaw + Greenhouse Demo** |
-| `docs/MACOS_SETUP_GUIDE.md` | **Complete macOS setup from scratch** |
-| `docs/DOCKER_PORT_SETUP.md` | **Docker port mapping for macOS** |
 | `docs/ARCHITECTURE.md` | Detailed architecture and design patterns |
-| `docs/MACOS_DOCKER_DEPLOYMENT.md` | macOS + Docker networking details |
 | `docs/VERSION_AGNOSTIC.md` | Version-agnostic design principles |
-
-### 🌱 Quick Demo: OpenClaw Controls Greenhouse
-
-```bash
-# One command to run the complete demo
-./scripts/demo_openclaw_greenhouse.sh
-```
-
-This starts:
-- Docker container with ROS2
-- TCP server for OpenClaw connection
-- AI agent that reads sensors and controls actuators
-
-See `docs/DEMO_OPENCLAW_GREENHOUSE.md` for details.
-
-### 🤖 Interactive Control via OpenClaw AI
-
-Control the greenhouse through OpenClaw AI assistance:
-
-```bash
-# Start interactive assistant
-./scripts/openclaw_assist_greenhouse.sh
-
-# Or use quick commands
-./scripts/gh_control.sh status          # Check conditions
-./scripts/gh_control.sh fan on          # Turn on fan
-./scripts/gh_control.sh valve open      # Water plants
-./scripts/gh_control.sh auto            # AI autopilot mode
-```
-
-Then tell me what to do:
-- "Check the temperature"
-- "Turn on the fan"
-- "Water the plants"
-- "Run autopilot for 5 cycles"
-
-### macOS + Docker Port Setup
-
-For macOS users connecting OpenClaw to Docker:
-
-```bash
-# 1. Start container with port mapping
-./scripts/docker_start.sh --jazzy
-
-# 2. Start TCP server inside container
-./scripts/start_openclaw_server.sh
-
-# 3. OpenClaw on macOS connects to: localhost:9999
-```
-
-See `docs/DOCKER_PORT_SETUP.md` for detailed instructions.
-
-### Quick Start for macOS Users
-
-New to the project? Start here:
-
-```bash
-# 1. Read the complete setup guide
-cat docs/MACOS_SETUP_GUIDE.md
-
-# 2. Follow the 8-step setup process
-#    (Docker → OpenClaw → Build → Test → Run)
-```
+| `demo/greenhouse/README.md` | Greenhouse demo documentation |
 
 ## Tips
 
-1. **Always use mock mode for testing** - No hardware required
-2. **Check version detection first** - Run version_manager check
-3. **Use Docker for isolation** - Avoid system ROS conflicts
-4. **Read the logs** - Most issues are in `logs/` directory
-5. **Start simple** - Get greenhouse demo working first
+1. **The bridge is application-agnostic** - Greenhouse is just a demo
+2. **Use mock mode for testing** - No hardware required
+3. **Build applications as plugins** - See `demo/greenhouse/` for example
+4. **Check version detection first** - Run version_manager check
+5. **Use Docker for isolation** - Avoid system ROS conflicts
+6. **Read the logs** - Most issues are in `logs/` directory
+
+---
+
+## Links
+
+- **GitHub**: https://github.com/webthree549-bot/openclaw-ros-bridge
+- **Documentation**: https://openclaw-ros-bridge.readthedocs.io
+- **PyPI**: https://pypi.org/project/openclaw-ros-bridge/
+- **Issues**: https://github.com/webthree549-bot/openclaw-ros-bridge/issues

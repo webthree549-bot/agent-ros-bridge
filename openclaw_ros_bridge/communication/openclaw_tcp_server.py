@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""OpenClaw TCP Server - Allows OpenClaw on macOS to connect to ROS Bridge in Docker"""
+"""OpenClaw TCP Server - Generic ROS Bridge Server
+
+This is the core application-agnostic TCP server that allows OpenClaw
+AI agents to communicate with ROS systems. Application-specific logic
+should be implemented as plugins that register with this server.
+"""
 import socket
 import json
 import threading
@@ -8,12 +13,15 @@ import time
 from typing import Dict, Any, Optional, Callable
 from openclaw_ros_bridge.base.logger import get_logger
 from openclaw_ros_bridge.version.version_manager import version_manager
-from openclaw_ros_bridge.hal import sensor_hal, actuator_hal
 
 logger = get_logger(__name__)
 
 class OpenClawTCPServer:
-    """TCP Server that accepts connections from OpenClaw AI Agent"""
+    """Generic TCP Server for OpenClaw AI Agent communication
+    
+    Applications register command handlers to extend functionality.
+    The core server provides only basic connectivity and status.
+    """
     
     def __init__(self, host: str = "0.0.0.0", port: int = 9999):
         self.host = host
@@ -22,7 +30,26 @@ class OpenClawTCPServer:
         self.client_socket: Optional[socket.socket] = None
         self.running = False
         self.thread: Optional[threading.Thread] = None
-        self.command_handler: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None
+        
+        # Plugin-based command handlers
+        # Format: {"command_name": handler_function}
+        self.command_handlers: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {}
+    
+    def register_handler(self, command: str, handler: Callable[[Dict[str, Any]], Dict[str, Any]]) -> None:
+        """Register a command handler plugin
+        
+        Args:
+            command: The command name (e.g., 'read_sensor', 'move_arm')
+            handler: Function that takes a command dict and returns a response dict
+        """
+        self.command_handlers[command] = handler
+        logger.info(f"Registered handler for command: {command}")
+    
+    def unregister_handler(self, command: str) -> None:
+        """Unregister a command handler"""
+        if command in self.command_handlers:
+            del self.command_handlers[command]
+            logger.info(f"Unregistered handler for command: {command}")
     
     def start(self) -> bool:
         """Start TCP server to accept OpenClaw connections"""
@@ -113,35 +140,51 @@ class OpenClawTCPServer:
             self._send_error(str(e))
     
     def _execute_command(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute command from OpenClaw"""
+        """Execute command from OpenClaw
+        
+        Core commands (always available):
+        - ping: Health check
+        - get_status: Get ROS bridge status
+        - list_handlers: List registered command handlers
+        
+        Application commands (registered by plugins):
+        - Any command registered via register_handler()
+        """
         action = cmd.get('action')
         
-        if action == 'read_sensor':
-            sensor_type = cmd.get('sensor', 'env')
-            data = sensor_hal.read(sensor_type)
-            return {'status': 'ok', 'data': data}
-        
-        elif action == 'write_actuator':
-            actuator = cmd.get('actuator')
-            value = cmd.get('value')
-            if actuator:
-                actuator_hal.write({actuator: value})
-                return {'status': 'ok', 'message': f'{actuator} set to {value}'}
-            return {'status': 'error', 'message': 'Missing actuator'}
+        # Core commands
+        if action == 'ping':
+            return {'status': 'ok', 'pong': True}
         
         elif action == 'get_status':
             return {
                 'status': 'ok',
                 'ros': version_manager.ROS_DISTRO,
                 'mock': version_manager.MOCK_MODE,
-                'openclaw_version': version_manager.OC_VER
+                'openclaw_version': version_manager.OC_VER,
+                'registered_handlers': list(self.command_handlers.keys())
             }
         
-        elif action == 'ping':
-            return {'status': 'ok', 'pong': True}
+        elif action == 'list_handlers':
+            return {
+                'status': 'ok',
+                'handlers': list(self.command_handlers.keys())
+            }
+        
+        # Application-specific commands (delegated to plugins)
+        elif action in self.command_handlers:
+            try:
+                return self.command_handlers[action](cmd)
+            except Exception as e:
+                logger.error(f"Handler error for {action}: {e}")
+                return {'status': 'error', 'message': f'Handler error: {str(e)}'}
         
         else:
-            return {'status': 'error', 'message': f'Unknown action: {action}'}
+            return {
+                'status': 'error', 
+                'message': f'Unknown action: {action}',
+                'available_actions': ['ping', 'get_status', 'list_handlers'] + list(self.command_handlers.keys())
+            }
     
     def _send_error(self, message: str) -> None:
         """Send error response"""
@@ -152,11 +195,13 @@ class OpenClawTCPServer:
             except socket.error:
                 pass
 
+
 # Global server instance
 openclaw_server = OpenClawTCPServer()
 
+
 def main():
-    """Main entry point for running TCP server standalone"""
+    """Main entry point for running TCP server standalone (generic mode)"""
     import signal
     import sys
     
@@ -168,12 +213,10 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
     
-    # Initialize HAL
-    sensor_hal.init_hardware()
-    actuator_hal.init_hardware()
-    
-    # Start server
+    # Start server (generic mode - no application plugins)
     if openclaw_server.start():
+        logger.info("Generic TCP Server running (no application loaded)")
+        logger.info("Use 'list_handlers' to see available commands")
         logger.info("Press Ctrl+C to stop")
         try:
             while True:
@@ -183,6 +226,7 @@ def main():
     else:
         logger.error("Failed to start server")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

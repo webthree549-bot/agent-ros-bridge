@@ -1,69 +1,125 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Greenhouse Demo Plugin - Production-grade agricultural robotics demo"""
-import time
-from openclaw_ros_bridge.plugin_base.base_plugin import BasePlugin, PluginStatus
+"""Greenhouse Demo Plugin - Application-specific handlers for greenhouse control
 
-class GreenhousePlugin(BasePlugin):
-    """Greenhouse Demo Plugin"""
-    def __init__(self, config_path: str):
-        super().__init__(plugin_name="greenhouse", config_path=config_path)
-        self.current_env = {"temperature": 0.0, "humidity": 0.0}
-        self.current_actuators = {"fan": False, "valve": False}
+This is a DEMO application showing how to build on top of the generic
+OpenClaw ROS Bridge. It implements greenhouse-specific commands like:
+- read_sensor: Read temperature/humidity
+- control_fan: Turn fan on/off
+- control_valve: Open/close water valve
 
-    def init_plugin(self) -> bool:
-        """Plugin-specific initialization"""
-        if self.status != PluginStatus.INITIALIZED:
-            return False
+To use: Load this plugin with the TCP server to enable greenhouse commands.
+"""
+from typing import Dict, Any
+from openclaw_ros_bridge.base.logger import get_logger
+from openclaw_ros_bridge.hal import sensor_hal, actuator_hal
+
+logger = get_logger(__name__)
+
+
+class GreenhousePlugin:
+    """Greenhouse Demo Plugin - Registers greenhouse-specific commands"""
+    
+    def __init__(self):
+        self.name = "greenhouse"
+        self.version = "1.0.0"
+        self.description = "Demo greenhouse control plugin"
+    
+    def register(self, server) -> None:
+        """Register command handlers with the TCP server
+        
+        Args:
+            server: The OpenClawTCPServer instance
+        """
+        server.register_handler("read_sensor", self.handle_read_sensor)
+        server.register_handler("write_actuator", self.handle_write_actuator)
+        server.register_handler("get_greenhouse_status", self.handle_greenhouse_status)
+        
+        # Initialize HAL
+        sensor_hal.init_hardware()
+        actuator_hal.init_hardware()
+        
+        logger.info(f"Greenhouse plugin v{self.version} registered")
+    
+    def handle_read_sensor(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle read_sensor command
+        
+        Args:
+            cmd: Command dict with 'sensor' key (e.g., 'env' for environment)
+        
+        Returns:
+            Response dict with sensor data
+        """
+        sensor_type = cmd.get('sensor', 'env')
+        
         try:
-            self.logger.info("Greenhouse plugin initialized")
-            return True
+            data = sensor_hal.read(sensor_type)
+            return {'status': 'ok', 'data': data}
         except Exception as e:
-            self.logger.error(f"Greenhouse plugin init failed: {str(e)}")
-            self.set_status(PluginStatus.ERROR)
-            return False
+            logger.error(f"Sensor read failed: {e}")
+            return {'status': 'error', 'message': f'Sensor read failed: {str(e)}'}
+    
+    def handle_write_actuator(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle write_actuator command
+        
+        Args:
+            cmd: Command dict with 'actuator' and 'value' keys
+        
+        Returns:
+            Response dict confirming the action
+        """
+        actuator = cmd.get('actuator')
+        value = cmd.get('value')
+        
+        if not actuator:
+            return {'status': 'error', 'message': 'Missing actuator parameter'}
+        
+        try:
+            actuator_hal.write({actuator: value})
+            return {
+                'status': 'ok', 
+                'message': f'{actuator} set to {value}',
+                'actuator': actuator,
+                'value': value
+            }
+        except Exception as e:
+            logger.error(f"Actuator write failed: {e}")
+            return {'status': 'error', 'message': f'Actuator write failed: {str(e)}'}
+    
+    def handle_greenhouse_status(self, cmd: Dict[str, Any]) -> Dict[str, Any]:
+        """Get greenhouse-specific status
+        
+        Returns:
+            Response dict with greenhouse system status
+        """
+        try:
+            sensor_data = sensor_hal.read("env")
+            actuator_data = actuator_hal.read()
+            
+            return {
+                'status': 'ok',
+                'plugin': self.name,
+                'version': self.version,
+                'sensors': sensor_data,
+                'actuators': actuator_data
+            }
+        except Exception as e:
+            logger.error(f"Status read failed: {e}")
+            return {'status': 'error', 'message': f'Status read failed: {str(e)}'}
 
-    def run(self) -> None:
-        """Plugin main loop"""
-        if self.status != PluginStatus.INITIALIZED:
-            return
-        self.set_status(PluginStatus.RUNNING)
-        self.logger.info("Greenhouse plugin running")
-        while self.status == PluginStatus.RUNNING:
-            self._read_sensor_hal()
-            self._auto_control_actuators()
-            time.sleep(1.0)
 
-    def handle_ros_msg(self, ros_msg, topic_name: str) -> None:
-        """ROS message handler"""
-        pass
+# Global plugin instance
+greenhouse_plugin = GreenhousePlugin()
 
-    def handle_oc_msg(self, oc_json: str, msg_type: str) -> None:
-        """OpenClaw message handler"""
-        pass
 
-    def _read_sensor_hal(self) -> None:
-        """Read environmental sensor data"""
-        sensor_data = self.sensor_hal.read(sensor_type="env")
-        self.current_env["temperature"] = sensor_data.get("temperature", 0.0)
-        self.current_env["humidity"] = sensor_data.get("humidity", 0.0)
-
-    def _auto_control_actuators(self) -> None:
-        """Auto-control fan/valve based on thresholds"""
-        self.current_actuators["fan"] = self.current_env["temperature"] > 28.0
-        self.current_actuators["valve"] = self.current_env["humidity"] < 40.0
-
-def main():
-    """Main entry point"""
-    import os
-    import sys
-    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    config_path = os.path.join(PROJECT_ROOT, "demo/greenhouse/gh_config.yaml")
-    plugin = GreenhousePlugin(config_path=config_path)
-    if plugin.init_core() and plugin.init_plugin():
-        plugin.run()
-    else:
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()
+def register_with_server(server) -> None:
+    """Convenience function to register plugin with server
+    
+    Usage:
+        from openclaw_ros_bridge.communication.openclaw_tcp_server import openclaw_server
+        from demo.greenhouse.greenhouse_plugin import register_with_server
+        
+        register_with_server(openclaw_server)
+        openclaw_server.start()
+    """
+    greenhouse_plugin.register(server)

@@ -1,0 +1,31 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include CODE_OF_CONDUCT.md
+include SECURITY.md
+include Makefile
+include .env.example
+
+recursive-include openclaw_ros_bridge *.py
+recursive-include openclaw_ros_bridge py.typed
+recursive-include tests *.py
+recursive-include docs *.md *.rst *.yml *.yaml
+recursive-include config *.yaml *.yml
+recursive-include docker *.Dockerfile Dockerfile*
+recursive-include scripts *.sh *.py
+recursive-include demo *.py *.md
+
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude .github/dependabot.yml
+recursive-exclude .github *
+recursive-exclude .git *
+recursive-exclude *.egg-info *
+recursive-exclude __pycache__ *
+recursive-exclude .pytest_cache *
+recursive-exclude .mypy_cache *
+recursive-exclude htmlcov *
+recursive-exclude site *
+recursive-exclude dist *
+recursive-exclude build *

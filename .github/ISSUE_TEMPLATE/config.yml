@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/webthree549-bot/openclaw-ros-bridge/discussions
+    about: Ask questions and discuss with other community members
+  - name: Security Vulnerability
+    url: https://github.com/webthree549-bot/openclaw-ros-bridge/security/advisories/new
+    about: Report a security vulnerability (private)

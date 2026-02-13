@@ -15,7 +15,7 @@ success() { echo -e "${GREEN}[SUCCESS] $1${NC}"; }
 warn() { echo -e "${YELLOW}[WARN] $1${NC}"; }
 error() { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
 
-DEMO_TYPE="greenhouse"
+DEMO_TYPE=""
 MOCK_MODE="${MOCK_MODE:-false}"
 
 # Parse args
@@ -24,6 +24,22 @@ while [[ $# -gt 0 ]]; do
         --greenhouse) DEMO_TYPE="greenhouse"; shift ;;
         --arm) DEMO_TYPE="arm_manipulation"; shift ;;
         --mock) MOCK_MODE="true"; shift ;;
+        --list) DEMO_TYPE="list"; shift ;;
+        -h|--help) 
+            echo "Usage: ./scripts/run_demo.sh [OPTIONS]"
+            echo ""
+            echo "Options:"
+            echo "  --greenhouse    Run greenhouse demo (agricultural robotics)"
+            echo "  --arm           Run arm manipulation demo (industrial robotics)"
+            echo "  --mock          Use mock mode (no ROS/hardware required)"
+            echo "  --list          List available demos"
+            echo "  -h, --help      Show this help"
+            echo ""
+            echo "Examples:"
+            echo "  ./scripts/run_demo.sh --greenhouse --mock"
+            echo "  ./scripts/run_demo.sh --list"
+            exit 0
+            ;;
         *) shift ;;
     esac
 done
@@ -31,162 +47,52 @@ done
 export MOCK_MODE="$MOCK_MODE"
 
 log "============================================="
-log "OpenClaw-ROS Bridge Demo - v1.0.0"
+log "OpenClaw-ROS Bridge Demo Launcher"
 log "============================================="
-log "Demo: $DEMO_TYPE"
-log "Mock Mode: $MOCK_MODE"
-log ""
 
-# Detect environment
-detect_ros_environment() {
-    # Check if we're inside a Docker container
-    if [[ -f /.dockerenv ]]; then
-        echo "docker"
-        return
+# List available demos
+if [[ "$DEMO_TYPE" == "list" ]]; then
+    log "Available demos:"
+    log ""
+    log "  --greenhouse    Agricultural robotics (greenhouse control)"
+    log "                  Location: demo/greenhouse/"
+    log ""
+    if [[ -d "$PROJECT_ROOT/demo/arm_manipulation" ]]; then
+        log "  --arm           Industrial arm manipulation"
+        log "                  Location: demo/arm_manipulation/"
+        log ""
+    else
+        log "  --arm           Industrial arm manipulation (not yet implemented)"
+        log ""
     fi
-    
-    # Check for local ROS2 installation
-    if [[ -d "/opt/ros/humble" ]] || [[ -d "/opt/ros/jazzy" ]]; then
-        echo "local_ros2"
-        return
-    fi
-    
-    # Check for local ROS1 installation
-    if [[ -d "/opt/ros/noetic" ]]; then
-        echo "local_ros1"
-        return
-    fi
-    
-    # Check if ROS Docker container is running
-    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "ros"; then
-        echo "docker_running"
-        return
-    fi
-    
-    # Check mock mode
-    if [[ "$MOCK_MODE" == "true" ]]; then
-        echo "mock"
-        return
-    fi
-    
-    echo "none"
-}
-
-ROS_ENV=$(detect_ros_environment)
-
-# Run demo based on environment
-run_demo() {
-    local demo_name="$1"
-    
-    case "$ROS_ENV" in
-        "docker")
-            log "Running in Docker container..."
-            if [[ -f "/opt/ros/jazzy/setup.bash" ]] || [[ -f "/opt/ros/humble/setup.bash" ]]; then
-                # ROS2
-                source /opt/ros/*/setup.bash
-                if [[ -f "/app/install/setup.bash" ]]; then
-                    source /app/install/setup.bash
-                fi
-                ros2 launch openclaw_ros_bridge "${demo_name}_demo.launch.py" mock_mode:="$MOCK_MODE"
-            elif [[ -f "/opt/ros/noetic/setup.bash" ]]; then
-                # ROS1
-                source /opt/ros/noetic/setup.bash
-                roslaunch openclaw_ros_bridge "${demo_name}_demo.launch" mock_mode:="$MOCK_MODE"
-            fi
-            ;;
-            
-        "local_ros2")
-            log "Running with local ROS2..."
-            if [[ -f "$PROJECT_ROOT/install/setup.bash" ]]; then
-                source "$PROJECT_ROOT/install/setup.bash"
-            elif [[ -f "/opt/ros/jazzy/setup.bash" ]]; then
-                source /opt/ros/jazzy/setup.bash
-            elif [[ -f "/opt/ros/humble/setup.bash" ]]; then
-                source /opt/ros/humble/setup.bash
-            fi
-            ros2 launch openclaw_ros_bridge "${demo_name}_demo.launch.py" mock_mode:="$MOCK_MODE"
-            ;;
-            
-        "local_ros1")
-            log "Running with local ROS1..."
-            if [[ -f "$PROJECT_ROOT/catkin_ws/devel/setup.bash" ]]; then
-                source "$PROJECT_ROOT/catkin_ws/devel/setup.bash"
-            elif [[ -f "/opt/ros/noetic/setup.bash" ]]; then
-                source /opt/ros/noetic/setup.bash
-            fi
-            roslaunch openclaw_ros_bridge "${demo_name}_demo.launch" mock_mode:="$MOCK_MODE"
-            ;;
-            
-        "docker_running")
-            log "Running in Docker container..."
-            ROS_CONTAINER=$(docker ps --format '{{.Names}}' | grep "ros" | head -1)
-            log "Using container: $ROS_CONTAINER"
-            
-            # Check if container has the bridge code
-            if ! docker exec "$ROS_CONTAINER" test -d /app; then
-                warn "Bridge code not found in container"
-                warn "Mounting project directory..."
-                docker exec -v "$PROJECT_ROOT:/app" "$ROS_CONTAINER" bash -c "
-                    cd /app &&
-                    export MOCK_MODE=$MOCK_MODE &&
-                    if [[ -f /opt/ros/jazzy/setup.bash ]]; then
-                        source /opt/ros/jazzy/setup.bash &&
-                        ros2 launch openclaw_ros_bridge ${demo_name}_demo.launch.py mock_mode:=$MOCK_MODE
-                    elif [[ -f /opt/ros/humble/setup.bash ]]; then
-                        source /opt/ros/humble/setup.bash &&
-                        ros2 launch openclaw_ros_bridge ${demo_name}_demo.launch.py mock_mode:=$MOCK_MODE
-                    elif [[ -f /opt/ros/noetic/setup.bash ]]; then
-                        source /opt/ros/noetic/setup.bash &&
-                        roslaunch openclaw_ros_bridge ${demo_name}_demo.launch mock_mode:=$MOCK_MODE
-                    fi
-                "
-            else
-                docker exec "$ROS_CONTAINER" bash -c "
-                    cd /app &&
-                    export MOCK_MODE=$MOCK_MODE &&
-                    if [[ -f /opt/ros/jazzy/setup.bash ]]; then
-                        source /opt/ros/jazzy/setup.bash &&
-                        ros2 launch openclaw_ros_bridge ${demo_name}_demo.launch.py mock_mode:=$MOCK_MODE
-                    elif [[ -f /opt/ros/humble/setup.bash ]]; then
-                        source /opt/ros/humble/setup.bash &&
-                        ros2 launch openclaw_ros_bridge ${demo_name}_demo.launch.py mock_mode:=$MOCK_MODE
-                    elif [[ -f /opt/ros/noetic/setup.bash ]]; then
-                        source /opt/ros/noetic/setup.bash &&
-                        roslaunch openclaw_ros_bridge ${demo_name}_demo.launch mock_mode:=$MOCK_MODE
-                    fi
-                "
-            fi
-            ;;
-            
-        "mock")
-            log "Running in mock mode (no ROS required)..."
-            # Run Python directly without ROS
-            export PYTHONPATH="$PROJECT_ROOT:$PYTHONPATH"
-            python3 -c "
-import sys
-sys.path.insert(0, '$PROJECT_ROOT')
-from demo.${demo_name}.${demo_name}_plugin import main
-main()
-" || error "Mock mode requires Python dependencies. Run: pip3 install -r requirements.txt"
-            ;;
-            
-        "none")
-            error "No ROS installation detected.\nOptions:\n  1. Start Docker container: docker run -it --rm ros:jazzy-ros-base\n  2. Use mock mode: ./scripts/run_demo.sh --$demo_name --mock\n  3. Install ROS locally"
-            ;;
-    esac
-}
+    log "Use --mock flag to run without hardware/ROS"
+    exit 0
+fi
 
 # Validate demo type
-if [[ ! -f "launch/${DEMO_TYPE}_demo.launch.py" ]] && [[ ! -f "launch/${DEMO_TYPE}_demo.launch" ]]; then
-    error "Unknown demo: $DEMO_TYPE"
+if [[ -z "$DEMO_TYPE" ]]; then
+    error "No demo specified. Use --list to see available demos."
+fi
+
+# Check if demo exists
+DEMO_DIR="$PROJECT_ROOT/demo/$DEMO_TYPE"
+if [[ ! -d "$DEMO_DIR" ]]; then
+    error "Demo not found: $DEMO_TYPE"
     log "Available demos:"
-    log "  --greenhouse         Agricultural robotics"
-    log "  --arm                Industrial arm manipulation"
+    ls -1 "$PROJECT_ROOT/demo/" 2>/dev/null | while read d; do
+        log "  --$d"
+    done
     exit 1
 fi
 
 # Run the demo
-log "Starting demo..."
-run_demo "$DEMO_TYPE"
+log "Demo: $DEMO_TYPE"
+log "Mock Mode: $MOCK_MODE"
+log ""
 
-success "Demo completed!"
+if [[ -f "$DEMO_DIR/scripts/run_demo.sh" ]]; then
+    log "Delegating to demo script..."
+    exec "$DEMO_DIR/scripts/run_demo.sh" "$@"
+else
+    error "Demo script not found: $DEMO_DIR/scripts/run_demo.sh"
+fi

@@ -1,0 +1,192 @@
+# ClawHub Skill Manifest
+# This file defines the skill for the ClawHub marketplace
+
+id: openclaw-ros-bridge
+name: OpenClaw ROS Bridge
+version: 2.0.0
+author: OpenClaw ROS Team
+email: dev@openclaw-ros.org
+homepage: https://github.com/webthree549-bot/openclaw-ros-bridge
+license: MIT
+
+# Description
+description: |
+  Universal Robot Gateway - Multi-protocol, multi-robot, cloud-native 
+  connectivity platform for AI agents to control ROS-based robots and 
+  embodied intelligence systems.
+
+# Keywords for search
+keywords:
+  - ros
+  - ros2
+  - robotics
+  - robot
+  - gateway
+  - iot
+  - automation
+  - ai
+  - embodied-intelligence
+  - websocket
+  - grpc
+  - mqtt
+  - tcp
+
+# Categories
+categories:
+  - robotics
+  - iot
+  - automation
+
+# Emoji icon
+emoji: "🤖"
+
+# Requirements
+requirements:
+  bins:
+    - docker
+    - python3
+  python: ">=3.8"
+  platforms:
+    - linux
+    - darwin
+    - windows
+
+# Installation
+installation:
+  type: pypi
+  package: openclaw-ros-bridge
+  extras:
+    - all
+  
+  # Alternative Docker installation
+  docker:
+    image: ghcr.io/webthree549-bot/openclaw-ros-bridge
+    tag: latest
+    ports:
+      - 8765  # WebSocket
+      - 50051 # gRPC
+      - 9999  # TCP
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+
+# Commands exposed to users
+commands:
+  start:
+    description: Start the gateway
+    command: openclaw-gateway
+    args:
+      - --config
+      - ~/.config/openclaw-ros-bridge/gateway.yaml
+    
+  demo:
+    description: Start demo mode with greenhouse plugin
+    command: openclaw-gateway
+    args:
+      - --demo
+    
+  docker:
+    description: Start with Docker Compose
+    command: docker-compose
+    args:
+      - up
+      - -d
+    
+  status:
+    description: Check gateway status
+    command: curl
+    args:
+      - -s
+      - http://localhost:8765/health
+    
+  stop:
+    description: Stop the gateway
+    command: pkill
+    args:
+      - -f
+      - openclaw-gateway
+
+# Configuration schema
+config:
+  schema:
+    gateway:
+      type: object
+      properties:
+        name:
+          type: string
+          default: openclaw_gateway
+        log_level:
+          type: string
+          enum: [DEBUG, INFO, WARNING, ERROR]
+          default: INFO
+    
+    transports:
+      type: object
+      properties:
+        websocket:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: true
+            port:
+              type: integer
+              default: 8765
+        grpc:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+              default: true
+            port:
+              type: integer
+              default: 50051
+
+# Documentation links
+documentation:
+  readme: SKILL.md
+  changelog: CHANGELOG.md
+  license: LICENSE
+  homepage: https://openclaw-ros-bridge.readthedocs.io
+
+# Repository
+repository:
+  type: git
+  url: https://github.com/webthree549-bot/openclaw-ros-bridge.git
+
+# Support
+support:
+  issues: https://github.com/webthree549-bot/openclaw-ros-bridge/issues
+  discussions: https://github.com/webthree549-bot/openclaw-ros-bridge/discussions
+  email: dev@openclaw-ros.org
+
+# Screenshots / Demos
+media:
+  - type: image
+    url: https://raw.githubusercontent.com/webthree549-bot/openclaw-ros-bridge/main/docs/assets/architecture.png
+    description: Architecture Diagram
+  - type: video
+    url: https://www.youtube.com/watch?v=example
+    description: Demo Video
+
+# Badges
+badges:
+  - name: CI
+    image: https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml/badge.svg
+    url: https://github.com/webthree549-bot/openclaw-ros-bridge/actions/workflows/ci.yml
+  - name: PyPI
+    image: https://img.shields.io/pypi/v/openclaw-ros-bridge.svg
+    url: https://pypi.org/project/openclaw-ros-bridge/
+  - name: Docker
+    image: https://img.shields.io/docker/pulls/openclaw/ros-bridge.svg
+    url: https://hub.docker.com/r/openclaw/ros-bridge
+
+# Release information
+releases:
+  current: 2.0.0
+  changelog: https://github.com/webthree549-bot/openclaw-ros-bridge/blob/main/CHANGELOG.md
+
+# Maintenance
+maintenance:
+  active: true
+  status: stable

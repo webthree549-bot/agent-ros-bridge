@@ -1,0 +1,112 @@
+{
+  "name": "openclaw-ros-bridge",
+  "version": "2.0.0",
+  "description": "Universal Robot Gateway - Multi-protocol, multi-robot, cloud-native connectivity platform for AI agents to control ROS-based robots",
+  "author": "OpenClaw ROS Team",
+  "email": "dev@openclaw-ros.org",
+  "homepage": "https://github.com/webthree549-bot/openclaw-ros-bridge",
+  "license": "MIT",
+  "keywords": [
+    "ros",
+    "ros2",
+    "robotics",
+    "robot",
+    "gateway",
+    "iot",
+    "automation",
+    "ai",
+    "embodied-intelligence",
+    "websocket",
+    "grpc",
+    "mqtt"
+  ],
+  "categories": [
+    "robotics",
+    "iot",
+    "automation"
+  ],
+  "emoji": "🤖",
+  "requirements": {
+    "bins": ["docker", "python3"],
+    "python": ">=3.8",
+    "platforms": ["linux", "darwin", "windows"]
+  },
+  "installation": {
+    "type": "pypi",
+    "package": "openclaw-ros-bridge",
+    "extras": ["all"]
+  },
+  "docker": {
+    "image": "ghcr.io/webthree549-bot/openclaw-ros-bridge",
+    "tag": "latest",
+    "ports": [8765, 50051, 9999],
+    "volumes": [
+      "./config:/app/config",
+      "./logs:/app/logs"
+    ]
+  },
+  "commands": {
+    "start": {
+      "description": "Start the gateway",
+      "command": "openclaw-gateway",
+      "args": ["--config", "./config/gateway.yaml"]
+    },
+    "demo": {
+      "description": "Start demo mode with greenhouse plugin",
+      "command": "openclaw-gateway",
+      "args": ["--demo"]
+    },
+    "docker": {
+      "description": "Start with Docker",
+      "command": "docker-compose",
+      "args": ["up", "-d"]
+    },
+    "status": {
+      "description": "Check gateway status",
+      "command": "curl",
+      "args": ["-s", "http://localhost:8765/health"]
+    }
+  },
+  "config": {
+    "schema": {
+      "gateway": {
+        "name": {
+          "type": "string",
+          "default": "openclaw_gateway",
+          "description": "Gateway instance name"
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR"],
+          "default": "INFO"
+        }
+      },
+      "transports": {
+        "websocket": {
+          "enabled": {"type": "boolean", "default": true},
+          "port": {"type": "integer", "default": 8765}
+        },
+        "grpc": {
+          "enabled": {"type": "boolean", "default": true},
+          "port": {"type": "integer", "default": 50051}
+        }
+      }
+    }
+  },
+  "documentation": {
+    "readme": "SKILL.md",
+    "changelog": "CHANGELOG.md",
+    "license": "LICENSE"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webthree549-bot/openclaw-ros-bridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/webthree549-bot/openclaw-ros-bridge/issues"
+  },
+  "social": {
+    "github": "https://github.com/webthree549-bot/openclaw-ros-bridge",
+    "docs": "https://openclaw-ros-bridge.readthedocs.io"
+  }
+}
