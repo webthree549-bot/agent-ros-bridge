@@ -1,28 +1,12 @@
-# ROS
-.catkin_workspace
-.catkin_tools/
-
-# ROS1
-catkin_ws/build/
-catkin_ws/devel/
-catkin_ws/install/
-catkin_ws/log/
-*.rosinstall
-
-# ROS2
-build/
-install/
-log/
-build_*/
-install_*/
-log_*/
-setup_*.sh
-
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -39,46 +23,175 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual environments
-venv/
-.venv/
-ENV/
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
 env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# IDE
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
-# Logs
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
 logs/
 *.log
-*.log.*
+data/
+*.db
+*.sqlite
 
-# Test
-test_coverage/
+# Config (keep examples)
+config/*.yaml
+!config/*.example.yaml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker volumes
+prometheus-data/
+grafana-data/
+mqtt-data/
+
+# Model files
+*.pkl
+*.h5
+*.onnx
+*.pb
+
+# ROS
+.catkin_workspace
+.catkin_tools/
+build/
+devel/
+install/
+log/
+
+# Colcon
+build/
+install/
+log/
+
+# Ignore version file (auto-generated)
+openclaw_ros_bridge/_version.py
+
+# Ignore local config
+*.local.yaml
+*.local.yml
+*.local.json
+
+# Ignore test artifacts
 .pytest_cache/
-.benchmarks/
+.coverage
+htmlcov/
+.tox/
 
-# Docker
-docker/.dockerignore
-docker/build/
-*.dockerfile
-docker-compose.override.yml
+# Ignore node_modules if any
+node_modules/
 
-# Docs
-docs/_build/
-docs/api/_build/
+# Ignore compiled proto files
+*_pb2.py
+*_pb2_grpc.py
 
-# Embedded
-jetson_stats/
-rpi.gpio/
-
-# Config
-.env
+# Ignore local environment
 .env.local
-*.secrets.yaml
+.env.*.local
