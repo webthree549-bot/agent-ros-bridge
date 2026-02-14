@@ -46,6 +46,21 @@ from agent_ros_bridge.gateway_v2.config import (
     ConfigLoader,
 )
 
+# Fleet management
+try:
+    from agent_ros_bridge.fleet import (
+        FleetOrchestrator,
+        FleetRobot,
+        RobotCapability,
+        Task,
+        TaskStatus,
+        RobotStatus,
+        FleetMetrics,
+    )
+    FLEET_AVAILABLE = True
+except ImportError:
+    FLEET_AVAILABLE = False
+
 __all__ = [
     "Bridge",
     "Transport",
@@ -70,3 +85,14 @@ __all__ = [
     "PluginConfig",
     "ConfigLoader",
 ]
+
+if FLEET_AVAILABLE:
+    __all__.extend([
+        "FleetOrchestrator",
+        "FleetRobot",
+        "RobotCapability",
+        "Task",
+        "TaskStatus",
+        "RobotStatus",
+        "FleetMetrics",
+    ])
