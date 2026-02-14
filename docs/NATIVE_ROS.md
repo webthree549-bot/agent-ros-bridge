@@ -133,6 +133,87 @@ bridge:
           domain_id: 0
 ```
 
+## Dual ROS1/ROS2 Setup
+
+For environments with both ROS1 and ROS2 robots, run the dual bridge:
+
+### Prerequisites
+
+```bash
+# Install ros1_bridge (converts ROS1<->ROS2 messages)
+# On Ubuntu 20.04 with ROS1 Noetic + ROS2 Foxy:
+sudo apt install ros-foxy-ros1-bridge
+
+# On Ubuntu 22.04 with ROS1 Noetic + ROS2 Humble:
+# Build from source: https://github.com/ros2/ros1_bridge
+```
+
+### Running Dual Bridge
+
+**Terminal 1 - ROS1 Master:**
+```bash
+source /opt/ros/noetic/setup.bash
+roscore
+```
+
+**Terminal 2 - ROS1-ROS2 Bridge (optional, for topic bridging):**
+```bash
+source /opt/ros/noetic/setup.bash
+source /opt/ros/humble/setup.bash
+ros2 run ros1_bridge dynamic_bridge
+```
+
+**Terminal 3 - Agent Dual Bridge:**
+```bash
+# Source both ROS environments
+source /opt/ros/noetic/setup.bash
+source /opt/ros/humble/setup.bash
+
+# Run dual bridge
+python run_bridge_dual_ros.py
+```
+
+### Dual Bridge Configuration
+
+Or use YAML config for dual ROS:
+
+```yaml
+bridge:
+  name: "dual_ros_bridge"
+  
+  transports:
+    websocket:
+      port: 8765
+  
+  connectors:
+    ros:
+      auto_detect: false
+      endpoints:
+        - id: "legacy_arm_ros1"
+          ros_type: "ros1"
+          ros_distro: "noetic"
+          host: "localhost"
+          auto_discover: true
+          
+        - id: "mobile_base_ros2"
+          ros_type: "ros2"
+          ros_distro: "humble"
+          host: "localhost"
+          domain_id: 0
+          auto_discover: true
+          
+        - id: "sensor_array_ros2"
+          ros_type: "ros2"
+          ros_distro: "humble"
+          host: "192.168.1.100"
+          domain_id: 42
+```
+
+Run:
+```bash
+python run_bridge.py
+```
+
 ## Testing with Real Robot
 
 ### TurtleBot4 Example

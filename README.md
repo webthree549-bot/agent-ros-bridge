@@ -24,19 +24,24 @@ python demo/mock_bridge.py  # Simulated robot
 
 ### Native ROS (Recommended for Development)
 
-**Ubuntu with ROS1/ROS2 installed:**
+**Single ROS Version (auto-detect):**
 ```bash
 # One-line installer
 curl -sSL https://raw.githubusercontent.com/webthree549-bot/agent-ros-bridge/main/scripts/install-native.sh | bash
 
-# Or manual install
-git clone https://github.com/webthree549-bot/agent-ros-bridge.git
-cd agent-ros-bridge
-pip install -e ".[dev]"
-
 # Run with native ROS
 source /opt/ros/humble/setup.bash  # or noetic, jazzy
 python run_bridge.py
+```
+
+**Dual ROS1 + ROS2 (simultaneous):**
+```bash
+# Source both ROS environments
+source /opt/ros/noetic/setup.bash
+source /opt/ros/humble/setup.bash
+
+# Run dual bridge
+python run_bridge_dual_ros.py
 ```
 
 See [docs/NATIVE_ROS.md](docs/NATIVE_ROS.md) for detailed native installation.
@@ -83,6 +88,7 @@ agent-ros-bridge/
 - **Multi-Protocol**: WebSocket, gRPC, MQTT, TCP
 - **Multi-Robot**: Manage fleets of robots
 - **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
+- **Dual ROS**: Run ROS1 + ROS2 in the same bridge instance
 - **Remote ROS**: Connect to robots over the network
 - **Plugin System**: Build custom applications
 - **ROS Support**: ROS1 Noetic, ROS2 Humble/Jazzy/Iron
