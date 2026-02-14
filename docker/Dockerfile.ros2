@@ -2,10 +2,10 @@
 FROM ros:jazzy-ros-base
 
 # Install Python and dependencies
+# Note: rclpy is already included in ros:jazzy-ros-base
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
-    python3-rclpy \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
