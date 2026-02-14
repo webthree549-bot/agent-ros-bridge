@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent ROS Bridge - Robot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #3b82f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: background 0.3s;
+        }
+        
+        .status-indicator.connected {
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+        }
+        
+        .panel h2 {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .connection-panel input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .connection-panel input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn.disconnect {
+            background: #ef4444;
+        }
+        
+        .btn.disconnect:hover {
+            background: #dc2626;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .robot-card {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .robot-card.disconnected {
+            border-left-color: #ef4444;
+            opacity: 0.7;
+        }
+        
+        .robot-card h3 {
+            color: #60a5fa;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .robot-info {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .telemetry-card {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .telemetry-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+        
+        .telemetry-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        
+        .control-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        
+        .control-btn {
+            aspect-ratio: 1;
+            background: #334155;
+            border: none;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: #3b82f6;
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .log-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid #334155;
+            color: #94a3b8;
+        }
+        
+        .log-entry.sent {
+            color: #22c55e;
+        }
+        
+        .log-entry.received {
+            color: #60a5fa;
+        }
+        
+        .log-entry.error {
+            color: #ef4444;
+        }
+        
+        .log-time {
+            color: #64748b;
+            margin-right: 0.5rem;
+        }
+        
+        .topic-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .topic-item {
+            background: #0f172a;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>🤖 Agent ROS Bridge Dashboard</h1>
+        <div class="connection-status">
+            <div class="status-indicator" id="statusIndicator"></div>
+            <span id="statusText">Disconnected</span>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Left Panel: Connection & Robots -->
+        <div class="left-column">
+            <div class="panel connection-panel">
+                <h2>🔌 Connection</h2>
+                <input type="text" id="wsUrl" placeholder="WebSocket URL" value="ws://localhost:8766">
+                <input type="text" id="jwtToken" placeholder="JWT Token (optional)">
+                <button class="btn" id="connectBtn" onclick="toggleConnection()">Connect</button>
+            </div>
+            
+            <div class="panel">
+                <h2>🤖 Robots</h2>
+                <div id="robotList">
+                    <p style="color: #64748b; text-align: center;">No robots connected</p>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📡 ROS Topics</h2>
+                <div class="topic-list" id="topicList">
+                    <p style="color: #64748b; text-align: center;">No topics discovered</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Center Panel: Controls & Telemetry -->
+        <div class="center-column">
+            <div class="panel">
+                <h2>📊 Telemetry</h2>
+                <div class="telemetry-grid">
+                    <div class="telemetry-card">
+                        <div class="telemetry-value" id="tempValue">--</div>
+                        <div class="telemetry-label">Temperature (°C)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-value" id="humidityValue">--</div>
+                        <div class="telemetry-label">Humidity (%)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-value" id="batteryValue">--</div>
+                        <div class="telemetry-label">Battery (%)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-value" id="speedValue">--</div>
+                        <div class="telemetry-label">Speed (m/s)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>🎮 Robot Controls</h2>
+                <div class="control-pad">
+                    <div></div>
+                    <button class="control-btn" id="btnForward" onclick="sendCommand('move', {direction: 'forward', distance: 0.5})" disabled>▲</button>
+                    <div></div>
+                    <button class="control-btn" id="btnLeft" onclick="sendCommand('rotate', {angle: -15})" disabled>◀</button>
+                    <button class="control-btn" id="btnStop" onclick="sendCommand('move', {direction: 'stop'})" disabled>⏹</button>
+                    <button class="control-btn" id="btnRight" onclick="sendCommand('rotate', {angle: 15})" disabled>▶</button>
+                    <div></div>
+                    <button class="control-btn" id="btnBackward" onclick="sendCommand('move', {direction: 'backward', distance: 0.5})" disabled>▼</button>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel: Logs -->
+        <div class="right-column">
+            <div class="panel log-panel">
+                <h2>📝 Message Log</h2>
+                <div id="logContainer">
+                    <p style="color: #64748b; text-align: center;">No messages yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let reconnectInterval = null;
+        
+        function toggleConnection() {
+            if (isConnected) {
+                disconnect();
+            } else {
+                connect();
+            }
+        }
+        
+        function connect() {
+            const url = document.getElementById('wsUrl').value;
+            const token = document.getElementById('jwtToken').value;
+            
+            const wsUrl = token ? `${url}?token=${token}` : url;
+            
+            log('Connecting to ' + url, 'info');
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    enableControls(true);
+                    log('Connected!', 'success');
+                    
+                    // Request robot list
+                    sendMessage({command: {action: 'list_robots'}});
+                    sendMessage({command: {action: 'get_topics'}});
+                };
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleMessage(data);
+                };
+                
+                ws.onclose = () => {
+                    isConnected = false;
+                    updateConnectionStatus(false);
+                    enableControls(false);
+                    log('Disconnected', 'info');
+                };
+                
+                ws.onerror = (error) => {
+                    log('WebSocket error: ' + error, 'error');
+                };
+                
+            } catch (error) {
+                log('Connection failed: ' + error, 'error');
+            }
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+        
+        function sendMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                log('→ ' + JSON.stringify(message), 'sent');
+                return true;
+            }
+            return false;
+        }
+        
+        function sendCommand(action, parameters = {}) {
+            return sendMessage({
+                command: {
+                    action: action,
+                    parameters: parameters
+                }
+            });
+        }
+        
+        function handleMessage(data) {
+            log('← ' + JSON.stringify(data), 'received');
+            
+            // Update telemetry
+            if (data.telemetry) {
+                updateTelemetry(data.telemetry);
+            }
+            
+            // Update robot list
+            if (data.telemetry && data.telemetry.topic === 'robots') {
+                updateRobotList(data.telemetry.data.robots);
+            }
+            
+            // Update topics
+            if (data.telemetry && data.telemetry.topic === 'topics') {
+                updateTopicList(data.telemetry.data.topics);
+            }
+        }
+        
+        function updateTelemetry(telemetry) {
+            const data = telemetry.data || telemetry;
+            
+            if (data.temperature !== undefined) {
+                document.getElementById('tempValue').textContent = data.temperature.toFixed(1);
+            }
+            if (data.humidity !== undefined) {
+                document.getElementById('humidityValue').textContent = data.humidity.toFixed(1);
+            }
+            if (data.battery !== undefined) {
+                document.getElementById('batteryValue').textContent = data.battery.toFixed(0);
+            }
+            if (data.speed !== undefined) {
+                document.getElementById('speedValue').textContent = data.speed.toFixed(2);
+            }
+        }
+        
+        function updateRobotList(robots) {
+            const container = document.getElementById('robotList');
+            if (!robots || robots.length === 0) {
+                container.innerHTML = '<p style="color: #64748b; text-align: center;">No robots connected</p>';
+                return;
+            }
+            
+            container.innerHTML = robots.map(robot => `
+                <div class="robot-card ${robot.connected ? '' : 'disconnected'}">
+                    <h3>${robot.name}</h3>
+                    <div class="robot-info">
+                        ID: ${robot.id}<br>
+                        Type: ${robot.type}<br>
+                        Battery: ${robot.battery || 'N/A'}%<br>
+                        Status: ${robot.connected ? '✅ Connected' : '❌ Disconnected'}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateTopicList(topics) {
+            const container = document.getElementById('topicList');
+            if (!topics || topics.length === 0) {
+                container.innerHTML = '<p style="color: #64748b; text-align: center;">No topics discovered</p>';
+                return;
+            }
+            
+            container.innerHTML = topics.map(topic => `
+                <div class="topic-item">${typeof topic === 'string' ? topic : topic.name}</div>
+            `).join('');
+        }
+        
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            const btn = document.getElementById('connectBtn');
+            
+            if (connected) {
+                indicator.classList.add('connected');
+                text.textContent = 'Connected';
+                btn.textContent = 'Disconnect';
+                btn.classList.add('disconnect');
+            } else {
+                indicator.classList.remove('connected');
+                text.textContent = 'Disconnected';
+                btn.textContent = 'Connect';
+                btn.classList.remove('disconnect');
+            }
+        }
+        
+        function enableControls(enabled) {
+            const buttons = ['btnForward', 'btnBackward', 'btnLeft', 'btnRight', 'btnStop'];
+            buttons.forEach(id => {
+                document.getElementById(id).disabled = !enabled;
+            });
+        }
+        
+        function log(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="log-time">${time}</span>${message}`;
+            
+            if (container.children[0]?.tagName === 'P') {
+                container.innerHTML = '';
+            }
+            
+            container.insertBefore(entry, container.firstChild);
+            
+            // Keep only last 100 entries
+            while (container.children.length > 100) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!isConnected) return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                    sendCommand('move', {direction: 'forward', distance: 0.5});
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    sendCommand('move', {direction: 'backward', distance: 0.5});
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    sendCommand('rotate', {angle: -15});
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    sendCommand('rotate', {angle: 15});
+                    break;
+                case ' ':
+                    sendCommand('move', {direction: 'stop'});
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
