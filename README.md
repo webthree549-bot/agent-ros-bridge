@@ -81,6 +81,20 @@ python demo/arm_demo.py --arm-type ur --ros-version ros2 --demo interactive
 # Then: wscat -c ws://localhost:8772
 ```
 
+### ROS Actions (Navigation, Planning)
+```bash
+# Navigation action demo
+python demo/actions_demo.py --action navigate
+
+# Manipulation trajectory demo
+python demo/actions_demo.py --action manipulate
+
+# Interactive action control
+python demo/actions_demo.py --action interactive
+# Then: wscat -c ws://localhost:8773
+# Send: {"command": {"action": "actions.navigate", "parameters": {"x": 5.0, "y": 3.0}}}
+```
+
 ## Project Structure
 
 ```
