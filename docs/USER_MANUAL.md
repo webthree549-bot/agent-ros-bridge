@@ -1,156 +1,109 @@
-# OpenClaw ROS Bridge - User Manual
-
-**Version 2.0.0** | **Last Updated: February 2026**
-
----
+# Agent ROS Bridge - User Manual
 
 ## Table of Contents
 
-1. [Introduction](#1-introduction)
-2. [Installation](#2-installation)
-3. [Quick Start Guide](#3-quick-start-guide)
-4. [Architecture Overview](#4-architecture-overview)
-5. [Configuration](#5-configuration)
-6. [Using the Gateway](#6-using-the-gateway)
-7. [Working with Robots](#7-working-with-robots)
-8. [Plugin Development](#8-plugin-development)
-9. [Troubleshooting](#9-troubleshooting)
-10. [API Reference](#10-api-reference)
-11. [Advanced Topics](#11-advanced-topics)
-12. [Migration from v1](#12-migration-from-v1)
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Quick Start](#quick-start)
+4. [Configuration](#configuration)
+5. [Using the Bridge](#using-the-bridge)
+6. [Working with Robots](#working-with-robots)
+7. [Fleet Management](#fleet-management)
+8. [Monitoring](#monitoring)
+9. [Troubleshooting](#troubleshooting)
+10. [Advanced Topics](#advanced-topics)
 
 ---
 
-## 1. Introduction
+## Introduction
 
-### 1.1 What is OpenClaw ROS Bridge?
+Agent ROS Bridge is a universal gateway that connects AI agents to ROS-based robots. It supports:
 
-OpenClaw ROS Bridge is a **Universal Robot Gateway** that enables OpenClaw AI agents to control ROS-based robots and embodied intelligence systems. It provides:
+- **Multiple robot types**: Mobile robots, arms, IoT sensors
+- **Multiple ROS versions**: ROS1 Noetic, ROS2 Humble/Jazzy
+- **Multiple protocols**: WebSocket, MQTT, gRPC
+- **Mixed fleets**: ROS1 and ROS2 robots together
+- **Production features**: Authentication, monitoring, metrics
 
-- **Multi-Protocol Support**: WebSocket, gRPC, MQTT, TCP
-- **Multi-Robot Management**: Control fleets of robots
-- **Plugin Architecture**: Build custom robot applications
-- **Version Agnostic**: Works with ROS1 and ROS2
-- **Simulation Ready**: Test without physical hardware
+### Use Cases
 
-### 1.2 Who Is This For?
-
-- **AI Developers**: Connect OpenClaw agents to physical robots
-- **Robotics Engineers**: Universal interface for diverse robot platforms
-- **Researchers**: Rapid prototyping and simulation
-- **Industrial Users**: Fleet management and automation
-
-### 1.3 Key Features
-
-| Feature | Description |
-|---------|-------------|
-| Multi-Protocol | WebSocket, gRPC, MQTT, TCP, HTTP |
-| Multi-Robot | Manage fleets of robots |
-| Plugin System | Build custom applications |
-| Cloud-Native | Docker, Kubernetes ready |
-| Production-Ready | CI/CD, security, observability |
+- **Warehouse Automation**: Coordinate fleets of AMRs
+- **Manufacturing**: Control robotic arms and conveyors
+- **Research**: Interface AI systems with physical robots
+- **IoT Robotics**: Integrate sensors and actuators
 
 ---
 
-## 2. Installation
+## Installation
 
-### 2.1 Requirements
+### Requirements
 
-**System Requirements:**
-- Python 3.8 or higher
-- Docker (optional, for containerized deployment)
-- ROS1 Noetic or ROS2 Humble/Jazzy (optional, for physical robots)
+- Python 3.8+
+- Ubuntu 20.04/22.04/24.04 (for native ROS)
+- Or Docker (any platform)
 
-**Supported Platforms:**
-- Ubuntu 20.04/22.04/24.04
-- macOS 12+
-- Windows (WSL2)
-- ARM64 (Raspberry Pi, Jetson)
-
-### 2.2 Installation Methods
-
-#### Method 1: Via ClawHub (Recommended)
+### Method 1: PyPI (Easiest)
 
 ```bash
-openclaw skills add openclaw-ros-bridge
+pip install agent-ros-bridge
 ```
 
-#### Method 2: Via PyPI
+### Method 2: Native Installation (Recommended for Production)
+
+On Ubuntu with ROS installed:
 
 ```bash
-pip install openclaw-ros-bridge
+# One-line installer
+curl -sSL https://raw.githubusercontent.com/webthree549-bot/agent-ros-bridge/main/scripts/install-native.sh | bash
 
-# With all extras
-pip install "openclaw-ros-bridge[all]"
-
-# Development install
-pip install "openclaw-ros-bridge[dev,test]"
-```
-
-#### Method 3: From Source
-
-```bash
-git clone https://github.com/webthree549-bot/openclaw-ros-bridge.git
-cd openclaw-ros-bridge
+# Or manual
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
 pip install -e ".[dev]"
 ```
 
-#### Method 4: Docker
+### Method 3: Docker
 
 ```bash
-# Pull and run
-docker run -p 8765:8765 -p 50051:50051 \
-  ghcr.io/webthree549-bot/openclaw-ros-bridge:latest
-
-# Or with docker-compose
-docker-compose up -d
-```
-
-### 2.3 Verify Installation
-
-```bash
-# Check version
-openclaw-gateway --version
-
-# Check installation
-python -c "from openclaw_ros_bridge.gateway_v2 import OpenClawGateway; print('OK')"
+docker-compose --profile ros2 up ros2-bridge
 ```
 
 ---
 
-## 3. Quick Start Guide
+## Quick Start
 
-### 3.1 Your First Robot Connection
+### 1. Start the Bridge
 
-#### Step 1: Start the Gateway
-
+**Option A: Mock Mode (No ROS required)**
 ```bash
-# Start with demo mode (includes greenhouse simulation)
-openclaw-gateway --demo
+python demo/mock_bridge.py
 ```
 
-You should see:
-```
-🤖 OpenClaw Gateway v2.0.0
-Listening on:
-  - WebSocket: ws://0.0.0.0:8765
-  - gRPC: grpc://0.0.0.0:50051
-Press Ctrl+C to stop
-```
-
-#### Step 2: Test Connection
-
-**Using WebSocket:**
+**Option B: With ROS**
 ```bash
-# Install wscat if needed
-npm install -g wscat
+source /opt/ros/humble/setup.bash
+python run_bridge.py
+```
 
-# Connect
+**Option C: Dual ROS1 + ROS2**
+```bash
+source /opt/ros/noetic/setup.bash
+source /opt/ros/humble/setup.bash
+python run_bridge_dual_ros.py
+```
+
+### 2. Connect and Control
+
+**Using WebSocket Client:**
+```bash
 wscat -c ws://localhost:8765
+> {"command": {"action": "list_robots"}}
+```
 
-# Send ping
-> {"command": {"action": "ping"}}
-< {"status": "ok", "pong": true}
+**Using Web Dashboard:**
+```bash
+python dashboard/server.py
+# Open http://localhost:8080
 ```
 
 **Using Python:**
@@ -159,499 +112,168 @@ import asyncio
 import websockets
 import json
 
-async def test():
-    async with websockets.connect("ws://localhost:8765") as ws:
+async def control_robot():
+    async with websockets.connect('ws://localhost:8765') as ws:
+        # List robots
         await ws.send(json.dumps({
-            "command": {"action": "ping"}
-        }))
-        response = await ws.recv()
-        print(response)
-
-asyncio.run(test())
-```
-
-#### Step 3: Control the Greenhouse Demo
-
-```python
-import asyncio
-import websockets
-import json
-
-async def control_greenhouse():
-    uri = "ws://localhost:8765"
-    
-    async with websockets.connect(uri) as ws:
-        # Get status
-        await ws.send(json.dumps({
-            "command": {"action": "greenhouse.status"}
-        }))
-        status = await ws.recv()
-        print(f"Status: {status}")
-        
-        # Turn on fan
-        await ws.send(json.dumps({
-            "command": {
-                "action": "greenhouse.fan",
-                "parameters": {"on": True}
-            }
-        }))
-        result = await ws.recv()
-        print(f"Fan result: {result}")
-
-asyncio.run(control_greenhouse())
-```
-
-### 3.2 Quick Commands Reference
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `ping` | Health check | `{"command": {"action": "ping"}}` |
-| `discover` | Find robots | `{"command": {"action": "discover"}}` |
-| `get_status` | Gateway status | `{"command": {"action": "get_status"}}` |
-| `greenhouse.status` | Demo status | `{"command": {"action": "greenhouse.status"}}` |
-
----
-
-## 4. Architecture Overview
-
-### 4.1 Three-Layer Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    AI Agent (OpenClaw)                      │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ WebSocket / gRPC / MQTT / TCP
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    OpenClaw Gateway                         │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Transport Layer                                     │   │
-│  │  • WebSocket (8765)                                 │   │
-│  │  • gRPC (50051)                                     │   │
-│  │  • MQTT (1883)                                      │   │
-│  │  • TCP (9999)                                       │   │
-│  └─────────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Orchestration Layer                                 │   │
-│  │  • Fleet Management                                 │   │
-│  │  • Service Discovery                                │   │
-│  │  • Plugin Manager                                   │   │
-│  └─────────────────────────────────────────────────────┘   │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │  Connector Layer                                     │   │
-│  │  • ROS1 / ROS2                                      │   │
-│  │  • Modbus / MQTT                                    │   │
-│  │  • MAVLink (coming)                                 │   │
-│  └─────────────────────────────────────────────────────┘   │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌─────────┐  ┌─────────┐  ┌─────────┐
-        │ Robot 1 │  │ Robot 2 │  │ Robot 3 │
-        │ (ROS2)  │  │ (ROS1)  │  │ (MQTT)  │
-        └─────────┘  └─────────┘  └─────────┘
-```
-
-### 4.2 Transport Layer
-
-The transport layer handles communication between AI agents and the gateway.
-
-**Supported Transports:**
-
-| Transport | Port | Use Case | Protocol |
-|-----------|------|----------|----------|
-| WebSocket | 8765 | Web dashboards, browsers | ws:// wss:// |
-| gRPC | 50051 | Microservices, cloud | grpc:// |
-| TCP | 9999 | Simple integrations | tcp:// |
-| MQTT | 1883 | IoT, mobile robots | mqtt:// |
-
-**Choosing a Transport:**
-
-- **WebSocket**: Use for web-based UIs, real-time dashboards
-- **gRPC**: Use for microservices, high-performance applications
-- **TCP**: Use for simple, lightweight integrations
-- **MQTT**: Use for IoT devices, low-bandwidth scenarios
-
-### 4.3 Connector Layer
-
-Connectors interface with different robot platforms.
-
-**Available Connectors:**
-
-| Connector | Status | Description |
-|-----------|--------|-------------|
-| ROS2 | ✅ Available | ROS2 Humble, Jazzy |
-| ROS1 | ✅ Available | ROS1 Noetic |
-| Modbus | 🚧 Planned | Industrial PLCs |
-| MAVLink | 🚧 Planned | Drones, UAVs |
-
----
-
-## 5. Configuration
-
-### 5.1 Configuration Files
-
-Configuration files are located in `config/`:
-
-```bash
-config/
-├── gateway.yaml          # Main gateway configuration
-├── ros2_config.yaml      # ROS2 settings
-├── openclaw_config.yaml  # OpenClaw integration
-├── hal_config.yaml       # Hardware abstraction
-└── fault_config.yaml     # Recovery policies
-```
-
-### 5.2 Gateway Configuration (gateway.yaml)
-
-```yaml
-name: "my_robot_gateway"
-log_level: INFO
-
-transports:
-  websocket:
-    enabled: true
-    host: 0.0.0.0
-    port: 8765
-    tls_cert: null        # Path to TLS certificate
-    tls_key: null         # Path to TLS key
-  
-  grpc:
-    enabled: true
-    host: 0.0.0.0
-    port: 50051
-  
-  mqtt:
-    enabled: false
-    broker: "localhost"
-    port: 1883
-
-connectors:
-  ros2:
-    enabled: true
-    domain_id: 0
-  
-  ros1:
-    enabled: false
-
-plugins:
-  - name: greenhouse
-    enabled: true
-    options:
-      control_interval: 5
-
-discovery:
-  enabled: true
-  methods:
-    - mdns
-    - ros2
-  interval: 30
-
-telemetry:
-  enabled: true
-  metrics_port: 9090
-```
-
-### 5.3 Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `OPENCLAW_LOG_LEVEL` | Logging level | INFO |
-| `OPENCLAW_CONFIG` | Config file path | ./config/gateway.yaml |
-| `ROS_DISTRO` | ROS distribution | auto-detect |
-| `ROS_DOMAIN_ID` | ROS2 domain ID | 0 |
-| `MOCK_MODE` | Enable mock mode | false |
-
-### 5.4 Command-Line Options
-
-```bash
-openclaw-gateway [OPTIONS]
-
-Options:
-  --config PATH           Config file path
-  --demo                  Run in demo mode
-  --log-level LEVEL       Logging level (DEBUG/INFO/WARNING/ERROR)
-  --websocket-port PORT   WebSocket port
-  --grpc-port PORT        gRPC port
-  --version               Show version
-  --help                  Show help
-```
-
----
-
-## 6. Using the Gateway
-
-### 6.1 Starting the Gateway
-
-**Basic Start:**
-```bash
-openclaw-gateway
-```
-
-**With Custom Config:**
-```bash
-openclaw-gateway --config /path/to/config.yaml
-```
-
-**Demo Mode (with greenhouse):**
-```bash
-openclaw-gateway --demo
-```
-
-**Docker:**
-```bash
-docker run -p 8765:8765 openclaw/ros-bridge:latest
-```
-
-### 6.2 Connecting Clients
-
-**WebSocket (JavaScript):**
-```javascript
-const ws = new WebSocket('ws://localhost:8765');
-
-ws.onopen = () => {
-    ws.send(JSON.stringify({
-        command: {action: 'ping'}
-    }));
-};
-
-ws.onmessage = (event) => {
-    console.log('Received:', event.data);
-};
-```
-
-**WebSocket (Python):**
-```python
-import asyncio
-import websockets
-import json
-
-async def client():
-    uri = "ws://localhost:8765"
-    async with websockets.connect(uri) as ws:
-        await ws.send(json.dumps({
-            "command": {"action": "ping"}
+            "command": {"action": "list_robots"}
         }))
         response = await ws.recv()
         print(json.loads(response))
+        
+        # Send movement command
+        await ws.send(json.dumps({
+            "command": {
+                "action": "move",
+                "parameters": {"direction": "forward", "distance": 1.0}
+            }
+        }))
 
-asyncio.run(client())
-```
-
-**gRPC (Python):**
-```python
-import grpc
-# See API Reference for gRPC specifics
-```
-
-### 6.3 Core Commands
-
-**Health Check:**
-```json
-{"command": {"action": "ping"}}
-```
-Response:
-```json
-{"status": "ok", "pong": true}
-```
-
-**Get Status:**
-```json
-{"command": {"action": "get_status"}}
-```
-Response:
-```json
-{
-  "status": "ok",
-  "ros": "jazzy",
-  "mock": false,
-  "handlers": ["ping", "get_status", "greenhouse.status"]
-}
-```
-
-**List Handlers:**
-```json
-{"command": {"action": "list_handlers"}}
-```
-Response:
-```json
-{
-  "status": "ok",
-  "handlers": ["ping", "get_status", "discover", "greenhouse.status"]
-}
-```
-
-**Discover Robots:**
-```json
-{"command": {"action": "discover"}}
-```
-Response:
-```json
-{
-  "status": "ok",
-  "robots": [
-    {"uri": "ros2://192.168.1.100", "name": "warehouse_bot_1"}
-  ]
-}
+asyncio.run(control_robot())
 ```
 
 ---
 
-## 7. Working with Robots
+## Configuration
 
-### 7.1 Connecting to a Robot
+### Configuration File
 
-```python
-from openclaw_ros_bridge.gateway_v2 import OpenClawGateway
-from openclaw_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
+Create `config/bridge.yaml`:
 
-async def main():
-    # Create gateway
-    gateway = OpenClawGateway()
+```yaml
+bridge:
+  name: "my_robot_fleet"
+  
+  transports:
+    websocket:
+      port: 8765
+      host: "0.0.0.0"
+      auth:
+        enabled: false
+        jwt_secret: null
     
-    # Register connector
-    gateway.connector_registry.register(ROS2Connector())
-    
-    # Connect to robot
-    robot = await gateway.connect_robot("ros2://192.168.1.100")
-    
-    # Execute command
-    result = await robot.execute({
-        "action": "move_to",
-        "parameters": {"x": 1.0, "y": 2.0, "theta": 0.0}
-    })
-    
-    print(f"Result: {result}")
+    mqtt:
+      enabled: true
+      host: "localhost"
+      port: 1883
+  
+  connectors:
+    ros:
+      auto_detect: true
+      endpoints:
+        # Example: Local ROS2
+        - id: "turtlebot_01"
+          ros_type: "ros2"
+          ros_distro: "humble"
+          host: "localhost"
+          domain_id: 0
+        
+        # Example: Remote ROS1 arm
+        - id: "ur5_arm"
+          ros_type: "ros1"
+          ros_distro: "noetic"
+          host: "192.168.1.100"
+  
+  metrics:
+    enabled: true
+    port: 9090
 ```
 
-### 7.2 Fleet Management
+### Environment Variables
 
-**Create a Fleet:**
-```python
-# Create fleet
-warehouse = gateway.create_fleet("warehouse")
-
-# Add robots
-robot1 = await gateway.connect_robot(
-    "ros2://192.168.1.101",
-    fleet_name="warehouse"
-)
-robot2 = await gateway.connect_robot(
-    "ros2://192.168.1.102",
-    fleet_name="warehouse"
-)
-```
-
-**Broadcast Commands:**
-```python
-# Send to all robots in fleet
-await warehouse.broadcast({
-    "action": "return_to_dock"
-})
-
-# Send to selected robots
-await warehouse.broadcast(
-    {"action": "emergency_stop"},
-    selector=lambda r: r.battery < 20
-)
-```
-
-### 7.3 Subscribing to Telemetry
-
-```python
-# Subscribe to sensor data
-async for telemetry in robot.subscribe("/sensors"):
-    print(f"Topic: {telemetry.topic}")
-    print(f"Data: {telemetry.data}")
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `BRIDGE_CONFIG` | Path to config file | `config/bridge.yaml` |
+| `ROS_DOMAIN_ID` | ROS2 domain ID | `0` |
+| `JWT_SECRET` | JWT signing secret | None |
+| `MQTT_BROKER` | MQTT broker host | `localhost` |
 
 ---
 
-## 8. Plugin Development
+## Using the Bridge
 
-### 8.1 Creating a Plugin
+### WebSocket Protocol
 
-```python
-# my_robot_plugin.py
-from openclaw_ros_bridge.gateway_v2.core import Plugin, Message, Identity
-
-class MyRobotPlugin(Plugin):
-    """Custom robot control plugin"""
-    
-    name = "my_robot"
-    version = "1.0.0"
-    
-    async def initialize(self, gateway):
-        """Called when plugin is loaded"""
-        self.gateway = gateway
-        print(f"Plugin {self.name} v{self.version} initialized")
-    
-    async def shutdown(self):
-        """Called when plugin is unloaded"""
-        print(f"Plugin {self.name} shutting down")
-    
-    async def handle_message(self, message: Message, identity: Identity):
-        """Handle incoming messages"""
-        if not message.command:
-            return None
-        
-        action = message.command.action
-        
-        if action == "my_robot.move":
-            return await self.handle_move(message.command)
-        elif action == "my_robot.status":
-            return await self.handle_status()
-        
-        return None  # Not handled by this plugin
-    
-    async def handle_move(self, command):
-        """Handle move command"""
-        x = command.parameters.get("x", 0)
-        y = command.parameters.get("y", 0)
-        
-        # Your robot control logic here
-        
-        return Message(
-            header=Header(correlation_id=command.id),
-            telemetry=Telemetry(
-                topic="/my_robot/result",
-                data={"status": "moved", "x": x, "y": y}
-            )
-        )
+**Connection:**
+```
+ws://hostname:port[?token=JWT_TOKEN]
 ```
 
-### 8.2 Loading the Plugin
-
-```python
-# server.py
-from openclaw_ros_bridge.gateway_v2 import OpenClawGateway
-from my_robot_plugin import MyRobotPlugin
-
-async def main():
-    gateway = OpenClawGateway()
-    
-    # Load plugin
-    plugin = MyRobotPlugin()
-    await gateway.plugin_manager.load_plugin(plugin)
-    
-    # Start gateway
-    await gateway.start()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-```
-
-### 8.3 Using the Plugin
-
+**Message Format:**
 ```json
-// From client
+{
+  "header": {
+    "message_id": "uuid",
+    "timestamp": "2025-01-01T00:00:00Z"
+  },
+  "command": {
+    "action": "action_name",
+    "parameters": {...}
+  }
+}
+```
+
+**Response Format:**
+```json
+{
+  "header": {
+    "message_id": "uuid",
+    "correlation_id": "original_message_id"
+  },
+  "telemetry": {
+    "topic": "response_topic",
+    "data": {...}
+  }
+}
+```
+
+### Common Commands
+
+**List Robots:**
+```json
+{"command": {"action": "list_robots"}}
+```
+
+**Get Robot State:**
+```json
+{"command": {"action": "get_robot_state", "parameters": {"robot_id": "tb4_001"}}}
+```
+
+**Move Robot:**
+```json
 {
   "command": {
-    "action": "my_robot.move",
+    "action": "move",
     "parameters": {
-      "x": 1.0,
-      "y": 2.0
+      "direction": "forward",
+      "distance": 1.0,
+      "speed": 0.5
+    }
+  }
+}
+```
+
+**Control Arm Joints:**
+```json
+{
+  "command": {
+    "action": "arm.move_joints",
+    "parameters": {
+      "joints": [0, -1.57, 0, -1.57, 0, 0]
+    }
+  }
+}
+```
+
+**Navigate to Pose (ROS Action):**
+```json
+{
+  "command": {
+    "action": "navigate_to_pose",
+    "parameters": {
+      "x": 5.0,
+      "y": 3.0,
+      "theta": 1.57
     }
   }
 }
@@ -659,236 +281,147 @@ if __name__ == "__main__":
 
 ---
 
-## 9. Troubleshooting
+## Working with Robots
 
-### 9.1 Common Issues
+### Mobile Robots (AMR)
 
-#### Gateway Won't Start
+**Supported Platforms:**
+- TurtleBot4 (ROS2)
+- TurtleBot3 (ROS1/ROS2)
+- Custom AMRs
 
-**Symptom:**
-```
-Error: Port 8765 already in use
-```
+**Typical Workflow:**
+1. Connect to robot's ROS master
+2. List available topics
+3. Send navigation goals
+4. Monitor odometry and sensor data
 
-**Solution:**
-```bash
-# Find process using port
-lsof -i :8765
+### Robot Arms
 
-# Kill process
-kill -9 <PID>
+**Supported Arms:**
+- Universal Robots (UR5, UR10, UR3e, UR5e, UR10e)
+- UFACTORY xArm (xArm6, xArm7)
+- Franka Emika Panda
 
-# Or use different port
-openclaw-gateway --websocket-port 8766
-```
+**Control Modes:**
+- **Joint Control**: Move individual joints
+- **Cartesian Control**: Move end-effector to position
+- **Trajectory**: Follow multi-waypoint paths
 
-#### Connection Refused
-
-**Symptom:**
-```
-ConnectionRefusedError: [Errno 61] Connection refused
-```
-
-**Solution:**
-```bash
-# Check if gateway is running
-curl http://localhost:8765/health
-
-# Check logs
-tail -f logs/gateway.log
-
-# Restart gateway
-openclaw-skill-ros-bridge restart
-```
-
-#### Docker Container Won't Start
-
-**Symptom:**
-```
-Error response from daemon: driver failed programming external connectivity
-```
-
-**Solution:**
-```bash
-# Check Docker is running
-docker info
-
-# Restart Docker
-docker restart
-
-# Check port conflicts
-lsof -i :8765
-
-# Use different ports in docker-compose.yml
-```
-
-### 9.2 ROS-Specific Issues
-
-#### ROS Topics Not Showing
-
-**Solution:**
-```bash
-# Source ROS environment
-source /opt/ros/jazzy/setup.bash
-
-# Check ROS is running
-ros2 node list
-
-# Check topics
-ros2 topic list
-
-# Verify domain ID
-export ROS_DOMAIN_ID=0
-```
-
-#### Message Type Errors
-
-**Symptom:**
-```
-AttributeError: 'NoneType' object has no attribute 'data'
-```
-
-**Solution:**
-Ensure proper message initialization:
+**Example Pick and Place:**
 ```python
-from std_msgs.msg import String
-msg = String()  # Initialize properly
-msg.data = "hello"
+from agent_ros_bridge.plugins.arm_robot import ArmRobotPlugin
+
+arm = ArmRobotPlugin(arm_type="ur", ros_version="ros2")
+
+# 1. Move to home
+await arm.handle_command("arm.move_joints", {
+    "joints": [0, -1.57, 0, -1.57, 0, 0]
+})
+
+# 2. Open gripper
+await arm.handle_command("arm.gripper", {"position": 0.0})
+
+# 3. Move to pick position
+await arm.handle_command("arm.move_joints", {
+    "joints": [0.5, -1.0, 0.5, -1.5, -0.5, 0]
+})
+
+# 4. Close gripper
+await arm.handle_command("arm.gripper", {"position": 0.8})
+
+# 5. Move to place position
+await arm.handle_command("arm.move_joints", {
+    "joints": [-0.5, -1.0, 0.5, -1.5, -0.5, 0]
+})
+
+# 6. Open gripper
+await arm.handle_command("arm.gripper", {"position": 0.0})
 ```
-
-### 9.3 Debug Mode
-
-Enable debug logging:
-```bash
-export OPENCLAW_LOG_LEVEL=DEBUG
-openclaw-gateway
-```
-
-View detailed logs:
-```bash
-tail -f logs/gateway.log | grep DEBUG
-```
-
-### 9.4 Getting Help
-
-1. **Check Documentation:** https://openclaw-ros-bridge.readthedocs.io
-2. **GitHub Issues:** https://github.com/webthree549-bot/openclaw-ros-bridge/issues
-3. **Discussions:** https://github.com/webthree549-bot/openclaw-ros-bridge/discussions
-4. **Email:** dev@openclaw-ros.org
 
 ---
 
-## 10. API Reference
+## Fleet Management
 
-### 10.1 Core Message Format
+### Starting the Fleet Orchestrator
+
+```bash
+python demo/fleet_demo.py
+```
+
+### Submitting Tasks
 
 ```json
 {
-  "header": {
-    "message_id": "uuid",
-    "timestamp": "2026-02-13T08:30:00Z",
-    "source": "client_id",
-    "target": "gateway",
-    "correlation_id": "optional_uuid"
-  },
   "command": {
-    "action": "action_name",
-    "parameters": {},
-    "timeout_ms": 5000,
-    "priority": 5
-  },
-  "metadata": {}
+    "action": "fleet.submit_task",
+    "parameters": {
+      "type": "navigate",
+      "target": "warehouse_zone_a",
+      "priority": 5,
+      "payload": 3.0
+    }
+  }
 }
 ```
 
-### 10.2 Core Commands
+### Task Types
 
-| Command | Parameters | Response |
-|---------|------------|----------|
-| `ping` | None | `{"pong": true}` |
-| `get_status` | None | Gateway status |
-| `list_handlers` | None | List of handlers |
-| `discover` | None | List of robots |
-| `fleet.list` | None | List of fleets |
-| `robot.execute` | `robot_id`, `action` | Execution result |
+| Type | Description | Required Capabilities |
+|------|-------------|---------------------|
+| `navigate` | Move to location | `can_navigate` |
+| `transport` | Carry payload | `can_navigate`, lift capacity |
+| `manipulate` | Arm operation | `can_manipulate` |
+| `charge` | Go to charging station | `can_navigate` |
 
-### 10.3 Python API
+### Querying Fleet Status
 
-**Gateway:**
-```python
-class OpenClawGateway:
-    async def start() -> None
-    async def stop() -> None
-    def create_fleet(name: str) -> RobotFleet
-    async def connect_robot(uri: str, fleet: str = None) -> Robot
+```json
+{"command": {"action": "fleet.status"}}
 ```
 
-**Robot:**
-```python
-class Robot:
-    async def execute(command: Command) -> Any
-    async def subscribe(topic: str) -> AsyncIterator[Telemetry]
-```
-
-**Fleet:**
-```python
-class RobotFleet:
-    async def broadcast(command: Command, selector: Callable = None)
-    def get_robot(robot_id: str) -> Optional[Robot]
+Response:
+```json
+{
+  "robots": [
+    {
+      "id": "tb4_001",
+      "name": "TurtleBot4-Alpha",
+      "status": "BUSY",
+      "location": "zone_a",
+      "battery": 85,
+      "current_task": "task_123"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task_123",
+      "type": "navigate",
+      "status": "EXECUTING",
+      "assigned_robot": "tb4_001"
+    }
+  ],
+  "metrics": {
+    "total_robots": 4,
+    "active": 2,
+    "idle": 2,
+    "utilization": 50.0
+  }
+}
 ```
 
 ---
 
-## 11. Advanced Topics
+## Monitoring
 
-### 11.1 Security
+### Prometheus Metrics
 
-**Enable TLS:**
-```yaml
-transports:
-  websocket:
-    enabled: true
-    port: 8765
-    tls_cert: /path/to/cert.pem
-    tls_key: /path/to/key.pem
-```
+**Start Metrics Server:**
+```python
+from agent_ros_bridge.metrics import MetricsServer
 
-**Enable Authentication:**
-```yaml
-security:
-  enabled: true
-  authentication:
-    - jwt
-  jwt_secret: your-secret-key
-```
-
-### 11.2 Performance Tuning
-
-**For High Throughput:**
-```yaml
-# Use gRPC instead of WebSocket
-transports:
-  grpc:
-    enabled: true
-    port: 50051
-```
-
-**For Low Latency:**
-```yaml
-# Use Unix sockets for local communication
-transports:
-  unix:
-    enabled: true
-    path: /tmp/openclaw.sock
-```
-
-### 11.3 Monitoring
-
-**Enable Prometheus Metrics:**
-```yaml
-telemetry:
-  enabled: true
-  metrics_port: 9090
+server = MetricsServer(port=9090)
+await server.start()
 ```
 
 **View Metrics:**
@@ -896,81 +429,142 @@ telemetry:
 curl http://localhost:9090/metrics
 ```
 
----
+**Key Metrics:**
+- `agent_ros_bridge_robots_online` - Connected robots
+- `agent_ros_bridge_tasks_completed_total` - Task throughput
+- `agent_ros_bridge_messages_sent_total` - Message rate
+- `agent_ros_bridge_task_duration_seconds` - Performance
 
-## 12. Migration from v1
+### Grafana Dashboard
 
-### 12.1 Key Changes
+1. Install Grafana
+2. Add Prometheus data source: `http://localhost:9090`
+3. Import dashboard: `dashboards/grafana-dashboard.json`
 
-| v1 | v2 | Notes |
-|----|----|----|
-| Single TCP server | Multi-transport | WebSocket, gRPC, MQTT |
-| Single robot | Fleet management | Multiple robots |
-| Static handlers | Plugin system | Dynamic loading |
-| ROS-only | Universal | Multiple connectors |
+### Web Dashboard
 
-### 12.2 Migration Steps
+**Start Dashboard:**
+```bash
+python dashboard/server.py --port 8080
+```
 
-1. **Update Imports:**
-   ```python
-   # v1
-   from openclaw_ros_bridge import openclaw_server
-   
-   # v2
-   from openclaw_ros_bridge.gateway_v2 import OpenClawGateway
-   ```
-
-2. **Update Server Start:**
-   ```python
-   # v1
-   openclaw_server.start()
-   
-   # v2
-   gateway = OpenClawGateway()
-   await gateway.start()
-   ```
-
-3. **Update Plugin Registration:**
-   ```python
-   # v1
-   openclaw_server.register_handler("cmd", handler)
-   
-   # v2
-   await gateway.plugin_manager.load_plugin(MyPlugin())
-   ```
-
-### 12.3 Compatibility Mode
-
-v1 code is preserved in `openclaw_ros_bridge/legacy/` for backward compatibility.
+**Features:**
+- Real-time robot status
+- Telemetry visualization
+- Manual robot control
+- Task queue monitoring
 
 ---
 
-## Appendix A: Glossary
+## Troubleshooting
 
-| Term | Definition |
-|------|------------|
-| **Gateway** | Central component that manages robot connections |
-| **Transport** | Communication protocol (WebSocket, gRPC, etc.) |
-| **Connector** | Interface to specific robot platforms |
-| **Plugin** | Extension that adds custom functionality |
-| **Fleet** | Group of robots managed together |
-| **Handler** | Function that processes specific commands |
+### Connection Issues
 
-## Appendix B: Environment Variables Reference
+**Problem:** Cannot connect to bridge
+```
+Solution: Check firewall rules
+sudo ufw allow 8765/tcp
+```
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `OPENCLAW_LOG_LEVEL` | Logging level | DEBUG |
-| `OPENCLAW_CONFIG` | Config file path | /etc/openclaw/gateway.yaml |
-| `OPENCLAW_WEBSOCKET_PORT` | WebSocket port | 8765 |
-| `OPENCLAW_GRPC_PORT` | gRPC port | 50051 |
-| `ROS_DISTRO` | ROS distribution | jazzy |
-| `ROS_DOMAIN_ID` | ROS2 domain | 0 |
-| `MOCK_MODE` | Enable mock mode | true |
+**Problem:** ROS not detected
+```
+Solution: Source ROS setup
+source /opt/ros/humble/setup.bash
+```
+
+### Authentication Issues
+
+**Problem:** JWT token rejected
+```
+Solution: Generate new token
+python scripts/generate_token.py --secret "your-secret"
+```
+
+### Performance Issues
+
+**Problem:** High latency
+```
+Solution: Check network, reduce message rate,
+or use MQTT for high-frequency telemetry
+```
+
+**Problem:** High CPU usage
+```
+Solution: Reduce number of concurrent connections,
+or run on dedicated machine
+```
+
+### Debug Mode
+
+Enable debug logging:
+```python
+logging.basicConfig(level=logging.DEBUG)
+```
 
 ---
 
-**Document Version:** 2.0.0  
-**Last Updated:** February 13, 2026  
-**Maintainer:** OpenClaw ROS Team  
-**License:** MIT
+## Advanced Topics
+
+### Custom Plugins
+
+Create a custom robot plugin:
+
+```python
+from agent_ros_bridge import Plugin
+
+class MyRobotPlugin(Plugin):
+    name = "my_robot"
+    version = "1.0.0"
+    
+    async def initialize(self, gateway):
+        # Setup code
+        pass
+    
+    async def handle_message(self, message, identity):
+        # Handle commands
+        if message.command.action == "my_custom_action":
+            # Execute action
+            return Message(telemetry=...)
+```
+
+### ROS Actions
+
+For long-running tasks:
+
+```python
+from agent_ros_bridge.actions import create_action_client
+
+client = create_action_client(
+    "navigate_to_pose",
+    "nav2_msgs/action/NavigateToPose"
+)
+
+# Send goal with feedback
+result = await client.send_goal(
+    {"pose": {"x": 5.0, "y": 3.0}},
+    timeout_sec=60.0
+)
+```
+
+### Security Hardening
+
+1. Enable JWT authentication
+2. Use TLS for WebSocket
+3. Restrict network access
+4. Regular security updates
+
+See `docs/SECURITY.md` for details.
+
+---
+
+## Support
+
+- **GitHub Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
+- **Documentation**: https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
+- **API Reference**: See `docs/API_REFERENCE.md`
+
+---
+
+## License
+
+MIT License - See LICENSE file
