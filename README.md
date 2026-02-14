@@ -28,19 +28,38 @@ docker-compose --profile ros2 up ros2-bridge  # ROS2 + bridge
 docker-compose --profile ros1 up ros1-bridge  # ROS1 + bridge
 ```
 
+### Web Dashboard
+```bash
+# Start bridge (in another terminal)
+python demo/mock_bridge.py
+
+# Start dashboard
+python dashboard/server.py
+# Open http://localhost:8080 in browser
+```
+
 ## Project Structure
 
 ```
 agent-ros-bridge/
 ├── run_bridge.py          # Production bridge (auto-detects ROS1/ROS2)
 ├── demo/
-│   └── mock_bridge.py     # Demo mode (simulated robot)
+│   ├── mock_bridge.py     # Demo mode (simulated robot)
+│   ├── mock_bridge_auth.py # With JWT authentication
+│   └── mqtt_demo.py       # IoT sensor demo
+├── dashboard/
+│   ├── server.py          # Web dashboard server
+│   └── static/
+│       └── index.html     # Dashboard UI
 ├── docker/
 │   ├── Dockerfile.ros1    # ROS1 Noetic container
 │   └── Dockerfile.ros2    # ROS2 Jazzy container
 ├── docker-compose.yml     # Docker orchestration
 └── agent_ros_bridge/      # Core package
     └── gateway_v2/
+        ├── transports/
+        │   ├── websocket.py      # WebSocket server
+        │   └── mqtt_transport.py # MQTT client
         └── connectors/
             ├── ros1_connector.py  # ROS1 support
             └── ros2_connector.py  # ROS2 support
