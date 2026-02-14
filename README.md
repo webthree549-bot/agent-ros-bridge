@@ -1,4 +1,4 @@
-# Agent ROS Bridge v2.0.0
+# Agent ROS Bridge
 
 **Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.**
 
