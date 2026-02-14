@@ -9,103 +9,143 @@ import asyncio
 import logging
 from datetime import datetime
 
-from agent_ros_bridge import Bridge, Message, Header, Command, Telemetry, Event, Identity
+from agent_ros_bridge import Bridge, Message, Header, Command, Telemetry, Event, Identity, Plugin
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mock_bridge")
 
 
-class MockRobot:
-    """Simulated TurtleBot for demo purposes"""
+class MockRobotPlugin(Plugin):
+    """Plugin that simulates a robot for testing"""
+    name = "mock_robot"
+    version = "1.0.0"
     
     def __init__(self):
-        self.connected = True
         self.topics = [
             "/cmd_vel", "/odom", "/scan", "/joint_states", "/tf", "/battery_state"
         ]
         self.position = {"x": 0.0, "y": 0.0, "theta": 0.0}
         self.battery = 85.0
         self.speed = 0.0
+    
+    async def initialize(self, gateway) -> None:
+        """Initialize plugin"""
+        logger.info("Mock robot plugin initialized")
+        return None
+    
+    async def shutdown(self) -> None:
+        """Shutdown plugin"""
+        logger.info("Mock robot plugin shutdown")
+    
+    async def handle_message(self, message: Message, identity: Identity) -> Message:
+        """Handle incoming commands"""
+        if not message.command:
+            return None
         
-    def handle_command(self, cmd: Command) -> dict:
-        action = cmd.action
-        params = cmd.parameters
+        cmd = message.command
+        logger.info(f"📩 Command from {identity.name}: {cmd.action}")
         
-        if action == "list_robots":
-            return {"robots": [{"id": "turtlebot_01", "name": "TurtleBot4 Mock", 
-                               "type": "ros2_mock", "connected": True, "battery": self.battery}]}
+        if cmd.action == "list_robots":
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="robots",
+                    data={"robots": [{"id": "turtlebot_01", "name": "TurtleBot4 Mock", 
+                                      "type": "ros2_mock", "connected": True, "battery": self.battery}]}
+                )
+            )
         
-        elif action == "get_topics":
-            return {"topics": self.topics}
+        elif cmd.action == "get_topics":
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="topics",
+                    data={"topics": self.topics}
+                )
+            )
         
-        elif action == "get_robot_state":
-            return {
-                "position": self.position,
-                "battery": self.battery,
-                "speed": self.speed,
-                "timestamp": datetime.utcnow().isoformat()
-            }
+        elif cmd.action == "get_robot_state":
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="robot_state",
+                    data={
+                        "position": self.position,
+                        "battery": self.battery,
+                        "speed": self.speed,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                )
+            )
         
-        elif action == "publish":
-            topic = params.get("topic")
-            data = params.get("data", {})
+        elif cmd.action == "publish":
+            topic = cmd.parameters.get("topic")
+            data = cmd.parameters.get("data", {})
             
             if topic == "/cmd_vel":
                 linear = data.get("linear", {})
                 self.speed = linear.get("x", 0.0)
                 logger.info(f"🚀 Robot moving: speed={self.speed:.2f} m/s")
-                return {"published": True, "topic": topic, "speed": self.speed}
+                return Message(
+                    header=Header(correlation_id=message.header.message_id),
+                    telemetry=Telemetry(
+                        topic="result",
+                        data={"published": True, "topic": topic, "speed": self.speed}
+                    )
+                )
             
-            return {"published": True, "topic": topic}
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="result",
+                    data={"published": True, "topic": topic}
+                )
+            )
         
-        elif action == "move":
-            direction = params.get("direction", "forward")
-            distance = params.get("distance", 0.0)
+        elif cmd.action == "move":
+            direction = cmd.parameters.get("direction", "forward")
+            distance = cmd.parameters.get("distance", 0.0)
             logger.info(f"🤖 Move {direction} {distance}m")
-            return {"moving": True, "direction": direction, "distance": distance}
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="result",
+                    data={"moving": True, "direction": direction, "distance": distance}
+                )
+            )
         
-        elif action == "rotate":
-            angle = params.get("angle", 0.0)
+        elif cmd.action == "rotate":
+            angle = cmd.parameters.get("angle", 0.0)
             logger.info(f"🔄 Rotate {angle} degrees")
-            return {"rotating": True, "angle": angle}
+            return Message(
+                header=Header(correlation_id=message.header.message_id),
+                telemetry=Telemetry(
+                    topic="result",
+                    data={"rotating": True, "angle": angle}
+                )
+            )
         
-        else:
-            return {"error": f"Unknown action: {action}"}
-
-
-async def handle_message(robot: MockRobot, message: Message, identity: Identity) -> Message:
-    """Handle incoming messages"""
-    if not message.command:
+        # Unknown command - return error
         return Message(
-            header=Header(),
-            event=Event(event_type="error", severity="warning", 
-                       data={"error": "No command in message"})
+            header=Header(correlation_id=message.header.message_id),
+            event=Event(
+                event_type="unknown_command",
+                severity="warning",
+                data={"action": cmd.action, "error": "Unknown command"}
+            )
         )
-    
-    logger.info(f"📩 Command from {identity.name}: {message.command.action}")
-    result = robot.handle_command(message.command)
-    
-    if "error" in result:
-        return Message(
-            header=Header(),
-            event=Event(event_type="command_failed", severity="error", data=result)
-        )
-    
-    return Message(
-        header=Header(correlation_id=message.header.message_id),
-        telemetry=Telemetry(topic="response", data=result)
-    )
 
 
 async def main():
     bridge = Bridge()
-    robot = MockRobot()
     
-    # Create WebSocket transport with mock handler
-    ws_transport = WebSocketTransport({'port': 8766})
-    ws_transport.message_handler = lambda msg, ident: handle_message(robot, msg, ident)
-    bridge.transport_manager.register(ws_transport)
+    # Register WebSocket transport
+    bridge.transport_manager.register(WebSocketTransport({'port': 8766}))
+    
+    # Register mock robot plugin
+    mock_plugin = MockRobotPlugin()
+    await bridge.plugin_manager.load_plugin(mock_plugin)
     
     # Start bridge
     await bridge.start()

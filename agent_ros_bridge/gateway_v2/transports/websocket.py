@@ -104,6 +104,7 @@ class WebSocketTransport(Transport):
         try:
             async for message in websocket:
                 try:
+                    logger.debug(f"Raw message from {client_id}: {repr(message)}")
                     data = json.loads(message)
                     msg = self._json_to_message(data)
                     
@@ -113,10 +114,11 @@ class WebSocketTransport(Transport):
                             await websocket.send(self._message_to_json(response))
                             
                 except json.JSONDecodeError as e:
-                    logger.warning(f"Invalid JSON from {client_id}: {e}")
+                    logger.warning(f"Invalid JSON from {client_id}: {e}, raw: {repr(message[:100])}")
                     await websocket.send(json.dumps({
                         "error": "Invalid JSON",
-                        "type": "parse_error"
+                        "type": "parse_error",
+                        "details": str(e)
                     }))
                 except Exception as e:
                     logger.error(f"Error handling message from {client_id}: {e}")
