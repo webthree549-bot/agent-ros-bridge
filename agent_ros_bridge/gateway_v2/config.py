@@ -28,9 +28,30 @@ class TransportConfig:
 
 
 @dataclass
+class ROSEndpoint:
+    """Remote ROS endpoint configuration"""
+    id: str
+    ros_type: str = "ros2"  # ros1, ros2
+    ros_distro: str = "jazzy"  # noetic, humble, jazzy
+    host: str = "localhost"
+    port: Optional[int] = None  # None for default
+    domain_id: int = 0
+    # Authentication for remote connections
+    username: Optional[str] = None
+    password: Optional[str] = None
+    ssh_key: Optional[str] = None
+    # Discovery options
+    auto_discover: bool = True
+    topics: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ConnectorConfig:
     """Connector configuration"""
     enabled: bool = True
+    # Multi-ROS support: list of ROS endpoints
+    endpoints: List[ROSEndpoint] = field(default_factory=list)
+    # Legacy single-endpoint options (for backward compatibility)
     options: Dict[str, Any] = field(default_factory=dict)
 
 

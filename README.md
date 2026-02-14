@@ -50,8 +50,10 @@ agent-ros-bridge/
 
 - **Multi-Protocol**: WebSocket, gRPC, MQTT, TCP
 - **Multi-Robot**: Manage fleets of robots
+- **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
+- **Remote ROS**: Connect to robots over the network
 - **Plugin System**: Build custom applications
-- **ROS Support**: ROS1 Noetic, ROS2 Humble/Jazzy
+- **ROS Support**: ROS1 Noetic, ROS2 Humble/Jazzy/Iron
 - **Cloud-Native**: Docker, Kubernetes ready
 
 ## Documentation
@@ -59,6 +61,7 @@ agent-ros-bridge/
 - **[User Manual](docs/USER_MANUAL.md)** - Complete usage guide
 - **[API Reference](docs/API_REFERENCE.md)** - API documentation
 - **[Architecture](docs/ARCHITECTURE.md)** - System design
+- **[Multi-ROS Setup](docs/MULTI_ROS.md)** - Fleet management guide
 
 ## Installation
 
