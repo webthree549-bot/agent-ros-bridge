@@ -128,6 +128,7 @@ agent-ros-bridge/
 - **Multi-Robot**: Manage fleets of robots
 - **Fleet Orchestration**: Task allocation, load balancing, coordination
 - **Arm Robot Control**: UR, xArm, Franka manipulation support
+- **ROS Actions**: Navigation, motion planning, long-running tasks
 - **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
 - **Dual ROS**: Run ROS1 + ROS2 in the same bridge instance
 - **Remote ROS**: Connect to robots over the network
