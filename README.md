@@ -10,25 +10,34 @@
 
 ## Quick Start
 
-### Option 1: Mock Mode (No ROS2 Required)
-Test the WebSocket API without a real robot:
+### Production (requires ROS2)
 ```bash
 pip install agent-ros-bridge
-python run_bridge.py
-# WebSocket available at ws://localhost:8765
+python run_bridge.py  # Requires ROS2 Humble/Jazzy/Noetic
 ```
 
-### Option 2: With Real ROS2 (Docker)
+### Demo/Testing (no ROS2 required)
 ```bash
-docker-compose up ros2-bridge
+pip install agent-ros-bridge
+python demo/mock_bridge.py  # Simulated robot
 ```
 
-### Option 3: Development
+### Docker (production in container)
 ```bash
-git clone https://github.com/webthree549-bot/agent-ros-bridge.git
-cd agent-ros-bridge
-pip install -e ".[dev]"
-python run_bridge.py
+docker-compose up ros2-bridge  # Full ROS2 + bridge
+```
+
+## Project Structure
+
+```
+agent-ros-bridge/
+├── run_bridge.py          # Production bridge (requires ROS2)
+├── demo/
+│   └── mock_bridge.py     # Demo mode (simulated robot)
+├── docker/
+│   └── Dockerfile         # Production container
+├── docker-compose.yml     # Docker orchestration
+└── agent_ros_bridge/      # Core package
 ```
 
 ## Features

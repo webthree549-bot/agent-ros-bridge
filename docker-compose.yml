@@ -1,34 +1,23 @@
 version: '3.8'
 
 services:
-  # ROS2 environment with the bridge
+  # Production bridge with ROS2
   ros2-bridge:
-    image: ros:jazzy-ros-base
-    container_name: agent-ros-bridge-ros2
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: agent-ros-bridge:latest
+    container_name: agent-ros-bridge
     ports:
       - "8765:8765"    # WebSocket
       - "50051:50051"  # gRPC
     environment:
       - ROS_DOMAIN_ID=0
-      - ROS_LOCALHOST_ONLY=0
     volumes:
-      - .:/workspace
       - ./config:/app/config:ro
-    working_dir: /workspace
-    command: >
-      bash -c "
-        apt-get update && apt-get install -y python3-pip &&
-        pip install websockets pyyaml psutil python-dotenv &&
-        source /opt/ros/jazzy/setup.bash &&
-        ros2 topic list &&
-        echo 'ROS2 ready. Starting bridge...' &&
-        python3 run_bridge.py
-      "
-    stdin_open: true
-    tty: true
+    command: ["python3", "run_bridge.py"]
 
-  # Optional: TurtleBot4 simulator (if you want to test with a simulated robot)
+  # Optional: TurtleBot4 simulator for testing
   turtlebot4-sim:
     image: ros:jazzy-desktop
     container_name: turtlebot4-sim
@@ -41,10 +30,5 @@ services:
     command: >
       bash -c "
         source /opt/ros/jazzy/setup.bash &&
-        echo 'Starting TurtleBot4 simulator...' &&
         ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
       "
-
-networks:
-  default:
-    driver: bridge
