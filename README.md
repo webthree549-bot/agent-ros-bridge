@@ -56,6 +56,18 @@ python dashboard/server.py
 # Open http://localhost:8080 in browser
 ```
 
+### Fleet Orchestration (Multi-Robot)
+```bash
+# Start fleet orchestrator with 4 simulated robots
+python demo/fleet_demo.py
+
+# Query fleet status
+wscat -c ws://localhost:8771
+> {"command": {"action": "fleet.status"}}
+> {"command": {"action": "fleet.metrics"}}
+> {"command": {"action": "fleet.submit_task", "parameters": {"type": "navigate", "target": "zone_a"}}}
+```
+
 ## Project Structure
 
 ```
@@ -87,6 +99,7 @@ agent-ros-bridge/
 
 - **Multi-Protocol**: WebSocket, gRPC, MQTT, TCP
 - **Multi-Robot**: Manage fleets of robots
+- **Fleet Orchestration**: Task allocation, load balancing, coordination
 - **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
 - **Dual ROS**: Run ROS1 + ROS2 in the same bridge instance
 - **Remote ROS**: Connect to robots over the network
