@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # ROS2 bridge with authentication
+  ros2-bridge-auth:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros2
+    image: agent-ros-bridge:ros2
+    container_name: agent-ros-bridge-ros2-auth
+    profiles: ["ros2-auth"]
+    ports:
+      - "8769:8765"    # WebSocket with auth
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
+      - JWT_SECRET=${JWT_SECRET:-8GpxD7Zp6L6bGl_bHbzLmNNaEpyKE3Sh1xEzO-dJfAo}
+    volumes:
+      - ../config/bridge-auth.yaml:/app/config/bridge.yaml:ro
+    networks:
+      - ros-network
+
+  # Standard ROS2 bridge (no auth)
+  ros2-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros2
+    image: agent-ros-bridge:ros2
+    container_name: agent-ros-bridge-ros2
+    profiles: ["ros2"]
+    ports:
+      - "8767:8765"    # WebSocket
+    environment:
+      - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
+    networks:
+      - ros-network
+
+networks:
+  ros-network:
+    driver: bridge

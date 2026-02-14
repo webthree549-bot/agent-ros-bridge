@@ -109,13 +109,41 @@ class WebSocketTransport(Transport):
         # Check authentication if enabled
         auth_payload = None
         if self.authenticator:
-            # Try to get token from path query string
-            path = getattr(websocket, 'path', '/')
+            # Try to get token from path query string (websockets v16 compatibility)
+            path = '/'
+            
+            # Debug: log all available attributes
+            logger.debug(f"WebSocket attrs: {[x for x in dir(websocket) if not x.startswith('_')]}")
+            
+            # Try various ways to get the path
+            if hasattr(websocket, 'path'):
+                path = websocket.path
+                logger.debug(f"Got path from .path: {path}")
+            elif hasattr(websocket, 'raw_uri'):
+                path = websocket.raw_uri
+                logger.debug(f"Got path from .raw_uri: {path}")
+            else:
+                # Fallback: try to construct from request info
+                try:
+                    if hasattr(websocket, 'request') and websocket.request:
+                        path = websocket.request.path
+                        logger.debug(f"Got path from request.path: {path}")
+                except Exception as e:
+                    logger.debug(f"Could not get path from request: {e}")
+            
+            logger.debug(f"Final connection path: {path}")
             token = self.authenticator.extract_token_from_query(path.split('?')[1] if '?' in path else '')
             
             # Try API key from headers if no token
             if not token:
-                headers = dict(websocket.request_headers) if hasattr(websocket, 'request_headers') else {}
+                headers = {}
+                try:
+                    if hasattr(websocket, 'request_headers'):
+                        headers = dict(websocket.request_headers)
+                    elif hasattr(websocket, 'request') and hasattr(websocket.request, 'headers'):
+                        headers = dict(websocket.request.headers)
+                except:
+                    pass
                 api_key = self.authenticator.extract_api_key_from_headers(headers)
                 if api_key:
                     auth_payload = self.authenticator.verify_api_key(api_key)
@@ -126,7 +154,7 @@ class WebSocketTransport(Transport):
             
             # Reject if authentication required but failed
             if not auth_payload:
-                logger.warning(f"Authentication failed for client {client_id}")
+                logger.warning(f"Authentication failed for client {client_id} - no valid token or API key")
                 await websocket.close(code=4001, reason="Authentication required")
                 return
         
