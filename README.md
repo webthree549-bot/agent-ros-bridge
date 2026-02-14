@@ -71,13 +71,13 @@ wscat -c ws://localhost:8771
 ### Arm Robot Control (Manipulation)
 ```bash
 # Control UR5 arm
-python demo/arm_demo.py --arm-type ur --ros2 --demo pick_place
+python demo/arm_demo.py --arm-type ur --ros-version ros2 --demo pick_place
 
 # Control xArm
-python demo/arm_demo.py --arm-type xarm --ros2
+python demo/arm_demo.py --arm-type xarm --ros-version ros2
 
 # Interactive control
-python demo/arm_demo.py --arm-type ur --ros2 --demo interactive
+python demo/arm_demo.py --arm-type ur --ros-version ros2 --demo interactive
 # Then: wscat -c ws://localhost:8772
 ```
 
