@@ -1,198 +1,153 @@
-# Contributing to OpenClaw ROS Bridge
+# Contributing to Agent ROS Bridge
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing! This guide explains how to set up your development environment and keep the repository clean.
 
-## Table of Contents
+## Repository Structure
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Coding Standards](#coding-standards)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Pull Request Process](#pull-request-process)
-- [Release Process](#release-process)
+We maintain a strict separation between **source code** and **build artifacts**:
 
-## Code of Conduct
+```
+agent-ros-bridge/                 # ← Repository root
+├── agent_ros_bridge/            # ← Source code only
+│   ├── __init__.py
+│   ├── gateway_v2/
+│   ├── plugins/
+│   └── ...
+├── tests/                       # ← Test source code
+├── demo/                        # ← Demo scripts
+├── docs/                        # ← Documentation source
+├── scripts/                     # ← Utility scripts
+├── config/                      # ← Configuration examples
+├── docker/                      # ← Docker files
+├── dashboards/                  # ← Grafana dashboards
+├── Makefile                     # ← Build automation
+├── pyproject.toml              # ← Package config
+└── .gitignore                   # ← Ignore patterns
 
-This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+# Build artifacts (NOT in git):
+build/                          # ← Build output (gitignored)
+dist/                           # ← Distribution files (gitignored)
+*.egg-info/                     # ← Package metadata (gitignored)
+__pycache__/                    # ← Python cache (gitignored)
+.pytest_cache/                  # ← Test cache (gitignored)
+.coverage                       # ← Coverage data (gitignored)
+```
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
-
-- Python 3.8+
-- Git
-- Docker (optional, for testing)
-- ROS1 Noetic or ROS2 Humble/Jazzy (optional)
-
-### Setup Development Environment
+### 1. Clone and Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/webthree549-bot/openclaw-ros-bridge.git
-cd openclaw-ros-bridge
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+make install-dev
+```
 
-# Install pre-commit hooks
-pip install pre-commit
-pre-commit install
+### 2. Verify Clean State
 
-# Install in editable mode with dev dependencies
-pip install -e ".[dev,test]"
+```bash
+make clean        # Remove any build artifacts
+make check        # Run linting and tests
+```
+
+### 3. Run Tests
+
+```bash
+make test         # Run all tests
+make test-unit    # Unit tests only
+make test-openclaw # OpenClaw integration tests
 ```
 
 ## Development Workflow
 
-### 1. Create a Branch
+### Before Making Changes
 
 ```bash
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/your-bug-fix
+# Start from clean state
+git checkout main
+git pull origin main
+make clean
 ```
 
-Branch naming conventions:
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation updates
-- `refactor/` - Code refactoring
-- `test/` - Test additions/improvements
+### Making Changes
 
-### 2. Make Changes
+1. **Create a branch:**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-- Write clean, readable code
-- Follow [PEP 8](https://pep8.org/) style guide
-- Add type hints where appropriate
-- Update documentation as needed
+2. **Make your changes** (edit source files only)
 
-### 3. Test Your Changes
+3. **Format and lint:**
+   ```bash
+   make format       # Auto-format code
+   make lint         # Check for issues
+   ```
+
+4. **Test:**
+   ```bash
+   make test         # Run tests
+   ```
+
+5. **Build (optional):**
+   ```bash
+   make build        # Create distribution packages
+   ```
+
+### Before Committing
 
 ```bash
-# Run all tests
-pytest
+# Ensure clean state
+make clean
 
-# Run with coverage
-pytest --cov=openclaw_ros_bridge
+# Check what files will be committed
+git status
 
-# Run specific test
-pytest tests/test_specific.py -v
-
-# Run linting
-ruff check .
-black --check .
-mypy openclaw_ros_bridge/
+# Only source files should appear (no __pycache__, no dist/)
 ```
 
-### 4. Commit Changes
+## Clean Build Policy
 
-We use [Conventional Commits](https://www.conventionalcommits.org/):
+**Never commit build artifacts.** The following are automatically ignored:
+
+| Pattern | What It Ignores |
+|---------|-----------------|
+| `__pycache__/` | Python bytecode cache |
+| `*.pyc`, `*.pyo` | Compiled Python files |
+| `build/` | Build output directory |
+| `dist/` | Distribution packages |
+| `*.egg-info/` | Package metadata |
+| `.pytest_cache/` | Test cache |
+| `.coverage` | Coverage data |
+| `htmlcov/` | HTML coverage reports |
+
+### Checking Cleanliness
 
 ```bash
-# Examples:
-git commit -m "feat: add MQTT transport support"
-git commit -m "fix: resolve ROS2 discovery issue"
-git commit -m "docs: update installation guide"
-git commit -m "refactor: simplify connector registry"
-git commit -m "test: add integration tests for greenhouse plugin"
+# List all ignored files that exist
+ git check-ignore $(git ls-files -o --exclude-standard)
+
+# Ensure no build artifacts are staged
+git diff --cached --name-only | grep -E "(pyc|__pycache__|dist/|build/)" && echo "ERROR: Build artifacts detected!"
 ```
 
-Commit types:
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation
-- `style:` - Formatting changes
-- `refactor:` - Code refactoring
-- `perf:` - Performance improvements
-- `test:` - Tests
-- `chore:` - Maintenance tasks
+## Build Commands
 
-### 5. Push and Create PR
-
+### Development Build
 ```bash
-git push origin feature/your-feature-name
+make install-dev    # Editable install with dev dependencies
 ```
 
-Then create a Pull Request on GitHub.
-
-## Coding Standards
-
-### Python Style Guide
-
-- **Formatter**: Black with 100 character line length
-- **Linter**: Ruff
-- **Import Sorting**: isort with black profile
-- **Type Checking**: mypy (optional but encouraged)
-
-### Code Structure
-
-```python
-"""Module docstring."""
-
-# Standard library imports
-import os
-from typing import Dict, List
-
-# Third-party imports
-import yaml
-
-# Local imports
-from openclaw_ros_bridge.base import BaseClass
-
-
-class MyClass:
-    """Class docstring.
-    
-    Attributes:
-        attribute1: Description of attribute1.
-    """
-    
-    def __init__(self, param1: str) -> None:
-        """Initialize MyClass.
-        
-        Args:
-            param1: Description of param1.
-        """
-        self.param1 = param1
-    
-    def method(self, arg: int) -> bool:
-        """Method docstring.
-        
-        Args:
-            arg: Description of arg.
-            
-        Returns:
-            Description of return value.
-            
-        Raises:
-            ValueError: When arg is invalid.
-        """
-        if arg < 0:
-            raise ValueError("arg must be non-negative")
-        return True
+### Production Build
+```bash
+make clean          # Clean first
+make build          # Create wheel and sdist
+ls dist/            # View built packages
 ```
 
-### Documentation Strings
-
-Use Google-style docstrings:
-
-```python
-def function(arg1: int, arg2: str) -> bool:
-    """Short description.
-    
-    Longer description if needed.
-    
-    Args:
-        arg1: Description of arg1.
-        arg2: Description of arg2.
-        
-    Returns:
-        Description of return value.
-        
-    Raises:
-        ValueError: When arg1 is invalid.
-        TypeError: When arg2 is wrong type.
-    """
-    pass
+### Installation from Build
+```bash
+pip install dist/agent_ros_bridge-*.whl
 ```
 
 ## Testing
@@ -201,136 +156,140 @@ def function(arg1: int, arg2: str) -> bool:
 
 ```
 tests/
-├── unit/           # Unit tests
-│   ├── test_core.py
-│   └── test_transports/
-├── integration/    # Integration tests
-│   ├── test_ros2_connector.py
-│   └── test_end_to_end.py
-├── fixtures/       # Test fixtures
-└── conftest.py     # Pytest configuration
-```
-
-### Writing Tests
-
-```python
-import pytest
-from openclaw_ros_bridge.core import Message
-
-
-class TestMessage:
-    """Test Message class."""
-    
-    def test_message_creation(self):
-        """Test creating a message."""
-        msg = Message(header=Header())
-        assert msg.header is not None
-    
-    def test_message_validation(self):
-        """Test message validation."""
-        with pytest.raises(ValueError):
-            Message(header=None)
-
-
-@pytest.mark.integration
-class TestROS2Connector:
-    """Integration tests for ROS2 connector."""
-    
-    @pytest.fixture
-    async def connector(self):
-        connector = ROS2Connector()
-        yield connector
-        await connector.disconnect()
-    
-    async def test_discovery(self, connector):
-        """Test robot discovery."""
-        robots = await connector.discover()
-        assert isinstance(robots, list)
+├── unit/                    # Unit tests
+│   └── test_core.py
+├── integration/             # Integration tests
+│   └── test_integration.py
+└── test_openclaw_integration.py  # OpenClaw tests
 ```
 
 ### Running Tests
 
 ```bash
 # All tests
-pytest
+make test
 
-# Only unit tests
-pytest tests/unit/
-
-# Only integration tests
-pytest tests/integration/ -m integration
+# Specific test categories
+make test-unit           # Unit tests only
+make test-int            # Integration tests
+make test-openclaw       # OpenClaw integration
 
 # With coverage
-pytest --cov=openclaw_ros_bridge --cov-report=html
+pytest --cov=agent_ros_bridge tests/
+```
 
-# Parallel execution
-pytest -n auto
+### Writing Tests
+
+```python
+# tests/unit/test_example.py
+def test_example():
+    from agent_ros_bridge import Bridge
+    bridge = Bridge()
+    assert bridge is not None
+```
+
+## Code Style
+
+We use:
+- **black** for formatting
+- **ruff** for linting
+- **isort** for import sorting
+
+### Auto-format
+
+```bash
+make format
+```
+
+### Check Style
+
+```bash
+make lint
 ```
 
 ## Documentation
 
-### Building Documentation
+Documentation is in `docs/` as Markdown files:
+
+- `USER_MANUAL.md` - User guide
+- `API_REFERENCE.md` - API documentation
+- `NATIVE_ROS.md` - Native ROS setup
+- `MULTI_ROS.md` - Fleet management
+- `DOCKER_VS_NATIVE.md` - Deployment comparison
+- `DDS_ARCHITECTURE.md` - DDS explanation
+
+### View Documentation Locally
 
 ```bash
-# Install docs dependencies
-pip install -e ".[docs]"
-
-# Build docs
-mkdocs build
-
-# Serve docs locally
-mkdocs serve
+make serve-docs
+# Open http://localhost:8000
 ```
 
-### Documentation Style
+## Docker Development
 
-- Use clear, concise language
-- Include code examples
-- Add diagrams where helpful (Mermaid supported)
-- Keep README.md up to date
+For consistent environments:
 
-## Pull Request Process
+```bash
+# Build images
+make docker-build
 
-1. **Update documentation** - Update README.md, docstrings, and guides as needed
-2. **Add tests** - All new features must include tests
-3. **Update CHANGELOG.md** - Add entry under Unreleased section
-4. **Ensure CI passes** - All checks must pass
-5. **Request review** - Tag maintainers for review
-6. **Address feedback** - Make requested changes
-7. **Merge** - Maintainers will merge when approved
+# Run ROS2 bridge
+make docker-up
 
-### PR Checklist
+# Stop
+make docker-down
+```
 
-- [ ] Code follows style guidelines
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] CHANGELOG.md updated
-- [ ] Pre-commit hooks pass
-- [ ] CI passes
-- [ ] Branch is up to date with main
+## Common Issues
+
+### "Build artifacts detected"
+
+If `git status` shows `__pycache__` or `dist/`:
+
+```bash
+make clean
+git status  # Should be clean now
+```
+
+### "Import errors during tests"
+
+```bash
+make install-dev  # Reinstall in development mode
+```
+
+### "Tests pass locally but fail in CI"
+
+```bash
+make clean
+make check
+```
 
 ## Release Process
 
-1. Update version in `__init__.py`
-2. Update CHANGELOG.md with release date
-3. Create git tag: `git tag -a v1.2.3 -m "Release v1.2.3"`
-4. Push tag: `git push origin v1.2.3`
-5. GitHub Actions will automatically:
-   - Create GitHub release
-   - Build and push Docker images
-   - Publish to PyPI
-   - Update documentation
+1. **Update version:**
+   ```bash
+   # Version is managed by hatch-vcs based on git tags
+   git tag v0.2.0
+   ```
+
+2. **Build and test:**
+   ```bash
+   make clean
+   make build
+   make check
+   ```
+
+3. **Upload to PyPI:**
+   ```bash
+   make upload-test  # TestPyPI first
+   make upload       # Production PyPI
+   ```
 
 ## Questions?
 
-- Open an issue for bug reports or feature requests
-- Start a discussion for general questions
-- Contact maintainers: dev@openclaw-ros.org
+- **Issues:** https://github.com/webthree549-bot/agent-ros-bridge/issues
+- **Discussions:** https://github.com/webthree549-bot/agent-ros-bridge/discussions
 
-## Attribution
+## License
 
-This contributing guide is adapted from:
-- [Atom Contributing Guide](https://github.com/atom/atom/blob/master/CONTRIBUTING.md)
-- [Conventional Commits](https://www.conventionalcommits.org/)
-
-Thank you for contributing!
+By contributing, you agree that your contributions will be licensed under the MIT License.
