@@ -10,13 +10,13 @@
 
 ## Quick Start
 
-### Production (requires ROS2)
+### Production (requires ROS1 or ROS2)
 ```bash
 pip install agent-ros-bridge
-python run_bridge.py  # Requires ROS2 Humble/Jazzy/Noetic
+python run_bridge.py  # Auto-detects ROS1 Noetic or ROS2 Humble/Jazzy
 ```
 
-### Demo/Testing (no ROS2 required)
+### Demo/Testing (no ROS required)
 ```bash
 pip install agent-ros-bridge
 python demo/mock_bridge.py  # Simulated robot
@@ -24,20 +24,26 @@ python demo/mock_bridge.py  # Simulated robot
 
 ### Docker (production in container)
 ```bash
-docker-compose up ros2-bridge  # Full ROS2 + bridge
+docker-compose --profile ros2 up ros2-bridge  # ROS2 + bridge
+docker-compose --profile ros1 up ros1-bridge  # ROS1 + bridge
 ```
 
 ## Project Structure
 
 ```
 agent-ros-bridge/
-├── run_bridge.py          # Production bridge (requires ROS2)
+├── run_bridge.py          # Production bridge (auto-detects ROS1/ROS2)
 ├── demo/
 │   └── mock_bridge.py     # Demo mode (simulated robot)
 ├── docker/
-│   └── Dockerfile         # Production container
+│   ├── Dockerfile.ros1    # ROS1 Noetic container
+│   └── Dockerfile.ros2    # ROS2 Jazzy container
 ├── docker-compose.yml     # Docker orchestration
 └── agent_ros_bridge/      # Core package
+    └── gateway_v2/
+        └── connectors/
+            ├── ros1_connector.py  # ROS1 support
+            └── ros2_connector.py  # ROS2 support
 ```
 
 ## Features

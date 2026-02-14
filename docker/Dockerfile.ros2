@@ -1,11 +1,11 @@
-# Agent ROS Bridge - ROS1 Noetic Container
-FROM ros:noetic-ros-base
+# Agent ROS Bridge - ROS2 Jazzy Container  
+FROM ros:jazzy-ros-base
 
 # Install Python and dependencies
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
-    python3-rospy \
+    python3-rclpy \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
@@ -22,9 +22,9 @@ WORKDIR /app
 COPY . /app/
 RUN pip3 install --break-system-packages -e .
 
-# Source ROS1 on startup
-RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-ENV ROS_DISTRO=noetic
+# Source ROS2 on startup
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+ENV ROS_DISTRO=jazzy
 
 # Default: run production bridge
 CMD ["python3", "run_bridge.py"]

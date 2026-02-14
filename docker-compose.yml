@@ -1,23 +1,50 @@
 version: '3.8'
 
 services:
-  # Production bridge with ROS2
+  # ROS1 bridge (Noetic)
+  ros1-bridge:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ros1
+    image: agent-ros-bridge:ros1
+    container_name: agent-ros-bridge-ros1
+    profiles: ["ros1"]
+    ports:
+      - "8765:8765"    # WebSocket
+      - "50051:50051"  # gRPC
+    environment:
+      - ROS_MASTER_URI=http://ros-master:11311
+      - ROS_HOSTNAME=ros1-bridge
+    networks:
+      - ros-network
+
+  # ROS2 bridge (Jazzy)
   ros2-bridge:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    image: agent-ros-bridge:latest
-    container_name: agent-ros-bridge
+      dockerfile: docker/Dockerfile.ros2
+    image: agent-ros-bridge:ros2
+    container_name: agent-ros-bridge-ros2
+    profiles: ["ros2"]
     ports:
       - "8765:8765"    # WebSocket
       - "50051:50051"  # gRPC
     environment:
       - ROS_DOMAIN_ID=0
-    volumes:
-      - ./config:/app/config:ro
-    command: ["python3", "run_bridge.py"]
+      - ROS_LOCALHOST_ONLY=0
+    networks:
+      - ros-network
 
-  # Optional: TurtleBot4 simulator for testing
+  # ROS1 Master (required for ROS1)
+  ros-master:
+    image: ros:noetic-ros-core
+    container_name: ros-master
+    profiles: ["ros1"]
+    command: roscore
+    networks:
+      - ros-network
+
+  # Optional: TurtleBot4 simulator (ROS2)
   turtlebot4-sim:
     image: ros:jazzy-desktop
     container_name: turtlebot4-sim
@@ -32,3 +59,9 @@ services:
         source /opt/ros/jazzy/setup.bash &&
         ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
       "
+    networks:
+      - ros-network
+
+networks:
+  ros-network:
+    driver: bridge
