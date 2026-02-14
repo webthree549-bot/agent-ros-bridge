@@ -1,6 +1,0 @@
-ros_topic_map:
-  /arm/joint_states: "sensor_msgs/JointState"
-  /arm/gripper/command: "std_msgs/Float32"
-plugin_config:
-  arm_model: "robotiq_2f_85"
-  max_grasp_force: 100

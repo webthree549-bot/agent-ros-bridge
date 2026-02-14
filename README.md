@@ -19,7 +19,7 @@ python run_bridge.py  # Auto-detects ROS1 Noetic or ROS2 Humble/Jazzy
 ### Demo/Testing (no ROS required)
 ```bash
 pip install agent-ros-bridge
-python demo/mock_bridge.py  # Simulated robot
+python examples/quickstart/mock_bridge.py  # Simulated robot
 ```
 
 ### Native ROS (Recommended for Development)
@@ -49,7 +49,7 @@ See [docs/NATIVE_ROS.md](docs/NATIVE_ROS.md) for detailed native installation.
 ### Web Dashboard
 ```bash
 # Start bridge (in another terminal)
-python demo/mock_bridge.py
+cd examples/quickstart && ./run.sh
 
 # Start dashboard
 python dashboard/server.py
@@ -59,7 +59,7 @@ python dashboard/server.py
 ### Fleet Orchestration (Multi-Robot)
 ```bash
 # Start fleet orchestrator with 4 simulated robots
-python demo/fleet_demo.py
+cd examples/fleet && ./run.sh
 
 # Query fleet status
 wscat -c ws://localhost:8771
@@ -71,26 +71,26 @@ wscat -c ws://localhost:8771
 ### Arm Robot Control (Manipulation)
 ```bash
 # Control UR5 arm
-python demo/arm_demo.py --arm-type ur --ros-version ros2 --demo pick_place
+cd examples/arm && ./run.sh --arm-type ur --demo pick_place
 
 # Control xArm
-python demo/arm_demo.py --arm-type xarm --ros-version ros2
+cd examples/arm && ./run.sh --arm-type xarm
 
 # Interactive control
-python demo/arm_demo.py --arm-type ur --ros-version ros2 --demo interactive
+cd examples/arm && ./run.sh --arm-type ur --demo interactive
 # Then: wscat -c ws://localhost:8772
 ```
 
 ### ROS Actions (Navigation, Planning)
 ```bash
 # Navigation action demo
-python demo/actions_demo.py --action navigate
+cd examples/actions && ./run.sh --action navigate
 
 # Manipulation trajectory demo
-python demo/actions_demo.py --action manipulate
+cd examples/actions && ./run.sh --action manipulate
 
 # Interactive action control
-python demo/actions_demo.py --action interactive
+cd examples/actions && ./run.sh --action interactive
 # Then: wscat -c ws://localhost:8773
 # Send: {"command": {"action": "actions.navigate", "parameters": {"x": 5.0, "y": 3.0}}}
 ```
@@ -98,7 +98,7 @@ python demo/actions_demo.py --action interactive
 ### Prometheus Metrics (Monitoring)
 ```bash
 # Start metrics server
-python demo/metrics_demo.py
+cd examples/metrics && ./run.sh
 
 # View metrics
 curl http://localhost:9090/metrics
@@ -123,7 +123,14 @@ agent-ros-bridge/                 # Repository root
 │   ├── actions/                 # ROS actions support
 │   └── metrics/                 # Prometheus metrics
 ├── tests/                       # Test suite
-├── demo/                        # Demo scripts
+├── examples/                    # ⭐ Runnable examples (7 demos)
+│   ├── quickstart/              #   Basic bridge usage
+│   ├── fleet/                   #   Multi-robot coordination
+│   ├── auth/                    #   JWT authentication
+│   ├── mqtt_iot/                #   IoT sensor integration
+│   ├── actions/                 #   ROS navigation/actions
+│   ├── arm/                     #   Robotic arm control
+│   └── metrics/                 #   Prometheus monitoring
 ├── docs/                        # Documentation (40,000+ words)
 ├── scripts/                     # Utility scripts
 ├── config/                      # Configuration templates

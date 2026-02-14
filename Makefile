@@ -83,12 +83,12 @@ test-openclaw:
 
 # Linting and formatting
 lint:
-	ruff check agent_ros_bridge/ tests/ demo/ scripts/
-	black --check agent_ros_bridge/ tests/ demo/ scripts/
+	ruff check agent_ros_bridge/ tests/ examples/ scripts/
+	black --check agent_ros_bridge/ tests/ examples/ scripts/
 
 format:
-	black agent_ros_bridge/ tests/ demo/ scripts/
-	isort agent_ros_bridge/ tests/ demo/ scripts/
+	black agent_ros_bridge/ tests/ examples/ scripts/
+	isort agent_ros_bridge/ tests/ examples/ scripts/
 
 # Documentation
 docs:
@@ -127,10 +127,32 @@ docker-down:
 
 # Development server
 run-mock:
-	python demo/mock_bridge.py
+	python examples/quickstart/mock_bridge.py
 
 run-bridge:
 	python run_bridge.py
 
 run-dashboard:
 	python dashboard/server.py
+
+# Examples
+example-quickstart:
+	cd examples/quickstart && ./run.sh
+
+example-fleet:
+	cd examples/fleet && ./run.sh
+
+example-auth:
+	cd examples/auth && ./run.sh
+
+example-mqtt:
+	cd examples/mqtt_iot && ./run.sh
+
+example-actions:
+	cd examples/actions && ./run.sh
+
+example-arm:
+	cd examples/arm && ./run.sh
+
+example-metrics:
+	cd examples/metrics && ./run.sh
