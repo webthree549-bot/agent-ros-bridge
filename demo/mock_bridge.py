@@ -103,7 +103,7 @@ async def main():
     robot = MockRobot()
     
     # Create WebSocket transport with mock handler
-    ws_transport = WebSocketTransport({'port': 8765})
+    ws_transport = WebSocketTransport({'port': 8766})
     ws_transport.message_handler = lambda msg, ident: handle_message(robot, msg, ident)
     bridge.transport_manager.register(ws_transport)
     
@@ -113,7 +113,7 @@ async def main():
     print("=" * 60)
     print("🎭 MOCK ROBOT BRIDGE (Demo Mode)")
     print("=" * 60)
-    print("WebSocket: ws://localhost:8765")
+    print("WebSocket: ws://localhost:8766")
     print("")
     print("This is a SIMULATED robot for testing.")
     print("No ROS2 required. No real hardware connected.")
