@@ -1,0 +1,60 @@
+# MQTT Transport Demo with Mosquitto Broker
+version: '3.8'
+
+services:
+  # MQTT Broker (Mosquitto)
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: agent-ros-bridge-mosquitto
+    ports:
+      - "1883:1883"    # MQTT
+      - "9001:9001"    # WebSocket
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    networks:
+      - mqtt-network
+
+  # Bridge with MQTT support
+  bridge-mqtt:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.ros2
+    image: agent-ros-bridge:ros2
+    container_name: agent-ros-bridge-mqtt
+    environment:
+      - ROS_DOMAIN_ID=0
+    depends_on:
+      - mosquitto
+    networks:
+      - mqtt-network
+    command: >
+      python3 -c "
+        import asyncio
+        from agent_ros_bridge import Bridge
+        from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
+        from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+        
+        async def main():
+            bridge = Bridge()
+            
+            # WebSocket
+            bridge.transport_manager.register(WebSocketTransport({'port': 8765}))
+            
+            # MQTT to Mosquitto
+            bridge.transport_manager.register(MQTTTransport({
+                'host': 'mosquitto',
+                'port': 1883,
+                'subscriptions': ['robots/#', 'sensors/#']
+            }))
+            
+            await bridge.start()
+            print('Bridge running with MQTT support')
+            while True:
+                await asyncio.sleep(1)
+        
+        asyncio.run(main())
+      "
+
+networks:
+  mqtt-network:
+    driver: bridge
