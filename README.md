@@ -22,11 +22,24 @@ pip install agent-ros-bridge
 python demo/mock_bridge.py  # Simulated robot
 ```
 
-### Docker (production in container)
+### Native ROS (Recommended for Development)
+
+**Ubuntu with ROS1/ROS2 installed:**
 ```bash
-docker-compose --profile ros2 up ros2-bridge  # ROS2 + bridge
-docker-compose --profile ros1 up ros1-bridge  # ROS1 + bridge
+# One-line installer
+curl -sSL https://raw.githubusercontent.com/webthree549-bot/agent-ros-bridge/main/scripts/install-native.sh | bash
+
+# Or manual install
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+pip install -e ".[dev]"
+
+# Run with native ROS
+source /opt/ros/humble/setup.bash  # or noetic, jazzy
+python run_bridge.py
 ```
+
+See [docs/NATIVE_ROS.md](docs/NATIVE_ROS.md) for detailed native installation.
 
 ### Web Dashboard
 ```bash
