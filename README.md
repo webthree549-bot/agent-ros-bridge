@@ -150,6 +150,30 @@ agent-ros-bridge/
 - **ROS Support**: ROS1 Noetic, ROS2 Humble/Jazzy/Iron
 - **Cloud-Native**: Docker, Kubernetes ready
 
+## Development
+
+The repository maintains strict separation between **source code** and **build artifacts**:
+
+```bash
+# Clone and setup
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+
+# Install in development mode
+make install-dev
+
+# Development workflow
+make format      # Format code
+make test        # Run tests
+make check       # Lint + test
+
+# Clean build artifacts
+make clean       # Remove all generated files
+make build       # Create wheel and sdist
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [Repository Structure](docs/REPOSITORY_STRUCTURE.md) for details.
+
 ## Documentation
 
 | Document | Description |
@@ -160,10 +184,12 @@ agent-ros-bridge/
 | **[Multi-ROS](docs/MULTI_ROS.md)** | Fleet management and coordination |
 | **[Docker vs Native](docs/DOCKER_VS_NATIVE.md)** | Deployment strategy comparison |
 | **[DDS Architecture](docs/DDS_ARCHITECTURE.md)** | ROS2/DDS relationship explained |
+| **[Repository Structure](docs/REPOSITORY_STRUCTURE.md)** | Clean source/build separation |
 
 **Quick Links:**
 - [Installation Guide](docs/USER_MANUAL.md#installation)
 - [Docker vs Native Decision Matrix](docs/DOCKER_VS_NATIVE.md#decision-matrix)
+- [Repository Structure](docs/REPOSITORY_STRUCTURE.md)
 - [WebSocket Protocol](docs/API_REFERENCE.md#websocket-protocol)
 - [Fleet Management](docs/USER_MANUAL.md#fleet-management)
 - [Troubleshooting](docs/USER_MANUAL.md#troubleshooting)
