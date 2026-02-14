@@ -76,6 +76,7 @@ class TestRobotFleet:
         fleet = RobotFleet("test_fleet")
         mock_robot = Mock(spec=Robot)
         mock_robot.robot_id = "robot_1"
+        mock_robot.name = "Test Robot"
         
         fleet.add_robot(mock_robot)
         assert "robot_1" in fleet.robots
@@ -85,6 +86,7 @@ class TestRobotFleet:
         fleet = RobotFleet("test_fleet")
         mock_robot = Mock(spec=Robot)
         mock_robot.robot_id = "robot_1"
+        mock_robot.name = "Test Robot"
         
         fleet.add_robot(mock_robot)
         retrieved = fleet.get_robot("robot_1")

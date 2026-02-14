@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- None
+
+### Changed
+- None
+
+### Deprecated
+- None
+
+### Removed
+- None
+
+### Fixed
+- None
+
+### Security
+- None
+
+## [0.1.0] - 2025-02-14
+
+### Added
+- Initial PyPI release
 - New Gateway v2 architecture with multi-protocol support (WebSocket, gRPC, MQTT, TCP)
 - Plugin system with hot-reload capability
 - Multi-robot fleet management
@@ -24,15 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored from single-purpose TCP bridge to universal robot gateway
 - Improved configuration system with YAML/JSON/Env support
 - Enhanced error handling and logging
-
-### Deprecated
-- Legacy v1 TCP server (replaced by Gateway v2)
-
-### Removed
-- None
-
-### Fixed
-- None
 
 ### Security
 - Added security scanning to CI pipeline
@@ -53,5 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete test suite (unit + integration)
 - Documentation and deployment scripts
 
-[Unreleased]: https://github.com/webthree549-bot/openclaw-ros-bridge/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/webthree549-bot/agent-ros-bridge/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/webthree549-bot/agent-ros-bridge/releases/tag/v0.1.0
 [1.0.0]: https://github.com/webthree549-bot/openclaw-ros-bridge/releases/tag/v1.0.0
