@@ -81,7 +81,7 @@ class WebSocketTransport(Transport):
         self.running = False
         logger.info("WebSocket transport stopped")
     
-    async def _handle_client(self, websocket: WebSocketServerProtocol, path: str):
+    async def _handle_client(self, websocket: WebSocketServerProtocol):
         """Handle client connection"""
         client_id = str(id(websocket))
         self.clients[client_id] = websocket
@@ -94,7 +94,7 @@ class WebSocketTransport(Transport):
             metadata={
                 "transport": "websocket",
                 "remote_addr": str(websocket.remote_address),
-                "path": path
+                "path": getattr(websocket, 'path', '/')
             }
         )
         self.identities[client_id] = identity
