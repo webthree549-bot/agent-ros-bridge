@@ -158,10 +158,12 @@ agent-ros-bridge/
 | **[API Reference](docs/API_REFERENCE.md)** | Full API docs - Classes, methods, examples |
 | **[Native ROS](docs/NATIVE_ROS.md)** | Ubuntu/ROS installation and setup |
 | **[Multi-ROS](docs/MULTI_ROS.md)** | Fleet management and coordination |
-| **[Architecture](docs/ARCHITECTURE.md)** | System design (placeholder) |
+| **[Docker vs Native](docs/DOCKER_VS_NATIVE.md)** | Deployment strategy comparison |
+| **[DDS Architecture](docs/DDS_ARCHITECTURE.md)** | ROS2/DDS relationship explained |
 
 **Quick Links:**
 - [Installation Guide](docs/USER_MANUAL.md#installation)
+- [Docker vs Native Decision Matrix](docs/DOCKER_VS_NATIVE.md#decision-matrix)
 - [WebSocket Protocol](docs/API_REFERENCE.md#websocket-protocol)
 - [Fleet Management](docs/USER_MANUAL.md#fleet-management)
 - [Troubleshooting](docs/USER_MANUAL.md#troubleshooting)
