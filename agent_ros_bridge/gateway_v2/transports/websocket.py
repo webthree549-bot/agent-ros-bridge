@@ -23,11 +23,17 @@ from agent_ros_bridge.gateway_v2.core import (
     Transport, Message, Identity, Header, Command, Telemetry, Event
 )
 
+try:
+    from agent_ros_bridge.gateway_v2.auth import Authenticator, AuthConfig, RoleBasedAccessControl
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
+
 logger = logging.getLogger("transport.websocket")
 
 
 class WebSocketTransport(Transport):
-    """WebSocket transport implementation"""
+    """WebSocket transport implementation with authentication"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__("websocket", config)
@@ -38,6 +44,21 @@ class WebSocketTransport(Transport):
         self.server = None
         self.clients: Dict[str, WebSocketServerProtocol] = {}
         self.identities: Dict[str, Identity] = {}
+        
+        # Initialize authentication
+        auth_config = config.get("auth", {})
+        self.auth_enabled = auth_config.get("enabled", False)
+        if AUTH_AVAILABLE and self.auth_enabled:
+            self.authenticator = Authenticator(AuthConfig(
+                enabled=True,
+                jwt_secret=auth_config.get("jwt_secret"),
+                api_keys=auth_config.get("api_keys", {})
+            ))
+            self.rbac = RoleBasedAccessControl()
+            logger.info("WebSocket authentication enabled")
+        else:
+            self.authenticator = None
+            self.rbac = None
     
     async def start(self) -> bool:
         """Start WebSocket server"""
@@ -82,24 +103,53 @@ class WebSocketTransport(Transport):
         logger.info("WebSocket transport stopped")
     
     async def _handle_client(self, websocket: WebSocketServerProtocol):
-        """Handle client connection"""
+        """Handle client connection with authentication"""
         client_id = str(id(websocket))
+        
+        # Check authentication if enabled
+        auth_payload = None
+        if self.authenticator:
+            # Try to get token from path query string
+            path = getattr(websocket, 'path', '/')
+            token = self.authenticator.extract_token_from_query(path.split('?')[1] if '?' in path else '')
+            
+            # Try API key from headers if no token
+            if not token:
+                headers = dict(websocket.request_headers) if hasattr(websocket, 'request_headers') else {}
+                api_key = self.authenticator.extract_api_key_from_headers(headers)
+                if api_key:
+                    auth_payload = self.authenticator.verify_api_key(api_key)
+            
+            # Verify token
+            if token and not auth_payload:
+                auth_payload = self.authenticator.verify_token(token)
+            
+            # Reject if authentication required but failed
+            if not auth_payload:
+                logger.warning(f"Authentication failed for client {client_id}")
+                await websocket.close(code=4001, reason="Authentication required")
+                return
+        
         self.clients[client_id] = websocket
         
-        # Create identity
+        # Create identity with auth info
+        roles = auth_payload.get("roles", ["anonymous"]) if auth_payload else ["anonymous"]
+        user_id = auth_payload.get("sub", "anonymous") if auth_payload else "anonymous"
+        
         identity = Identity(
             id=client_id,
-            name=f"ws_client_{client_id[:8]}",
-            roles=["anonymous"],
+            name=user_id,
+            roles=roles,
             metadata={
                 "transport": "websocket",
                 "remote_addr": str(websocket.remote_address),
-                "path": getattr(websocket, 'path', '/')
+                "path": getattr(websocket, 'path', '/'),
+                "auth": auth_payload is not None
             }
         )
         self.identities[client_id] = identity
         
-        logger.info(f"WebSocket client connected: {client_id}")
+        logger.info(f"WebSocket client connected: {client_id} (user: {user_id}, roles: {roles})")
         
         try:
             async for message in websocket:
@@ -108,9 +158,28 @@ class WebSocketTransport(Transport):
                     data = json.loads(message)
                     msg = self._json_to_message(data)
                     
+                    # Check RBAC permissions
+                    if self.rbac and msg.command:
+                        action = msg.command.action
+                        if not self.rbac.can_execute(identity.roles, action):
+                            logger.warning(f"Permission denied: {identity.name} cannot {action}")
+                            await websocket.send(json.dumps({
+                                "error": "Permission denied",
+                                "action": action,
+                                "required_roles": list(self.rbac.permissions.keys())
+                            }))
+                            continue
+                    
                     if self.message_handler:
                         response = await self.message_handler(msg, identity)
                         if response:
+                            # Filter response based on roles
+                            if self.rbac and response.telemetry:
+                                filtered_data = self.rbac.filter_response(
+                                    identity.roles, 
+                                    response.telemetry.data
+                                )
+                                response.telemetry.data = filtered_data
                             await websocket.send(self._message_to_json(response))
                             
                 except json.JSONDecodeError as e:
