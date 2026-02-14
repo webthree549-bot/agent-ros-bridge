@@ -50,6 +50,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pyjwt>=2.8.0",
     "paho-mqtt>=1.6.0",
+    "prometheus-client>=0.17.0",
     "typing-extensions>=4.7.0; python_version<'3.10'",
 ]
 

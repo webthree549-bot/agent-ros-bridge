@@ -1,0 +1,111 @@
+{
+  "dashboard": {
+    "title": "Agent ROS Bridge - Fleet Monitoring",
+    "tags": ["ros", "robotics", "agent-ros-bridge"],
+    "timezone": "browser",
+    "schemaVersion": 27,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Robots Online",
+        "type": "stat",
+        "targets": [{
+          "expr": "agent_ros_bridge_robots_online",
+          "legendFormat": "Online"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 2}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Total Robots",
+        "type": "stat",
+        "targets": [{
+          "expr": "agent_ros_bridge_robots_total",
+          "legendFormat": "Total"
+        }],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Task Completion Rate",
+        "type": "stat",
+        "targets": [{
+          "expr": "rate(agent_ros_bridge_tasks_completed_total[5m])",
+          "legendFormat": "Tasks/sec"
+        }],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Active Connections",
+        "type": "stat",
+        "targets": [{
+          "expr": "agent_ros_bridge_active_connections",
+          "legendFormat": "Connections"
+        }],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Message Throughput",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(agent_ros_bridge_messages_sent_total[1m])",
+            "legendFormat": "Sent"
+          },
+          {
+            "expr": "rate(agent_ros_bridge_messages_received_total[1m])",
+            "legendFormat": "Received"
+          }
+        ],
+        "yAxes": [{"label": "Messages/sec"}],
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Task Execution Time",
+        "type": "heatmap",
+        "targets": [{
+          "expr": "agent_ros_bridge_task_duration_seconds_bucket",
+          "legendFormat": "{{le}}"
+        }],
+        "dataFormat": "tsbuckets",
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 8}
+      },
+      {
+        "id": 7,
+        "title": "Task Queue Size",
+        "type": "graph",
+        "targets": [{
+          "expr": "agent_ros_bridge_task_queue_size",
+          "legendFormat": "Queue Size"
+        }],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 17}
+      },
+      {
+        "id": 8,
+        "title": "Response Time",
+        "type": "graph",
+        "targets": [{
+          "expr": "histogram_quantile(0.95, rate(agent_ros_bridge_response_time_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        }],
+        "yAxes": [{"label": "Seconds"}],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 17}
+      }
+    ]
+  }
+}

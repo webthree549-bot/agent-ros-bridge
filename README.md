@@ -95,6 +95,19 @@ python demo/actions_demo.py --action interactive
 # Send: {"command": {"action": "actions.navigate", "parameters": {"x": 5.0, "y": 3.0}}}
 ```
 
+### Prometheus Metrics (Monitoring)
+```bash
+# Start metrics server
+python demo/metrics_demo.py
+
+# View metrics
+curl http://localhost:9090/metrics
+
+# For Grafana:
+# 1. Import dashboards/grafana-dashboard.json
+# 2. Add Prometheus data source: http://localhost:9090
+```
+
 ## Project Structure
 
 ```
@@ -129,6 +142,7 @@ agent-ros-bridge/
 - **Fleet Orchestration**: Task allocation, load balancing, coordination
 - **Arm Robot Control**: UR, xArm, Franka manipulation support
 - **ROS Actions**: Navigation, motion planning, long-running tasks
+- **Prometheus Metrics**: Production monitoring with Grafana dashboards
 - **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
 - **Dual ROS**: Run ROS1 + ROS2 in the same bridge instance
 - **Remote ROS**: Connect to robots over the network
