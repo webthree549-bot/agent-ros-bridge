@@ -1,28 +1,50 @@
 version: '3.8'
 
 services:
-  bridge:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    image: agent-ros-bridge:latest
-    container_name: agent-ros-bridge
+  # ROS2 environment with the bridge
+  ros2-bridge:
+    image: ros:jazzy-ros-base
+    container_name: agent-ros-bridge-ros2
     restart: unless-stopped
     ports:
       - "8765:8765"    # WebSocket
       - "50051:50051"  # gRPC
-      - "9999:9999"    # TCP
-      - "9090:9090"    # Metrics
     environment:
-      - AGENT_ROS_BRIDGE_LOG_LEVEL=INFO
       - ROS_DOMAIN_ID=0
+      - ROS_LOCALHOST_ONLY=0
     volumes:
+      - .:/workspace
       - ./config:/app/config:ro
-      - ./logs:/app/logs
-    networks:
-      - agent-ros-bridge-network
-    command: ["agent-ros-bridge", "--config", "/app/config/bridge.yaml"]
+    working_dir: /workspace
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y python3-pip &&
+        pip install websockets pyyaml psutil python-dotenv &&
+        source /opt/ros/jazzy/setup.bash &&
+        ros2 topic list &&
+        echo 'ROS2 ready. Starting bridge...' &&
+        python3 run_bridge.py
+      "
+    stdin_open: true
+    tty: true
+
+  # Optional: TurtleBot4 simulator (if you want to test with a simulated robot)
+  turtlebot4-sim:
+    image: ros:jazzy-desktop
+    container_name: turtlebot4-sim
+    profiles: ["sim"]
+    environment:
+      - ROS_DOMAIN_ID=0
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: >
+      bash -c "
+        source /opt/ros/jazzy/setup.bash &&
+        echo 'Starting TurtleBot4 simulator...' &&
+        ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
+      "
 
 networks:
-  agent-ros-bridge-network:
+  default:
     driver: bridge

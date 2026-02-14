@@ -10,15 +10,25 @@
 
 ## Quick Start
 
+### Option 1: Mock Mode (No ROS2 Required)
+Test the WebSocket API without a real robot:
 ```bash
-# Install
 pip install agent-ros-bridge
+python run_bridge.py
+# WebSocket available at ws://localhost:8765
+```
 
-# Run demo
-agent-ros-bridge --demo
+### Option 2: With Real ROS2 (Docker)
+```bash
+docker-compose up ros2-bridge
+```
 
-# Or with Docker
-docker run -p 8765:8765 agent-ros-bridge/agent-ros-bridge:latest
+### Option 3: Development
+```bash
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+pip install -e ".[dev]"
+python run_bridge.py
 ```
 
 ## Features
