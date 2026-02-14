@@ -58,7 +58,7 @@ class MQTTTransport(Transport):
             logger.error("paho-mqtt not installed. Run: pip install paho-mqtt>=1.6.0")
             return False
         
-        self.client = mqtt.Client(client_id=self.client_id)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=self.client_id)
         
         # Set callbacks
         self.client.on_connect = self._on_connect
@@ -121,22 +121,22 @@ class MQTTTransport(Transport):
         self._connected = False
         logger.info("MQTT transport stopped")
     
-    def _on_connect(self, client, userdata, flags, rc):
-        """MQTT connect callback"""
+    def _on_connect(self, client, userdata, flags, rc, properties=None):
+        """MQTT connect callback (API v2 compatible)"""
         if rc == 0:
             self._connected = True
             logger.info("Connected to MQTT broker")
         else:
             logger.error(f"MQTT connection failed with code: {rc}")
-    
-    def _on_disconnect(self, client, userdata, rc):
-        """MQTT disconnect callback"""
+
+    def _on_disconnect(self, client, userdata, rc, properties=None):
+        """MQTT disconnect callback (API v2 compatible)"""
         self._connected = False
         if rc != 0:
             logger.warning(f"Unexpected MQTT disconnection (rc={rc})")
     
     def _on_message(self, client, userdata, msg):
-        """MQTT message received callback"""
+        """MQTT message received callback (runs in background thread)"""
         try:
             # Parse message
             payload = json.loads(msg.payload.decode('utf-8'))
@@ -160,8 +160,8 @@ class MQTTTransport(Transport):
             # Convert to Message
             message = self._mqtt_to_message(payload, msg.topic)
             
-            # Queue for processing
-            asyncio.create_task(self._message_queue.put((message, identity)))
+            # Put in queue - thread-safe method
+            self._message_queue.put_nowait((message, identity))
             
         except json.JSONDecodeError:
             logger.warning(f"Invalid JSON in MQTT message on topic {msg.topic}")

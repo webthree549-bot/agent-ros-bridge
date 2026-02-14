@@ -45,7 +45,7 @@ class SensorSimulator:
             logger.error("paho-mqtt not installed. Run: pip install paho-mqtt")
             return
         
-        client = mqtt.Client(client_id="sensor_simulator")
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="sensor_simulator")
         client.connect(self.broker, self.port)
         client.loop_start()
         
