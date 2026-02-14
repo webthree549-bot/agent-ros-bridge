@@ -111,29 +111,29 @@ curl http://localhost:9090/metrics
 ## Project Structure
 
 ```
-agent-ros-bridge/
-├── run_bridge.py          # Production bridge (auto-detects ROS1/ROS2)
-├── demo/
-│   ├── mock_bridge.py     # Demo mode (simulated robot)
-│   ├── mock_bridge_auth.py # With JWT authentication
-│   └── mqtt_demo.py       # IoT sensor demo
-├── dashboard/
-│   ├── server.py          # Web dashboard server
-│   └── static/
-│       └── index.html     # Dashboard UI
-├── docker/
-│   ├── Dockerfile.ros1    # ROS1 Noetic container
-│   └── Dockerfile.ros2    # ROS2 Jazzy container
-├── docker-compose.yml     # Docker orchestration
-└── agent_ros_bridge/      # Core package
-    └── gateway_v2/
-        ├── transports/
-        │   ├── websocket.py      # WebSocket server
-        │   └── mqtt_transport.py # MQTT client
-        └── connectors/
-            ├── ros1_connector.py  # ROS1 support
-            └── ros2_connector.py  # ROS2 support
+agent-ros-bridge/                 # Repository root
+├── agent_ros_bridge/            # ⭐ Core source package
+│   ├── gateway_v2/              # Main gateway implementation
+│   │   ├── core.py              # Bridge class
+│   │   ├── auth.py              # Authentication
+│   │   ├── transports/          # Communication protocols
+│   │   └── connectors/          # ROS connectors
+│   ├── fleet/                   # Fleet orchestration
+│   ├── plugins/                 # Robot plugins (arm, etc.)
+│   ├── actions/                 # ROS actions support
+│   └── metrics/                 # Prometheus metrics
+├── tests/                       # Test suite
+├── demo/                        # Demo scripts
+├── docs/                        # Documentation (40,000+ words)
+├── scripts/                     # Utility scripts
+├── config/                      # Configuration templates
+├── docker/                      # Docker containers
+├── dashboard/                   # Web dashboard
+├── Makefile                     # Build automation
+└── pyproject.toml              # Package configuration
 ```
+
+See [Repository Structure](docs/REPOSITORY_STRUCTURE.md) for complete details.
 
 ## Features
 
@@ -229,14 +229,6 @@ await bridge.start()
 ```bash
 agent-ros-bridge --demo
 agent-ros-bridge --config ./config.yaml
-```
-
-## Development
-
-```bash
-make install-dev
-make test
-make dev-server
 ```
 
 ## License
