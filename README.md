@@ -152,10 +152,19 @@ agent-ros-bridge/
 
 ## Documentation
 
-- **[User Manual](docs/USER_MANUAL.md)** - Complete usage guide
-- **[API Reference](docs/API_REFERENCE.md)** - API documentation
-- **[Architecture](docs/ARCHITECTURE.md)** - System design
-- **[Multi-ROS Setup](docs/MULTI_ROS.md)** - Fleet management guide
+| Document | Description |
+|----------|-------------|
+| **[User Manual](docs/USER_MANUAL.md)** | Complete guide (23,000+ words) - Installation, tutorials, troubleshooting |
+| **[API Reference](docs/API_REFERENCE.md)** | Full API docs - Classes, methods, examples |
+| **[Native ROS](docs/NATIVE_ROS.md)** | Ubuntu/ROS installation and setup |
+| **[Multi-ROS](docs/MULTI_ROS.md)** | Fleet management and coordination |
+| **[Architecture](docs/ARCHITECTURE.md)** | System design (placeholder) |
+
+**Quick Links:**
+- [Installation Guide](docs/USER_MANUAL.md#installation)
+- [WebSocket Protocol](docs/API_REFERENCE.md#websocket-protocol)
+- [Fleet Management](docs/USER_MANUAL.md#fleet-management)
+- [Troubleshooting](docs/USER_MANUAL.md#troubleshooting)
 
 ## Installation
 
