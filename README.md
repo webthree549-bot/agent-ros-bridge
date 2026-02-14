@@ -68,6 +68,19 @@ wscat -c ws://localhost:8771
 > {"command": {"action": "fleet.submit_task", "parameters": {"type": "navigate", "target": "zone_a"}}}
 ```
 
+### Arm Robot Control (Manipulation)
+```bash
+# Control UR5 arm
+python demo/arm_demo.py --arm-type ur --ros2 --demo pick_place
+
+# Control xArm
+python demo/arm_demo.py --arm-type xarm --ros2
+
+# Interactive control
+python demo/arm_demo.py --arm-type ur --ros2 --demo interactive
+# Then: wscat -c ws://localhost:8772
+```
+
 ## Project Structure
 
 ```
@@ -100,6 +113,7 @@ agent-ros-bridge/
 - **Multi-Protocol**: WebSocket, gRPC, MQTT, TCP
 - **Multi-Robot**: Manage fleets of robots
 - **Fleet Orchestration**: Task allocation, load balancing, coordination
+- **Arm Robot Control**: UR, xArm, Franka manipulation support
 - **Multi-ROS**: Connect to multiple ROS1/ROS2 endpoints simultaneously
 - **Dual ROS**: Run ROS1 + ROS2 in the same bridge instance
 - **Remote ROS**: Connect to robots over the network
