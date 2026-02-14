@@ -129,23 +129,23 @@ class ConfigLoader:
     ENV_PREFIX = "OPENCLAW_"
     
     @classmethod
-    def from_yaml(cls, path: str) -> GatewayConfig:
+    def from_yaml(cls, path: str) -> "BridgeConfig":
         """Load configuration from YAML file"""
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
         return cls._dict_to_config(data)
     
     @classmethod
-    def from_json(cls, path: str) -> GatewayConfig:
+    def from_json(cls, path: str) -> "BridgeConfig":
         """Load configuration from JSON file"""
         with open(path, 'r') as f:
             data = json.load(f)
         return cls._dict_to_config(data)
     
     @classmethod
-    def from_env(cls) -> GatewayConfig:
+    def from_env(cls) -> "BridgeConfig":
         """Load configuration from environment variables"""
-        config = GatewayConfig()
+        config = BridgeConfig()
         
         # Simple env var mapping
         env_mappings = {
@@ -167,7 +167,7 @@ class ConfigLoader:
         return config
     
     @classmethod
-    def from_file_or_env(cls, path: Optional[str] = None) -> GatewayConfig:
+    def from_file_or_env(cls, path: Optional[str] = None) -> "BridgeConfig":
         """Load from file or environment"""
         # Try config file locations
         config_paths = [
@@ -190,7 +190,7 @@ class ConfigLoader:
                     logger.info(f"Loaded config from {p}")
                     break
         else:
-            config = GatewayConfig()
+            config = BridgeConfig()
             logger.info("Using default configuration")
         
         # Override with environment variables
@@ -200,10 +200,10 @@ class ConfigLoader:
         return config
     
     @classmethod
-    def _dict_to_config(cls, data: Dict[str, Any]) -> GatewayConfig:
-        """Convert dictionary to GatewayConfig"""
+    def _dict_to_config(cls, data: Dict[str, Any]) -> "BridgeConfig":
+        """Convert dictionary to BridgeConfig"""
         # Simplified conversion - full implementation would handle nested structures
-        return GatewayConfig(
+        return BridgeConfig(
             name=data.get("name", "agent_ros_bridge"),
             log_level=data.get("log_level", "INFO"),
             transports=cls._parse_transports(data.get("transports", {})),
@@ -277,10 +277,10 @@ class ConfigLoader:
         setattr(obj, parts[-1], value)
     
     @classmethod
-    def _merge_configs(cls, base: GatewayConfig, override: GatewayConfig) -> GatewayConfig:
+    def _merge_configs(cls, base: "BridgeConfig", override: "BridgeConfig") -> "BridgeConfig":
         """Merge two configurations (override takes precedence)"""
         # Simplified merge - full implementation would handle all fields
-        result = GatewayConfig()
+        result = BridgeConfig()
         
         # Copy base
         for field_name in base.__dataclass_fields__:
@@ -289,7 +289,7 @@ class ConfigLoader:
         # Apply overrides (non-default values)
         for field_name in override.__dataclass_fields__:
             override_val = getattr(override, field_name)
-            if override_val != getattr(GatewayConfig(), field_name):
+            if override_val != getattr(BridgeConfig(), field_name):
                 setattr(result, field_name, override_val)
         
         return result

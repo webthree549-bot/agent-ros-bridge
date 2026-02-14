@@ -27,8 +27,7 @@ services:
     container_name: agent-ros-bridge-ros2
     profiles: ["ros2"]
     ports:
-      - "8765:8765"    # WebSocket
-      - "50051:50051"  # gRPC
+      - "8767:8765"    # WebSocket (host:container)
     environment:
       - ROS_DOMAIN_ID=0
       - ROS_LOCALHOST_ONLY=0
