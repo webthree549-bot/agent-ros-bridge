@@ -35,10 +35,10 @@ metadata:
         "install":
           [
             {
-              "id": "python3",
-              "kind": "manual",
-              "label": "Python 3.8+",
-              "instruction": "Install Python 3.8 or higher from https://python.org",
+              "id": "pip",
+              "kind": "pip",
+              "package": "agent-ros-bridge",
+              "label": "Agent ROS Bridge from PyPI",
             },
             {
               "id": "docker",
