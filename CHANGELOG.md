@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.2.3] - 2025-02-15
+
+### ClawHub Submission
+- Reformatted SKILL.md metadata for registry compatibility
+- Fresh release to trigger new security scan
+- Optimized submission package structure
+
 ## [0.2.2] - 2025-02-15
 
 ### Security & Documentation
