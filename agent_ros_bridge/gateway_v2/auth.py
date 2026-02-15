@@ -19,7 +19,7 @@ logger = logging.getLogger("auth")
 @dataclass
 class AuthConfig:
     """Authentication configuration"""
-    enabled: bool = False
+    enabled: bool = True  # SECURITY: Auth enabled by default
     jwt_secret: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
@@ -41,10 +41,13 @@ class Authenticator:
         self._ensure_secret()
     
     def _ensure_secret(self):
-        """Ensure JWT secret exists"""
+        """Ensure JWT secret exists - SECURITY: Must be explicitly set"""
         if self.config.enabled and not self.config.jwt_secret:
-            self.config.jwt_secret = secrets.token_urlsafe(32)
-            logger.warning(f"JWT secret auto-generated. Set JWT_SECRET env var for persistence.")
+            raise ValueError(
+                "JWT_SECRET is required when authentication is enabled. "
+                "Set a strong secret via JWT_SECRET environment variable or config file. "
+                "Example: export JWT_SECRET=$(openssl rand -base64 32)"
+            )
     
     def create_token(self, user_id: str, roles: List[str] = None, 
                      metadata: Dict[str, Any] = None) -> str:

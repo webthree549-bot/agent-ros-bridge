@@ -39,7 +39,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({
                 "status": "ok",
                 "dashboard": "running",
-                "version": "0.2.0"
+                "version": "0.2.1"
             })
             return
         

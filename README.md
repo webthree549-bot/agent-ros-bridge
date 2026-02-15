@@ -8,6 +8,19 @@
 
 ---
 
+## 🔐 Security First
+
+**Required before running:** Set a JWT secret for authentication.
+
+```bash
+# Generate a secure secret
+export JWT_SECRET=$(openssl rand -base64 32)
+```
+
+See [SECURITY.md](SECURITY.md) for complete security guidelines.
+
+---
+
 ## Quick Start
 
 ### Production (requires ROS1 or ROS2)

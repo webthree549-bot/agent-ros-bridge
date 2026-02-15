@@ -1,6 +1,6 @@
 ---
 name: agent-ros-bridge
-version: 0.2.0
+version: 0.2.1
 description: Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
 author: Agent ROS Bridge Team
 homepage: https://github.com/webthree549-bot/agent-ros-bridge
@@ -13,6 +13,19 @@ metadata:
         "emoji": "🤖",
         "requires": { "bins": ["python3"] },
         "suggests": { "bins": ["docker"] },
+        "env":
+          [
+            {
+              "name": "JWT_SECRET",
+              "required": true,
+              "sensitive": true,
+              "description": "Secret key for JWT authentication. Generate with: openssl rand -base64 32",
+            },
+          ],
+        "security":
+          {
+            "notes": "This skill controls physical robots and exposes network endpoints. JWT authentication is enforced by default. Set a strong JWT_SECRET before running. Run in isolated/test environment first. Do not expose to open networks without proper firewall rules.",
+          },
         "install":
           [
             {

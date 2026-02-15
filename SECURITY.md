@@ -1,136 +1,94 @@
 # Security Policy
 
-## Supported Versions
+## Security-First Defaults
 
-The following versions of OpenClaw ROS Bridge are currently supported with security updates:
+Agent ROS Bridge controls physical robots and exposes network endpoints. **Security is not optional.**
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.x.x   | :white_check_mark: |
-| 1.x.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+## Required Security Configuration
 
-## Reporting a Vulnerability
+### 1. JWT_SECRET (Required)
 
-We take security seriously. If you discover a security vulnerability, please follow these steps:
+Before running the bridge, you **MUST** set a JWT secret:
 
-### 1. Do Not Open a Public Issue
+```bash
+# Generate a secure secret
+export JWT_SECRET=$(openssl rand -base64 32)
 
-Please **DO NOT** open a public issue or pull request describing the vulnerability. This helps us coordinate a fix before the vulnerability is publicly disclosed.
+# Or use Python
+export JWT_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+```
 
-### 2. Report Privately
+**The bridge will FAIL to start without JWT_SECRET when authentication is enabled.**
 
-Instead, please report the vulnerability via GitHub's private vulnerability reporting feature:
+### 2. Authentication Enabled by Default
 
-1. Go to the [Security tab](https://github.com/webthree549-bot/openclaw-ros-bridge/security) of the repository
-2. Click "Report a vulnerability"
-3. Fill out the vulnerability report form
+Authentication is **enabled by default** in v0.2.1+. To connect:
 
-Or email us directly at: **security@openclaw-ros.org**
+1. Generate a token:
+   ```bash
+   python scripts/generate_token.py --secret $JWT_SECRET --role operator
+   ```
 
-### 3. What to Include
+2. Use token in WebSocket URL:
+   ```
+   ws://localhost:8765?token=YOUR_TOKEN_HERE
+   ```
 
-Please include the following information in your report:
+### 3. Role-Based Access Control
 
-- **Description**: A clear description of the vulnerability
-- **Impact**: What could an attacker do with this vulnerability?
-- **Steps to Reproduce**: Detailed steps to reproduce the issue
-- **Affected Versions**: Which versions are affected?
-- **Possible Mitigations**: Any workarounds or fixes you've identified
-- **Your Contact**: How we can reach you for follow-up questions
+Default roles:
+- `admin` — Full control
+- `operator` — Control robots, view state
+- `viewer` — Read-only access
+- `anonymous` — No access (when auth enabled)
 
-### 4. Response Timeline
+## Network Security
 
-We will respond to security reports within **48 hours** and aim to provide:
+### Development/Testing
+```bash
+# Bind to localhost only (safe for development)
+export BRIDGE_HOST=127.0.0.1
+```
 
-- **Initial response**: Within 48 hours of receiving the report
-- **Assessment**: Within 5 business days with an initial assessment
-- **Fix timeline**: Estimated timeline for a fix
-- **Resolution**: Notification when the fix is released
+### Production
+- Use TLS/WSS (WebSocket Secure)
+- Place behind reverse proxy (nginx, traefik)
+- Firewall: Restrict ports to known IPs
+- VPN: Require VPN access for robot control
 
-### 5. Disclosure Policy
+## Reporting Security Issues
 
-We follow a **responsible disclosure** policy:
+Email: security@agent-ros-bridge.org
 
-1. You report the vulnerability privately
-2. We investigate and confirm the issue
-3. We develop and test a fix
-4. We release the fix in a new version
-5. We publicly disclose the vulnerability (with credit to you, if desired)
+Please include:
+- Version affected
+- Description of vulnerability
+- Steps to reproduce
+- Suggested fix (if any)
 
-We ask that you:
-- Give us reasonable time to address the issue before public disclosure
-- Do not exploit the vulnerability beyond what is necessary for verification
-- Do not access, modify, or delete data belonging to others
+## Security Checklist
 
-## Security Best Practices
+Before deploying to production:
 
-### For Users
+- [ ] JWT_SECRET set to strong random value
+- [ ] Authentication enabled (default)
+- [ ] TLS/WSS configured
+- [ ] Firewall rules applied
+- [ ] Rate limiting enabled
+- [ ] Audit logging configured
+- [ ] Access restricted to authorized users
+- [ ] Regular security updates applied
 
-1. **Keep Updated**: Always use the latest version of the software
-2. **Network Security**: 
-   - Use TLS/SSL for production deployments
-   - Restrict network access to trusted sources
-   - Use VPN or private networks for robot communication
-3. **Authentication**:
-   - Enable authentication in production
-   - Use strong API keys/tokens
-   - Rotate credentials regularly
-4. **Docker Security**:
-   - Run containers as non-root user
-   - Use read-only filesystems where possible
-   - Keep base images updated
+## Known Limitations
 
-### For Developers
+- Mock mode disables auth (intentional for testing)
+- Auto-generated secrets in v0.1.0-v0.2.0 (fixed in v0.2.1)
+- Plain HTTP in default config (use TLS in production)
 
-1. **Dependency Management**:
-   - Pin dependencies in production
-   - Regularly audit dependencies (`pip-audit`, `safety`)
-   - Automate dependency updates with Dependabot
-2. **Code Review**:
-   - Require code review for all changes
-   - Use pre-commit hooks for security checks
-   - Run security linters (Bandit, Semgrep)
-3. **Secrets Management**:
-   - Never commit secrets to version control
-   - Use environment variables or secret management systems
-   - Rotate secrets regularly
-4. **Input Validation**:
-   - Validate all user inputs
-   - Sanitize data before processing
-   - Use parameterized queries
+## Version History
 
-## Security Features
-
-### Implemented
-
-- [x] TLS/SSL support for WebSocket and gRPC transports
-- [x] API key authentication
-- [x] JWT token authentication
-- [x] Rate limiting
-- [x] Input validation and sanitization
-- [x] Audit logging
-- [x] Security scanning in CI/CD
-
-### Planned
-
-- [ ] mTLS (mutual TLS) support
-- [ ] Role-based access control (RBAC)
-- [ ] OAuth2/OIDC integration
-- [ ] Request signing (HMAC)
-- [ ] Automatic security updates
-
-## Acknowledgments
-
-We thank the following security researchers who have responsibly disclosed vulnerabilities:
-
-- None yet - be the first!
-
-## Contact
-
-- Security Team: security@openclaw-ros.org
-- General Inquiries: dev@openclaw-ros.org
-
----
-
-This security policy is adapted from the [GitHub Security Policy template](https://github.com/github/security-policy-templates).
+| Version | Security Changes |
+|---------|-----------------|
+| v0.2.1+ | Auth enabled by default, JWT_SECRET required |
+| v0.2.0 | Auth disabled by default (deprecated) |
+| v0.1.0 | Auth disabled by default (deprecated) |

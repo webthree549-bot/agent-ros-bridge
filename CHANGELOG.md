@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.2.1] - 2025-02-14
+
+### Security (Critical)
+- **BREAKING**: Authentication now enabled by default (was disabled)
+- **BREAKING**: JWT_SECRET now required when auth enabled (no auto-generation)
+- Added JWT_SECRET to SKILL.md required environment variables
+- Added security warnings to README and run.sh scripts
+- Authenticator now fails fast if JWT_SECRET not set (vs auto-generating)
+- Added SECURITY.md policy document
+
 ## [0.2.0] - 2025-02-14
 
 ### Added
