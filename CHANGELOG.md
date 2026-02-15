@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.3.2] - 2025-02-15
+
+### Release & Submission
+- Production release for ClawHub submission
+- All documentation consistency fixes complete
+- Security model finalized: JWT always required
+- Ready for public distribution
+
 ## [0.3.1] - 2025-02-15
 
 ### Documentation Consistency Fix
