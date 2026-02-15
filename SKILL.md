@@ -43,37 +43,15 @@ metadata:
             {
               "id": "docker",
               "kind": "manual",
-              "label": "Docker Desktop (optional)",
-              "instruction": "For containerized ROS. Install from https://www.docker.com/products/docker-desktop",
+              "label": "Docker Desktop (optional but recommended)",
+              "instruction": "For running examples in isolated containers. Install from https://www.docker.com/products/docker-desktop",
             },
           ],
         "category": "robotics",
         "tags": ["ros", "ros2", "robotics", "iot", "automation", "bridge", "embodied-intelligence", "arm", "navigation"],
-        "commands":
-          {
-            "bridge": 
-              {
-                "description": "Start the robot bridge",
-                "args": [{"name": "config", "required": false, "description": "Path to config file"}],
-              },
-            "demo":
-              {
-                "description": "Run demo modes in Docker containers",
-                "subcommands":
-                  {
-                    "quickstart": "Run quickstart example in Docker",
-                    "fleet": "Run fleet orchestration demo in Docker",
-                    "arm": "Run arm robot demo in Docker",
-                  },
-              },
-            "dashboard":
-              {
-                "description": "Start web dashboard",
-                "args": [{"name": "port", "required": false, "description": "Dashboard port (default: 8080)"}],
-              },
-          },
       },
   }
+
 ---
 
 # 🤖 Agent ROS Bridge
@@ -86,243 +64,137 @@ metadata:
 
 ---
 
-## 🚀 OpenClaw Quick Start
+## 🔐 Security-First Design
 
-### Installation
+**JWT authentication is always required and cannot be disabled.**
 
 ```bash
-# Via ClawHub (recommended)
-openclaw skills add agent-ros-bridge
-
-# Or via PyPI
-pip install agent-ros-bridge
+# Generate a secure secret (REQUIRED - no exceptions)
+export JWT_SECRET=$(openssl rand -base64 32)
 ```
 
-### Start the Bridge
+The bridge will **fail to start** without JWT_SECRET. This is by design — security is not optional.
 
-**Requirements:** JWT_SECRET environment variable (always required)
+See [SECURITY.md](SECURITY.md) for complete security guidelines.
+
+---
+
+## Quick Start
+
+### Option 1: Docker Examples (Recommended for Testing)
+
+All examples run in isolated Docker containers with simulated robots (no ROS installation needed).
 
 ```bash
+# Clone repository
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+
 # Generate JWT secret
 export JWT_SECRET=$(openssl rand -base64 32)
 
-# Run with ROS (requires ROS installed)
-source /opt/ros/humble/setup.bash  # or noetic
-openclaw run agent-ros-bridge bridge
+# Run example in Docker
+cd examples/quickstart
+docker-compose up
+
+# Test connection
+curl http://localhost:8765/health
 ```
 
-**Docker Examples (no ROS installation needed):**
+### Available Examples
+
+| Example | Description | Run |
+|---------|-------------|-----|
+| `examples/quickstart/` | Basic bridge with simulated robot | `docker-compose up` |
+| `examples/fleet/` | Multi-robot fleet coordination | `docker-compose up` |
+| `examples/arm/` | Robot arm control simulation | `docker-compose up` |
+
+All examples:
+- Run in isolated Docker containers
+- Use JWT authentication (enforced)
+- Include simulated robots (no hardware needed)
+- Bind to localhost (127.0.0.1) by default
+
+### Option 2: Native Installation (Production)
+
+**Requirements:** Ubuntu 20.04/22.04 with ROS1 Noetic or ROS2 Humble/Jazzy
+
 ```bash
-# Set JWT secret
+# Install from PyPI
+pip install agent-ros-bridge
+
+# Set required secret
 export JWT_SECRET=$(openssl rand -base64 32)
 
-# Run quickstart example in Docker
-openclaw run agent-ros-bridge demo quickstart
-
-# Run fleet example in Docker
-openclaw run agent-ros-bridge demo fleet
+# Start bridge
+agent-ros-bridge --config config/bridge.yaml
 ```
 
-**Option 3: Web Dashboard**
-```bash
-# Set JWT secret
-export JWT_SECRET=$(openssl rand -base64 32)
-
-openclaw run agent-ros-bridge dashboard
-# Open http://localhost:8080
-```
-
-### Control Robots
-
-Once the bridge is running, control robots via WebSocket:
-
-```python
-# In OpenClaw or any Python environment
-import asyncio
-import websockets
-import json
-
-async def control_robot():
-    async with websockets.connect('ws://localhost:8765') as ws:
-        # List available robots
-        await ws.send(json.dumps({
-            "command": {"action": "list_robots"}
-        }))
-        robots = json.loads(await ws.recv())
-        print("Robots:", robots)
-        
-        # Send movement command
-        await ws.send(json.dumps({
-            "command": {
-                "action": "move",
-                "parameters": {"direction": "forward", "distance": 1.0}
-            }
-        }))
-        response = await ws.recv()
-        print("Response:", response)
-
-asyncio.run(control_robot())
-```
+See [docs/NATIVE_ROS.md](docs/NATIVE_ROS.md) for detailed native installation.
 
 ---
 
-## ✨ What It Does
-
-Agent ROS Bridge enables OpenClaw agents to control real robots through a unified interface:
+## Features
 
 | Feature | Description |
 |---------|-------------|
-| **🤖 Multi-Robot** | Control fleets of robots (AMRs, arms, IoT) |
-| **🌐 Multi-Protocol** | WebSocket, MQTT, gRPC support |
-| **🔄 Multi-ROS** | ROS1 Noetic + ROS2 Humble/Jazzy simultaneously |
-| **🎯 Fleet Orchestration** | Task allocation and coordination |
-| **🦾 Arm Control** | UR, xArm, Franka manipulation |
-| **📊 Monitoring** | Prometheus metrics + Grafana dashboards |
-| **🔐 Security** | JWT authentication |
-| **📱 Dashboard** | Web-based robot control |
+| **🔐 Security** | JWT auth always required, no bypass |
+| **🤖 Multi-Robot** | Fleet orchestration & coordination |
+| **🌐 Multi-Protocol** | WebSocket, MQTT, gRPC |
+| **🔄 Multi-ROS** | ROS1 + ROS2 simultaneously |
+| **🦾 Arm Control** | UR, xArm, Franka support |
+| **📊 Monitoring** | Prometheus + Grafana |
 
 ---
 
-## 📚 Available Demos
-
-All demos run in Docker containers (no real hardware or ROS installation required):
-
-```bash
-# Set JWT secret (required for all demos)
-export JWT_SECRET=$(openssl rand -base64 32)
-
-# Quickstart - simulated robot environment
-openclaw run agent-ros-bridge demo quickstart
-
-# Fleet of 4 robots with task allocation
-openclaw run agent-ros-bridge demo fleet
-
-# Arm robot pick-and-place
-openclaw run agent-ros-bridge demo arm
-```
-
-Demos use simulated robots in isolated Docker containers with JWT authentication enforced.
-
----
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    OpenClaw Agent                           │
-└──────────────────┬──────────────────────────────────────────┘
-                   │ WebSocket / MQTT / gRPC
-                   ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Agent ROS Bridge Gateway                       │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │ WebSocket   │  │ MQTT        │  │ gRPC                │ │
-│  │ Port 8765   │  │ Port 1883   │  │ Port 50051          │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │  Fleet Orchestrator                                     ││
-│  │  • Task allocation                                      ││
-│  │  • Load balancing                                       ││
-│  └─────────────────────────────────────────────────────────┘│
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │   ROS2      │    │   ROS1      │    │    Arm      │     │
-│  │  Connector  │    │  Connector  │    │   Plugin    │     │
-│  └─────────────┘    └─────────────┘    └─────────────┘     │
-└──────────────────┬──────────────────────────────────────────┘
-                   │
-        ┌─────────┴─────────┐
-        ▼                   ▼
-┌──────────────┐    ┌──────────────┐
-│  Mobile      │    │  Arm         │
-│  Robots      │    │  Robots      │
-│  (AMR)       │    │  (UR/xArm)   │
-└──────────────┘    └──────────────┘
-```
-
----
-
-## 🔌 WebSocket API
-
-Connect to `ws://localhost:8765` and send commands:
-
-### Common Commands
-
-**List Robots:**
-```json
-{"command": {"action": "list_robots"}}
-```
-
-**Move Robot:**
-```json
-{"command": {"action": "move", "parameters": {"direction": "forward", "distance": 1.0}}}
-```
-
-**Control Arm:**
-```json
-{"command": {"action": "arm.move_joints", "parameters": {"joints": [0, -1.57, 0, -1.57, 0, 0]}}}
-```
-
-**Navigate (ROS Action):**
-```json
-{"command": {"action": "navigate_to_pose", "parameters": {"x": 5.0, "y": 3.0}}}
-```
-
-**Fleet Status:**
-```json
-{"command": {"action": "fleet.status"}}
-```
-
----
-
-## 📖 Documentation
+## Documentation
 
 | Document | Description |
 |----------|-------------|
 | [User Manual](docs/USER_MANUAL.md) | Complete guide (23,000+ words) |
 | [API Reference](docs/API_REFERENCE.md) | Full API documentation |
 | [Native ROS](docs/NATIVE_ROS.md) | Ubuntu/ROS installation |
-| [Multi-ROS](docs/MULTI_ROS.md) | Fleet management guide |
+| [Docker vs Native](docs/DOCKER_VS_NATIVE.md) | Deployment comparison |
+| [SECURITY.md](SECURITY.md) | Security policy |
 
 ---
 
-## 🎯 Use Cases
+## Usage
 
-### Warehouse Automation
+### Python API
+
 ```python
-# Coordinate fleet of AMRs
-orchestrator = FleetOrchestrator()
-await orchestrator.submit_task(Task(
-    type="transport",
-    target_location="zone_a",
-    payload_kg=10.0
-))
+from agent_ros_bridge import Bridge
+from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+
+# Bridge requires JWT_SECRET env var
+bridge = Bridge()
+bridge.transport_manager.register(WebSocketTransport({"port": 8765}))
+await bridge.start()
 ```
 
-### Manufacturing
-```python
-# Control robotic arm
-arm = ArmRobotPlugin(arm_type="ur", ros_version="ros2")
-await arm.handle_command("arm.move_joints", {
-    "joints": [0, -1.57, 0, -1.57, 0, 0]
-})
-```
+### CLI
 
-### Research
-```python
-# Interface AI with physical robots
-client = create_action_client("navigate_to_pose", "nav2_msgs/NavigateToPose")
-result = await client.send_goal({"pose": {"x": 5, "y": 3}})
+```bash
+# Set required secret
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Start bridge
+agent-ros-bridge --config config/bridge.yaml
+
+# Generate token for client
+python scripts/generate_token.py --secret $JWT_SECRET --role operator
 ```
 
 ---
 
-## 🔗 Links
+## Links
 
-- **Documentation**: https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
-- **PyPI**: https://pypi.org/project/agent-ros-bridge/
-- **GitHub**: https://github.com/webthree549-bot/agent-ros-bridge
-- **Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
+- **Documentation:** https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
+- **PyPI:** https://pypi.org/project/agent-ros-bridge/
+- **GitHub:** https://github.com/webthree549-bot/agent-ros-bridge
+- **Issues:** https://github.com/webthree549-bot/agent-ros-bridge/issues
 
-## License
+---
 
-MIT License - See [LICENSE](LICENSE)
+**Security is not optional. JWT auth always required.**
