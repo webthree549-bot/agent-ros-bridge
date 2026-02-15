@@ -19,13 +19,13 @@ metadata:
               {
                 "description": "Required: Secret key for JWT authentication. Bridge will fail to start without this.",
                 "sensitive": true,
-                "required": true,
+                "required": true
               },
             "BRIDGE_HOST":
               {
                 "description": "Optional: Bind address (default: 127.0.0.1 for security)",
                 "sensitive": false,
-                "required": false,
+                "required": false
               },
           },
         "security":
@@ -38,14 +38,14 @@ metadata:
               "id": "pip",
               "kind": "pip",
               "package": "agent-ros-bridge",
-              "label": "Agent ROS Bridge from PyPI",
+              "label": "Agent ROS Bridge from PyPI"
             },
             {
               "id": "docker",
               "kind": "manual",
               "label": "Docker Desktop (optional but recommended)",
-              "instruction": "For running examples in isolated containers. Install from https://www.docker.com/products/docker-desktop",
-            },
+              "instruction": "For running examples in isolated containers. Install from https://www.docker.com/products/docker-desktop"
+            }
           ],
         "category": "robotics",
         "tags": ["ros", "ros2", "robotics", "iot", "automation", "bridge", "embodied-intelligence", "arm", "navigation"],
