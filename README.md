@@ -10,11 +10,19 @@
 
 ## 🔐 Security First
 
-**Required before running:** Set a JWT secret for authentication.
+**For production:** Set a JWT secret for authentication.
 
 ```bash
-# Generate a secure secret
+# Generate a secure secret (required for production)
 export JWT_SECRET=$(openssl rand -base64 32)
+```
+
+**For testing:** Use mock mode (auth disabled, localhost only).
+
+```bash
+# Mock mode - no JWT_SECRET needed (localhost only)
+export MOCK_MODE=true
+export BRIDGE_HOST=127.0.0.1
 ```
 
 See [SECURITY.md](SECURITY.md) for complete security guidelines.

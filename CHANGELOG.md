@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.2.4] - 2025-02-15
+
+### Documentation Fixes
+- Fixed README to reference correct entry points (agent-ros-bridge CLI)
+- Clarified JWT_SECRET required for production, optional for mock mode
+- Added MOCK_MODE and BRIDGE_HOST env variables to SKILL.md
+- Fixed requires/env metadata to show JWT_SECRET as optional
+- Improved security documentation clarity
+
 ## [0.2.3] - 2025-02-15
 
 ### ClawHub Submission
