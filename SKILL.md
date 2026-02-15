@@ -11,17 +11,17 @@ metadata:
     "openclaw":
       {
         "emoji": "🤖",
-        "requires": { "bins": ["python3"] },
+        "requires": { "bins": ["python3"], "env": ["JWT_SECRET"] },
         "suggests": { "bins": ["docker"] },
         "env":
-          [
-            {
-              "name": "JWT_SECRET",
-              "required": true,
-              "sensitive": true,
-              "description": "Secret key for JWT authentication. Generate with: openssl rand -base64 32",
-            },
-          ],
+          {
+            "JWT_SECRET":
+              {
+                "description": "Required: Secret key for JWT authentication. Generate with: openssl rand -base64 32",
+                "sensitive": true,
+                "required": true,
+              },
+          },
         "security":
           {
             "notes": "This skill controls physical robots and exposes network endpoints. JWT authentication is enforced by default. Set a strong JWT_SECRET before running. Run in isolated/test environment first. Do not expose to open networks without proper firewall rules.",
