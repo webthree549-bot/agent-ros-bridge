@@ -42,7 +42,7 @@ agent-ros-bridge --config config/bridge.yaml
 
 ### Docker Examples (Recommended for Testing)
 
-All examples run in isolated Docker containers with mock robots (no ROS installation needed).
+All examples run in isolated Docker containers with simulated robots (no ROS installation needed).
 
 ```bash
 # Clone repository
@@ -71,7 +71,7 @@ curl http://localhost:8765/health
 All examples include:
 - Isolated Docker container
 - Pre-configured JWT auth
-- Mock robot simulation
+- Simulated robot environment
 - Localhost-only binding (127.0.0.1)
 
 ---

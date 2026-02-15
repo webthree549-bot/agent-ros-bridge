@@ -4,7 +4,7 @@ services:
   fleet-orchestrator:
     build:
       context: ../..
-      dockerfile: docker/Dockerfile.mock
+      dockerfile: docker/Dockerfile.example
     ports:
       - "8771:8771"
     environment:

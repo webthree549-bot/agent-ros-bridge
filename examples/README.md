@@ -4,46 +4,65 @@
 
 ## Quick Start
 
-```bash
-# Start here - zero dependencies, instant launch
-cd quickstart
-./run.sh
-```
+All examples run in **Docker containers** for security and isolation.
 
-Then open http://localhost:8765 or use `wscat -c ws://localhost:8765`
+```bash
+# Set required JWT secret
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Start here - Docker-based, secure
+cd quickstart
+docker-compose up
+```
 
 ## Examples Overview
 
 | Example | What It Shows | Runtime | Time to Launch |
 |---------|--------------|---------|----------------|
-| [quickstart](./quickstart/) | Basic bridge usage | Native Python | 5 seconds |
-| [fleet](./fleet/) | Multi-robot coordination | Native Python | 5 seconds |
-| [auth](./auth/) | JWT authentication | Native Python | 5 seconds |
-| [mqtt_iot](./mqtt_iot/) | IoT sensor integration | Native Python | 5 seconds |
-| [actions](./actions/) | ROS navigation/actions | Native Python | 5 seconds |
-| [arm](./arm/) | Robotic arm control | Native Python | 5 seconds |
-| [metrics](./metrics/) | Prometheus monitoring | Native Python | 5 seconds |
+| [quickstart](./quickstart/) | Basic bridge usage | Docker | 10 seconds |
+| [fleet](./fleet/) | Multi-robot coordination | Docker | 10 seconds |
+| [auth](./auth/) | JWT authentication | Docker | 10 seconds |
+| [arm](./arm/) | Robotic arm control | Docker | 10 seconds |
 
 ## Running Any Example
 
 ```bash
 cd <example-name>
-./run.sh
+
+# Set JWT secret (required)
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Run in Docker
+docker-compose up
 ```
 
-Each example is **self-contained** and runs without Docker or ROS installation.
+Each example:
+- Runs in an **isolated Docker container**
+- **Requires JWT_SECRET** (authentication always enforced)
+- Uses **simulated robots** (no ROS installation needed)
+- Binds to **localhost only** by default
 
 ## What These Examples Use
 
-All examples run in **mock mode** — simulated robot environments that:
+All examples use **simulated robot environments** in Docker containers:
 - Respond to real WebSocket/MQTT commands
 - Behave like real ROS systems
-- Require zero setup
+- Require JWT authentication (no exceptions)
+- Run in network isolation
 
 This lets you:
-- Learn the API instantly
+- Learn the API securely
 - Test integrations quickly
 - Develop without hardware
+
+## Security First
+
+**JWT_SECRET is always required.** Examples will fail to start without it.
+
+```bash
+# Generate a secure secret
+export JWT_SECRET=$(openssl rand -base64 32)
+```
 
 ## Production Deployment
 
@@ -64,17 +83,18 @@ lsof -i :8765
 kill <PID>
 ```
 
-**Python not found?**
+**Docker not running?**
 ```bash
-# Use python3 explicitly
-python3 run.sh
+# Start Docker Desktop
+docker ps
 ```
 
 ## Contributing
 
 Add new examples by creating a folder with:
 - `README.md` — What it does, how to run
-- `run.sh` — Executable launch script
+- `docker-compose.yml` — Docker orchestration
+- `run.sh` — Executable launch script (optional)
 - `*.py` — Example code
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md)

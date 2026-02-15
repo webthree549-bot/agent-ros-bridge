@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Mock Robot Bridge with Authentication Demo
+"""Simulated Robot Bridge with Authentication Demo
 
-This demonstrates JWT authentication on the mock bridge.
+This demonstrates JWT authentication on the simulated bridge.
 """
 
 import asyncio
@@ -12,12 +12,12 @@ from agent_ros_bridge import Bridge, Message, Header, Command, Telemetry, Event,
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("mock_bridge")
+logger = logging.getLogger("simulated_bridge")
 
 
-class MockRobotPlugin(Plugin):
+class SimulatedRobotPlugin(Plugin):
     """Plugin that simulates a robot for testing"""
-    name = "mock_robot"
+    name = "simulated_robot"
     version = "1.0.0"
     
     def __init__(self):
@@ -29,10 +29,10 @@ class MockRobotPlugin(Plugin):
         self.speed = 0.0
     
     async def initialize(self, gateway) -> None:
-        logger.info("Mock robot plugin initialized")
+        logger.info("Simulated robot plugin initialized")
     
     async def shutdown(self) -> None:
-        logger.info("Mock robot plugin shutdown")
+        logger.info("Simulated robot plugin shutdown")
     
     async def handle_message(self, message: Message, identity: Identity) -> Message:
         if not message.command:
@@ -46,8 +46,8 @@ class MockRobotPlugin(Plugin):
                 header=Header(correlation_id=message.header.message_id),
                 telemetry=Telemetry(
                     topic="robots",
-                    data={"robots": [{"id": "turtlebot_01", "name": "TurtleBot4 Mock", 
-                                      "type": "ros2_mock", "connected": True, "battery": self.battery}]}
+                    data={"robots": [{"id": "turtlebot_01", "name": "TurtleBot4 Simulated", 
+                                      "type": "ros2_simulated", "connected": True, "battery": self.battery}]}
                 )
             )
         
@@ -101,15 +101,15 @@ async def main():
     })
     bridge.transport_manager.register(ws_transport)
     
-    # Register mock robot plugin
-    mock_plugin = MockRobotPlugin()
-    await bridge.plugin_manager.load_plugin(mock_plugin)
+    # Register simulated robot plugin
+    simulated_plugin = SimulatedRobotPlugin()
+    await bridge.plugin_manager.load_plugin(simulated_plugin)
     
     # Start bridge
     await bridge.start()
     
     print("=" * 60)
-    print("🎭 MOCK ROBOT BRIDGE (WITH AUTH)")
+    print("🎭 SIMULATED ROBOT BRIDGE (WITH AUTH)")
     print("=" * 60)
     print("WebSocket: ws://localhost:8768")
     print("")

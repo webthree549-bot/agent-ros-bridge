@@ -1,6 +1,6 @@
 ---
 name: agent-ros-bridge
-version: 0.3.0
+version: 0.3.1
 description: Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
 author: Agent ROS Bridge Team
 homepage: https://github.com/webthree549-bot/agent-ros-bridge
@@ -58,15 +58,12 @@ metadata:
               },
             "demo":
               {
-                "description": "Run demo modes",
+                "description": "Run demo modes in Docker containers",
                 "subcommands":
                   {
-                    "mock": "Run mock robot (no ROS required)",
-                    "fleet": "Run fleet orchestration demo",
-                    "arm": "Run arm robot demo",
-                    "actions": "Run ROS actions demo",
-                    "mqtt": "Run MQTT IoT demo",
-                    "metrics": "Run Prometheus metrics demo",
+                    "quickstart": "Run quickstart example in Docker",
+                    "fleet": "Run fleet orchestration demo in Docker",
+                    "arm": "Run arm robot demo in Docker",
                   },
               },
             "dashboard":
@@ -103,26 +100,35 @@ pip install agent-ros-bridge
 
 ### Start the Bridge
 
-**Option 1: Mock Mode (No ROS required - perfect for testing)**
-```bash
-openclaw run agent-ros-bridge demo mock
-# Or directly:
-python demo/mock_bridge.py
-```
+**Requirements:** JWT_SECRET environment variable (always required)
 
-**Option 2: With ROS (requires ROS installed)**
 ```bash
+# Generate JWT secret
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Run with ROS (requires ROS installed)
 source /opt/ros/humble/setup.bash  # or noetic
 openclaw run agent-ros-bridge bridge
-# Or directly:
-python run_bridge.py
+```
+
+**Docker Examples (no ROS installation needed):**
+```bash
+# Set JWT secret
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Run quickstart example in Docker
+openclaw run agent-ros-bridge demo quickstart
+
+# Run fleet example in Docker
+openclaw run agent-ros-bridge demo fleet
 ```
 
 **Option 3: Web Dashboard**
 ```bash
+# Set JWT secret
+export JWT_SECRET=$(openssl rand -base64 32)
+
 openclaw run agent-ros-bridge dashboard
-# Or directly:
-python dashboard/server.py
 # Open http://localhost:8080
 ```
 
@@ -179,27 +185,23 @@ Agent ROS Bridge enables OpenClaw agents to control real robots through a unifie
 
 ## 📚 Available Demos
 
-All demos work in mock mode (no real hardware required):
+All demos run in Docker containers (no real hardware or ROS installation required):
 
 ```bash
-# Mock robot (best for getting started)
-openclaw run agent-ros-bridge demo mock
+# Set JWT secret (required for all demos)
+export JWT_SECRET=$(openssl rand -base64 32)
+
+# Quickstart - simulated robot environment
+openclaw run agent-ros-bridge demo quickstart
 
 # Fleet of 4 robots with task allocation
 openclaw run agent-ros-bridge demo fleet
 
 # Arm robot pick-and-place
-openclaw run agent-ros-bridge demo arm -- --arm-type ur --ros-version ros2
-
-# ROS navigation actions
-openclaw run agent-ros-bridge demo actions -- --action navigate
-
-# IoT sensor integration
-openclaw run agent-ros-bridge demo mqtt
-
-# Prometheus metrics
-openclaw run agent-ros-bridge demo metrics
+openclaw run agent-ros-bridge demo arm
 ```
+
+Demos use simulated robots in isolated Docker containers with JWT authentication enforced.
 
 ---
 

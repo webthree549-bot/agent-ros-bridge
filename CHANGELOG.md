@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.3.1] - 2025-02-15
+
+### Documentation Consistency Fix
+- **CRITICAL**: Removed all remaining "mock mode" references from documentation
+- Renamed files: `mock_bridge.py` → `simulated_robot.py`, `mock_bridge_auth.py` → `auth_demo.py`
+- Updated all README files to remove mock mode references
+- Updated SKILL.md commands section (removed `demo mock`, added `demo quickstart`)
+- Fixed docker-compose.yml files to use `--simulated` instead of `--mock`
+- Updated print statements in example scripts
+- All examples now consistently use "simulated" terminology
+
 ## [0.3.0] - 2025-02-15
 
 ### ⚠️ BREAKING CHANGES
