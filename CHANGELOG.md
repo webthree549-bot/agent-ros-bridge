@@ -25,6 +25,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.2.0] - 2025-02-14
+
+### Added
+- **Comprehensive documentation suite** (40,000+ words)
+  - User Manual (23,000+ words) - Installation, tutorials, troubleshooting
+  - API Reference (13,000+ words) - Complete API documentation
+  - Docker vs Native deployment guide
+  - DDS Architecture documentation
+  - Multi-ROS fleet management guide
+  - Repository structure documentation
+- **7 self-contained examples** with READMEs and run.sh scripts
+  - quickstart/ - Basic bridge usage (30-second launch)
+  - fleet/ - Multi-robot coordination
+  - auth/ - JWT authentication
+  - mqtt_iot/ - IoT sensor integration
+  - actions/ - ROS navigation/actions
+  - arm/ - Robotic arm control (UR, xArm, Franka)
+  - metrics/ - Prometheus monitoring
+- **ROS setup validation script** (`scripts/validate_ros_setup.py`)
+  - Checks ROS1/ROS2 installation
+  - Validates agent-ros-bridge imports
+  - Color-coded pass/warning/fail output
+- **OpenClaw integration tests** (`tests/test_openclaw_integration.py`)
+  - Validates SKILL.md manifest
+  - Tests all module imports
+  - Verifies basic functionality
+- **Production-grade repository structure**
+  - Clean separation of source/build artifacts
+  - Makefile with comprehensive targets
+  - CONTRIBUTING.md with development workflow
+  - 155 source files, 0 build artifacts in git
+
+### Changed
+- **BREAKING**: Reorganized `demo/` → `examples/` for clarity
+  - Each example is self-contained with README and run.sh
+  - Updated all documentation references
+  - Added `make example-*` targets
+- **Version normalization** across all files (0.1.0 → 0.2.0)
+- **SKILL.md optimized** for OpenClaw integration
+  - Added commands section for `openclaw run` support
+  - Enhanced metadata for ClawHub discovery
+- **Makefile enhanced**
+  - Added example runners (make example-quickstart, etc.)
+  - Improved clean target (removes all build artifacts)
+  - Added validation target
+
+### Removed
+- Legacy `demo/greenhouse/` (unused)
+- Legacy `demo/arm_manipulation/` (superseded by examples/arm/)
+- Old `demo/__init__.py` structure
+
+### Fixed
+- Git push issues (configured HTTP/1.1)
+- README duplicate sections removed
+- Project structure diagram updated
+
 ## [0.1.0] - 2025-02-14
 
 ### Added
