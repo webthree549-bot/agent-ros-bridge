@@ -1,6 +1,6 @@
 ---
 name: agent-ros-bridge
-version: 0.2.4
+version: 0.2.5
 description: Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
 author: Agent ROS Bridge Team
 homepage: https://github.com/webthree549-bot/agent-ros-bridge
@@ -11,19 +11,19 @@ metadata:
     "openclaw":
       {
         "emoji": "🤖",
-        "requires": { "bins": ["python3"], "env": ["JWT_SECRET"] },
+        "requires": { "bins": ["python3"] },
         "suggests": { "bins": ["docker"] },
         "env":
           {
             "JWT_SECRET":
               {
-                "description": "Required for production. Secret key for JWT authentication. Not required when MOCK_MODE=true",
+                "description": "Required: Secret key for JWT authentication. Bridge will fail to start without this. Set MOCK_MODE=true to bypass for local testing only.",
                 "sensitive": true,
-                "required": false,
+                "required": true,
               },
             "MOCK_MODE":
               {
-                "description": "Optional: Set to 'true' to disable auth for local testing (localhost only)",
+                "description": "Optional: Set to 'true' to disable auth for local testing (localhost only). Not for production.",
                 "sensitive": false,
                 "required": false,
               },

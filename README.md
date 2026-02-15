@@ -10,17 +10,17 @@
 
 ## 🔐 Security First
 
-**For production:** Set a JWT secret for authentication.
+**JWT_SECRET is required.** The bridge will fail to start without it.
 
 ```bash
-# Generate a secure secret (required for production)
+# Generate a secure secret (required)
 export JWT_SECRET=$(openssl rand -base64 32)
 ```
 
-**For testing:** Use mock mode (auth disabled, localhost only).
+**For local testing only:** Use mock mode to bypass auth (localhost only, not for production).
 
 ```bash
-# Mock mode - no JWT_SECRET needed (localhost only)
+# Mock mode - disables auth for testing only
 export MOCK_MODE=true
 export BRIDGE_HOST=127.0.0.1
 ```
