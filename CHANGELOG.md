@@ -25,6 +25,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.3.0] - 2025-02-15
+
+### ⚠️ BREAKING CHANGES
+
+#### Removed: Mock Mode
+- **Mock mode has been completely removed**
+- Authentication is now **always required** with no bypass option
+- Bridge will fail to start without JWT_SECRET
+
+#### Changed: Example Deployment
+- All examples now run in **Docker containers only**
+- No more native mock mode execution
+- Examples provide isolated, secure testing environments
+
+#### Changed: Default Bind Address
+- Default changed from `0.0.0.0` to `127.0.0.1` (localhost only)
+- Reduces accidental network exposure
+
+### Security Improvements
+- **Mandatory authentication**: No way to disable auth
+- **Docker isolation**: All examples run in containers
+- **Simplified security model**: JWT_SECRET always required
+- **No ambiguous states**: Clear security posture
+
+### Documentation
+- Updated README for Docker-only examples
+- Updated SECURITY.md with new security model
+- Created docker-compose.yml files for all examples
+
 ## [0.2.4] - 2025-02-15
 
 ### Documentation Fixes

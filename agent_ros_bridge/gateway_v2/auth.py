@@ -18,8 +18,8 @@ logger = logging.getLogger("auth")
 
 @dataclass
 class AuthConfig:
-    """Authentication configuration"""
-    enabled: bool = True  # SECURITY: Auth enabled by default
+    """Authentication configuration - SECURITY: Always enabled, JWT_SECRET required"""
+    enabled: bool = True  # Always enabled, no disable option
     jwt_secret: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
@@ -30,7 +30,7 @@ class AuthConfig:
         if self.api_keys is None:
             self.api_keys = {}
         if self.allowed_origins is None:
-            self.allowed_origins = ["*"]
+            self.allowed_origins = ["127.0.0.1", "localhost"]  # SECURITY: Localhost only by default
 
 
 class Authenticator:
@@ -41,10 +41,10 @@ class Authenticator:
         self._ensure_secret()
     
     def _ensure_secret(self):
-        """Ensure JWT secret exists - SECURITY: Must be explicitly set"""
-        if self.config.enabled and not self.config.jwt_secret:
+        """Ensure JWT secret exists - SECURITY: Always required"""
+        if not self.config.jwt_secret:
             raise ValueError(
-                "JWT_SECRET is required when authentication is enabled. "
+                "JWT_SECRET is required. "
                 "Set a strong secret via JWT_SECRET environment variable or config file. "
                 "Example: export JWT_SECRET=$(openssl rand -base64 32)"
             )

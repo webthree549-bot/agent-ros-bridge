@@ -1,6 +1,6 @@
 ---
 name: agent-ros-bridge
-version: 0.2.5
+version: 0.3.0
 description: Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
 author: Agent ROS Bridge Team
 homepage: https://github.com/webthree549-bot/agent-ros-bridge
@@ -11,32 +11,26 @@ metadata:
     "openclaw":
       {
         "emoji": "🤖",
-        "requires": { "bins": ["python3"] },
+        "requires": { "bins": ["python3"], "env": ["JWT_SECRET"] },
         "suggests": { "bins": ["docker"] },
         "env":
           {
             "JWT_SECRET":
               {
-                "description": "Required: Secret key for JWT authentication. Bridge will fail to start without this. Set MOCK_MODE=true to bypass for local testing only.",
+                "description": "Required: Secret key for JWT authentication. Bridge will fail to start without this.",
                 "sensitive": true,
                 "required": true,
               },
-            "MOCK_MODE":
-              {
-                "description": "Optional: Set to 'true' to disable auth for local testing (localhost only). Not for production.",
-                "sensitive": false,
-                "required": false,
-              },
             "BRIDGE_HOST":
               {
-                "description": "Optional: Bind address. Use '127.0.0.1' for local testing (default: 0.0.0.0)",
+                "description": "Optional: Bind address (default: 127.0.0.1 for security)",
                 "sensitive": false,
                 "required": false,
               },
           },
         "security":
           {
-            "notes": "This skill controls physical robots and exposes network endpoints. JWT authentication is enforced by default. Set a strong JWT_SECRET before running. Run in isolated/test environment first. Do not expose to open networks without proper firewall rules.",
+            "notes": "SECURITY-FIRST DESIGN: JWT authentication is always required and cannot be disabled. All examples run in Docker containers for isolation. Never expose to public networks without TLS and firewall rules.",
           },
         "install":
           [

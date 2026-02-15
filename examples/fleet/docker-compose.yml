@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  fleet-orchestrator:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.mock
+    ports:
+      - "8771:8771"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - BRIDGE_HOST=0.0.0.0
+    command: >
+      sh -c "python /app/examples/fleet/fleet_demo.py --host 0.0.0.0 --port 8771"
+    networks:
+      - fleet-network
+
+networks:
+  fleet-network:
+    driver: bridge

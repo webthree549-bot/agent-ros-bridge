@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY pyproject.toml .
+RUN pip install --no-cache-dir -e "."
+
+# Copy source
+COPY agent_ros_bridge/ ./agent_ros_bridge/
+COPY examples/ ./examples/
+COPY config/ ./config/
+COPY scripts/ ./scripts/
+
+# Create non-root user
+RUN useradd -m -u 1000 bridge && chown -R bridge:bridge /app
+USER bridge
+
+# Expose ports
+EXPOSE 8765 8770 8771 8772
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8765/health')" || exit 1
+
+# Default: require JWT_SECRET (will fail if not set)
+CMD ["python", "-m", "agent_ros_bridge"]

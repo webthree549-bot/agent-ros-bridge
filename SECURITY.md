@@ -1,77 +1,87 @@
 # Security Policy
 
-## Security-First Defaults
+## Security-First Design
 
-Agent ROS Bridge controls physical robots and exposes network endpoints. **Security is not optional.**
+Agent ROS Bridge implements **mandatory JWT authentication** with **no bypass option**.
 
 ## Required Security Configuration
 
-### 1. JWT_SECRET (Required)
+### 1. JWT_SECRET (Always Required)
 
-Before running the bridge, you **MUST** set a JWT secret:
+The bridge **will fail to start** without a JWT secret. No exceptions.
 
 ```bash
-# Generate a secure secret
+# Generate a secure secret (REQUIRED)
 export JWT_SECRET=$(openssl rand -base64 32)
 
-# Or use Python
-export JWT_SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+# Start bridge
+agent-ros-bridge
 ```
 
-**The bridge will FAIL to start without JWT_SECRET when authentication is enabled.**
+**There is no way to disable authentication.** This is by design.
 
-### 2. Authentication Enabled by Default
+### 2. Docker Examples (Isolated Testing)
 
-Authentication is **enabled by default** in v0.2.1+. To connect:
+All examples run in Docker containers for isolation:
 
-1. Generate a token:
-   ```bash
-   python scripts/generate_token.py --secret $JWT_SECRET --role operator
-   ```
-
-2. Use token in WebSocket URL:
-   ```
-   ws://localhost:8765?token=YOUR_TOKEN_HERE
-   ```
-
-### 3. Role-Based Access Control
-
-Default roles:
-- `admin` — Full control
-- `operator` — Control robots, view state
-- `viewer` — Read-only access
-- `anonymous` — No access (when auth enabled)
-
-## Network Security
-
-### Development/Testing
 ```bash
-# Bind to localhost only (safe for development)
-export BRIDGE_HOST=127.0.0.1
+# Example runs in container with JWT auth enforced
+cd examples/quickstart
+docker-compose up
 ```
 
-### Production
+The Docker containers:
+- Run in isolated network namespaces
+- Bind to container-internal interfaces
+- Require JWT_SECRET to function
+- Cannot disable authentication
+
+### 3. Network Security
+
+**Default Bind Address:** 127.0.0.1 (localhost only)
+
+```bash
+# Only localhost can connect (secure default)
+export BRIDGE_HOST=127.0.0.1
+agent-ros-bridge
+```
+
+**Production Deployment:**
 - Use TLS/WSS (WebSocket Secure)
 - Place behind reverse proxy (nginx, traefik)
-- Firewall: Restrict ports to known IPs
-- VPN: Require VPN access for robot control
+- Firewall: Restrict to known IPs
+- VPN: Require VPN access
+
+## Authentication
+
+### Token Generation
+
+```bash
+# Generate operator token
+python scripts/generate_token.py --secret $JWT_SECRET --role operator
+
+# Generate admin token
+python scripts/generate_token.py --secret $JWT_SECRET --role admin
+```
+
+### Role-Based Access
+
+| Role | Permissions |
+|------|-------------|
+| `admin` | Full control |
+| `operator` | Control robots, view state |
+| `viewer` | Read-only access |
 
 ## Reporting Security Issues
 
 Email: security@agent-ros-bridge.org
 
-Please include:
-- Version affected
-- Description of vulnerability
-- Steps to reproduce
-- Suggested fix (if any)
-
 ## Security Checklist
 
-Before deploying to production:
+Before production deployment:
 
-- [ ] JWT_SECRET set to strong random value
-- [ ] Authentication enabled (default)
+- [ ] JWT_SECRET set to strong random value (32+ bytes)
+- [ ] Authentication cannot be disabled (verified)
 - [ ] TLS/WSS configured
 - [ ] Firewall rules applied
 - [ ] Rate limiting enabled
@@ -79,16 +89,15 @@ Before deploying to production:
 - [ ] Access restricted to authorized users
 - [ ] Regular security updates applied
 
-## Known Limitations
+## No Mock Mode
 
-- Mock mode disables auth (intentional for testing)
-- Auto-generated secrets in v0.1.0-v0.2.0 (fixed in v0.2.1)
-- Plain HTTP in default config (use TLS in production)
+Unlike previous versions, **v0.3.0+ does not have a mock mode**. All deployments require authentication. Docker containers provide isolated testing environments without compromising security.
 
 ## Version History
 
 | Version | Security Changes |
 |---------|-----------------|
-| v0.2.1+ | Auth enabled by default, JWT_SECRET required |
+| v0.3.0+ | Mock mode removed, auth always required |
+| v0.2.5 | Auth enabled by default, JWT_SECRET required |
 | v0.2.0 | Auth disabled by default (deprecated) |
 | v0.1.0 | Auth disabled by default (deprecated) |

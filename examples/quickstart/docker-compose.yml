@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  quickstart-bridge:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.mock
+    ports:
+      - "8765:8765"
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - BRIDGE_HOST=0.0.0.0
+    command: >
+      sh -c "python -m agent_ros_bridge --config /app/config/bridge.yaml"
+    networks:
+      - bridge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  bridge-network:
+    driver: bridge
