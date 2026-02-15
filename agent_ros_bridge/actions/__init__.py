@@ -341,22 +341,22 @@ class ROS2ActionClient(BaseActionClient):
         return self._parse_feedback(result_msg)
 
 
-class MockActionClient(BaseActionClient):
-    """Mock action client for testing without ROS"""
+class SimulatedActionClient(BaseActionClient):
+    """Simulated action client for testing without ROS"""
     
     async def connect(self) -> bool:
-        """Mock connect"""
+        """Simulated connect"""
         self._connected = True
-        logger.info(f"✅ Mock action client: {self.action_name}")
+        logger.info(f"✅ Simulated action client: {self.action_name}")
         return True
     
     async def disconnect(self):
-        """Mock disconnect"""
+        """Simulated disconnect"""
         self._connected = False
     
     async def send_goal(self, goal_data: Dict[str, Any],
                        timeout_sec: float = 30.0) -> ActionResult:
-        """Mock goal execution with simulated feedback"""
+        """Simulated goal execution with feedback"""
         import uuid
         goal_id = str(uuid.uuid4())[:8]
         
@@ -369,15 +369,15 @@ class MockActionClient(BaseActionClient):
         self.status = ActionStatus.ACTIVE
         self._start_time = datetime.utcnow()
         
-        logger.info(f"▶️  Mock action: {self.action_name} goal {goal_id}")
+        logger.info(f"▶️  Simulated action: {self.action_name} goal {goal_id}")
         
         # Simulate execution with feedback
         steps = 10
         for i in range(steps):
             await asyncio.sleep(0.5)
             
-            # Generate mock feedback based on action type
-            feedback_data = self._generate_mock_feedback(i, steps, goal_data)
+            # Generate simulated feedback based on action type
+            feedback_data = self._generate_simulated_feedback(i, steps, goal_data)
             
             feedback = ActionFeedback(
                 goal_id=goal_id,
@@ -385,7 +385,7 @@ class MockActionClient(BaseActionClient):
             )
             self._notify_feedback(feedback)
             
-            logger.debug(f"Mock feedback: {feedback_data}")
+            logger.debug(f"Simulated feedback: {feedback_data}")
         
         # Complete successfully
         execution_time = (datetime.utcnow() - self._start_time).total_seconds()
@@ -395,22 +395,22 @@ class MockActionClient(BaseActionClient):
             goal_id=goal_id,
             success=True,
             status=ActionStatus.SUCCEEDED,
-            result_data={"message": "Mock action completed"},
+            result_data={"message": "Simulated action completed"},
             execution_time_sec=execution_time
         )
         
         self._notify_result(result)
-        logger.info(f"✅ Mock action completed: {goal_id}")
+        logger.info(f"✅ Simulated action completed: {goal_id}")
         
         return result
     
     async def cancel_goal(self) -> bool:
-        """Mock cancel"""
+        """Simulated cancel"""
         self.status = ActionStatus.CANCELED
         return True
     
-    def _generate_mock_feedback(self, step: int, total: int, goal_data: Dict) -> Dict[str, Any]:
-        """Generate mock feedback based on action type"""
+    def _generate_simulated_feedback(self, step: int, total: int, goal_data: Dict) -> Dict[str, Any]:
+        """Generate simulated feedback based on action type"""
         progress = (step + 1) / total
         
         if "navigate" in self.action_name.lower():
@@ -444,9 +444,9 @@ def create_action_client(action_name: str, action_type: str,
             import rclpy
             return ROS2ActionClient(action_name, action_type)
         except ImportError:
-            logger.warning("rclpy not available, using mock action client")
-            return MockActionClient(action_name, action_type)
+            logger.warning("rclpy not available, using simulated action client")
+            return SimulatedActionClient(action_name, action_type)
     else:
         # ROS1 not yet implemented
-        logger.warning("ROS1 action client not implemented, using mock")
-        return MockActionClient(action_name, action_type)
+        logger.warning("ROS1 action client not implemented, using simulated")
+        return SimulatedActionClient(action_name, action_type)

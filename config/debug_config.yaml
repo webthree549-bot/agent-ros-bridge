@@ -8,4 +8,4 @@ monitoring:
   metrics: ["cpu", "memory", "latency"]
   realtime_dashboard: true
 debug:
-  mock_mode_default: false
+  verbose_logging: false
