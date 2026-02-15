@@ -29,22 +29,35 @@ pip install agent-ros-bridge
 python run_bridge.py  # Auto-detects ROS1 Noetic or ROS2 Humble/Jazzy
 ```
 
-### Demo/Testing (no ROS required)
+### Demo/Testing (Local Only - No ROS Required)
+
+**⚠️ Security Note:** Mock mode disables authentication for testing. **Only run on localhost.**
+
 ```bash
+# Bind to localhost only (secure for testing)
+export BRIDGE_HOST=127.0.0.1
+export MOCK_MODE=true
+
 pip install agent-ros-bridge
 python examples/quickstart/mock_bridge.py  # Simulated robot
 ```
 
 ### Native ROS (Recommended for Development)
 
-**Single ROS Version (auto-detect):**
+**Install from PyPI (Recommended):**
 ```bash
-# One-line installer
-curl -sSL https://raw.githubusercontent.com/webthree549-bot/agent-ros-bridge/main/scripts/install-native.sh | bash
+pip install agent-ros-bridge
 
 # Run with native ROS
 source /opt/ros/humble/setup.bash  # or noetic, jazzy
 python run_bridge.py
+```
+
+**Or install from source:**
+```bash
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+pip install -e .
 ```
 
 **Dual ROS1 + ROS2 (simultaneous):**
