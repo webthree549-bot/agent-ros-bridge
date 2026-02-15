@@ -3,7 +3,7 @@
 Multi-protocol, multi-robot, cloud-native connectivity platform.
 """
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 from agent_ros_bridge.gateway_v2.core import (
     Bridge,

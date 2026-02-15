@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.2.2] - 2025-02-15
+
+### Security & Documentation
+- Removed curl|bash install pattern from README (security best practice)
+- Added mock mode security warnings (localhost-only recommendation)
+- Added BRIDGE_HOST=127.0.0.1 guidance for testing
+- Synced _version.py auto-generated file
+- Cleaned submission package for ClawHub
+
 ## [0.2.1] - 2025-02-14
 
 ### Security (Critical)
