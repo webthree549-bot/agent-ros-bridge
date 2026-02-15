@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.3.3] - 2025-02-15
+
+### Fixed
+- SKILL.md metadata: removed trailing commas from JSON (fixes registry parsing)
+- Install spec now properly recognized as `pip install agent-ros-bridge`
+
 ## [0.3.2] - 2025-02-15
 
 ### Release & Submission
