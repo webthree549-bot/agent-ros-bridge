@@ -1,79 +1,72 @@
 name: Bug Report
-description: Create a report to help us improve
-title: "[BUG] "
+description: Report a bug or unexpected behavior
 labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report!
-
+        Thanks for reporting! Please fill out this form completely.
+  
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: A clear and concise description of what the bug is.
-      placeholder: Tell us what happened...
+      label: Bug Description
+      description: What happened?
+      placeholder: A clear description of the bug...
     validations:
       required: true
-
+  
   - type: textarea
-    id: reproduce
+    id: reproduction
     attributes:
       label: Steps to Reproduce
-      description: Steps to reproduce the behavior
+      description: How can we reproduce this?
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
+        1. Install version X
+        2. Run command Y
+        3. See error
     validations:
       required: true
-
+  
   - type: textarea
     id: expected
     attributes:
       label: Expected Behavior
-      description: What you expected to happen
-      placeholder: Describe what should have happened...
+      description: What should have happened?
+      placeholder: Describe expected behavior...
     validations:
       required: true
-
+  
   - type: textarea
     id: actual
     attributes:
       label: Actual Behavior
-      description: What actually happened
-      placeholder: Describe what actually happened...
+      description: What actually happened?
+      placeholder: Include error messages...
     validations:
       required: true
-
-  - type: textarea
-    id: logs
+  
+  - type: input
+    id: version
     attributes:
-      label: Logs/Error Messages
-      description: Paste any relevant logs or error messages
-      render: shell
-
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
-
+      label: Version
+      description: What version are you using?
+      placeholder: v0.3.3
+    validations:
+      required: true
+  
   - type: dropdown
-    id: os
+    id: python
     attributes:
-      label: Operating System
+      label: Python Version
       options:
-        - Ubuntu 20.04
-        - Ubuntu 22.04
-        - Ubuntu 24.04
-        - Windows (WSL2)
-        - macOS
+        - "3.10"
+        - "3.11"
+        - "3.12"
         - Other
     validations:
       required: true
-
+  
   - type: dropdown
     id: ros
     attributes:
@@ -82,29 +75,18 @@ body:
         - ROS1 Noetic
         - ROS2 Humble
         - ROS2 Jazzy
-        - Not using ROS
-    validations:
-      required: true
-
+        - Not using ROS (Docker/simulation)
+        - Other
+  
   - type: input
-    id: python
+    id: os
     attributes:
-      label: Python Version
-      placeholder: e.g., 3.11.2
-    validations:
-      required: true
-
-  - type: input
-    id: version
-    attributes:
-      label: OpenClaw ROS Bridge Version
-      placeholder: e.g., 1.2.3 or commit hash
-    validations:
-      required: true
-
+      label: Operating System
+      placeholder: Ubuntu 22.04, macOS 14, etc.
+  
   - type: textarea
-    id: additional
+    id: logs
     attributes:
-      label: Additional Context
-      description: Add any other context about the problem here
-      placeholder: Screenshots, related issues, etc.
+      label: Logs/Traceback
+      description: Paste relevant logs
+      render: shell

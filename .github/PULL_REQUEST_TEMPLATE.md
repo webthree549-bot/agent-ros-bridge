@@ -1,46 +1,47 @@
 ## Description
-<!-- Provide a brief description of the changes in this PR -->
+<!-- Describe your changes -->
+
+Fixes # (issue)
 
 ## Type of Change
-<!-- Mark relevant options with [x] -->
+<!-- Mark with an x -->
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [ ] Documentation update
 - [ ] Performance improvement
 - [ ] Code refactoring
-- [ ] CI/CD improvement
+- [ ] Test coverage improvement
 
-## Related Issues
-<!-- Link related issues here -->
-Fixes #(issue number)
-Closes #(issue number)
-Related to #(issue number)
+## How Has This Been Tested?
+<!-- Describe tests you ran -->
 
-## Testing
-<!-- Describe the tests you ran -->
-- [ ] Unit tests pass
+- [ ] Unit tests pass: `pytest`
 - [ ] Integration tests pass
-- [ ] Manual testing performed
+- [ ] Manual testing (describe below)
 
-### Test Configuration
-* ROS Version:
-* Python Version:
-* OS:
+**Test Configuration**:
+- Python version:
+- ROS version:
+- OS:
 
 ## Checklist
-<!-- Mark completed items with [x] -->
+<!-- Mark with an x -->
 - [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
+- [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] I have added tests that prove my fix is effective or my feature works
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published
 
-## Screenshots (if applicable)
-<!-- Add screenshots to help explain your changes -->
+## Security Considerations
+<!-- If applicable -->
+- [ ] No secrets or credentials exposed
+- [ ] Security features remain intact
+- [ ] Changes don't introduce new vulnerabilities
+
+## Screenshots (if appropriate)
 
 ## Additional Notes
-<!-- Add any other context about the PR here -->

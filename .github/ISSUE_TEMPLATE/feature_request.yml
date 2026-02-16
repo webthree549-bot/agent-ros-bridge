@@ -1,56 +1,50 @@
 name: Feature Request
-description: Suggest an idea for this project
-title: "[FEATURE] "
+description: Suggest a new feature or improvement
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest a new feature!
-
+        Have an idea? We'd love to hear it!
+  
   - type: textarea
     id: problem
     attributes:
-      label: Is your feature request related to a problem?
-      description: A clear and concise description of what the problem is
+      label: Problem Statement
+      description: What problem does this solve?
       placeholder: I'm always frustrated when...
     validations:
       required: true
-
+  
   - type: textarea
     id: solution
     attributes:
-      label: Describe the solution you'd like
-      description: A clear and concise description of what you want to happen
+      label: Proposed Solution
+      description: What should happen?
       placeholder: It would be great if...
     validations:
       required: true
-
+  
   - type: textarea
     id: alternatives
     attributes:
-      label: Describe alternatives you've considered
-      description: A clear and concise description of any alternative solutions or features you've considered
-      placeholder: I thought about...
-
-  - type: dropdown
-    id: component
+      label: Alternatives Considered
+      description: What else did you try?
+      placeholder: I considered X but it doesn't work because...
+  
+  - type: textarea
+    id: usecase
     attributes:
-      label: Component
-      description: Which part of the project does this feature relate to?
-      options:
-        - Core/Gateway
-        - Transports (WebSocket, gRPC, etc.)
-        - Connectors (ROS1, ROS2, etc.)
-        - Plugins
-        - Documentation
-        - Docker/Deployment
-        - Other
+      label: Use Case
+      description: Who would benefit and how?
+      placeholder: This would help robotics researchers who...
     validations:
       required: true
-
-  - type: textarea
-    id: context
+  
+  - type: checkboxes
+    id: willing
     attributes:
-      label: Additional context
-      description: Add any other context, screenshots, or examples about the feature request here
+      label: Contribution
+      options:
+        - label: I am willing to implement this feature
+        - label: I can provide testing/feedback
