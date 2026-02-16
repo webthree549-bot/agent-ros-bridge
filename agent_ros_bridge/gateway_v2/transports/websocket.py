@@ -42,7 +42,7 @@ class WebSocketTransport(Transport):
         self.tls_cert = config.get("tls_cert")
         self.tls_key = config.get("tls_key")
         self.server = None
-        self.clients: Dict[str, WebSocketServerProtocol] = {}
+        self.clients: Dict[str, "WebSocketServerProtocol"] = {}
         self.identities: Dict[str, Identity] = {}
         
         # Initialize authentication
@@ -102,7 +102,7 @@ class WebSocketTransport(Transport):
         self.running = False
         logger.info("WebSocket transport stopped")
     
-    async def _handle_client(self, websocket: WebSocketServerProtocol):
+    async def _handle_client(self, websocket: "WebSocketServerProtocol"):
         """Handle client connection with authentication"""
         client_id = str(id(websocket))
         
