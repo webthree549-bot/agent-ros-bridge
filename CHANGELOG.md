@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
-## [0.3.4] - 2026-02-20
+## [0.3.5] - 2026-02-20
 
 ### Security
 - Fixed clear-text logging of JWT credentials (CodeQL alert #83)
