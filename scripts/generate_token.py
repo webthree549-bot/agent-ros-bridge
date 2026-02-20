@@ -52,20 +52,20 @@ def main():
     
     if args.generate_secret:
         secret = secrets.token_urlsafe(32)
-        # SECURITY: Print full secret to stderr to avoid logging sensitive data
-        print("=" * 60, file=sys.stderr)
-        print("Generated JWT Secret", file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        print(secret, file=sys.stderr)
-        print("=" * 60, file=sys.stderr)
-        print("\nAdd to your environment:", file=sys.stderr)
-        print(f'  export JWT_SECRET="{secret}"', file=sys.stderr)
-        print("\nOr add to config/bridge.yaml:", file=sys.stderr)
-        print("  transports:", file=sys.stderr)
-        print("    websocket:", file=sys.stderr)
-        print("      auth:", file=sys.stderr)
-        print("        enabled: true", file=sys.stderr)
-        print(f"        jwt_secret: \"{secret}\"", file=sys.stderr)
+        # SECURITY: Write full secret to stderr to avoid logging sensitive data
+        sys.stderr.write("=" * 60 + "\n")
+        sys.stderr.write("Generated JWT Secret\n")
+        sys.stderr.write("=" * 60 + "\n")
+        sys.stderr.write(secret + "\n")
+        sys.stderr.write("=" * 60 + "\n")
+        sys.stderr.write("\nAdd to your environment:\n")
+        sys.stderr.write(f'  export JWT_SECRET="{secret}"\n')
+        sys.stderr.write("\nOr add to config/bridge.yaml:\n")
+        sys.stderr.write("  transports:\n")
+        sys.stderr.write("    websocket:\n")
+        sys.stderr.write("      auth:\n")
+        sys.stderr.write("        enabled: true\n")
+        sys.stderr.write(f"        jwt_secret: \"{secret}\"\n")
         print("\n[Secret generated - see stderr output above]")
         return
     
@@ -94,13 +94,13 @@ def main():
     print(f"Roles: {', '.join(roles)}")
     print(f"Expires: {args.expiry} hours")
     print("=" * 60)
-    # SECURITY: Print full token to stderr to avoid logging sensitive data
+    # SECURITY: Write full token to stderr to avoid logging sensitive data
     # Only the masked token goes to stdout
     print(f"{token[:20]}... [see stderr for full token]")
-    print("=" * 60, file=sys.stderr)
-    print("FULL TOKEN (copy this):", file=sys.stderr)
-    print(token, file=sys.stderr)
-    print("=" * 60, file=sys.stderr)
+    sys.stderr.write("=" * 60 + "\n")
+    sys.stderr.write("FULL TOKEN (copy this):\n")
+    sys.stderr.write(token + "\n")
+    sys.stderr.write("=" * 60 + "\n")
     print("\nUse with WebSocket connection:")
     print(f'  wscat -c "ws://localhost:8766?token=<TOKEN_FROM_STDERR>"')
     print("\nOr in Python:")

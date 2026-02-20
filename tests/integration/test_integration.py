@@ -37,6 +37,7 @@ class TestWebSocketIntegration:
         """Create WebSocket client connection"""
         import os as os_module
         
+        websockets = None  # Initialize to avoid UnboundLocalError
         try:
             import websockets
         except ImportError:
@@ -117,6 +118,7 @@ class TestMQTTIntegration:
     @pytest.fixture
     async def mqtt_client(self):
         """Create MQTT client connection"""
+        mqtt = None  # Initialize to avoid UnboundLocalError
         try:
             import paho.mqtt.client as mqtt
         except ImportError:
@@ -206,6 +208,7 @@ class TestAuthenticationIntegration:
     @pytest.mark.asyncio
     async def test_auth_required_without_token(self):
         """Test that auth-enabled bridge rejects connections without token"""
+        websockets = None  # Initialize to avoid UnboundLocalError
         try:
             import websockets
         except ImportError:
@@ -226,6 +229,7 @@ class TestAuthenticationIntegration:
     @pytest.mark.asyncio
     async def test_auth_accepted_with_valid_token(self):
         """Test that valid JWT token is accepted"""
+        websockets = None  # Initialize to avoid UnboundLocalError
         try:
             import websockets
         except ImportError:
