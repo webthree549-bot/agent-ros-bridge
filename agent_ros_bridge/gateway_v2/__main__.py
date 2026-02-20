@@ -193,7 +193,7 @@ Environment Variables:
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="Agent ROS Bridge 0.3.3"
+        version="Agent ROS Bridge 0.3.4"
     )
     
     args = parser.parse_args()

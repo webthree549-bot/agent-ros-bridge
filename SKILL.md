@@ -1,6 +1,6 @@
 ---
 name: agent-ros-bridge
-version: 0.3.3
+version: 0.3.4
 description: Universal ROS1/ROS2 bridge for AI agents to control robots and embodied intelligence systems.
 author: Agent ROS Bridge Team
 homepage: https://github.com/webthree549-bot/agent-ros-bridge

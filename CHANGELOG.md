@@ -25,7 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
-## [0.3.3] - 2025-02-15
+## [0.3.4] - 2026-02-20
+
+### Security
+- Fixed clear-text logging of JWT credentials (CodeQL alert #83)
+  - Tokens and secrets now print to stderr instead of stdout
+  - Prevents accidental exposure in logs and CI/CD pipelines
+
+## [0.3.3] - 2026-02-15
 
 ### Fixed
 - SKILL.md metadata: removed trailing commas from JSON (fixes registry parsing)
