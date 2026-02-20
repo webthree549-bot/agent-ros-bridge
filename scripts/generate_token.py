@@ -52,19 +52,21 @@ def main():
     
     if args.generate_secret:
         secret = secrets.token_urlsafe(32)
-        print("=" * 60)
-        print("Generated JWT Secret")
-        print("=" * 60)
-        print(secret)
-        print("=" * 60)
-        print("\nAdd to your environment:")
-        print(f'  export JWT_SECRET="{secret}"')
-        print("\nOr add to config/bridge.yaml:")
-        print("  transports:")
-        print("    websocket:")
-        print("      auth:")
-        print("        enabled: true")
-        print(f"        jwt_secret: \"{secret}\"")
+        # SECURITY: Print full secret to stderr to avoid logging sensitive data
+        print("=" * 60, file=sys.stderr)
+        print("Generated JWT Secret", file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        print(secret, file=sys.stderr)
+        print("=" * 60, file=sys.stderr)
+        print("\nAdd to your environment:", file=sys.stderr)
+        print(f'  export JWT_SECRET="{secret}"', file=sys.stderr)
+        print("\nOr add to config/bridge.yaml:", file=sys.stderr)
+        print("  transports:", file=sys.stderr)
+        print("    websocket:", file=sys.stderr)
+        print("      auth:", file=sys.stderr)
+        print("        enabled: true", file=sys.stderr)
+        print(f"        jwt_secret: \"{secret}\"", file=sys.stderr)
+        print("\n[Secret generated - see stderr output above]")
         return
     
     if not args.secret:
@@ -92,10 +94,15 @@ def main():
     print(f"Roles: {', '.join(roles)}")
     print(f"Expires: {args.expiry} hours")
     print("=" * 60)
-    print(token)
-    print("=" * 60)
+    # SECURITY: Print full token to stderr to avoid logging sensitive data
+    # Only the masked token goes to stdout
+    print(f"{token[:20]}... [see stderr for full token]")
+    print("=" * 60, file=sys.stderr)
+    print("FULL TOKEN (copy this):", file=sys.stderr)
+    print(token, file=sys.stderr)
+    print("=" * 60, file=sys.stderr)
     print("\nUse with WebSocket connection:")
-    print(f'  wscat -c "ws://localhost:8766?token={token}"')
+    print(f'  wscat -c "ws://localhost:8766?token=<TOKEN_FROM_STDERR>"')
     print("\nOr in Python:")
     print(f'  headers = {{"Authorization": "Bearer {token[:20]}..."}}')
 
