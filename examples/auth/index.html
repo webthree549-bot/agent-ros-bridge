@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Demo - Agent ROS Bridge</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 { margin-bottom: 16px; color: #00d4ff; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-family: monospace;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status { 
+            display: inline-block; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-size: 0.9em; 
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        .status.connected { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .status.disconnected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .status.authenticated { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+        .token-display {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8em;
+            word-break: break-all;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Auth Demo</h1>
+        <p>JWT Authentication & Authorization</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Connection Status</h2>
+            <span id="ws-status" class="status disconnected">● Disconnected</span>
+            <span id="auth-status" class="status disconnected">● Not Authenticated</span>
+        </div>
+
+        <div class="card">
+            <h2>Authentication</h2>
+            <p style="color: #888; margin-bottom: 16px;">Enter JWT token to connect:</p>
+            <input type="text" id="token-input" placeholder="Paste JWT token here...">
+            <button class="btn" id="connect-btn" onclick="connect()">Connect with Token</button>
+            <button class="btn" onclick="generateToken()" style="background: rgba(255,255,255,0.1);">Generate Demo Token</button>
+            <div id="token-display" class="token-display" style="display: none;"></div>
+        </div>
+
+        <div class="card">
+            <h2>Test Commands</h2>
+            <button class="btn" onclick="ping()" disabled id="ping-btn">Ping (No Auth)</button>
+            <button class="btn" onclick="getStatus()" disabled id="status-btn">Get Status (Auth Required)</button>
+            <button class="btn" onclick="listRobots()" disabled id="robots-btn">List Robots (Auth Required)</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentToken = null;
+
+        function updateStatus(connected, authenticated) {
+            const wsStatus = document.getElementById('ws-status');
+            const authStatus = document.getElementById('auth-status');
+            
+            wsStatus.textContent = connected ? '● Connected' : '● Disconnected';
+            wsStatus.className = 'status ' + (connected ? 'connected' : 'disconnected');
+            
+            authStatus.textContent = authenticated ? '● Authenticated' : '● Not Authenticated';
+            authStatus.className = 'status ' + (authenticated ? 'authenticated' : 'disconnected');
+            
+            document.getElementById('ping-btn').disabled = !connected;
+            document.getElementById('status-btn').disabled = !authenticated;
+            document.getElementById('robots-btn').disabled = !authenticated;
+        }
+
+        function connect() {
+            const token = document.getElementById('token-input').value;
+            if (!token) {
+                alert('Please enter a JWT token');
+                return;
+            }
+            
+            currentToken = token;
+            
+            if (ws) ws.close();
+            
+            ws = new WebSocket(`ws://localhost:8768?token=${token}`);
+            
+            ws.onopen = () => {
+                updateStatus(true, true);
+                console.log('Connected with authentication');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                alert('Response: ' + JSON.stringify(data, null, 2));
+            };
+            
+            ws.onclose = () => {
+                updateStatus(false, false);
+                currentToken = null;
+            };
+            
+            ws.onerror = (err) => {
+                alert('Connection error. Check console.');
+                console.error(err);
+            };
+        }
+
+        function generateToken() {
+            // Demo token (insecure, for demo only)
+            const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZGVtbyIsInJvbGVzIjpbImFkbWluIl19.demo';
+            document.getElementById('token-input').value = demoToken;
+            document.getElementById('token-display').textContent = 'Demo token: ' + demoToken;
+            document.getElementById('token-display').style.display = 'block';
+        }
+
+        function send(cmd) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({command: cmd}));
+            } else {
+                alert('Not connected');
+            }
+        }
+
+        function ping() {
+            send({action: 'ping'});
+        }
+
+        function getStatus() {
+            send({action: 'get_status'});
+        }
+
+        function listRobots() {
+            send({action: 'list_robots'});
+        }
+
+        updateStatus(false, false);
+    </script>
+</body>
+</html>

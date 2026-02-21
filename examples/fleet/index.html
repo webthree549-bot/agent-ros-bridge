@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Demo - Agent ROS Bridge</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status { display: inline-block; padding: 8px 16px; border-radius: 20px; font-size: 0.9em; }
+        .status.connected { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .status.disconnected { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h2 { margin-bottom: 16px; color: #00d4ff; }
+        .robot-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .robot-icon { font-size: 2em; }
+        .robot-info { flex: 1; }
+        .robot-name { font-weight: 600; }
+        .robot-status { font-size: 0.85em; color: #888; }
+        .online { color: #2ecc71; }
+        .offline { color: #e74c3c; }
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚁 Fleet Demo</h1>
+        <p>Multi-Robot Fleet Coordination</p>
+        <span id="ws-status" class="status disconnected">● Disconnected</span>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Connected Robots</h2>
+            <div id="robot-list">
+                <div class="robot-card">
+                    <div class="robot-icon">🤖</div>
+                    <div class="robot-info">
+                        <div class="robot-name">No robots connected</div>
+                        <div class="robot-status">Click "Discover" to find robots</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" onclick="discoverRobots()" style="margin-top: 16px;">🔍 Discover Robots</button>
+            <button class="btn secondary" onclick="refreshStatus()">🔄 Refresh</button>
+        </div>
+
+        <div class="card">
+            <h2>Fleet Commands</h2>
+            <button class="btn" onclick="sendToAll()">📢 Send to All</button>
+            <button class="btn secondary" onclick="patrolMode()">🔄 Patrol Mode</button>
+            <button class="btn secondary" onclick="emergencyStop()">🛑 Emergency Stop</button>
+            <button class="btn secondary" onclick="returnToBase()">🏠 Return to Base</button>
+        </div>
+
+        <div class="card">
+            <h2>Fleet Status</h2>
+            <p>Online: <span id="online-count" style="color: #2ecc71; font-weight: 600;">0</span></p>
+            <p>Offline: <span id="offline-count" style="color: #e74c3c;">0</span></p>
+            <p>Total: <span id="total-count">0</span></p>
+            <button class="btn" onclick="getFleetStatus()" style="margin-top: 16px;">📊 Get Status</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let robots = [];
+
+        function connect() {
+            ws = new WebSocket('ws://localhost:8765');
+            
+            ws.onopen = () => {
+                document.getElementById('ws-status').textContent = '● Connected';
+                document.getElementById('ws-status').className = 'status connected';
+                discoverRobots();
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.telemetry && data.telemetry.topic === 'robots') {
+                    updateRobotList(data.telemetry.data.robots);
+                }
+            };
+            
+            ws.onclose = () => {
+                document.getElementById('ws-status').textContent = '● Disconnected';
+                document.getElementById('ws-status').className = 'status disconnected';
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function updateRobotList(robotData) {
+            robots = robotData || [];
+            const list = document.getElementById('robot-list');
+            
+            if (robots.length === 0) {
+                list.innerHTML = `
+                    <div class="robot-card">
+                        <div class="robot-icon">🤖</div>
+                        <div class="robot-info">
+                            <div class="robot-name">No robots connected</div>
+                            <div class="robot-status">Click "Discover" to find robots</div>
+                        </div>
+                    </div>`;
+            } else {
+                list.innerHTML = robots.map(r => `
+                    <div class="robot-card">
+                        <div class="robot-icon">${r.type === 'drone' ? '🚁' : '🤖'}</div>
+                        <div class="robot-info">
+                            <div class="robot-name">${r.name || r.id}</div>
+                            <div class="robot-status ${r.connected ? 'online' : 'offline'}">
+                                ${r.connected ? '● Online' : '● Offline'}
+                                ${r.battery ? `| 🔋 ${r.battery}%` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            const online = robots.filter(r => r.connected).length;
+            document.getElementById('online-count').textContent = online;
+            document.getElementById('offline-count').textContent = robots.length - online;
+            document.getElementById('total-count').textContent = robots.length;
+        }
+
+        function send(cmd) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({command: cmd}));
+            }
+        }
+
+        function discoverRobots() {
+            send({action: 'discover'});
+        }
+
+        function refreshStatus() {
+            send({action: 'list_robots'});
+        }
+
+        function getFleetStatus() {
+            send({action: 'fleet.status'});
+        }
+
+        function sendToAll() {
+            send({action: 'fleet.broadcast', parameters: {message: 'Hello fleet!'}});
+        }
+
+        function patrolMode() {
+            send({action: 'fleet.patrol'});
+        }
+
+        function emergencyStop() {
+            if (confirm('Emergency stop all robots?')) {
+                send({action: 'fleet.emergency_stop'});
+            }
+        }
+
+        function returnToBase() {
+            send({action: 'fleet.return_to_base'});
+        }
+
+        connect();
+    </script>
+</body>
+</html>
