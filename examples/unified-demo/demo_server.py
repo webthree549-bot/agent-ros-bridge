@@ -43,8 +43,19 @@ BRIDGE_PORT = 8765
 
 # Paths - work both in Docker and native
 SCRIPT_DIR = Path(__file__).parent.resolve()
-EXAMPLES_DIR = SCRIPT_DIR.parent / "examples" if (SCRIPT_DIR.parent / "examples").exists() else Path("/app/examples")
-STATIC_DIR = SCRIPT_DIR / "static" if (SCRIPT_DIR / "static").exists() else Path("/app/static")
+# In Docker: /app/examples (all examples mounted)
+# Native: unified-demo is inside examples/, so go up one level
+if (SCRIPT_DIR / "examples" / "actions").exists():
+    # Docker layout: /app/examples/actions exists
+    EXAMPLES_DIR = SCRIPT_DIR / "examples"
+elif (SCRIPT_DIR.parent / "actions").exists():
+    # Native layout: ../actions exists
+    EXAMPLES_DIR = SCRIPT_DIR.parent
+else:
+    # Fallback
+    EXAMPLES_DIR = SCRIPT_DIR.parent if (SCRIPT_DIR.parent / "README.md").exists() else Path("/app/examples")
+
+STATIC_DIR = SCRIPT_DIR / "static"
 
 # Track running demos
 running_demos: Dict[str, subprocess.Popen] = {}
