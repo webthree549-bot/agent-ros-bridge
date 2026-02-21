@@ -1,14 +1,14 @@
 services:
   unified-demo:
     build:
-      context: ../..  # Use parent of examples directory
+      context: ../..
       dockerfile: examples/unified-demo/Dockerfile
     container_name: unified-demo
     ports:
-      - "8080:8080"    # Web dashboard
-      - "8765:8765"    # WebSocket API
+      - "8080:8080"
+      - "8765:8765"
     environment:
-      - JWT_SECRET=${JWT_SECRET:-demo-secret-change-in-production}
+      - JWT_SECRET=${JWT_SECRET}
       - ROS_DOMAIN_ID=0
     networks:
       - demo-network
