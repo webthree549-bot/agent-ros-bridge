@@ -161,6 +161,39 @@
             height: 400px;
             color: #888;
             font-size: 1.2em;
+            flex-direction: column;
+        }
+        
+        #iframe-container {
+            position: relative;
+            height: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        #iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: rgba(0,0,0,0.2);
+        }
+        
+        #iframe-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26,26,46,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        
+        #iframe-overlay.visible {
+            display: flex;
         }
     </style>
 </head>
@@ -328,9 +361,7 @@
                     
                     // Load the example's homepage in iframe
                     const ex = EXAMPLES[currentExample];
-                    document.getElementById('example-content').innerHTML = `
-                        <iframe src="http://localhost:${ex.port}/" onload="this.style.background='transparent'"></iframe>
-                    `;
+                    loadExampleFrame(ex.port);
                     
                     log('Example started successfully');
                 } else {
@@ -343,6 +374,48 @@
             document.getElementById('start-btn').textContent = '▶ Start Example';
         }
         
+        function loadExampleFrame(port) {
+            // Create iframe with loading indicator
+            document.getElementById('example-content').innerHTML = `
+                <div id="iframe-container" style="position: relative; height: 100%;">
+                    <iframe id="demo-iframe" src="http://localhost:${port}/" 
+                        style="width: 100%; height: 100%; border: none;"
+                        onload="onIframeLoad()"
+                        onerror="onIframeError()">
+                    </iframe>
+                    <div id="iframe-overlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(26,26,46,0.95); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <h3 style="color: #e74c3c; margin-bottom: 10px;">⏹ Demo Stopped</h3>
+                        <p style="color: #888;">The demo is no longer running</p>
+                        <button class="btn" onclick="startCurrent()" style="margin-top: 20px;">▶ Restart Demo</button>
+                    </div>
+                </div>
+            `;
+            
+            // Try to ping the server to confirm it's ready
+            setTimeout(() => checkFrameHealth(port), 2000);
+        }
+        
+        async function checkFrameHealth(port) {
+            try {
+                const response = await fetch(`http://localhost:${port}/`, { 
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                // If we get here, server is responding
+                document.getElementById('iframe-overlay').style.display = 'none';
+            } catch (e) {
+                // Server not ready yet, retry
+                setTimeout(() => checkFrameHealth(port), 1000);
+            }
+        }
+        
+        function showStoppedOverlay() {
+            const overlay = document.getElementById('iframe-overlay');
+            if (overlay) {
+                overlay.style.display = 'flex';
+            }
+        }
+        
         async function stopCurrent() {
             if (!currentExample) return;
             
@@ -350,11 +423,8 @@
                 const response = await fetch(`/api/stop/${currentExample}`, { method: 'POST' });
                 updateStatus('stopped');
                 
-                document.getElementById('example-content').innerHTML = `
-                    <div class="placeholder">
-                        Example stopped. Click "Start Example" to relaunch.
-                    </div>
-                `;
+                // Show stopped overlay on iframe
+                showStoppedOverlay();
                 
                 log('Example stopped');
             } catch (err) {
