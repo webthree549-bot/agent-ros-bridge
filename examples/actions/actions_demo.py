@@ -63,9 +63,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def start_http_server(port=8773):
     """Start HTTP server for dashboard"""
-    server = HTTPServer(('0.0.0.0', port), DashboardHandler)
-    logger.info(f"Dashboard server: http://0.0.0.0:{port}")
-    server.serve_forever()
+    try:
+        logger.info(f"Starting HTTP server on port {port}...")
+        server = HTTPServer(('0.0.0.0', port), DashboardHandler)
+        logger.info(f"HTTP server created, starting serve_forever on port {port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"Failed to start HTTP server: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 async def main():
     """Main entry point"""
@@ -73,6 +80,14 @@ async def main():
     print("⚡ Actions Demo")
     print("=" * 60)
     print()
+    
+    # Start HTTP server FIRST (before bridge)
+    logger.info("Starting HTTP dashboard server...")
+    http_thread = threading.Thread(target=start_http_server, args=(8773,), daemon=True)
+    http_thread.start()
+    
+    # Give HTTP server time to start
+    await asyncio.sleep(1)
     
     # Create bridge
     bridge = ROSBridge(ros_version=2)
@@ -134,10 +149,6 @@ async def main():
             "current_action": None,
             "progress": 0.0
         }
-    
-    # Start HTTP server in background thread
-    http_thread = threading.Thread(target=start_http_server, args=(8773,), daemon=True)
-    http_thread.start()
     
     # Start bridge
     print("🌐 Dashboard: http://localhost:8773")
