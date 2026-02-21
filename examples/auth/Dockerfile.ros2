@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
-# Install agent-ros-bridge
-RUN pip3 install agent-ros-bridge
+# Install agent-ros-bridge with all extras
+RUN pip3 install agent-ros-bridge[all] websockets
 
 # Set up workspace
 WORKDIR /ros2_ws

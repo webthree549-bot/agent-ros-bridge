@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     mosquitto-clients \
     && rm -rf /var/lib/apt/lists/*
 
-# Install agent-ros-bridge with MQTT support
-RUN pip3 install agent-ros-bridge paho-mqtt
+# Install agent-ros-bridge with all extras
+RUN pip3 install agent-ros-bridge[all] websockets paho-mqtt
 
 # Set up workspace
 WORKDIR /ros2_ws
