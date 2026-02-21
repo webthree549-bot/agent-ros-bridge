@@ -5,7 +5,7 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("actions-demo")
 
 from agent_ros_bridge import ROSBridge
@@ -31,11 +31,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.send_error(404)
 
 def http_server():
-    logger.info("HTTP starting on port 8773")
+    logger.info("HTTP server starting on port 8773")
     HTTPServer(("0.0.0.0", 8773), DashboardHandler).serve_forever()
 
 async def main():
+    print("=" * 60)
     print("⚡ Actions Demo")
+    print("=" * 60)
+    
+    logger.info("Starting HTTP dashboard server on port 8773...")
     threading.Thread(target=http_server, daemon=True).start()
     await asyncio.sleep(1)
     
@@ -48,8 +52,12 @@ async def main():
     async def nav(x, y, theta=0.0):
         return {"status": "success", "position": {"x": x, "y": y}}
     
-    print("🌐 http://localhost:8773")
-    print("📡 ws://localhost:8765")
+    print("🌐 Dashboard: http://localhost:8773")
+    print("📡 WebSocket: ws://localhost:8765")
+    print("🔗 gRPC: localhost:50051")
+    print("Press Ctrl+C to stop")
+    print("=" * 60)
+    
     await bridge.start()
 
 if __name__ == "__main__":
