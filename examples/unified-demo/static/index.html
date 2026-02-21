@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agent ROS Bridge - Unified Demo</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -21,7 +17,7 @@
         
         .header {
             text-align: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
         }
         
         .header h1 {
@@ -32,39 +28,21 @@
             margin-bottom: 10px;
         }
         
-        .header p {
-            color: #888;
-            font-size: 1.1em;
+        .back-btn {
+            display: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
         
-        .status-bar {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 40px;
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
         
-        .status-item {
-            text-align: center;
-        }
-        
-        .status-label {
-            color: #888;
-            font-size: 0.85em;
-            text-transform: uppercase;
-        }
-        
-        .status-value {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: #00d4ff;
-        }
-        
-        .grid {
+        /* Selector View */
+        .selector-view {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
@@ -72,441 +50,331 @@
             margin: 0 auto;
         }
         
-        .card {
+        .example-card {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
             padding: 24px;
+            cursor: pointer;
             transition: all 0.3s;
-            position: relative;
         }
         
-        .card:hover {
+        .example-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             border-color: rgba(0,212,255,0.3);
         }
         
-        .card.running {
-            border-color: #2ecc71;
-            background: rgba(46,204,113,0.1);
+        .example-icon { font-size: 3em; margin-bottom: 12px; }
+        .example-title { font-size: 1.3em; font-weight: 600; margin-bottom: 8px; }
+        .example-desc { color: #888; font-size: 0.9em; margin-bottom: 16px; }
+        
+        /* Detail View */
+        .detail-view {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
-        .card-icon {
-            font-size: 3em;
-            margin-bottom: 12px;
+        .detail-header {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
         }
         
-        .card-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 8px;
+        .detail-header h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
         }
         
-        .card-desc {
-            color: #888;
-            font-size: 0.9em;
-            margin-bottom: 16px;
-            line-height: 1.5;
+        .detail-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
         }
         
-        .card-tags {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
+        .control-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
         }
         
-        .tag {
-            padding: 4px 10px;
-            background: rgba(0,212,255,0.15);
-            border-radius: 12px;
-            font-size: 0.75em;
+        .control-panel h3 {
             color: #00d4ff;
+            margin-bottom: 16px;
         }
         
-        .card-actions {
-            display: flex;
-            gap: 10px;
+        .main-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 500px;
         }
         
         .btn {
-            flex: 1;
+            width: 100%;
             padding: 12px;
+            margin: 8px 0;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
             border: none;
             border-radius: 8px;
+            color: #fff;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9em;
         }
         
-        .btn-primary {
-            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-            color: #fff;
+        .btn:hover { opacity: 0.9; }
+        .btn.secondary { background: rgba(255,255,255,0.1); }
+        .btn.success { background: linear-gradient(90deg, #2ecc71, #27ae60); }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            margin-left: 10px;
         }
         
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-        
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .logs {
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 12px;
-            font-family: 'SF Mono', monospace;
-            font-size: 0.8em;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .logs.visible {
-            display: block;
-        }
-        
-        .log-line {
-            color: #888;
-            margin-bottom: 4px;
-        }
-        
-        .log-line.error {
-            color: #e74c3c;
-        }
-        
-        .log-line.success {
+        .status-badge.running {
+            background: rgba(46, 204, 113, 0.2);
             color: #2ecc71;
         }
         
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            color: #666;
-            font-size: 0.85em;
+        .status-badge.stopped {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
         }
         
-        .footer a {
-            color: #00d4ff;
-            text-decoration: none;
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+        }
+        
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: #888;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🤖 Agent ROS Bridge</h1>
-        <p>Unified Demo Environment - Select an example to explore</p>
+        <p>Unified Demo Environment</p>
     </div>
     
-    <div class="status-bar">
-        <div class="status-item">
-            <div class="status-label">Bridge Status</div>
-            <div class="status-value" id="bridge-status">🟢 Running</div>
-        </div>
-        <div class="status-item">
-            <div class="status-label">Active Demos</div>
-            <div class="status-value" id="active-count">0</div>
-        </div>
-        <div class="status-item">
-            <div class="status-label">WebSocket</div>
-            <div class="status-value">ws://localhost:8765</div>
-        </div>
-    </div>
+    <button class="back-btn" onclick="showSelector()">← Back to Examples</button>
     
-    <div class="grid">
-        <!-- Playground Examples -->
-        <div class="card" data-example="talking-garden">
-            <div class="card-icon">🌱</div>
-            <div class="card-title">Talking Garden</div>
-            <div class="card-desc">AI monitors and converses with 6 IoT-enabled plants. Real-time sensors, automatic irrigation, plant personalities.</div>
-            <div class="card-tags">
-                <span class="tag">IoT</span>
-                <span class="tag">Sensors</span>
-                <span class="tag">Dashboard</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('talking-garden')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('talking-garden')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-talking-garden" onclick="openHomepage('talking-garden')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-talking-garden"></div>
+    <!-- Selector Grid -->
+    <div class="selector-view" id="selector">
+        <div class="example-card" onclick="showExample('talking-garden')">
+            <div class="example-icon">🌱</div>
+            <div class="example-title">Talking Garden</div>
+            <div class="example-desc">AI monitors and converses with 6 IoT-enabled plants</div>
         </div>
         
-        <div class="card" data-example="mars-colony">
-            <div class="card-icon">🚀</div>
-            <div class="card-title">Mars Colony</div>
-            <div class="card-desc">Multi-robot Mars mission with 4 robot types: Excavator, Solar Drone, Builder, Scout. Task coordination and resource management.</div>
-            <div class="card-tags">
-                <span class="tag">Multi-Robot</span>
-                <span class="tag">Fleet</span>
-                <span class="tag">Mission Control</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('mars-colony')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('mars-colony')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-mars-colony" onclick="openHomepage('mars-colony')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-mars-colony"></div>
+        <div class="example-card" onclick="showExample('mars-colony')">
+            <div class="example-icon">🚀</div>
+            <div class="example-title">Mars Colony</div>
+            <div class="example-desc">Multi-robot Mars mission with 4 robot types</div>
         </div>
         
-        <div class="card" data-example="theater-bots">
-            <div class="card-icon">🎭</div>
-            <div class="card-title">Theater Bots</div>
-            <div class="card-desc">AI director controls robot actors on stage. Scripted performances, real-time dialogue, stage position tracking.</div>
-            <div class="card-tags">
-                <span class="tag">Performance</span>
-                <span class="tag">Coordination</span>
-                <span class="tag">Interactive</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('theater-bots')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('theater-bots')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-theater-bots" onclick="openHomepage('theater-bots')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-theater-bots"></div>
+        <div class="example-card" onclick="showExample('theater-bots')">
+            <div class="example-icon">🎭</div>
+            <div class="example-title">Theater Bots</div>
+            <div class="example-desc">AI director controls robot actors on stage</div>
         </div>
         
-        <div class="card" data-example="art-studio">
-            <div class="card-icon">🎨</div>
-            <div class="card-title">Art Studio</div>
-            <div class="card-desc">Human and robot collaborative painting. Shared canvas state, color mixing, creative collaboration.</div>
-            <div class="card-tags">
-                <span class="tag">Collaboration</span>
-                <span class="tag">Vision</span>
-                <span class="tag">Creative</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('art-studio')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('art-studio')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-art-studio" onclick="openHomepage('art-studio')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-art-studio"></div>
+        <div class="example-card" onclick="showExample('art-studio')">
+            <div class="example-icon">🎨</div>
+            <div class="example-title">Art Studio</div>
+            <div class="example-desc">Human and robot collaborative painting</div>
         </div>
         
-        <!-- Feature Examples -->
-        <div class="card" data-example="actions">
-            <div class="card-icon">⚡</div>
-            <div class="card-title">Actions Demo</div>
-            <div class="card-desc">ROS Actions for long-running tasks. Navigation, motion planning, manipulation with feedback and cancel support.</div>
-            <div class="card-tags">
-                <span class="tag">Actions</span>
-                <span class="tag">Navigation</span>
-                <span class="tag">Feedback</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('actions')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('actions')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-actions" onclick="openHomepage('actions')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-actions"></div>
+        <div class="example-card" onclick="showExample('actions')">
+            <div class="example-icon">⚡</div>
+            <div class="example-title">Actions Demo</div>
+            <div class="example-desc">ROS Actions for navigation and manipulation</div>
         </div>
         
-        <div class="card" data-example="auth">
-            <div class="card-icon">🔐</div>
-            <div class="card-title">Auth Demo</div>
-            <div class="card-desc">JWT authentication demonstration. Token generation, role-based access, API key authentication.</div>
-            <div class="card-tags">
-                <span class="tag">Security</span>
-                <span class="tag">JWT</span>
-                <span class="tag">Auth</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('auth')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('auth')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-auth" onclick="openHomepage('auth')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-auth"></div>
+        <div class="example-card" onclick="showExample('auth')">
+            <div class="example-icon">🔐</div>
+            <div class="example-title">Auth Demo</div>
+            <div class="example-desc">JWT authentication demonstration</div>
         </div>
         
-        <div class="card" data-example="fleet">
-            <div class="card-icon">🚁</div>
-            <div class="card-title">Fleet Demo</div>
-            <div class="card-desc">Multi-robot fleet coordination. Task assignment, robot discovery, fleet-wide status monitoring.</div>
-            <div class="card-tags">
-                <span class="tag">Fleet</span>
-                <span class="tag">Multi-Robot</span>
-                <span class="tag">Orchestration</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('fleet')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('fleet')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-fleet" onclick="openHomepage('fleet')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-fleet"></div>
+        <div class="example-card" onclick="showExample('fleet')">
+            <div class="example-icon">🚁</div>
+            <div class="example-title">Fleet Demo</div>
+            <div class="example-desc">Multi-robot fleet coordination</div>
         </div>
         
-        <div class="card" data-example="metrics">
-            <div class="card-icon">📊</div>
-            <div class="card-title">Metrics Demo</div>
-            <div class="card-desc">Prometheus metrics collection. Robot online/offline counts, message rates, task completion times.</div>
-            <div class="card-tags">
-                <span class="tag">Monitoring</span>
-                <span class="tag">Prometheus</span>
-                <span class="tag">Metrics</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('metrics')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('metrics')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-metrics" onclick="openHomepage('metrics')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-metrics"></div>
-        </div>
-        
-        <div class="card" data-example="mqtt_iot">
-            <div class="card-icon">📡</div>
-            <div class="card-title">MQTT IoT Demo</div>
-            <div class="card-desc">MQTT transport for IoT sensors. Temperature, humidity monitoring. Bidirectional MQTT communication.</div>
-            <div class="card-tags">
-                <span class="tag">MQTT</span>
-                <span class="tag">IoT</span>
-                <span class="tag">Sensors</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('mqtt_iot')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('mqtt_iot')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-mqtt_iot" onclick="openHomepage('mqtt_iot')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-mqtt_iot"></div>
-        </div>
-        
-        <div class="card" data-example="quickstart">
-            <div class="card-icon">🚀</div>
-            <div class="card-title">Quickstart</div>
-            <div class="card-desc">Basic bridge usage. Hello world for Agent ROS Bridge. Simple robot control, topic subscription.</div>
-            <div class="card-tags">
-                <span class="tag">Beginner</span>
-                <span class="tag">Tutorial</span>
-                <span class="tag">Basics</span>
-            </div>
-            <div class="card-actions">
-                <button class="btn btn-primary" onclick="startDemo('quickstart')">▶ Start</button>
-                <button class="btn btn-secondary" onclick="showLogs('quickstart')">📋 Logs</button>
-            </div>
-            <button class="btn btn-homepage" id="home-quickstart" onclick="openHomepage('quickstart')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
-            <div class="logs" id="logs-quickstart"></div>
+        <div class="example-card" onclick="showExample('quickstart')">
+            <div class="example-icon">🚀</div>
+            <div class="example-title">Quickstart</div>
+            <div class="example-desc">Basic bridge usage tutorial</div>
         </div>
     </div>
     
-    <div class="footer">
-        <p>Agent ROS Bridge v0.3.5 | <a href="https://github.com/webthree549-bot/agent-ros-bridge">GitHub</a> | <a href="https://pypi.org/project/agent-ros-bridge/">PyPI</a></p>
+    <!-- Detail View -->
+    <div class="detail-view" id="detail">
+        <div class="detail-header">
+            <h2>
+                <span id="detail-icon">🌱</span>
+                <span id="detail-title">Example Name</span>
+                <span class="status-badge stopped" id="detail-status">● Stopped</span>
+            </h2>
+            <p id="detail-desc" style="color: #888;">Description goes here</p>
+        </div>
+        
+        <div class="detail-layout">
+            <div class="control-panel">
+                <h3>Controls</h3>
+                <button class="btn success" id="start-btn" onclick="startCurrent()">▶ Start Example</button>
+                <button class="btn" id="stop-btn" onclick="stopCurrent()" style="display: none;">⏹ Stop</button>
+                <button class="btn secondary" onclick="showLogs()">📋 Show Logs</button>
+                <div id="logs-panel" style="margin-top: 20px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; font-size: 0.8em; display: none; max-height: 200px; overflow-y: auto;">
+                    Logs will appear here...
+                </div>
+            </div>
+            
+            <div class="main-panel">
+                <div id="example-content">
+                    <div class="placeholder">
+                        Click "Start Example" to launch the demo
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
-        const activeDemos = new Set();
+        let currentExample = null;
+        let examplePort = null;
         
-        async function startDemo(example) {
-            const card = document.querySelector(`[data-example="${example}"]`);
-            const btn = card.querySelector('.btn-primary');
-            const homeBtn = document.getElementById(`home-${example}`);
+        const EXAMPLES = {
+            'talking-garden': { icon: '🌱', title: 'Talking Garden', desc: 'AI monitors and converses with 6 IoT-enabled plants', port: 8081 },
+            'mars-colony': { icon: '🚀', title: 'Mars Colony', desc: 'Multi-robot Mars mission with 4 robot types', port: 8082 },
+            'theater-bots': { icon: '🎭', title: 'Theater Bots', desc: 'AI director controls robot actors on stage', port: 8083 },
+            'art-studio': { icon: '🎨', title: 'Art Studio', desc: 'Human and robot collaborative painting', port: 8084 },
+            'actions': { icon: '⚡', title: 'Actions Demo', desc: 'ROS Actions for navigation and manipulation', port: 8085 },
+            'auth': { icon: '🔐', title: 'Auth Demo', desc: 'JWT authentication demonstration', port: 8086 },
+            'fleet': { icon: '🚁', title: 'Fleet Demo', desc: 'Multi-robot fleet coordination', port: 8087 },
+            'quickstart': { icon: '🚀', title: 'Quickstart', desc: 'Basic bridge usage tutorial', port: 8090 }
+        };
+        
+        function showSelector() {
+            document.getElementById('selector').style.display = 'grid';
+            document.getElementById('detail').style.display = 'none';
+            document.querySelector('.back-btn').style.display = 'none';
+            currentExample = null;
+        }
+        
+        function showExample(id) {
+            currentExample = id;
+            const ex = EXAMPLES[id];
             
-            btn.disabled = true;
-            btn.textContent = '⏳ Starting...';
+            document.getElementById('detail-icon').textContent = ex.icon;
+            document.getElementById('detail-title').textContent = ex.title;
+            document.getElementById('detail-desc').textContent = ex.desc;
+            examplePort = ex.port;
+            
+            document.getElementById('selector').style.display = 'none';
+            document.getElementById('detail').style.display = 'block';
+            document.querySelector('.back-btn').style.display = 'block';
+            
+            // Reset content
+            document.getElementById('example-content').innerHTML = `
+                <div class="placeholder">
+                    Click "Start Example" to launch ${ex.title}
+                </div>
+            `;
+            updateStatus('stopped');
+        }
+        
+        function updateStatus(status) {
+            const badge = document.getElementById('detail-status');
+            if (status === 'running') {
+                badge.textContent = '● Running';
+                badge.className = 'status-badge running';
+                document.getElementById('start-btn').style.display = 'none';
+                document.getElementById('stop-btn').style.display = 'block';
+            } else {
+                badge.textContent = '● Stopped';
+                badge.className = 'status-badge stopped';
+                document.getElementById('start-btn').style.display = 'block';
+                document.getElementById('stop-btn').style.display = 'none';
+            }
+        }
+        
+        async function startCurrent() {
+            if (!currentExample) return;
+            
+            document.getElementById('start-btn').textContent = '⏳ Starting...';
             
             try {
-                const response = await fetch(`/api/start/${example}`, { method: 'POST' });
+                const response = await fetch(`/api/start/${currentExample}`, { method: 'POST' });
                 const result = await response.json();
                 
                 if (result.success) {
-                    card.classList.add('running');
-                    btn.textContent = '⏹ Stop';
-                    btn.onclick = () => stopDemo(example);
+                    updateStatus('running');
                     
-                    // Show homepage button
-                    if (homeBtn) {
-                        homeBtn.style.display = 'block';
-                    }
+                    // Load the example's homepage in iframe
+                    const ex = EXAMPLES[currentExample];
+                    document.getElementById('example-content').innerHTML = `
+                        <iframe src="http://localhost:${ex.port}/" onload="this.style.background='transparent'"></iframe>
+                    `;
                     
-                    activeDemos.add(example);
-                    addLog(example, 'Demo started successfully', 'success');
-                    addLog(example, `Homepage: /demo/${example}/`, 'info');
+                    log('Example started successfully');
                 } else {
-                    addLog(example, `Failed: ${result.error}`, 'error');
-                    btn.textContent = '▶ Start';
+                    log('Failed to start: ' + result.error, 'error');
                 }
             } catch (err) {
-                addLog(example, `Error: ${err.message}`, 'error');
-                btn.textContent = '▶ Start';
+                log('Error: ' + err.message, 'error');
             }
             
-            btn.disabled = false;
-            updateActiveCount();
+            document.getElementById('start-btn').textContent = '▶ Start Example';
         }
         
-        function openHomepage(example) {
-            window.open(`/demo/${example}/`, '_blank');
-        }
-        
-        async function stopDemo(example) {
-            const card = document.querySelector(`[data-example="${example}"]`);
-            const btn = card.querySelector('.btn-primary');
-            const homeBtn = document.getElementById(`home-${example}`);
-            
-            btn.disabled = true;
+        async function stopCurrent() {
+            if (!currentExample) return;
             
             try {
-                const response = await fetch(`/api/stop/${example}`, { method: 'POST' });
-                card.classList.remove('running');
-                btn.textContent = '▶ Start';
-                btn.onclick = () => startDemo(example);
+                const response = await fetch(`/api/stop/${currentExample}`, { method: 'POST' });
+                updateStatus('stopped');
                 
-                // Hide homepage button
-                if (homeBtn) {
-                    homeBtn.style.display = 'none';
-                }
+                document.getElementById('example-content').innerHTML = `
+                    <div class="placeholder">
+                        Example stopped. Click "Start Example" to relaunch.
+                    </div>
+                `;
                 
-                activeDemos.delete(example);
-                addLog(example, 'Demo stopped', 'success');
+                log('Example stopped');
             } catch (err) {
-                addLog(example, `Error stopping: ${err.message}`, 'error');
+                log('Error stopping: ' + err.message, 'error');
             }
-            
-            btn.disabled = false;
-            updateActiveCount();
         }
         
-        function showLogs(example) {
-            const logs = document.getElementById(`logs-${example}`);
-            logs.classList.toggle('visible');
+        function showLogs() {
+            const panel = document.getElementById('logs-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
         }
         
-        function addLog(example, message, type = 'info') {
-            const logs = document.getElementById(`logs-${example}`);
+        function log(msg, type = 'info') {
+            const panel = document.getElementById('logs-panel');
             const line = document.createElement('div');
-            line.className = `log-line ${type}`;
-            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logs.appendChild(line);
-            logs.scrollTop = logs.scrollHeight;
+            line.style.color = type === 'error' ? '#e74c3c' : type === 'success' ? '#2ecc71' : '#fff';
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            panel.appendChild(line);
+            panel.scrollTop = panel.scrollHeight;
         }
-        
-        function updateActiveCount() {
-            document.getElementById('active-count').textContent = activeDemos.size;
-        }
-        
-        // Poll bridge status
-        setInterval(async () => {
-            try {
-                const response = await fetch('/api/status');
-                const status = await response.json();
-                document.getElementById('bridge-status').textContent = 
-                    status.running ? '🟢 Running' : '🔴 Stopped';
-            } catch {
-                document.getElementById('bridge-status').textContent = '🔴 Disconnected';
-            }
-        }, 3000);
     </script>
 </body>
 </html>
