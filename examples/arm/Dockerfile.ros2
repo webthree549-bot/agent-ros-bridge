@@ -1,0 +1,24 @@
+FROM ros:humble-ros-base
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install agent-ros-bridge
+RUN pip3 install agent-ros-bridge websockets
+
+# Set up workspace
+WORKDIR /ros2_ws
+
+# Copy example code
+COPY arm_demo.py /ros2_ws/
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV ROS_DOMAIN_ID=0
+
+EXPOSE 8765
+
+CMD ["python3", "/ros2_ws/arm_demo.py"]

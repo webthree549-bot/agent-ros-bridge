@@ -2,12 +2,9 @@
 FROM ros:humble-ros-base
 
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-RUN pip3 install websockets==11.0.3 aiohttp>=3.8 numpy
 
-# Copy agent_ros_bridge directly to site-packages
-COPY agent_ros_bridge/ /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/
-
-# Type hints fixed in source (using string annotations)
+# Install agent-ros-bridge and dependencies
+RUN pip3 install agent-ros-bridge websockets aiohttp numpy
 
 WORKDIR /ros2_ws
 COPY ros2/mars_colony/ src/mars_colony/

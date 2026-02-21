@@ -2,14 +2,9 @@
 FROM ros:humble-ros-base
 
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-RUN pip3 install websockets==11.0.3 aiohttp>=3.8 numpy
 
-# Copy agent_ros_bridge directly to site-packages
-COPY agent_ros_bridge/ /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/
-
-# Fix the type hint issue
-RUN sed -i 's/async def _handle_client(self, websocket: WebSocketServerProtocol):/async def _handle_client(self, websocket):/' /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/gateway_v2/transports/websocket.py && \
-    sed -i 's/self.clients: Dict\[str, WebSocketServerProtocol\]/self.clients: Dict[str, Any]/' /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/gateway_v2/transports/websocket.py
+# Install agent-ros-bridge and dependencies
+RUN pip3 install agent-ros-bridge websockets aiohttp numpy
 
 WORKDIR /ros2_ws
 COPY ros2/ src/theater/
