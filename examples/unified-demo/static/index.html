@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent ROS Bridge - Unified Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #888;
+            font-size: 1.1em;
+        }
+        
+        .status-bar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-label {
+            color: #888;
+            font-size: 0.85em;
+            text-transform: uppercase;
+        }
+        
+        .status-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: rgba(0,212,255,0.3);
+        }
+        
+        .card.running {
+            border-color: #2ecc71;
+            background: rgba(46,204,113,0.1);
+        }
+        
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 12px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .card-desc {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        
+        .tag {
+            padding: 4px 10px;
+            background: rgba(0,212,255,0.15);
+            border-radius: 12px;
+            font-size: 0.75em;
+            color: #00d4ff;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .logs {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 12px;
+            font-family: 'SF Mono', monospace;
+            font-size: 0.8em;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .logs.visible {
+            display: block;
+        }
+        
+        .log-line {
+            color: #888;
+            margin-bottom: 4px;
+        }
+        
+        .log-line.error {
+            color: #e74c3c;
+        }
+        
+        .log-line.success {
+            color: #2ecc71;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.85em;
+        }
+        
+        .footer a {
+            color: #00d4ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 Agent ROS Bridge</h1>
+        <p>Unified Demo Environment - Select an example to explore</p>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-label">Bridge Status</div>
+            <div class="status-value" id="bridge-status">🟢 Running</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">Active Demos</div>
+            <div class="status-value" id="active-count">0</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">WebSocket</div>
+            <div class="status-value">ws://localhost:8765</div>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <!-- Playground Examples -->
+        <div class="card" data-example="talking-garden">
+            <div class="card-icon">🌱</div>
+            <div class="card-title">Talking Garden</div>
+            <div class="card-desc">AI monitors and converses with 6 IoT-enabled plants. Real-time sensors, automatic irrigation, plant personalities.</div>
+            <div class="card-tags">
+                <span class="tag">IoT</span>
+                <span class="tag">Sensors</span>
+                <span class="tag">Dashboard</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('talking-garden')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('talking-garden')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-talking-garden"></div>
+        </div>
+        
+        <div class="card" data-example="mars-colony">
+            <div class="card-icon">🚀</div>
+            <div class="card-title">Mars Colony</div>
+            <div class="card-desc">Multi-robot Mars mission with 4 robot types: Excavator, Solar Drone, Builder, Scout. Task coordination and resource management.</div>
+            <div class="card-tags">
+                <span class="tag">Multi-Robot</span>
+                <span class="tag">Fleet</span>
+                <span class="tag">Mission Control</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('mars-colony')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('mars-colony')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-mars-colony"></div>
+        </div>
+        
+        <div class="card" data-example="theater-bots">
+            <div class="card-icon">🎭</div>
+            <div class="card-title">Theater Bots</div>
+            <div class="card-desc">AI director controls robot actors on stage. Scripted performances, real-time dialogue, stage position tracking.</div>
+            <div class="card-tags">
+                <span class="tag">Performance</span>
+                <span class="tag">Coordination</span>
+                <span class="tag">Interactive</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('theater-bots')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('theater-bots')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-theater-bots"></div>
+        </div>
+        
+        <div class="card" data-example="art-studio">
+            <div class="card-icon">🎨</div>
+            <div class="card-title">Art Studio</div>
+            <div class="card-desc">Human and robot collaborative painting. Shared canvas state, color mixing, creative collaboration.</div>
+            <div class="card-tags">
+                <span class="tag">Collaboration</span>
+                <span class="tag">Vision</span>
+                <span class="tag">Creative</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('art-studio')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('art-studio')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-art-studio"></div>
+        </div>
+        
+        <!-- Feature Examples -->
+        <div class="card" data-example="actions">
+            <div class="card-icon">⚡</div>
+            <div class="card-title">Actions Demo</div>
+            <div class="card-desc">ROS Actions for long-running tasks. Navigation, motion planning, manipulation with feedback and cancel support.</div>
+            <div class="card-tags">
+                <span class="tag">Actions</span>
+                <span class="tag">Navigation</span>
+                <span class="tag">Feedback</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('actions')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('actions')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-actions"></div>
+        </div>
+        
+        <div class="card" data-example="auth">
+            <div class="card-icon">🔐</div>
+            <div class="card-title">Auth Demo</div>
+            <div class="card-desc">JWT authentication demonstration. Token generation, role-based access, API key authentication.</div>
+            <div class="card-tags">
+                <span class="tag">Security</span>
+                <span class="tag">JWT</span>
+                <span class="tag">Auth</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('auth')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('auth')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-auth"></div>
+        </div>
+        
+        <div class="card" data-example="fleet">
+            <div class="card-icon">🚁</div>
+            <div class="card-title">Fleet Demo</div>
+            <div class="card-desc">Multi-robot fleet coordination. Task assignment, robot discovery, fleet-wide status monitoring.</div>
+            <div class="card-tags">
+                <span class="tag">Fleet</span>
+                <span class="tag">Multi-Robot</span>
+                <span class="tag">Orchestration</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('fleet')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('fleet')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-fleet"></div>
+        </div>
+        
+        <div class="card" data-example="metrics">
+            <div class="card-icon">📊</div>
+            <div class="card-title">Metrics Demo</div>
+            <div class="card-desc">Prometheus metrics collection. Robot online/offline counts, message rates, task completion times.</div>
+            <div class="card-tags">
+                <span class="tag">Monitoring</span>
+                <span class="tag">Prometheus</span>
+                <span class="tag">Metrics</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('metrics')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('metrics')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-metrics"></div>
+        </div>
+        
+        <div class="card" data-example="mqtt_iot">
+            <div class="card-icon">📡</div>
+            <div class="card-title">MQTT IoT Demo</div>
+            <div class="card-desc">MQTT transport for IoT sensors. Temperature, humidity monitoring. Bidirectional MQTT communication.</div>
+            <div class="card-tags">
+                <span class="tag">MQTT</span>
+                <span class="tag">IoT</span>
+                <span class="tag">Sensors</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('mqtt_iot')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('mqtt_iot')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-mqtt_iot"></div>
+        </div>
+        
+        <div class="card" data-example="quickstart">
+            <div class="card-icon">🚀</div>
+            <div class="card-title">Quickstart</div>
+            <div class="card-desc">Basic bridge usage. Hello world for Agent ROS Bridge. Simple robot control, topic subscription.</div>
+            <div class="card-tags">
+                <span class="tag">Beginner</span>
+                <span class="tag">Tutorial</span>
+                <span class="tag">Basics</span>
+            </div>
+            <div class="card-actions">
+                <button class="btn btn-primary" onclick="startDemo('quickstart')">▶ Start</button>
+                <button class="btn btn-secondary" onclick="showLogs('quickstart')">📋 Logs</button>
+            </div>
+            <div class="logs" id="logs-quickstart"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Agent ROS Bridge v0.3.5 | <a href="https://github.com/webthree549-bot/agent-ros-bridge">GitHub</a> | <a href="https://pypi.org/project/agent-ros-bridge/">PyPI</a></p>
+    </div>
+    
+    <script>
+        const activeDemos = new Set();
+        
+        async function startDemo(example) {
+            const card = document.querySelector(`[data-example="${example}"]`);
+            const btn = card.querySelector('.btn-primary');
+            const logs = document.getElementById(`logs-${example}`);
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Starting...';
+            
+            try {
+                const response = await fetch(`/api/start/${example}`, { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    card.classList.add('running');
+                    btn.textContent = '⏹ Stop';
+                    btn.onclick = () => stopDemo(example);
+                    activeDemos.add(example);
+                    addLog(example, 'Demo started successfully', 'success');
+                } else {
+                    addLog(example, `Failed: ${result.error}`, 'error');
+                    btn.textContent = '▶ Start';
+                }
+            } catch (err) {
+                addLog(example, `Error: ${err.message}`, 'error');
+                btn.textContent = '▶ Start';
+            }
+            
+            btn.disabled = false;
+            updateActiveCount();
+        }
+        
+        async function stopDemo(example) {
+            const card = document.querySelector(`[data-example="${example}"]`);
+            const btn = card.querySelector('.btn-primary');
+            
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch(`/api/stop/${example}`, { method: 'POST' });
+                card.classList.remove('running');
+                btn.textContent = '▶ Start';
+                btn.onclick = () => startDemo(example);
+                activeDemos.delete(example);
+                addLog(example, 'Demo stopped', 'success');
+            } catch (err) {
+                addLog(example, `Error stopping: ${err.message}`, 'error');
+            }
+            
+            btn.disabled = false;
+            updateActiveCount();
+        }
+        
+        function showLogs(example) {
+            const logs = document.getElementById(`logs-${example}`);
+            logs.classList.toggle('visible');
+        }
+        
+        function addLog(example, message, type = 'info') {
+            const logs = document.getElementById(`logs-${example}`);
+            const line = document.createElement('div');
+            line.className = `log-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(line);
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function updateActiveCount() {
+            document.getElementById('active-count').textContent = activeDemos.size;
+        }
+        
+        // Poll bridge status
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+                document.getElementById('bridge-status').textContent = 
+                    status.running ? '🟢 Running' : '🔴 Stopped';
+            } catch {
+                document.getElementById('bridge-status').textContent = '🔴 Disconnected';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
