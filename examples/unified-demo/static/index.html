@@ -242,6 +242,7 @@
                 <button class="btn btn-primary" onclick="startDemo('talking-garden')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('talking-garden')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-talking-garden" onclick="openHomepage('talking-garden')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-talking-garden"></div>
         </div>
         
@@ -258,6 +259,7 @@
                 <button class="btn btn-primary" onclick="startDemo('mars-colony')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('mars-colony')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-mars-colony" onclick="openHomepage('mars-colony')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-mars-colony"></div>
         </div>
         
@@ -274,6 +276,7 @@
                 <button class="btn btn-primary" onclick="startDemo('theater-bots')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('theater-bots')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-theater-bots" onclick="openHomepage('theater-bots')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-theater-bots"></div>
         </div>
         
@@ -290,6 +293,7 @@
                 <button class="btn btn-primary" onclick="startDemo('art-studio')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('art-studio')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-art-studio" onclick="openHomepage('art-studio')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-art-studio"></div>
         </div>
         
@@ -307,6 +311,7 @@
                 <button class="btn btn-primary" onclick="startDemo('actions')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('actions')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-actions" onclick="openHomepage('actions')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-actions"></div>
         </div>
         
@@ -323,6 +328,7 @@
                 <button class="btn btn-primary" onclick="startDemo('auth')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('auth')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-auth" onclick="openHomepage('auth')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-auth"></div>
         </div>
         
@@ -339,6 +345,7 @@
                 <button class="btn btn-primary" onclick="startDemo('fleet')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('fleet')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-fleet" onclick="openHomepage('fleet')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-fleet"></div>
         </div>
         
@@ -355,6 +362,7 @@
                 <button class="btn btn-primary" onclick="startDemo('metrics')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('metrics')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-metrics" onclick="openHomepage('metrics')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-metrics"></div>
         </div>
         
@@ -371,6 +379,7 @@
                 <button class="btn btn-primary" onclick="startDemo('mqtt_iot')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('mqtt_iot')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-mqtt_iot" onclick="openHomepage('mqtt_iot')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-mqtt_iot"></div>
         </div>
         
@@ -387,6 +396,7 @@
                 <button class="btn btn-primary" onclick="startDemo('quickstart')">▶ Start</button>
                 <button class="btn btn-secondary" onclick="showLogs('quickstart')">📋 Logs</button>
             </div>
+            <button class="btn btn-homepage" id="home-quickstart" onclick="openHomepage('quickstart')" style="display: none; background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;">🏠 Open Homepage</button>
             <div class="logs" id="logs-quickstart"></div>
         </div>
     </div>
@@ -401,7 +411,7 @@
         async function startDemo(example) {
             const card = document.querySelector(`[data-example="${example}"]`);
             const btn = card.querySelector('.btn-primary');
-            const logs = document.getElementById(`logs-${example}`);
+            const homeBtn = document.getElementById(`home-${example}`);
             
             btn.disabled = true;
             btn.textContent = '⏳ Starting...';
@@ -415,16 +425,9 @@
                     btn.textContent = '⏹ Stop';
                     btn.onclick = () => stopDemo(example);
                     
-                    // Add Open Homepage button below action buttons
-                    if (!card.querySelector('.btn-homepage')) {
-                        const homeBtn = document.createElement('button');
-                        homeBtn.className = 'btn btn-homepage';
-                        homeBtn.style.cssText = 'background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;';
-                        homeBtn.innerHTML = '🏠 Open Homepage';
-                        homeBtn.onclick = () => openHomepage(example);
-                        // Insert after card-actions div
-                        const actionsDiv = card.querySelector('.card-actions');
-                        actionsDiv.parentNode.insertBefore(homeBtn, actionsDiv.nextSibling);
+                    // Show homepage button
+                    if (homeBtn) {
+                        homeBtn.style.display = 'block';
                     }
                     
                     activeDemos.add(example);
@@ -450,6 +453,7 @@
         async function stopDemo(example) {
             const card = document.querySelector(`[data-example="${example}"]`);
             const btn = card.querySelector('.btn-primary');
+            const homeBtn = document.getElementById(`home-${example}`);
             
             btn.disabled = true;
             
@@ -459,10 +463,9 @@
                 btn.textContent = '▶ Start';
                 btn.onclick = () => startDemo(example);
                 
-                // Remove homepage button
-                const homeBtn = card.querySelector('.btn-homepage');
+                // Hide homepage button
                 if (homeBtn) {
-                    homeBtn.remove();
+                    homeBtn.style.display = 'none';
                 }
                 
                 activeDemos.delete(example);
