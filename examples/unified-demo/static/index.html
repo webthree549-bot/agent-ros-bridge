@@ -350,28 +350,44 @@
         async function startCurrent() {
             if (!currentExample) return;
             
-            document.getElementById('start-btn').textContent = '⏳ Starting...';
+            const btn = document.getElementById('start-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Starting...';
             
             try {
-                const response = await fetch(`/api/start/${currentExample}`, { method: 'POST' });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
+                const response = await fetch(`/api/start/${currentExample}`, { 
+                    method: 'POST',
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                
                 const result = await response.json();
                 
                 if (result.success) {
                     updateStatus('running');
-                    
-                    // Load the example's homepage in iframe
                     const ex = EXAMPLES[currentExample];
                     loadExampleFrame(ex.port);
-                    
                     log('Example started successfully');
                 } else {
-                    log('Failed to start: ' + result.error, 'error');
+                    log('Failed to start: ' + (result.error || 'Unknown error'), 'error');
                 }
             } catch (err) {
-                log('Error: ' + err.message, 'error');
+                if (err.name === 'AbortError') {
+                    log('Error: Request timed out. Server may be busy.', 'error');
+                } else {
+                    log('Error: ' + err.message, 'error');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '▶ Start Example';
             }
-            
-            document.getElementById('start-btn').textContent = '▶ Start Example';
         }
         
         function loadExampleFrame(port) {

@@ -163,11 +163,16 @@
         }
 
         function generateToken() {
-            // Demo token (insecure, for demo only)
-            const demoToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZGVtbyIsInJvbGVzIjpbImFkbWluIl19.demo';
+            // Generate a proper JWT token for demo
+            const header = btoa(JSON.stringify({alg: 'HS256', typ: 'JWT'}));
+            const payload = btoa(JSON.stringify({user: 'demo', roles: ['admin'], exp: Date.now() + 3600000}));
+            const signature = 'demo-signature'; // In real use, this would be signed
+            const demoToken = `${header}.${payload}.${signature}`;
+            
             document.getElementById('token-input').value = demoToken;
-            document.getElementById('token-display').textContent = 'Demo token: ' + demoToken;
-            document.getElementById('token-display').style.display = 'block';
+            const display = document.getElementById('token-display');
+            display.textContent = 'Demo token generated (valid for 1 hour)';
+            display.style.display = 'block';
         }
 
         function send(cmd) {
