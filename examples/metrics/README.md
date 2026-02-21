@@ -1,59 +1,27 @@
-# Metrics Example
+# Metrics Demo
 
-**Prometheus monitoring and Grafana dashboards.**
+Demonstrates Prometheus metrics collection with Agent ROS Bridge.
 
-## What It Does
-
-Exposes robot metrics for Prometheus scraping with a pre-built Grafana dashboard.
-
-## Requirements
-
-- Python 3.8+
-- `agent-ros-bridge` installed
-
-## Run
+## Running
 
 ```bash
-./run.sh
+export JWT_SECRET=$(openssl rand -base64 32)
+docker-compose up
 ```
 
-## View Metrics
+## Metrics Endpoints
 
-```bash
-# Raw metrics
-curl http://localhost:9090/metrics
+- Prometheus: http://localhost:9090/metrics
+- Health: http://localhost:9090/health
 
-# Specific metrics
-curl http://localhost:9090/metrics | grep agent_ros_bridge_robots_online
-curl http://localhost:9090/metrics | grep agent_ros_bridge_tasks_completed
-```
+## Metrics Collected
 
-## Grafana Setup
+- Robot online/offline counts
+- Message sent/received rates
+- Task completion times
+- Connection statistics
+- Response times
 
-1. Start Grafana: `docker run -p 3000:3000 grafana/grafana`
-2. Open http://localhost:3000 (admin/admin)
-3. Add Prometheus data source: http://host.docker.internal:9090
-4. Import dashboard: `../../dashboards/grafana-dashboard.json`
+## Grafana
 
-## What's Happening
-
-This demonstrates:
-- **Prometheus Metrics**: Standard exposition format
-- **Robot Telemetry**: Online count, battery, location
-- **Task Metrics**: Completion rate, duration
-- **System Health**: Message throughput, latency
-
-## Key Metrics
-
-| Metric | Description |
-|--------|-------------|
-| `robots_online` | Currently connected robots |
-| `tasks_completed_total` | Cumulative task count |
-| `task_duration_seconds` | Task execution time |
-| `messages_sent_total` | Bridge message throughput |
-
-## Next Steps
-
-- Import dashboard in production Grafana
-- Set up alerting rules
-- Read [User Manual - Monitoring](../../docs/USER_MANUAL.md#monitoring)
+Import `dashboards/grafana-dashboard.json` for visualization.

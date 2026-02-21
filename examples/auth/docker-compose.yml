@@ -1,0 +1,20 @@
+services:
+  auth-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: auth-demo
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - ROS_DOMAIN_ID=0
+    ports:
+      - "8768:8768"
+    networks:
+      - ros2-network
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               python3 /ros2_ws/auth_demo.py"
+
+networks:
+  ros2-network:
+    driver: bridge

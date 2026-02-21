@@ -1,0 +1,25 @@
+FROM ros:humble-ros-base
+
+# Install Python dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    mosquitto-clients \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install agent-ros-bridge with MQTT support
+RUN pip3 install agent-ros-bridge paho-mqtt
+
+# Set up workspace
+WORKDIR /ros2_ws
+
+# Copy example code
+COPY mqtt_demo.py /ros2_ws/
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+ENV ROS_DOMAIN_ID=0
+
+EXPOSE 8770
+
+CMD ["python3", "/ros2_ws/mqtt_demo.py"]

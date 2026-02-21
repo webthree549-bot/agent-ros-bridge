@@ -1,42 +1,32 @@
-# MQTT IoT Example
+# MQTT IoT Demo
 
-**IoT sensor integration via MQTT.**
+Demonstrates MQTT transport for IoT sensor integration with Agent ROS Bridge.
 
-## What It Does
-
-Demonstrates connecting IoT sensors to the bridge via MQTT protocol.
-
-## Requirements
-
-- Python 3.8+
-- `agent-ros-bridge` installed
-- MQTT broker (optional - uses mock if not available)
-
-## Run
+## Running
 
 ```bash
-./run.sh
+export JWT_SECRET=$(openssl rand -base64 32)
+docker-compose up
 ```
 
-## Test
+## Services
 
+- MQTT Broker: localhost:1883
+- WebSocket: localhost:8770
+
+## Testing
+
+Publish sensor data:
 ```bash
-# If you have mosquitto
-mosquitto_pub -t "robots/tb4_001/cmd" -m '{"action": "move", "parameters": {"direction": "forward"}}'
-
-# Or use the bridge's MQTT transport
-python mqtt_demo.py
+mosquitto_pub -t "robots/telemetry/sensor_01" -m '{"temperature": 25.5}'
 ```
 
-## What's Happening
+Subscribe to commands:
+```bash
+mosquitto_sub -t "robots/commands/#"
+```
 
-This demonstrates:
-- **MQTT Transport**: Pub/sub messaging
-- **IoT Integration**: Sensor data ingestion
-- **Protocol Bridge**: MQTT to WebSocket gateway
-
-## Next Steps
-
-- Set up [Mosquitto](https://mosquitto.org/) broker
-- Integrate with industrial sensors
-- Read [User Manual - MQTT](../../docs/USER_MANUAL.md#mqtt-transport)
+Connect via WebSocket:
+```bash
+wscat -c ws://localhost:8770
+```

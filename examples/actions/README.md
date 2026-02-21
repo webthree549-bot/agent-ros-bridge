@@ -1,57 +1,28 @@
-# ROS Actions Example
+# ROS2 Actions Demo
 
-**Long-running tasks with progress feedback.**
+Demonstrates ROS Actions for long-running tasks using Agent ROS Bridge.
 
-## What It Does
-
-Demonstrates ROS Actions for navigation and manipulation with real-time progress updates.
-
-## Requirements
-
-- Python 3.8+
-- `agent-ros-bridge` installed
-
-## Run
+## Running
 
 ```bash
-./run.sh --action navigate
+export JWT_SECRET=$(openssl rand -base64 32)
+docker-compose up
 ```
 
-Or:
-```bash
-./run.sh --action manipulate
+## Features
+
+- Navigation actions (navigate_to_pose)
+- Manipulation actions (follow_joint_trajectory)
+- Action feedback and results
+- Cancel/preempt operations
+
+## WebSocket API
+
+```json
+{
+  "command": {
+    "action": "actions.navigate",
+    "parameters": {"x": 5.0, "y": 3.0, "theta": 1.57}
+  }
+}
 ```
-
-## Test
-
-```bash
-# In another terminal
-wscat -c ws://localhost:8773
-
-# Navigate to pose
-{"command": {"action": "actions.navigate", "parameters": {"x": 5.0, "y": 3.0, "theta": 1.57}}}
-
-# Follow trajectory
-{"command": {"action": "actions.follow_trajectory", "parameters": {"waypoints": [[0,0], [1,1], [2,2]]}}}
-```
-
-## What's Happening
-
-This demonstrates:
-- **Goal Submission**: Send long-running tasks
-- **Progress Feedback**: Real-time status updates
-- **Cancellation**: Preempt running actions
-- **Result Handling**: Success/failure outcomes
-
-## Action Types
-
-| Action | Description |
-|--------|-------------|
-| `navigate` | Navigate to pose (Nav2) |
-| `manipulate` | Follow joint trajectory (MoveIt) |
-| `follow_trajectory` | Waypoint following |
-
-## Next Steps
-
-- Read [User Manual - ROS Actions](../../docs/USER_MANUAL.md#ros-actions)
-- Try with real Nav2/MoveIt

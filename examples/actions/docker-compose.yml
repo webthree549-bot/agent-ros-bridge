@@ -1,0 +1,21 @@
+services:
+  actions-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: actions-demo
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - ROS_DOMAIN_ID=0
+    ports:
+      - "8773:8773"
+    networks:
+      - ros2-network
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               python3 -m agent_ros_bridge.gateway_v2 \
+               --port 8773 --host 0.0.0.0"
+
+networks:
+  ros2-network:
+    driver: bridge

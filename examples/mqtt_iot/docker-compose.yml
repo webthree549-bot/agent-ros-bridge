@@ -1,0 +1,36 @@
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    networks:
+      - ros2-network
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  mqtt-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: mqtt-demo
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - ROS_DOMAIN_ID=0
+      - MQTT_BROKER=mqtt-broker
+      - MQTT_PORT=1883
+    ports:
+      - "8770:8770"
+    networks:
+      - ros2-network
+    depends_on:
+      - mqtt-broker
+    command: >
+      bash -c "source /opt/ros/humble/setup.bash &&
+               sleep 5 &&
+               python3 /ros2_ws/mqtt_demo.py"
+
+networks:
+  ros2-network:
+    driver: bridge
