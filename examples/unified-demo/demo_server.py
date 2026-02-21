@@ -20,6 +20,19 @@ import websockets
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, unquote
 
+# Disable proxy for localhost connections (critical for unified demo)
+os.environ['NO_PROXY'] = 'localhost,127.0.0.1'
+os.environ['no_proxy'] = 'localhost,127.0.0.1'
+
+# Create proxy handler that bypasses localhost
+proxy_handler = urllib.request.ProxyHandler({
+    'http': '',
+    'https': ''
+})
+# Build opener with proxy handler
+opener = urllib.request.build_opener(proxy_handler)
+urllib.request.install_opener(opener)
+
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("unified-demo")
