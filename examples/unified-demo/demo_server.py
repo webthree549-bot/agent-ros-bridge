@@ -431,12 +431,30 @@ async def bridge_websocket_handler(websocket, path):
 
 async def start_http_server():
     """Start HTTP server for web UI"""
-    server = HTTPServer(('0.0.0.0', DEMO_PORT), DemoHTTPHandler)
-    logger.info(f"Unified Demo Server: http://0.0.0.0:{DEMO_PORT}")
-    logger.info(f"Example access: http://0.0.0.0:{DEMO_PORT}/demo/{{example-id}}/")
-    
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, server.serve_forever)
+    try:
+        server = HTTPServer(('0.0.0.0', DEMO_PORT), DemoHTTPHandler)
+        logger.info(f"Unified Demo Server: http://0.0.0.0:{DEMO_PORT}")
+        logger.info(f"Example access: http://0.0.0.0:{DEMO_PORT}/demo/{{example-id}}/")
+        
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, server.serve_forever)
+    except OSError as e:
+        if e.errno == 48:  # Address already in use
+            logger.error("=" * 60)
+            logger.error(f"FATAL: Port {DEMO_PORT} is already in use!")
+            logger.error("=" * 60)
+            logger.error("Possible causes:")
+            logger.error(f"  - Another unified-demo is already running")
+            logger.error(f"  - Previous instance didn't shut down properly")
+            logger.error("=" * 60)
+            logger.error("Solutions:")
+            logger.error(f"  1. Kill existing process: pkill -f demo_server.py")
+            logger.error(f"  2. Wait a few seconds and try again")
+            logger.error(f"  3. Use a different port: export DEMO_PORT=8081")
+            logger.error("=" * 60)
+            sys.exit(1)
+        else:
+            raise
 
 
 async def start_bridge_websocket():
