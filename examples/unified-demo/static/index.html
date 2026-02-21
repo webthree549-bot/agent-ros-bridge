@@ -414,8 +414,21 @@
                     card.classList.add('running');
                     btn.textContent = '⏹ Stop';
                     btn.onclick = () => stopDemo(example);
+                    
+                    // Add Open Homepage button
+                    const actionsDiv = card.querySelector('.card-actions');
+                    if (!actionsDiv.querySelector('.btn-homepage')) {
+                        const homeBtn = document.createElement('button');
+                        homeBtn.className = 'btn btn-homepage';
+                        homeBtn.style.cssText = 'background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 10px;';
+                        homeBtn.innerHTML = '🏠 Open Homepage';
+                        homeBtn.onclick = () => openHomepage(example);
+                        actionsDiv.appendChild(homeBtn);
+                    }
+                    
                     activeDemos.add(example);
                     addLog(example, 'Demo started successfully', 'success');
+                    addLog(example, `Homepage: /demo/${example}/`, 'info');
                 } else {
                     addLog(example, `Failed: ${result.error}`, 'error');
                     btn.textContent = '▶ Start';
@@ -429,6 +442,10 @@
             updateActiveCount();
         }
         
+        function openHomepage(example) {
+            window.open(`/demo/${example}/`, '_blank');
+        }
+        
         async function stopDemo(example) {
             const card = document.querySelector(`[data-example="${example}"]`);
             const btn = card.querySelector('.btn-primary');
@@ -440,6 +457,11 @@
                 card.classList.remove('running');
                 btn.textContent = '▶ Start';
                 btn.onclick = () => startDemo(example);
+                
+                // Remove homepage button
+                const homeBtn = card.querySelector('.btn-homepage');
+                if (homeBtn) homeBtn.remove();
+                
                 activeDemos.delete(example);
                 addLog(example, 'Demo stopped', 'success');
             } catch (err) {

@@ -2,6 +2,7 @@
 """Unified Demo Server for Agent ROS Bridge
 
 Web-based selector for all examples with integrated ROS2 environment.
+Each example gets its own homepage accessible through the unified server.
 """
 
 import asyncio
@@ -11,11 +12,13 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Set
+from typing import Dict, Set, Optional
+import urllib.request
+import urllib.error
 
 import websockets
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -31,63 +34,83 @@ STATIC_DIR = Path("/app/static")
 running_demos: Dict[str, subprocess.Popen] = {}
 active_ws_clients: Set[websockets.WebSocketServerProtocol] = set()
 
-# Example definitions
+# Example definitions with homepage info
 EXAMPLES = {
     "talking-garden": {
         "name": "Talking Garden",
         "path": "playground/talking-garden",
         "port": 8081,
+        "homepage": "garden.html",
+        "description": "AI monitors and converses with 6 IoT-enabled plants",
     },
     "mars-colony": {
         "name": "Mars Colony",
         "path": "playground/mars-colony",
         "port": 8082,
+        "homepage": "dashboard.html",
+        "description": "Multi-robot Mars mission with 4 robot types",
     },
     "theater-bots": {
         "name": "Theater Bots",
         "path": "playground/theater-bots",
         "port": 8083,
+        "homepage": "stage.html",
+        "description": "AI director controls robot actors on stage",
     },
     "art-studio": {
         "name": "Art Studio",
         "path": "playground/art-studio",
         "port": 8084,
+        "homepage": "canvas.html",
+        "description": "Human and robot collaborative painting",
     },
     "actions": {
         "name": "Actions Demo",
         "path": "actions",
         "port": 8085,
+        "homepage": "index.html",
+        "description": "ROS Actions for navigation and manipulation",
     },
     "auth": {
         "name": "Auth Demo",
         "path": "auth",
         "port": 8086,
+        "homepage": "index.html",
+        "description": "JWT authentication demonstration",
     },
     "fleet": {
         "name": "Fleet Demo",
         "path": "fleet",
         "port": 8087,
+        "homepage": "index.html",
+        "description": "Multi-robot fleet coordination",
     },
     "metrics": {
         "name": "Metrics Demo",
         "path": "metrics",
         "port": 8088,
+        "homepage": "index.html",
+        "description": "Prometheus metrics collection",
     },
     "mqtt_iot": {
         "name": "MQTT IoT Demo",
         "path": "mqtt_iot",
         "port": 8089,
+        "homepage": "index.html",
+        "description": "MQTT transport for IoT sensors",
     },
     "quickstart": {
         "name": "Quickstart",
         "path": "quickstart",
         "port": 8090,
+        "homepage": "index.html",
+        "description": "Basic bridge usage tutorial",
     },
 }
 
 
 class DemoHTTPHandler(BaseHTTPRequestHandler):
-    """HTTP request handler for demo web UI"""
+    """HTTP request handler for demo web UI and example proxying"""
     
     def log_message(self, format, *args):
         logger.info(f"{self.address_string()} - {format % args}")
@@ -96,23 +119,91 @@ class DemoHTTPHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         
-        # API endpoints
-        if path == "/api/status":
-            self.send_json({"running": True, "active_demos": list(running_demos.keys())})
-            return
-        
-        # Serve static files
+        # Serve selector at root
         if path == "/" or path == "/index.html":
             self.serve_file(STATIC_DIR / "index.html", "text/html")
-        elif path.startswith("/static/"):
+            return
+        
+        # Serve static assets
+        if path.startswith("/static/"):
             file_path = STATIC_DIR / path[8:]
             if file_path.exists():
                 content_type = "text/css" if path.endswith(".css") else "application/javascript"
                 self.serve_file(file_path, content_type)
             else:
                 self.send_error(404)
-        else:
-            self.send_error(404)
+            return
+        
+        # Proxy to example homepage: /demo/{example-id}/
+        if path.startswith("/demo/"):
+            parts = path.split("/")
+            if len(parts) >= 3:
+                example_id = parts[2]
+                remaining_path = "/".join(parts[3:]) or ""
+                self.proxy_to_example(example_id, remaining_path)
+                return
+        
+        # API endpoints
+        if path == "/api/status":
+            self.send_json({
+                "running": True,
+                "active_demos": list(running_demos.keys()),
+                "examples": {k: {"name": v["name"], "port": v["port"], "running": k in running_demos} 
+                            for k, v in EXAMPLES.items()}
+            })
+            return
+        
+        self.send_error(404)
+    
+    def proxy_to_example(self, example_id: str, sub_path: str):
+        """Proxy request to running example's web server"""
+        if example_id not in EXAMPLES:
+            self.send_error(404, f"Example '{example_id}' not found")
+            return
+        
+        example = EXAMPLES[example_id]
+        target_port = example["port"]
+        homepage = example["homepage"]
+        
+        # If example not running, show status page
+        if example_id not in running_demos:
+            self.send_html(f"""
+            <html>
+            <head><title>{example['name']} - Not Running</title>
+            <style>
+                body {{ font-family: sans-serif; background: #1a1a2e; color: #fff; text-align: center; padding: 50px; }}
+                .btn {{ padding: 15px 30px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); border: none; border-radius: 8px; color: #fff; font-size: 1.1em; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }}
+            </style></head>
+            <body>
+                <h1>⏹ {example['name']} is not running</h1>
+                <p>{example['description']}</p>
+                <a href="/" class="btn">← Back to Selector</a>
+            </body>
+            </html>
+            """)
+            return
+        
+        # Build target URL
+        target_path = sub_path if sub_path else homepage
+        target_url = f"http://localhost:{target_port}/{target_path}"
+        
+        try:
+            # Proxy the request
+            with urllib.request.urlopen(target_url, timeout=5) as response:
+                content = response.read()
+                content_type = response.headers.get('Content-Type', 'text/html')
+                
+                self.send_response(response.status)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Length', len(content))
+                self.end_headers()
+                self.wfile.write(content)
+        
+        except urllib.error.HTTPError as e:
+            self.send_error(e.code, e.reason)
+        except Exception as e:
+            logger.error(f"Proxy error: {e}")
+            self.send_error(502, f"Example server error: {e}")
     
     def do_POST(self):
         parsed = urlparse(self.path)
@@ -152,6 +243,14 @@ class DemoHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(content)
+    
+    def send_html(self, html: str):
+        content = html.encode()
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html')
+        self.send_header('Content-Length', len(content))
+        self.end_headers()
+        self.wfile.write(content)
 
 
 def start_example(example_id: str) -> bool:
@@ -172,11 +271,23 @@ def start_example(example_id: str) -> bool:
         return False
     
     try:
-        # Start the example
         env = os.environ.copy()
         env["ROS_DOMAIN_ID"] = "0"
         
-        cmd = ["python3", "-m", "agent_ros_bridge.gateway_v2", "--port", str(example["port"])]
+        # Find the right command based on available files
+        if (example_path / "docker-compose.yml").exists():
+            # Run via docker-compose (simpler for unified demo - just run Python directly)
+            cmd = [
+                "python3", "-m", "agent_ros_bridge.gateway_v2",
+                "--port", str(example["port"]),
+                "--host", "0.0.0.0"
+            ]
+        else:
+            cmd = [
+                "python3", "-m", "agent_ros_bridge.gateway_v2",
+                "--port", str(example["port"]),
+                "--host", "0.0.0.0"
+            ]
         
         process = subprocess.Popen(
             cmd,
@@ -225,7 +336,6 @@ async def bridge_websocket_handler(websocket, path):
                 data = json.loads(message)
                 logger.info(f"Received: {data}")
                 
-                # Echo back for demo
                 response = {
                     "status": "ok",
                     "received": data,
@@ -246,9 +356,9 @@ async def bridge_websocket_handler(websocket, path):
 async def start_http_server():
     """Start HTTP server for web UI"""
     server = HTTPServer(('0.0.0.0', DEMO_PORT), DemoHTTPHandler)
-    logger.info(f"HTTP server started on http://0.0.0.0:{DEMO_PORT}")
+    logger.info(f"Unified Demo Server: http://0.0.0.0:{DEMO_PORT}")
+    logger.info(f"Example access: http://0.0.0.0:{DEMO_PORT}/demo/{{example-id}}/")
     
-    # Run in executor to not block
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, server.serve_forever)
 
@@ -256,7 +366,7 @@ async def start_http_server():
 async def start_bridge_websocket():
     """Start WebSocket server for bridge API"""
     server = await websockets.serve(bridge_websocket_handler, '0.0.0.0', BRIDGE_PORT)
-    logger.info(f"Bridge WebSocket started on ws://0.0.0.0:{BRIDGE_PORT}")
+    logger.info(f"Bridge WebSocket: ws://0.0.0.0:{BRIDGE_PORT}")
     return server
 
 
@@ -266,17 +376,18 @@ async def main():
     print("🤖 Agent ROS Bridge - Unified Demo")
     print("=" * 60)
     print()
-    print(f"Web UI:    http://localhost:{DEMO_PORT}")
-    print(f"WebSocket: ws://localhost:{BRIDGE_PORT}")
+    print(f"Selector:     http://localhost:{DEMO_PORT}")
+    print(f"Examples:     http://localhost:{DEMO_PORT}/demo/{{name}}/")
+    print(f"WebSocket:    ws://localhost:{BRIDGE_PORT}")
     print()
     print("Available examples:")
     for key, ex in EXAMPLES.items():
-        print(f"  - {ex['name']} ({key})")
+        homepage = ex.get('homepage', 'index.html')
+        print(f"  - {ex['name']}: /demo/{key}/ → {homepage}")
     print()
     print("Press Ctrl+C to stop")
     print("=" * 60)
     
-    # Start HTTP and WebSocket servers
     http_task = asyncio.create_task(start_http_server())
     bridge_ws = await start_bridge_websocket()
     
@@ -286,7 +397,6 @@ async def main():
         logger.info("Shutting down...")
     finally:
         bridge_ws.close()
-        # Stop all running demos
         for example_id in list(running_demos.keys()):
             stop_example(example_id)
 
