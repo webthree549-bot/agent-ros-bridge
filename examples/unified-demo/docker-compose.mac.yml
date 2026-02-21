@@ -4,7 +4,7 @@ services:
       context: ../..
       dockerfile: examples/unified-demo/Dockerfile
     container_name: unified-demo
-    # Use host network mode for Mac (ports work directly)
+    # Mac workaround: use host networking
     network_mode: host
     environment:
       - JWT_SECRET=${JWT_SECRET}
