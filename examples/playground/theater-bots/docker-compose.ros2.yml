@@ -1,0 +1,121 @@
+version: '3.8'
+
+# ROS2 Theater Bots - Real ROS2 Nodes + HTTP Server
+# Run with: docker-compose -f docker-compose.ros2.yml up --build
+# Access: http://localhost:8080 (Stage interface)
+#         ws://localhost:8767 (WebSocket Bridge)
+
+services:
+  # Theater: Bridge + HTTP Server
+  theater-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-bridge
+    environment:
+      - ROS_DOMAIN_ID=0
+    ports:
+      - "8767:8767"    # Agent ROS Bridge WebSocket
+      - "8080:8080"    # HTTP Server (stage.html)
+    networks:
+      - ros2-network
+    # Uses CMD from Dockerfile
+
+  # Director: Stage direction and cue management
+  theater-director:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-director
+    environment:
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2-network
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /ros2_ws/install/setup.bash &&
+        ros2 run theater director_node
+      "
+
+  # Actor 1: Lead performer
+  theater-actor-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-actor-1
+    environment:
+      - ACTOR_ID=actor_1
+      - ACTOR_ROLE=lead
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2-network
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /ros2_ws/install/setup.bash &&
+        ros2 run theater_bots actor_node
+      "
+
+  # Actor 2: Supporting performer
+  theater-actor-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-actor-2
+    environment:
+      - ACTOR_ID=actor_2
+      - ACTOR_ROLE=supporting
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2-network
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /ros2_ws/install/setup.bash &&
+        ros2 run theater_bots actor_node
+      "
+
+  # Actor 3: Ensemble performer
+  theater-actor-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-actor-3
+    environment:
+      - ACTOR_ID=actor_3
+      - ACTOR_ROLE=ensemble
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2-network
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /ros2_ws/install/setup.bash &&
+        ros2 run theater_bots actor_node
+      "
+
+  # ROS2 Topic Monitor (for debugging)
+  ros2-monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros2
+    container_name: theater-ros2-monitor
+    environment:
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2-network
+    command: >
+      /bin/bash -c "
+        source /opt/ros/humble/setup.bash &&
+        source /ros2_ws/install/setup.bash &&
+        sleep 5 &&
+        echo '=== Theater Bots ROS2 Topics ===' &&
+        ros2 topic list &&
+        echo '=== Monitoring /theater/dialogue ===' &&
+        ros2 topic echo /theater/dialogue
+      "
+
+networks:
+  ros2-network:
+    driver: bridge

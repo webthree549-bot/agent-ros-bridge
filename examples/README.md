@@ -17,6 +17,21 @@ docker-compose up
 
 ## Examples Overview
 
+### 🎮 Playground Examples (Full Demos)
+
+Real-world scenarios with complete Docker setups:
+
+| Example | What It Shows | Runtime | Complexity |
+|---------|--------------|---------|------------|
+| [playground/talking-garden](./playground/talking-garden/) | LLM talks to IoT plants | Docker | Medium |
+| [playground/mars-colony](./playground/mars-colony/) | Multi-robot Mars mission | Docker | High |
+| [playground/theater-bots](./playground/theater-bots/) | AI director + robot actors | Docker | Medium |
+| [playground/art-studio](./playground/art-studio/) | Human/robot collaborative art | Docker | Medium |
+
+### 🚀 Quick Examples (Feature Demos)
+
+Focused examples showing specific features:
+
 | Example | What It Shows | Runtime | Time to Launch |
 |---------|--------------|---------|----------------|
 | [quickstart](./quickstart/) | Basic bridge usage | Docker | 10 seconds |

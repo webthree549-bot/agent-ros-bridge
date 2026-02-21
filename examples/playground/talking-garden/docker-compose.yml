@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  garden-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talking-garden-backend
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-$(openssl rand -base64 32)}
+      - GARDEN_MODE=simulation
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./poems:/app/poems
+    command: python garden_oracle.py
+    networks:
+      - garden-network
+
+  garden-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: talking-garden-ui
+    ports:
+      - "8082:8080"
+    command: python garden_server.py
+    depends_on:
+      - garden-backend
+    networks:
+      - garden-network
+
+networks:
+  garden-network:
+    driver: bridge

@@ -1,0 +1,45 @@
+# ROS2 Talking Garden - Bridge + HTTP Combined
+FROM ros:humble-ros-base
+
+# Install Python deps
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install websockets and aiohttp
+RUN pip3 install websockets==11.0.3 aiohttp>=3.8 numpy
+
+# Copy agent_ros_bridge directly to site-packages
+COPY agent_ros_bridge/ /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/
+
+# Fix the type hint issue in the container
+RUN sed -i 's/async def _handle_client(self, websocket: WebSocketServerProtocol):/async def _handle_client(self, websocket):/' /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/gateway_v2/transports/websocket.py && \
+    sed -i 's/self.clients: Dict\[str, WebSocketServerProtocol\]/self.clients: Dict[str, Any]/' /usr/local/lib/python3.10/dist-packages/agent_ros_bridge/gateway_v2/transports/websocket.py
+
+# Create ROS2 workspace
+WORKDIR /ros2_ws
+RUN mkdir -p src/garden
+
+# Copy ROS2 package
+COPY ros2/garden/ src/garden/
+
+# Build ROS2 package
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build"
+
+# Copy bridge integration with HTTP server
+COPY garden_bridge_ros2_http.py /ros2_ws/
+COPY garden.html /ros2_ws/
+
+# Source ROS2 on startup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo "source /ros2_ws/install/setup.bash" >> ~/.bashrc
+
+ENV ROS_DOMAIN_ID=0
+ENV PYTHONUNBUFFERED=1
+
+# Expose WebSocket and HTTP ports
+EXPOSE 8765 8080
+
+# Start bridge + HTTP server + ROS2 nodes
+CMD ["/bin/bash", "-c", "source /opt/ros/humble/setup.bash && source /ros2_ws/install/setup.bash && python3 /ros2_ws/garden_bridge_ros2_http.py"]
