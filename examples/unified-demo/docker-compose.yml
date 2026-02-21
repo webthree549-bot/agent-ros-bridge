@@ -1,8 +1,8 @@
 services:
   unified-demo:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..  # Use parent of examples directory
+      dockerfile: examples/unified-demo/Dockerfile
     container_name: unified-demo
     ports:
       - "8080:8080"    # Web dashboard
@@ -10,8 +10,6 @@ services:
     environment:
       - JWT_SECRET=${JWT_SECRET:-demo-secret-change-in-production}
       - ROS_DOMAIN_ID=0
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock  # For managing sub-containers
     networks:
       - demo-network
     command: python3 /app/demo_server.py

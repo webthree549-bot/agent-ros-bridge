@@ -12,9 +12,11 @@ RUN pip3 install agent-ros-bridge[all] websockets grpcio grpcio-tools paho-mqtt 
 # Set up workspace
 WORKDIR /app
 
-# Copy demo server and all examples
-COPY demo_server.py /app/
-COPY demo_selector.html /app/static/
+# Copy demo server and web UI
+COPY examples/unified-demo/demo_server.py /app/
+COPY examples/unified-demo/static/index.html /app/static/index.html
+
+# Copy all examples
 COPY examples/ /app/examples/
 
 # Environment
