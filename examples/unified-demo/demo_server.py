@@ -165,19 +165,41 @@ class DemoHTTPHandler(BaseHTTPRequestHandler):
         target_port = example["port"]
         homepage = example["homepage"]
         
-        # If example not running, show status page
+        # If example not running, show status page with start button
         if example_id not in running_demos:
             self.send_html(f"""
             <html>
             <head><title>{example['name']} - Not Running</title>
             <style>
-                body {{ font-family: sans-serif; background: #1a1a2e; color: #fff; text-align: center; padding: 50px; }}
-                .btn {{ padding: 15px 30px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); border: none; border-radius: 8px; color: #fff; font-size: 1.1em; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }}
+                body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #1a1a2e; color: #fff; text-align: center; padding: 50px; }}
+                h1 {{ color: #e74c3c; }}
+                .btn {{ padding: 15px 30px; border: none; border-radius: 8px; color: #fff; font-size: 1.1em; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }}
+                .btn-start {{ background: linear-gradient(90deg, #2ecc71, #27ae60); }}
+                .btn-back {{ background: linear-gradient(90deg, #00d4ff, #7b2cbf); }}
+                .info {{ background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; max-width: 600px; margin: 20px auto; }}
             </style></head>
             <body>
                 <h1>⏹ {example['name']} is not running</h1>
-                <p>{example['description']}</p>
-                <a href="/" class="btn">← Back to Selector</a>
+                <div class="info">
+                    <p>{example['description']}</p>
+                    <p>Start the example to access its dashboard.</p>
+                </div>
+                <button class="btn btn-start" onclick="startExample()">▶ Start {example['name']}</button>
+                <a href="/" class="btn btn-back">← Back to Selector</a>
+                <script>
+                    function startExample() {{
+                        fetch('/api/start/{example_id}', {{ method: 'POST' }})
+                            .then(r => r.json())
+                            .then(data => {{
+                                if (data.success) {{
+                                    window.location.reload();
+                                }} else {{
+                                    alert('Failed to start: ' + data.error);
+                                }}
+                            }})
+                            .catch(e => alert('Error: ' + e));
+                    }}
+                </script>
             </body>
             </html>
             """)
@@ -201,6 +223,33 @@ class DemoHTTPHandler(BaseHTTPRequestHandler):
         
         except urllib.error.HTTPError as e:
             self.send_error(e.code, e.reason)
+        except urllib.error.URLError as e:
+            # Connection refused - example server not ready yet
+            logger.warning(f"Cannot connect to {example_id} at {target_url}: {e}")
+            self.send_html(f"""
+            <html>
+            <head><title>{example['name']} - Starting...</title>
+            <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #1a1a2e; color: #fff; text-align: center; padding: 50px; }}
+                h1 {{ color: #f39c12; }}
+                .btn {{ padding: 15px 30px; background: linear-gradient(90deg, #00d4ff, #7b2cbf); border: none; border-radius: 8px; color: #fff; font-size: 1.1em; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }}
+                .btn-start {{ background: linear-gradient(90deg, #2ecc71, #27ae60); }}
+                .info {{ background: rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; max-width: 600px; margin: 20px auto; }}
+                code {{ background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }}
+            </style>
+            <meta http-equiv="refresh" content="3">
+            </head>
+            <body>
+                <h1>⏳ {example['name']} is starting...</h1>
+                <div class="info">
+                    <p>The example server is not ready yet.</p>
+                    <p>This page will auto-refresh in 3 seconds.</p>
+                    <p>If it doesn't load, the example may need to be started from the <a href="/" style="color: #00d4ff;">main selector</a>.</p>
+                </div>
+                <a href="/" class="btn">← Back to Selector</a>
+            </body>
+            </html>
+            """)
         except Exception as e:
             logger.error(f"Proxy error: {e}")
             self.send_error(502, f"Example server error: {e}")
