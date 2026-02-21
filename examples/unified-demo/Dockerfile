@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
-# Install agent-ros-bridge with all extras
-RUN pip3 install agent-ros-bridge[all] websockets grpcio grpcio-tools paho-mqtt prometheus-client
+# Install agent-ros-bridge (rclpy already in ros:humble base image)
+RUN pip3 install agent-ros-bridge websockets grpcio grpcio-tools paho-mqtt prometheus-client
 
 # Set up workspace
 WORKDIR /app
