@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install agent-ros-bridge with all extras
-RUN pip3 install agent-ros-bridge[all] websockets
+RUN pip3 install agent-ros-bridge websockets
 
 # Set up workspace
 WORKDIR /ros2_ws
