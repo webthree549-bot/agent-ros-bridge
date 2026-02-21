@@ -40,8 +40,11 @@ logger = logging.getLogger("unified-demo")
 # Configuration
 DEMO_PORT = 8080
 BRIDGE_PORT = 8765
-EXAMPLES_DIR = Path("/app/examples")
-STATIC_DIR = Path("/app/static")
+
+# Paths - work both in Docker and native
+SCRIPT_DIR = Path(__file__).parent.resolve()
+EXAMPLES_DIR = SCRIPT_DIR.parent / "examples" if (SCRIPT_DIR.parent / "examples").exists() else Path("/app/examples")
+STATIC_DIR = SCRIPT_DIR / "static" if (SCRIPT_DIR / "static").exists() else Path("/app/static")
 
 # Track running demos
 running_demos: Dict[str, subprocess.Popen] = {}
