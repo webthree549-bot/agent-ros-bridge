@@ -415,15 +415,16 @@
                     btn.textContent = '⏹ Stop';
                     btn.onclick = () => stopDemo(example);
                     
-                    // Add Open Homepage button
-                    const actionsDiv = card.querySelector('.card-actions');
-                    if (!actionsDiv.querySelector('.btn-homepage')) {
+                    // Add Open Homepage button below action buttons
+                    if (!card.querySelector('.btn-homepage')) {
                         const homeBtn = document.createElement('button');
                         homeBtn.className = 'btn btn-homepage';
-                        homeBtn.style.cssText = 'background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 10px;';
+                        homeBtn.style.cssText = 'background: linear-gradient(90deg, #2ecc71, #27ae60); margin-top: 12px; width: 100%;';
                         homeBtn.innerHTML = '🏠 Open Homepage';
                         homeBtn.onclick = () => openHomepage(example);
-                        actionsDiv.appendChild(homeBtn);
+                        // Insert after card-actions div
+                        const actionsDiv = card.querySelector('.card-actions');
+                        actionsDiv.parentNode.insertBefore(homeBtn, actionsDiv.nextSibling);
                     }
                     
                     activeDemos.add(example);
@@ -460,7 +461,9 @@
                 
                 // Remove homepage button
                 const homeBtn = card.querySelector('.btn-homepage');
-                if (homeBtn) homeBtn.remove();
+                if (homeBtn) {
+                    homeBtn.remove();
+                }
                 
                 activeDemos.delete(example);
                 addLog(example, 'Demo stopped', 'success');

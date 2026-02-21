@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Unified Demo UI - Visual Verification</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+        .mockup {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(46,204,113,0.5);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 30px 0;
+        }
+        .mockup-label {
+            color: #2ecc71;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .card {
+            background: rgba(46,204,113,0.1);
+            border: 1px solid #2ecc71;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-title {
+            color: #00d4ff;
+            font-size: 1.2em;
+            margin-bottom: 16px;
+        }
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-stop {
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+        }
+        .btn-logs {
+            background: rgba(255,255,255,0.1);
+        }
+        .btn-home {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .checklist {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+        .check-item {
+            margin: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .check-item::before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>✅ "Open Homepage" Button Verification</h1>
+    
+    <div class="mockup">
+        <div class="mockup-label">Running Example Card (After Clicking Start)</div>
+        <div class="card">
+            <div class="card-title">🌱 Talking Garden</div>
+            <p style="color: #888; margin-bottom: 16px;">AI monitors and converses with 6 IoT-enabled plants</p>
+            
+            <div class="btn-row">
+                <button class="btn btn-stop">⏹ Stop</button>
+                <button class="btn btn-logs">📋 Logs</button>
+            </div>
+            
+            <button class="btn btn-home">🏠 Open Homepage</button>
+        </div>
+    </div>
+    
+    <div class="checklist">
+        <h3>Button Implementation Checklist</h3>
+        <div class="check-item">Button appears when example starts successfully</div>
+        <div class="check-item">Button is GREEN (gradient: #2ecc71 → #27ae60)</div>
+        <div class="check-item">Button shows 🏠 (house) icon + "Open Homepage" text</div>
+        <div class="check-item">Button is FULL WIDTH (spans card width)</div>
+        <div class="check-item">Button appears BELOW Stop/Logs buttons</div>
+        <div class="check-item">Button opens /demo/{example-id}/ in new tab</div>
+        <div class="check-item">Button is removed when example is stopped</div>
+        <div class="check-item">Log shows "Homepage: /demo/{id}/" message</div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px; color: #888;">
+        <p>Button placement: Below card-actions, full width, green color</p>
+        <p>Implementation: JavaScript creates button dynamically on start</p>
+    </div>
+</body>
+</html>
