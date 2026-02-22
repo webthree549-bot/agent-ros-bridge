@@ -5,18 +5,24 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("actions-demo")
 
-from agent_ros_bridge import ROSBridge
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
-from agent_ros_bridge.gateway_v2.transports.grpc import GRPCServer
-from agent_ros_bridge.gateway_v2.connectors.ros2 import ROS2Connector
+try:
+    from agent_ros_bridge import ROSBridge
+    from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+    from agent_ros_bridge.gateway_v2.transports.grpc import GRPCServer
+    from agent_ros_bridge.gateway_v2.connectors.ros2 import ROS2Connector
+except ImportError as e:
+    logger.error(f"Import error: {e}")
+    raise
 
 STATIC_DIR = Path(__file__).parent
+logger.info(f"Static directory: {STATIC_DIR}")
 
 class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        logger.info(f"GET request: {self.path}")
         if self.path == "/":
             try:
                 with open(STATIC_DIR / "index.html", "rb") as f:
@@ -25,27 +31,48 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", "text/html")
                 self.end_headers()
                 self.wfile.write(content)
-            except:
+                logger.info("Served index.html")
+            except Exception as e:
+                logger.error(f"Error serving index.html: {e}")
                 self.send_error(404)
         else:
             self.send_error(404)
 
 def http_server():
-    logger.info("HTTP server starting on port 8773")
-    HTTPServer(("0.0.0.0", 8773), DashboardHandler).serve_forever()
+    logger.info("HTTP server thread starting on port 8773...")
+    try:
+        server = HTTPServer(("0.0.0.0", 8773), DashboardHandler)
+        logger.info("HTTP Server created, now calling serve_forever()")
+        server.serve_forever()
+    except Exception as e:
+        logger.error(f"HTTP server error: {e}")
+        import traceback
+        traceback.print_exc()
 
 async def main():
     print("=" * 60)
     print("⚡ Actions Demo")
     print("=" * 60)
     
-    logger.info("Starting HTTP dashboard server on port 8773...")
-    threading.Thread(target=http_server, daemon=True).start()
-    await asyncio.sleep(1)
+    logger.info("=== Starting Actions Demo ===")
+    logger.info("Starting HTTP server thread...")
     
+    http_thread = threading.Thread(target=http_server, daemon=True)
+    http_thread.start()
+    logger.info(f"HTTP thread started: {http_thread.is_alive()}")
+    
+    await asyncio.sleep(2)
+    
+    logger.info("Creating ROS Bridge...")
     bridge = ROSBridge(ros_version=2)
+    
+    logger.info("Registering WebSocket transport on port 8765...")
     bridge.transport_manager.register(WebSocketTransport({"host": "0.0.0.0", "port": 8765, "auth": {"enabled": False}}))
+    
+    logger.info("Registering gRPC transport on port 50051...")
     bridge.transport_manager.register(GRPCServer({"host": "0.0.0.0", "port": 50051, "auth": {"enabled": False}}))
+    
+    logger.info("Registering ROS2 connector...")
     bridge.connector_manager.register(ROS2Connector({"domain_id": 0}))
     
     @bridge.action("actions.navigate")
