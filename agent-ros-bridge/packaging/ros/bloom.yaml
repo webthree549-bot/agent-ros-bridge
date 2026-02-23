@@ -1,0 +1,56 @@
+# ROS Community Release Configuration
+# For bloom release to rosdistro
+
+# Track: https://github.com/ros/rosdistro
+# Bloom tutorial: http://wiki.ros.org/bloom/Tutorials/FirstTimeRelease
+
+# This package is released as a ROS package for easy installation:
+#   sudo apt install ros-${ROS_DISTRO}-agent-ros-bridge
+
+release:
+  name: agent_ros_bridge
+  version: 0.4.0
+  
+  # Release tracks
+  tracks:
+    - name: jazzy
+      distro: jazzy
+      python_version: "3.12"
+      ubuntu_distro: noble  # 24.04
+      
+    - name: humble
+      distro: humble
+      python_version: "3.10"
+      ubuntu_distro: jammy  # 22.04
+      
+    - name: iron
+      distro: iron
+      python_version: "3.10"
+      ubuntu_distro: jammy  # 22.04
+      
+    - name: rolling
+      distro: rolling
+      python_version: "3.12"
+      ubuntu_distro: noble  # 24.04
+
+# Dependencies (as declared in package.xml)
+dependencies:
+  build:
+    - python3-setuptools
+    - python3-hatchling
+    
+  exec:
+    - python3
+    - python3-websockets
+    - python3-grpcio
+    - python3-yaml
+    
+  test:
+    - python3-pytest
+    - python3-pytest-asyncio
+
+# Bloom release steps:
+# 1. Update CHANGELOG.rst
+# 2. catkin_generate_changelog
+# 3. catkin_prepare_release
+# 4. bloom-release --rosdistro ${DISTRO} --track ${DISTRO} agent_ros_bridge

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>agent_ros_bridge</name>
+  <version>0.4.0</version>
+  <description>Connect AI agents to ROS1/2 robots via MCP, WebSocket, and gRPC</description>
+  
+  <maintainer email="hello@openclaw.ai">OpenClaw</maintainer>
+  <license>Apache-2.0</license>
+  
+  <url type="website">https://docs.openclaw.ai/agent-ros-bridge</url>
+  <url type="repository">https://github.com/openclaw/agent-ros-bridge</url>
+  <url type="bugtracker">https://github.com/openclaw/agent-ros-bridge/issues</url>
+  
+  <author>OpenClaw</author>
+  
+  <!-- ROS2 Dependencies -->
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  
+  <!-- Python dependencies (declared as exec_depend for bloom) -->
+  <exec_depend>python3</exec_depend>
+  <exec_depend>python3-websockets</exec_depend>
+  <exec_depend>python3-grpcio</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  
+  <!-- Optional dependencies -->
+  <exec_depend condition="$ROSDISTRO >= humble">python3-mcp</exec_depend>
+  <exec_depend>python3-aiohttp</exec_depend>
+  
+  <!-- Build dependencies -->
+  <buildtool_depend>python3-setuptools</buildtool_depend>
+  <buildtool_depend>python3-hatchling</buildtool_depend>
+  
+  <!-- Test dependencies -->
+  <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-pytest-asyncio</test_depend>
+  
+  <export>
+    <build_type>ament_python</build_type>
+    <agent_ros_bridge>
+      <protocols>mcp,websocket,grpc</protocols>
+      <ros_versions>1,2</ros_versions>
+    </agent_ros_bridge>
+  </export>
+</package>

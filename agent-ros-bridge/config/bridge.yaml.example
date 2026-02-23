@@ -1,0 +1,101 @@
+# Agent ROS Bridge Configuration
+# For distributed/remote deployment with OpenClaw
+
+bridge:
+  ros_version: 2
+  log_level: INFO
+  node_name: agent_ros_bridge
+
+# Transport protocols for remote agents
+transports:
+  # WebSocket for browser dashboards and some clients
+  websocket:
+    enabled: true
+    host: 0.0.0.0  # Bind to all interfaces for remote access
+    port: 8765
+    
+    # TLS configuration (REQUIRED for remote production use)
+    tls:
+      cert: /etc/ssl/certs/bridge.crt
+      key: /etc/ssl/private/bridge.key
+    
+    # JWT authentication
+    auth:
+      enabled: true
+      jwt_secret: ${JWT_SECRET}  # From environment variable
+    
+    # CORS for browser clients
+    cors:
+      - https://openclaw.ai
+      - https://dashboard.robot.io
+      - http://localhost:3000  # For local development
+    
+    # Keepalive settings
+    ping_interval: 20
+    ping_timeout: 10
+  
+  # gRPC for high-performance agent connections
+  grpc:
+    enabled: true
+    host: 0.0.0.0
+    port: 50051
+    max_workers: 10
+    
+    # TLS with mutual authentication
+    tls:
+      cert: /etc/ssl/certs/bridge.crt
+      key: /etc/ssl/private/bridge.key
+      ca: /etc/ssl/certs/ca.crt  # For mutual TLS (client cert verification)
+    
+    auth:
+      enabled: true
+  
+  # MCP is configured via Claude Desktop, not here
+  mcp:
+    enabled: false
+
+# ROS connections
+connectors:
+  # Local ROS2 (bridge runs on robot/edge device)
+  ros2:
+    enabled: true
+    domain_id: 0
+    namespace: /agent_bridge
+    use_sim_time: false
+  
+  # Alternative: Remote ROS via rosbridge_server
+  # Use this if bridge runs separate from ROS master
+  # remote_ros:
+  #   enabled: true
+  #   type: rosbridge_websocket
+  #   uri: wss://ros-master.robot.local:9090
+  #   auth:
+  #     token: ${ROS_TOKEN}
+
+# Security settings
+security:
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_second: 100
+    burst_size: 200
+  
+  # Audit logging
+  audit_log:
+    enabled: true
+    destination: /var/log/agent-ros-bridge/audit.log
+  
+  # CORS policy
+  cors:
+    enabled: true
+    origins:
+      - "https://openclaw.ai"
+      - "https://*.robot.io"
+
+# Remote OpenClaw connection
+# Use this if bridge connects outbound to OpenClaw cloud
+remote:
+  openclaw:
+    enabled: false
+    endpoint: wss://api.openclaw.ai/v1/bridge
+    api_key: ${OPENCLAW_API_KEY}
