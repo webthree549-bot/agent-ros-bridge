@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker multi-arch images (amd64, arm64)
 - API documentation site
 
-## [0.4.0] - 2026-02-22
+## [0.4.0] - 2026-02-23
 
 ### Added
 - Core ROSBridge class with action registry, session management
@@ -30,10 +30,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - macOS support (Homebrew, Docker, RoboStack)
 - ROS Community release support (bloom, package.xml)
 
+### Phase 2: Agentic AI Features
+- **Agent Memory System** — SQLite/Redis backends with TTL support
+- **Tool Discovery** — Auto-discover ROS tools, export to MCP/OpenAI format
+- **Action Confirmation** — Safety levels with emergency stop and audit logging
+
+### Phase 3: Observability
+- **Prometheus Metrics** — Action counts, latency, connections, topics
+- **OpenTelemetry Tracing** — Distributed tracing with Jaeger/OTLP export
+- **Real-time Dashboard** — Web UI with live telemetry and emergency stop
+- **Health Checks** — Liveness/readiness probes
+
+### Phase 4: Ecosystem Integration
+- **LangChain Integration** — ROSBridgeTool and ROSAgent for LangChain agents
+- **AutoGPT Plugin** — Native AutoGPT plugin support
+- **ROS2 Actions** — Navigation2 and MoveIt action clients
+- **Multi-Agent Orchestration** — Fleet management capabilities
+
 ### Security
 - JWT authentication for agent verification
 - TLS encryption for WebSocket and gRPC
 - Mutual TLS support for gRPC
+- MIT License — Simple, permissive open source licensing
+
+### Changed
+- License changed from Apache-2.0 to MIT
+- Author: webthree549 <webthree549@gmail.com>
 
 ## [0.1.0] - 2026-02-22
 
