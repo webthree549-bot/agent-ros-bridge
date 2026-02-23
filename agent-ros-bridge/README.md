@@ -517,6 +517,10 @@ black agent_ros_bridge/
 
 MIT License — See [LICENSE](LICENSE) for details.
 
+## Author
+
+**webthree549** <webthree549@gmail.com>
+
 ## Contributing
 
 Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
