@@ -90,11 +90,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/openclaw/agent-ros-bridge"
+Homepage = "https://github.com/webthree549-bot/agent-ros-bridge"
 Documentation = "https://docs.openclaw.ai/agent-ros-bridge"
-Repository = "https://github.com/openclaw/agent-ros-bridge"
-Issues = "https://github.com/openclaw/agent-ros-bridge/issues"
-Changelog = "https://github.com/openclaw/agent-ros-bridge/blob/main/CHANGELOG.md"
+Repository = "https://github.com/webthree549-bot/agent-ros-bridge"
+Issues = "https://github.com/webthree549-bot/agent-ros-bridge/issues"
+Changelog = "https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CHANGELOG.md"
 "PyPI" = "https://pypi.org/project/agent-ros-bridge/"
 "ClawHub" = "https://clawhub.ai/skills/agent-ros-bridge"
 "OpenClaw" = "https://openclaw.ai"

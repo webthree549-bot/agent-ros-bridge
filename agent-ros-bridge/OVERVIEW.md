@@ -113,7 +113,7 @@ One bridge handles both:
 
 ```bash
 # Clone and install
-git clone https://github.com/openclaw/agent-ros-bridge.git
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
 cd agent-ros-bridge
 pip install -e ".[all]"
 
@@ -172,7 +172,7 @@ See [TODO.md](TODO.md) for specific tasks.
 
 - **Discord:** [Join us](https://discord.gg/agent-ros-bridge)
 - **Twitter:** [@AgentROSBridge](https://twitter.com/AgentROSBridge)
-- **Discussions:** [GitHub Discussions](https://github.com/openclaw/agent-ros-bridge/discussions)
+- **Discussions:** [GitHub Discussions](https://github.com/webthree549-bot/agent-ros-bridge/discussions)
 
 ---
 

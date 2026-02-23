@@ -7,7 +7,7 @@ description: "Connect AI agents to ROS1/2 robots via MCP, WebSocket, and gRPC"
 author: OpenClaw
 email: hello@openclaw.ai
 license: Apache-2.0
-repository: https://github.com/openclaw/agent-ros-bridge
+repository: https://github.com/webthree549-bot/agent-ros-bridge
 homepage: https://docs.openclaw.ai/agent-ros-bridge
 
 tags:

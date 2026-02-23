@@ -5,7 +5,7 @@ version: '3.8'
 
 services:
   bridge:
-    image: ghcr.io/openclaw/agent-ros-bridge:latest
+    image: ghcr.io/webthree549-bot/agent-ros-bridge:latest
     container_name: agent-ros-bridge
     ports:
       - "8765:8765"  # WebSocket

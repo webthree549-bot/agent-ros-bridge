@@ -97,8 +97,8 @@ https://github.com/ros/rosdistro/compare/master...openclaw:release/jazzy/agent_r
 2. Create pull request
 3. Fill in the template:
    - Package name: `agent_ros_bridge`
-   - Upstream repository: `https://github.com/openclaw/agent-ros-bridge`
-   - Release repository: `https://github.com/openclaw/agent_ros_bridge-release`
+   - Upstream repository: `https://github.com/webthree549-bot/agent-ros-bridge`
+   - Release repository: `https://github.com/webthree549-bot/agent_ros_bridge-release`
    - Distro file: `jazzy/distribution.yaml`
    - Bloom version: `0.11.2`
 
@@ -133,7 +133,7 @@ Features:
 - ROS1 and ROS2 compatibility
 - Claude Desktop integration
 
-Full changelog: https://github.com/openclaw/agent-ros-bridge/blob/main/CHANGELOG.md
+Full changelog: https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CHANGELOG.md
 ```
 
 ## Package Structure

@@ -44,7 +44,7 @@ test:
     - pip
 
 about:
-  home: https://github.com/openclaw/agent-ros-bridge
+  home: https://github.com/webthree549-bot/agent-ros-bridge
   summary: 'Connect AI agents to ROS1/2 robots via MCP, WebSocket, and gRPC'
   description: |
     Agent ROS Bridge is a secure, multi-agent bridge for ROS1/2 robot control.
@@ -54,7 +54,7 @@ about:
   license_family: Apache
   license_file: LICENSE
   doc_url: https://docs.openclaw.ai/agent-ros-bridge
-  dev_url: https://github.com/openclaw/agent-ros-bridge
+  dev_url: https://github.com/webthree549-bot/agent-ros-bridge
 
 extra:
   recipe-maintainers:

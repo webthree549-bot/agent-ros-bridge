@@ -118,7 +118,7 @@ agent-ros-bridge/
 |-----------|--------|--------|
 | **PyPI** | ✅ | `pip install agent-ros-bridge` |
 | **GitHub Releases** | ✅ | Automated with GitHub Actions |
-| **Docker Hub** | ✅ | `docker pull ghcr.io/openclaw/agent-ros-bridge` |
+| **Docker Hub** | ✅ | `docker pull ghcr.io/webthree549-bot/agent-ros-bridge` |
 | **ClawHub** | ✅ | skill.yaml manifest ready |
 | **OpenClaw** | ✅ | Privileged integration (openclaw.py) |
 

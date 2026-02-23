@@ -54,7 +54,7 @@ For running the complete bridge + ROS environment on macOS.
 
 ```bash
 # Clone repository
-git clone https://github.com/openclaw/agent-ros-bridge.git
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
 cd agent-ros-bridge
 
 # Start with Docker Compose
@@ -257,7 +257,7 @@ All methods supported. Rosetta 2 not required.
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/openclaw/agent-ros-bridge/issues)
+- [GitHub Issues](https://github.com/webthree549-bot/agent-ros-bridge/issues)
 - [Discord Community](https://discord.gg/agent-ros-bridge)
 - [RoboStack Documentation](https://robostack.github.io/)
 - [ROS2 on macOS Guide](http://wiki.ros.org/ROS2/Installation/macOS)

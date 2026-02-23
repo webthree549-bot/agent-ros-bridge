@@ -87,7 +87,7 @@ pip install agent-ros-bridge[mcp]
 docker run -it --rm \
   -p 8765:8765 \
   -v ~/.openclaw:/config \
-  ghcr.io/openclaw/agent-ros-bridge:latest
+  ghcr.io/webthree549-bot/agent-ros-bridge:latest
 
 # Option 4: Direct pip (client-only, no ROS)
 pip install agent-ros-bridge
@@ -500,7 +500,7 @@ Example WebSocket message:
 
 ```bash
 # Clone the repo
-git clone https://github.com/openclaw/agent-ros-bridge.git
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
 cd agent-ros-bridge
 
 # Install in editable mode with dev dependencies
@@ -524,5 +524,5 @@ Contributions welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 ## Support
 
 - 📖 [Documentation](https://docs.openclaw.ai/agent-ros-bridge)
-- 🐛 [Issue Tracker](https://github.com/openclaw/agent-ros-bridge/issues)
-- 💬 [Discussions](https://github.com/openclaw/agent-ros-bridge/discussions)
+- 🐛 [Issue Tracker](https://github.com/webthree549-bot/agent-ros-bridge/issues)
+- 💬 [Discussions](https://github.com/webthree549-bot/agent-ros-bridge/discussions)

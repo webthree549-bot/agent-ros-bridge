@@ -231,7 +231,7 @@ If you discover a security vulnerability:
 ## Community
 
 - **Discord**: [Join us](https://discord.gg/agent-ros-bridge)
-- **Discussions**: [GitHub Discussions](https://github.com/openclaw/agent-ros-bridge/discussions)
+- **Discussions**: [GitHub Discussions](https://github.com/webthree549-bot/agent-ros-bridge/discussions)
 - **Office Hours**: Fridays at 10am PT (Discord)
 
 ## Code of Conduct
@@ -252,7 +252,7 @@ By contributing, you agree that your contributions will be licensed under the [A
 ## Questions?
 
 - Check [FAQ.md](docs/FAQ.md) (coming soon)
-- Ask in [Discussions](https://github.com/openclaw/agent-ros-bridge/discussions)
+- Ask in [Discussions](https://github.com/webthree549-bot/agent-ros-bridge/discussions)
 - Join [Discord](https://discord.gg/agent-ros-bridge)
 
 Thank you for contributing! 🤖

@@ -90,7 +90,7 @@
   version: '3'
   services:
     bridge:
-      image: ghcr.io/openclaw/agent-ros-bridge:latest
+      image: ghcr.io/webthree549-bot/agent-ros-bridge:latest
       ports:
         - "8765:8765"
         - "50051:50051"
