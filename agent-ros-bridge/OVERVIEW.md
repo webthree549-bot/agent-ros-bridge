@@ -178,7 +178,7 @@ See [TODO.md](TODO.md) for specific tasks.
 
 ## License
 
-Apache 2.0 — See [LICENSE](LICENSE)
+MIT License — See [LICENSE](LICENSE)
 
 ---
 

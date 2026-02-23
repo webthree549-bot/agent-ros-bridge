@@ -7,16 +7,16 @@ name = "agent-ros-bridge"
 version = "0.4.0"
 description = "Secure, multi-agent bridge for ROS1/2 robot control"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = {text = "MIT"}
 requires-python = ">=3.8"
 authors = [
-    {name = "OpenClaw", email = "hello@openclaw.ai"}
+    {name = "webthree549", email = "webthree549@gmail.com"}
 ]
 keywords = ["ros", "robotics", "mcp", "ai", "agents"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",

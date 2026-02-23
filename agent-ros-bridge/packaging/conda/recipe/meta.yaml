@@ -50,8 +50,8 @@ about:
     Agent ROS Bridge is a secure, multi-agent bridge for ROS1/2 robot control.
     Connect AI agents like Claude Desktop to ROS robots via the Model Context
     Protocol (MCP), WebSocket, or gRPC.
-  license: Apache-2.0
-  license_family: Apache
+  license: MIT
+  license_family: MIT
   license_file: LICENSE
   doc_url: https://docs.openclaw.ai/agent-ros-bridge
   dev_url: https://github.com/webthree549-bot/agent-ros-bridge

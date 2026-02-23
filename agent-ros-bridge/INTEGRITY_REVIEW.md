@@ -90,7 +90,7 @@ Comprehensive integrity review completed. All critical issues fixed, project is 
 - [x] ROS release process
 - [x] MCP quickstart
 - [x] Contributing guidelines
-- [x] License (Apache 2.0)
+- [x] License (MIT)
 - [x] Changelog
 
 ### Outstanding (Phase 1)

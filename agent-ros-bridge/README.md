@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/agent-ros-bridge.svg)](https://pypi.org/project/agent-ros-bridge/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![macOS](https://img.shields.io/badge/macOS-supported-brightgreen.svg)](docs/MACOS.md)
 [![ROS](https://img.shields.io/badge/ROS-apt%20install-blue.svg)](docs/ROS_RELEASE.md)
 [![ClawHub](https://img.shields.io/badge/ClawHub-Skill-blue)](https://clawhub.ai/skills/agent-ros-bridge)
@@ -515,7 +515,7 @@ black agent_ros_bridge/
 
 ## License
 
-Apache 2.0 — See [LICENSE](LICENSE) for details.
+MIT License — See [LICENSE](LICENSE) for details.
 
 ## Contributing
 

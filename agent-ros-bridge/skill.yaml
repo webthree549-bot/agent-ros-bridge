@@ -4,9 +4,9 @@
 name: agent-ros-bridge
 version: 0.4.0
 description: "Connect AI agents to ROS1/2 robots via MCP, WebSocket, and gRPC"
-author: OpenClaw
-email: hello@openclaw.ai
-license: Apache-2.0
+author: webthree549
+email: webthree549@gmail.com
+license: MIT
 repository: https://github.com/webthree549-bot/agent-ros-bridge
 homepage: https://docs.openclaw.ai/agent-ros-bridge
 

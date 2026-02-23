@@ -52,7 +52,7 @@ All integrity checks passed. The project is structurally sound, all imports work
 
 ### Documentation
 - ✅ README.md with architecture
-- ✅ LICENSE (Apache 2.0)
+- ✅ LICENSE (MIT)
 - ✅ CONTRIBUTING.md
 - ✅ CHANGELOG.md
 - ✅ MCP_QUICKSTART.md
@@ -71,7 +71,7 @@ All integrity checks passed. The project is structurally sound, all imports work
 
 ```
 agent-ros-bridge/
-├── LICENSE                          ✅ Apache 2.0
+├── LICENSE                          ✅ MIT
 ├── CONTRIBUTING.md                  ✅ Contribution guidelines
 ├── CHANGELOG.md                     ✅ Version history
 ├── README.md                        ✅ Main documentation
@@ -126,7 +126,7 @@ agent-ros-bridge/
 
 ```
 agent-ros-bridge/
-├── LICENSE                          ✅ Apache 2.0
+├── LICENSE                          ✅ MIT
 ├── CONTRIBUTING.md                  ✅ Contribution guide
 ├── CHANGELOG.md                     ✅ Version history
 ├── skill.yaml                       ✅ ClawHub manifest
