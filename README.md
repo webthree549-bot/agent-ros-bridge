@@ -1,10 +1,7 @@
 # Agent ROS Bridge
 
-> ⚠️ **HONESTY NOTICE**  
-> v0.4.0 was released prematurely. The PyPI package provides working ROS bridge 
-> functionality (gateway_v2), but AI agent integrations (LangChain, AutoGPT, etc.) 
-> are present as code but not yet integrated. We're actively fixing this in v0.4.1.  
-> **See [ROADMAP.md](ROADMAP.md) for the real plan.**
+> 🎉 **v0.5.0 Coming Soon** — AI agent integrations are being rebuilt properly into gateway_v2.  
+> See [ROADMAP.md](ROADMAP.md) and [v0.5.0_PLAN.md](v0.5.0_PLAN.md) for details.
 
 ---
 
@@ -29,27 +26,31 @@ The bridge will **fail to start** without JWT_SECRET. This is by design — secu
 
 ---
 
-## ✅ What's Working (v0.4.0)
+## ✅ What's Working (v0.4.1 / v0.5.0-alpha)
 
-- **Multi-Protocol Transports** — WebSocket, gRPC, MQTT
-- **ROS1 & ROS2** — Compatible with both ROS versions
+### Core ROS Bridge
+- **Multi-Protocol** — WebSocket, gRPC, MQTT transports
+- **ROS1 & ROS2** — Full compatibility
   - ROS2: Jazzy Jalisco (LTS), Humble Hawksbill (LTS), Iron Irwini, Rolling
   - ROS1: Noetic Ninjemys
-- **Security** — JWT authentication, TLS encryption, mTLS support
+- **Security** — JWT (required), TLS, mTLS
 - **Fleet Orchestration** — Multi-robot coordination
 - **Docker Examples** — Isolated testing environments
 - **Prometheus Metrics** — Basic observability
 
-## 🚧 Coming in v0.5.0
+### 🚧 AI Agent Integrations (v0.5.0 Preview)
 
-- **LangChain Integration** — Planned, not yet integrated
-- **AutoGPT Plugin** — Planned, not yet integrated
-- **Agent Memory System** — Planned, not yet integrated
-- **Tool Discovery** — Planned, not yet integrated
-- **Action Confirmation** — Planned, not yet integrated
-- **Real-time Dashboard** — Planned, not yet implemented
+Code exists in `agent_ros_bridge/integrations/`:
 
-See [ROADMAP.md](ROADMAP.md) for details.
+- **Agent Memory** — SQLite/Redis backends with TTL
+- **Safety Manager** — Action confirmation, emergency stop
+- **Tool Discovery** — Auto-discover ROS, export to MCP/OpenAI
+- **LangChain Adapter** — ROSBridgeTool, ROSAgent
+- **AutoGPT Adapter** — AutoGPT plugin support
+- **MCP Transport** — Model Context Protocol server
+- **Dashboard** — Real-time web UI
+
+**Status:** Implemented but not yet integrated into gateway_v2 core. Integration in progress.
 
 ---
 
@@ -72,8 +73,6 @@ agent-ros-bridge --config config/bridge.yaml
 
 ### Docker Examples (Recommended for Testing)
 
-All examples run in isolated Docker containers with simulated robots (no ROS installation needed).
-
 ```bash
 # Clone repository
 git clone https://github.com/webthree549-bot/agent-ros-bridge.git
@@ -85,24 +84,21 @@ export JWT_SECRET=$(openssl rand -base64 32)
 # Run example in Docker
 cd examples/quickstart
 docker-compose up
-
-# Test connection
-curl http://localhost:8765/health
 ```
 
-### Available Docker Examples
+### Available Examples
 
-| Example | Description | Run |
-|---------|-------------|-----|
-| `examples/quickstart/` | Basic bridge | `docker-compose up` |
-| `examples/fleet/` | Multi-robot fleet | `docker-compose up` |
-| `examples/arm/` | Robot arm control | `docker-compose up` |
+| Example | Description |
+|---------|-------------|
+| `examples/quickstart/` | Basic bridge |
+| `examples/fleet/` | Multi-robot fleet |
+| `examples/arm/` | Robot arm control |
 
 ---
 
 ## Installation
 
-### Via PyPI (Production)
+### Via PyPI
 
 ```bash
 pip install agent-ros-bridge
@@ -132,17 +128,21 @@ bridge.transport_manager.register(WebSocketTransport({"port": 8765}))
 await bridge.start()
 ```
 
-### CLI
+### With AI Features (v0.5.0)
 
-```bash
-# Set required secret
-export JWT_SECRET=$(openssl rand -base64 32)
+```python
+from agent_ros_bridge import Bridge
+from agent_ros_bridge.integrations import AgentMemory, SafetyManager, ROSBridgeTool
 
-# Start bridge
-agent-ros-bridge --config config/bridge.yaml
+# Create bridge with AI features
+bridge = Bridge()
+bridge.memory = AgentMemory()
+bridge.safety = SafetyManager()
 
-# Generate token for client
-python scripts/generate_token.py --secret $JWT_SECRET --role operator
+# Use with LangChain
+from langchain.agents import initialize_agent
+tool = ROSBridgeTool(bridge)
+agent = initialize_agent([tool], llm, agent="zero-shot-react-description")
 ```
 
 ---
@@ -151,13 +151,11 @@ python scripts/generate_token.py --secret $JWT_SECRET --role operator
 
 | Document | Description |
 |----------|-------------|
-| [User Manual](docs/USER_MANUAL.md) | Complete guide |
-| [API Reference](docs/API_REFERENCE.md) | API documentation |
-| [Native ROS](docs/NATIVE_ROS.md) | Ubuntu/ROS installation |
-| [Multi-ROS](docs/MULTI_ROS.md) | Fleet management |
-| [Docker vs Native](docs/DOCKER_VS_NATIVE.md) | Deployment comparison |
-| [ROADMAP.md](ROADMAP.md) | Future plans |
-| [POST_MORTEM.md](POST_MORTEM.md) | What we learned |
+| [ROADMAP.md](ROADMAP.md) | Future plans and honest assessment |
+| [v0.5.0_PLAN.md](v0.5.0_PLAN.md) | Detailed v0.5.0 execution plan |
+| [POST_MORTEM.md](POST_MORTEM.md) | What we learned from v0.4.0 |
+| [FEATURE_AUDIT.md](FEATURE_AUDIT.md) | Complete feature audit |
+| [docs/](docs/) | Full documentation |
 
 ---
 
