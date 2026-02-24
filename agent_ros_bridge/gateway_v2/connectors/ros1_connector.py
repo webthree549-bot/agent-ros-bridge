@@ -226,6 +226,8 @@ class ROS1Robot(Robot):
 
 
 class ROS1Connector(Connector):
+    """ROS1 (Noetic) connector"""
+    connector_type = "ros1"
     """ROS1 connector for OpenClaw Gateway"""
     
     def __init__(self, config: Dict[str, Any]):
