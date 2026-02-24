@@ -25,6 +25,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.5.0] - 2026-02-23
+
+### Major Release: AI Agent Integration
+
+After the honest v0.4.1 reset, v0.5.0 delivers on the original vision with properly integrated AI features.
+
+### Added
+
+#### Core AI Features (All Integrated)
+- **AgentMemory** — SQLite/Redis backends with TTL support
+- **SafetyManager** — Action confirmation, emergency stop, audit logging
+- **ToolDiscovery** — Auto-discover ROS tools, export to MCP/OpenAI format
+
+#### AI Framework Integrations
+- **LangChain** — ROSBridgeTool and ROSAgent classes
+- **AutoGPT** — Native plugin adapter
+- **MCP** — Model Context Protocol server transport (Claude Desktop support)
+- **Dashboard** — Real-time web UI with emergency stop
+
+#### Integration Points
+- Bridge.get_langchain_tool() — Easy LangChain integration
+- Bridge.get_autogpt_adapter() — AutoGPT plugin support
+- Bridge.get_mcp_server() — MCP server for Claude Desktop
+- Bridge.get_dashboard() — Web monitoring dashboard
+- Bridge.execute_action() — Unified action execution
+- Safety checks in command handler
+- Memory logging for all actions
+
+### Architecture
+- Clean separation: gateway_v2 (core) + integrations (AI features)
+- All features properly wired into Bridge class
+- No orphaned code — everything connected and functional
+
+### Testing
+- 15+ integration tests for AI features
+- Foundation for 80%+ coverage
+
+### Documentation
+- Updated README with v0.5.0 features
+- Complete integration examples
+- ROADMAP.md updated
+
+## [0.4.1] - 2026-02-23
+
+### Honest Release
+
+This release corrects v0.4.0's false claims about AI integrations.
+
+### Changed
+- Updated README with honesty notice
+- Removed orphaned files that weren't integrated
+- Clear separation of "What's Working" vs "What's Coming"
+
+### Removed
+- langchain.py (not integrated)
+- autogpt.py (not integrated)
+- memory.py (not integrated)
+- discovery.py (not integrated)
+- safety.py (not integrated)
+- dashboard.py (was stub)
+- tracing.py (not integrated)
+- actions.py (not integrated)
+- Associated orphaned tests
+
 ## [0.3.5] - 2026-02-20
 
 ### Security
