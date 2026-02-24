@@ -147,11 +147,11 @@ Examples:
   %(prog)s --demo
 
 Environment Variables:
-  AGENT_ROS_BRIDGE_CONFIG       Path to config file
-  AGENT_ROS_BRIDGE_LOG_LEVEL    Logging level (DEBUG, INFO, WARNING, ERROR)
-  AGENT_ROS_BRIDGE_WEBSOCKET_PORT  WebSocket port
-  AGENT_ROS_BRIDGE_GRPC_PORT    gRPC port
-  AGENT_ROS_BRIDGE_JWT_SECRET   JWT secret for authentication
+  BRIDGE_CONFIG           Path to config file (YAML/JSON)
+  BRIDGE_LOG_LEVEL        Logging level (DEBUG, INFO, WARNING, ERROR)
+  BRIDGE_WEBSOCKET_PORT   WebSocket port (default 8765)
+  BRIDGE_GRPC_PORT        gRPC port (default 50051)
+  BRIDGE_JWT_SECRET       JWT secret for authentication (required)
         """
     )
     
@@ -193,7 +193,7 @@ Environment Variables:
     parser.add_argument(
         "--version", "-v",
         action="version",
-        version="Agent ROS Bridge 0.3.5"
+        version="Agent ROS Bridge 0.5.0"
     )
     
     args = parser.parse_args()

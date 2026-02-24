@@ -4,18 +4,16 @@ services:
   quickstart-bridge:
     build:
       context: ../..
-      dockerfile: docker/Dockerfile.mock
+      dockerfile: Dockerfile
     ports:
-      - "8765:8765"
+      - "8766:8766"
     environment:
-      - JWT_SECRET=${JWT_SECRET}
-      - BRIDGE_HOST=0.0.0.0
-    command: >
-      sh -c "python -m agent_ros_bridge --config /app/config/bridge.yaml"
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required. Run: export JWT_SECRET=$(openssl rand -base64 32)}
+    command: ["python3", "/app/examples/quickstart/simulated_robot.py"]
     networks:
       - bridge-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      test: ["CMD-SHELL", "python3 -c \"import socket; s=socket.create_connection(('localhost',8766), timeout=2)\""]
       interval: 10s
       timeout: 5s
       retries: 3

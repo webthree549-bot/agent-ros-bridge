@@ -38,19 +38,20 @@ class MQTTTransport(Transport):
         self.tls_ca = config.get("tls_ca")
         self.tls_cert = config.get("tls_cert")
         self.tls_key = config.get("tls_key")
-        
+
         # Topic mappings
         self.command_topic = config.get("command_topic", "robots/commands")
         self.telemetry_topic = config.get("telemetry_topic", "robots/telemetry")
         self.event_topic = config.get("event_topic", "robots/events")
-        
+
         # Subscriptions
-        self.subscribed_topics = config.get("subscriptions", ["#"])  # Default: subscribe to all
-        
+        self.subscribed_topics = config.get("subscriptions", ["#"])
+
         self.client = None
         self._connected = False
-        self._message_queue = asyncio.Queue()
+        self._message_queue: asyncio.Queue = asyncio.Queue()
         self._identities: Dict[str, Identity] = {}
+        self._loop: Optional[asyncio.AbstractEventLoop] = None
     
     async def start(self) -> bool:
         """Start MQTT client and connect to broker"""
@@ -81,6 +82,9 @@ class MQTTTransport(Transport):
                 self.client.tls_set()
         
         try:
+            # Capture the running event loop so paho callbacks can safely enqueue
+            self._loop = asyncio.get_event_loop()
+
             # Connect in background thread
             self.client.connect(self.broker_host, self.broker_port)
             self.client.loop_start()
@@ -160,8 +164,9 @@ class MQTTTransport(Transport):
             # Convert to Message
             message = self._mqtt_to_message(payload, msg.topic)
             
-            # Put in queue - thread-safe method
-            self._message_queue.put_nowait((message, identity))
+            # put_nowait is not thread-safe; use call_soon_threadsafe from paho's thread
+            if self._loop and self._loop.is_running():
+                self._loop.call_soon_threadsafe(self._message_queue.put_nowait, (message, identity))
             
         except json.JSONDecodeError:
             logger.warning(f"Invalid JSON in MQTT message on topic {msg.topic}")

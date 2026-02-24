@@ -126,8 +126,8 @@ class BridgeConfig:
 class ConfigLoader:
     """Configuration loader with environment variable support"""
     
-    ENV_PREFIX = "OPENCLAW_"
-    
+    ENV_PREFIX = "BRIDGE_"
+
     @classmethod
     def from_yaml(cls, path: str) -> "BridgeConfig":
         """Load configuration from YAML file"""
@@ -172,11 +172,11 @@ class ConfigLoader:
         # Try config file locations
         config_paths = [
             path,
-            os.getenv("OPENCLAW_CONFIG"),
+            os.getenv("BRIDGE_CONFIG"),
             "./config/gateway.yaml",
             "./config/gateway.json",
-            "~/.openclaw/gateway.yaml",
-            "/etc/openclaw/gateway.yaml",
+            "~/.agent-ros-bridge/gateway.yaml",
+            "/etc/agent-ros-bridge/gateway.yaml",
         ]
         
         for p in config_paths:
@@ -251,7 +251,7 @@ class ConfigLoader:
             tls_enabled=data.get("tls_enabled", False),
             tls_cert=data.get("tls_cert"),
             tls_key=data.get("tls_key"),
-            mTLS_enabled=data.get("mtls_enabled", False),
+            mtls_enabled=data.get("mtls_enabled", False),
             ca_cert=data.get("ca_cert")
         )
     

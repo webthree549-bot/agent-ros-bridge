@@ -1,10 +1,22 @@
+# Agent ROS Bridge — ROS2 Jazzy (full desktop) image
 FROM osrf/ros:jazzy-desktop-full
+
 WORKDIR /app
+
 ENV ROS_TYPE=ros2
 ENV ROS_DISTRO=jazzy
-COPY . /app
-RUN pip3 install -r requirements.txt
+
+COPY requirements.txt .
+RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
+
+COPY . .
+RUN pip3 install --break-system-packages --no-cache-dir -e .
+
 RUN chmod +x scripts/*.sh
 RUN ./scripts/build.sh
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8765 50051
+
 ENTRYPOINT ["/app/docker/docker-entrypoint.sh"]
-CMD ["/bin/bash"]
+CMD ["agent-ros-bridge"]

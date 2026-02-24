@@ -1,28 +1,25 @@
-# Agent ROS Bridge - Production Container
+# Agent ROS Bridge — Production image (ROS2 Jazzy)
 FROM ros:jazzy-ros-base
 
-# Install Python and dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
-RUN pip3 install --break-system-packages \
-    websockets>=11.0 \
-    pyyaml>=6.0.1 \
-    psutil>=5.9.5 \
-    python-dotenv>=1.0.0
-
-# Set up workspace
 WORKDIR /app
 
-# Copy and install the package
-COPY . /app/
-RUN pip3 install --break-system-packages -e .
+COPY requirements.txt .
+RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
 
-# Source ROS2 on startup
-RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+COPY . .
+RUN pip3 install --break-system-packages --no-cache-dir -e .
 
-# Default: run production bridge
-CMD ["python3", "run_bridge.py"]
+# Source ROS2 on bash login (non-interactive shells use ENV)
+ENV ROS_DISTRO=jazzy
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8765 50051
+
+ENTRYPOINT ["agent-ros-bridge"]
+CMD []

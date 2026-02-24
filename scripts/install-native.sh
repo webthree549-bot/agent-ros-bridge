@@ -121,7 +121,7 @@ if [ "$INSTALL_METHOD" = "source" ]; then
     echo "Installing from source..."
     
     # Clone if not already in repo
-    if [ ! -f "run_bridge.py" ]; then
+    if [ ! -f "pyproject.toml" ]; then
         git clone https://github.com/webthree549-bot/agent-ros-bridge.git
         cd agent-ros-bridge
     fi
@@ -151,7 +151,7 @@ elif [ -f /opt/ros/jazzy/setup.bash ]; then
 fi
 
 # Run bridge
-python -m agent_ros_bridge.gateway_v2.core "$@" || python run_bridge.py "$@"
+agent-ros-bridge "$@"
 EOF
 
 chmod +x "${HOME}/start-agent-bridge.sh"
@@ -160,7 +160,8 @@ chmod +x "${HOME}/start-agent-bridge.sh"
 cat > "${HOME}/start-agent-dashboard.sh" << 'EOF'
 #!/bin/bash
 source ${HOME}/agent-ros-bridge-venv/bin/activate
-python dashboard/server.py "$@"
+# Dashboard is accessible once the bridge starts: http://localhost:8080
+agent-ros-bridge "$@"
 EOF
 
 chmod +x "${HOME}/start-agent-dashboard.sh"
@@ -207,8 +208,8 @@ echo ""
 echo "Quick Start:"
 echo "  1. Activate venv: source ${VENV_PATH}/bin/activate"
 echo "  2. Source ROS: source /opt/ros/${ROS_VERSION}/setup.bash"
-echo "  3. Run bridge: python run_bridge.py"
-echo "  4. Run dashboard: python dashboard/server.py"
+echo "  3. Run bridge: agent-ros-bridge"
+echo "  4. Dashboard starts automatically on http://localhost:8080"
 echo ""
 echo "Convenience scripts:"
 echo "  ${HOME}/start-agent-bridge.sh"

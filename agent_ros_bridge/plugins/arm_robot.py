@@ -22,6 +22,8 @@ from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
 
+from agent_ros_bridge.gateway_v2.core import Plugin, Message, Identity
+
 logger = logging.getLogger("plugin.arm_robot")
 
 
@@ -330,10 +332,13 @@ class XArmController(BaseArmController):
         logger.warning("🛑 xArm EMERGENCY STOP")
 
 
-class ArmRobotPlugin:
-    """Arm robot plugin for Agent ROS Bridge"""
-    
-    def __init__(self, arm_type: str, ros_version: str = "ros2", namespace: str = ""):
+class ArmRobotPlugin(Plugin):
+    """Arm robot plugin for Agent ROS Bridge — loadable via PluginManager"""
+
+    name = "arm_robot"
+    version = "1.0.0"
+
+    def __init__(self, arm_type: str = "ur", ros_version: str = "ros2", namespace: str = ""):
         self.arm_type = ArmType(arm_type)
         self.config = ArmConfig(
             arm_type=self.arm_type,
@@ -342,7 +347,7 @@ class ArmRobotPlugin:
         )
         self.controller: Optional[BaseArmController] = None
         self._init_controller()
-    
+
     def _init_controller(self):
         """Initialize appropriate controller"""
         if self.arm_type == ArmType.UR:
@@ -351,19 +356,29 @@ class ArmRobotPlugin:
             self.controller = XArmController(self.config)
         else:
             raise ValueError(f"Unsupported arm type: {self.arm_type}")
-    
-    async def initialize(self, gateway):
-        """Initialize plugin"""
+
+    async def initialize(self, gateway) -> None:
+        """Initialize plugin (Plugin ABC)"""
         success = await self.controller.connect()
         if success:
-            logger.info(f"🦾 Arm robot plugin initialized: {self.arm_type.value}")
-        return success
-    
-    async def shutdown(self):
-        """Shutdown plugin"""
+            logger.info(f"Arm robot plugin initialized: {self.arm_type.value}")
+
+    async def shutdown(self) -> None:
+        """Shutdown plugin (Plugin ABC)"""
         if self.controller:
             await self.controller.disconnect()
-    
+
+    async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
+        """Route arm.* commands from the bridge message bus"""
+        if not message.command or not message.command.action.startswith("arm."):
+            return None
+        result = await self.handle_command(message.command.action, message.command.parameters)
+        from agent_ros_bridge.gateway_v2.core import Header, Telemetry
+        return Message(
+            header=Header(correlation_id=message.header.message_id),
+            telemetry=Telemetry(topic="/arm/result", data=result)
+        )
+
     async def handle_command(self, command: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Handle arm-specific commands"""
         if not self.controller:
