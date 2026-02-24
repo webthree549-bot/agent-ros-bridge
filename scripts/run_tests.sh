@@ -11,7 +11,7 @@ cd "$PROJECT_ROOT"
 log() { echo -e "${BLUE}[TEST] $1${NC}"; }
 success() { echo -e "${GREEN}[SUCCESS] $1${NC}"; }
 
-log "Running tests (MOCK MODE)..."
+log "Running tests..."
 export MOCK_MODE="true"
-pytest test/ -v --cov=openclaw_ros_bridge --cov-report=term-missing
+pytest tests/ -v --cov=agent_ros_bridge --cov-report=term-missing
 success "Tests completed!"

@@ -1,15 +1,15 @@
 # Quickstart Example
 
-**The fastest way to see Agent ROS Bridge in action.**
+**The fastest way to see Agent ROS Bridge in action — no ROS installation needed.**
 
 ## What It Does
 
-Runs a simulated robot bridge in an isolated Docker container that responds to WebSocket commands. No ROS installation required.
+Runs a simulated robot bridge in an isolated Docker container that responds to WebSocket commands.
 
 ## Requirements
 
 - Docker Desktop
-- JWT_SECRET environment variable
+- `JWT_SECRET` environment variable
 
 ## Run
 
@@ -17,41 +17,37 @@ Runs a simulated robot bridge in an isolated Docker container that responds to W
 # Set required JWT secret
 export JWT_SECRET=$(openssl rand -base64 32)
 
-# Run in Docker (isolated, secure)
+# Option 1: Docker (isolated, recommended)
 docker-compose up
 
-# Or run the Python script directly (requires JWT_SECRET)
-export JWT_SECRET=$(openssl rand -base64 32)
+# Option 2: Direct Python (JWT_SECRET must be set)
+pip install agent-ros-bridge websockets
 python simulated_robot.py
 ```
 
 ## Test
 
 ```bash
-# Generate a token
+# Generate an auth token
 python ../../scripts/generate_token.py --secret $JWT_SECRET --role operator
 
-# Connect with token
-wscat -c "ws://localhost:8765?token=YOUR_TOKEN_HERE"
+# Connect via wscat (npm install -g wscat)
+wscat -c "ws://localhost:8766?token=<YOUR_TOKEN>"
 
-# Then type:
+# Try commands:
 {"command": {"action": "list_robots"}}
-{"command": {"action": "ping"}}
+{"command": {"action": "get_topics"}}
+{"command": {"action": "move", "parameters": {"direction": "forward", "distance": 1.0}}}
 ```
 
 ## What's Happening
 
-This runs the bridge with a **simulated robot** — a safe testing environment that behaves like real ROS but without any ROS installation. JWT authentication is always enforced. Perfect for:
-- First-time users
-- Testing the bridge API
-- Development without hardware
-
-## Security Note
-
-This example requires JWT_SECRET and uses authentication. The Docker container provides network isolation.
+The `simulated_robot.py` script starts a `Bridge` with a `SimulatedRobotPlugin` — a safe
+testing environment that behaves like a real ROS robot without any ROS installation.
 
 ## Next Steps
 
-- Try the [fleet example](../fleet/) for multi-robot
-- Try the [auth example](../auth/) for JWT security examples
-- See [Docker vs Native](../../docs/DOCKER_VS_NATIVE.md) for deployment options
+- [fleet/](../fleet/) — multi-robot fleet orchestration
+- [auth/](../auth/) — JWT security examples
+- [arm/](../arm/) — robot arm control
+- [docs/NATIVE_ROS.md](../../docs/NATIVE_ROS.md) — connecting to a real ROS robot

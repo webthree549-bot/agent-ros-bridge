@@ -1,6 +1,7 @@
 """Dashboard Server - Real-time web UI for monitoring."""
 
 import logging
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 try:
@@ -141,23 +142,33 @@ class DashboardServer:
     
     async def _handle_status(self, request):
         """API: Get bridge status."""
+        b = self.bridge
         status = {
-            "status": "running" if self.bridge else "not_initialized",
-            "timestamp": "2026-02-23T00:00:00Z"  # Placeholder
+            "status": "running" if (b and b.running) else "stopped",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "transports": list(b.transport_manager.transports.keys()) if b else [],
+            "fleets": list(b.fleets.keys()) if b else [],
         }
-        
-        if self.bridge and hasattr(self.bridge, 'get_status'):
-            status.update(self.bridge.get_status())
-        
         return web.json_response(status)
-    
+
     async def _handle_metrics(self, request):
-        """API: Get metrics."""
-        metrics = {}
-        
-        if self.bridge and hasattr(self.bridge, 'get_metrics'):
-            metrics = self.bridge.get_metrics()
-        
+        """API: Get runtime metrics."""
+        b = self.bridge
+        metrics: Dict[str, Any] = {}
+        if b:
+            metrics = {
+                "running": b.running,
+                "transports": {
+                    name: {"running": t.running}
+                    for name, t in b.transport_manager.transports.items()
+                },
+                "fleets": {
+                    name: {"robot_count": len(f.robots)}
+                    for name, f in b.fleets.items()
+                },
+                "memory_available": b.memory is not None,
+                "safety_available": b.safety is not None,
+            }
         return web.json_response(metrics)
     
     async def _handle_emergency_stop(self, request):

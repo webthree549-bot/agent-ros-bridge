@@ -51,6 +51,7 @@ dependencies = [
     "pyjwt>=2.8.0",
     "paho-mqtt>=1.6.0",
     "prometheus-client>=0.17.0",
+    "aiohttp>=3.9.0",
     "typing-extensions>=4.7.0; python_version<'3.10'",
 ]
 
@@ -286,7 +287,7 @@ exclude_dirs = ["tests"]
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "1.0.0"
+version = "0.5.0"
 version_files = [
     "agent_ros_bridge/__init__.py:__version__",
     "pyproject.toml:version",

@@ -212,6 +212,17 @@ class ROS1Robot(Robot):
                     pass
         return result
     
+    async def subscribe(self, topic: str):
+        """Subscribe to a ROS1 topic (async generator)."""
+        await self._cmd_subscribe({"topic": topic})
+        while self.connected:
+            try:
+                data = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
+                if data["topic"] == topic:
+                    yield Telemetry(topic=data["topic"], data=data["data"])
+            except asyncio.TimeoutError:
+                continue
+
     async def get_telemetry(self) -> Optional[Telemetry]:
         """Get telemetry data from queue"""
         try:
@@ -227,78 +238,42 @@ class ROS1Robot(Robot):
 
 class ROS1Connector(Connector):
     """ROS1 (Noetic) connector"""
+
     connector_type = "ros1"
-    """ROS1 connector for OpenClaw Gateway"""
-    
-    def __init__(self, config: Dict[str, Any]):
-        super().__init__("ros1", config)
+
+    def __init__(self, auto_discover: bool = True):
         self.robots: Dict[str, ROS1Robot] = {}
-        self.auto_discover = config.get("auto_discover", True)
+        self.auto_discover = auto_discover
         self._running = False
-    
-    async def start(self) -> bool:
-        """Start ROS1 connector"""
-        if not ROS1_AVAILABLE:
-            logger.error("ROS1 (rospy) not installed. Install: apt-get install python3-rospy")
-            return False
-        
-        self._running = True
-        logger.info("ROS1 connector started")
-        
-        if self.auto_discover:
-            await self._discover_robots()
-        
-        return True
-    
-    async def stop(self) -> None:
-        """Stop ROS1 connector"""
-        self._running = False
-        for robot in self.robots.values():
-            await robot.disconnect()
-        self.robots.clear()
-        logger.info("ROS1 connector stopped")
-    
+
     async def discover(self) -> List[RobotEndpoint]:
-        """Discover ROS1 robots/nodes"""
+        """Discover ROS1 nodes as robot endpoints"""
         if not ROS1_AVAILABLE:
             return []
-        
+
         endpoints = []
         try:
             nodes = rospy.get_node_names()
             for node in nodes:
+                node_id = node.replace("/", "_").lstrip("_")
                 endpoints.append(RobotEndpoint(
-                    robot_id=node.replace("/", "_"),
+                    uri=f"ros1://{node}",
                     name=node,
-                    robot_type="ros1",
-                    address=node,
+                    connector_type="ros1",
                     capabilities=["publish", "subscribe"],
                     metadata={"ros_version": "noetic"}
                 ))
         except Exception as e:
-            logger.error(f"Discovery failed: {e}")
-        
+            logger.error(f"ROS1 discovery failed: {e}")
+
         return endpoints
-    
-    async def connect(self, endpoint: RobotEndpoint) -> Optional[Robot]:
-        """Connect to a ROS1 robot"""
-        robot = ROS1Robot(endpoint.robot_id, endpoint.name)
+
+    async def connect(self, uri: str, **kwargs) -> Optional[Robot]:
+        """Connect to a ROS1 robot by URI (ros1://<node_name>)"""
+        node_name = uri.replace("ros1://", "")
+        robot_id = node_name.replace("/", "_").lstrip("_")
+        robot = ROS1Robot(robot_id, node_name)
         if await robot.connect():
-            self.robots[endpoint.robot_id] = robot
+            self.robots[robot_id] = robot
             return robot
         return None
-    
-    async def disconnect(self, robot_id: str) -> None:
-        """Disconnect from a ROS1 robot"""
-        if robot_id in self.robots:
-            await self.robots[robot_id].disconnect()
-            del self.robots[robot_id]
-    
-    async def _discover_robots(self):
-        """Auto-discover and connect to ROS1 robots"""
-        endpoints = await self.discover()
-        for endpoint in endpoints:
-            if endpoint.robot_id not in self.robots:
-                robot = await self.connect(endpoint)
-                if robot:
-                    logger.info(f"Auto-connected to ROS1 robot: {endpoint.name}")

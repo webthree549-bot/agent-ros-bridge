@@ -198,9 +198,9 @@ class ROS2Connector(Connector):
         
         if not self._initialized:
             rclpy.init()
+            ts = str(int(datetime.now().timestamp()))
             self.node = rclpy.create_node(
-                f"openclaw_bridge_{datetime.now().timestamp()}",
-                namespace="openclaw"
+                f"agent_ros_bridge_{ts}"
             )
             self._initialized = True
             

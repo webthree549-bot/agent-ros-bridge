@@ -1,30 +1,25 @@
-# Agent ROS Bridge - ROS1 Noetic Container
+# Agent ROS Bridge — ROS1 Noetic image
 FROM ros:noetic-ros-base
 
-# Install Python and dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-venv \
     python3-rospy \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python packages
-RUN pip3 install --break-system-packages \
-    websockets>=11.0 \
-    pyyaml>=6.0.1 \
-    psutil>=5.9.5 \
-    python-dotenv>=1.0.0
-
-# Set up workspace
 WORKDIR /app
 
-# Copy and install the package
-COPY . /app/
-RUN pip3 install --break-system-packages -e .
+COPY requirements.txt .
+RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
 
-# Source ROS1 on startup
-RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+COPY . .
+RUN pip3 install --break-system-packages --no-cache-dir -e .
+
 ENV ROS_DISTRO=noetic
+RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc
 
-# Default: run production bridge
-CMD ["python3", "run_bridge.py"]
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8765 50051
+
+ENTRYPOINT ["agent-ros-bridge"]
+CMD []

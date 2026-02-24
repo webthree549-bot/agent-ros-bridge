@@ -7,7 +7,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Build Docker images
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build base image (no ROS)
+        run: docker build -t agent-ros-bridge:ci .
+
+      - name: Smoke test CLI
         run: |
-          ./scripts/docker_build.sh
+          export JWT_SECRET=test-secret-for-ci
+          docker run --rm -e JWT_SECRET agent-ros-bridge:ci --version
+
+      - name: Build ROS2 image
+        run: docker build -t agent-ros-bridge:ros2 -f docker/Dockerfile.ros2 .

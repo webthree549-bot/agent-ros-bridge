@@ -60,25 +60,13 @@ class MCPServerTransport:
                 })
     
     async def _run_stdio(self):
-        """Run in stdio mode (for Claude Desktop)."""
+        """Run in stdio mode (for Claude Desktop).
+
+        MCP handshake: client sends initialize first; server responds.
+        We do NOT send anything unsolicited at startup.
+        """
         import sys
-        
-        # Send initialization
-        await self._send_message({
-            "jsonrpc": "2.0",
-            "id": 0,
-            "result": {
-                "protocolVersion": "2024-11-05",
-                "capabilities": {
-                    "tools": {}
-                },
-                "serverInfo": {
-                    "name": "agent-ros-bridge",
-                    "version": "0.5.0"
-                }
-            }
-        })
-        
+
         # Handle incoming messages
         while self.running:
             try:

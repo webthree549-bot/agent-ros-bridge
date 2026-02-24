@@ -18,22 +18,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def test_skill_manifest():
-    """Test that SKILL.md is valid"""
-    print("Testing SKILL.md manifest...")
-    
-    skill_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "SKILL.md")
-    assert os.path.exists(skill_path), f"SKILL.md not found at {skill_path}"
-    
+    """Test that skill.yaml is valid"""
+    print("Testing skill.yaml manifest...")
+
+    skill_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "skill.yaml")
+    assert os.path.exists(skill_path), f"skill.yaml not found at {skill_path}"
+
     with open(skill_path, 'r') as f:
         content = f.read()
-    
-    # Check required fields
+
     assert "name: agent-ros-bridge" in content, "Missing skill name"
     assert "version:" in content, "Missing version"
     assert "description:" in content, "Missing description"
-    assert '"openclaw":' in content or "openclaw:" in content, "Missing OpenClaw metadata"
-    
-    print("✅ SKILL.md manifest is valid")
+
+    print("✅ skill.yaml manifest is valid")
     return True
 
 

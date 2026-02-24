@@ -155,9 +155,9 @@ class TransportManager:
         logger.info(f"Registered transport: {transport.name}")
     
     def _route_message(self, message: Message, identity: Identity):
-        """Route incoming message to handler"""
+        """Route incoming message to handler — schedules the coroutine on the running loop"""
         if self._message_handler:
-            return self._message_handler(message, identity)
+            asyncio.ensure_future(self._message_handler(message, identity))
     
     def on_message(self, handler: Callable[[Message, Identity], asyncio.Future]):
         """Set global message handler"""
@@ -594,14 +594,14 @@ class Bridge:
     
     async def start(self) -> None:
         """Start the gateway"""
-        logger.info("Starting OpenClaw Gateway...")
+        logger.info("Starting Agent ROS Bridge...")
         await self.transport_manager.start_all()
         self.running = True
-        logger.info("Gateway started")
-    
+        logger.info("Bridge started")
+
     async def stop(self) -> None:
         """Stop the gateway"""
-        logger.info("Stopping OpenClaw Gateway...")
+        logger.info("Stopping Agent ROS Bridge...")
         self.running = False
         await self.transport_manager.stop_all()
         
@@ -614,7 +614,7 @@ class Bridge:
         for name in list(self.plugin_manager.plugins.keys()):
             await self.plugin_manager.unload_plugin(name)
         
-        logger.info("Gateway stopped")
+        logger.info("Bridge stopped")
     
     # v0.5.0: AI Agent Integration Methods
     
