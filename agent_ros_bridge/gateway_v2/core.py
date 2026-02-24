@@ -4,6 +4,12 @@
 
 The next-generation architecture for robot-AI connectivity.
 Multi-protocol, multi-robot, cloud-native.
+
+v0.5.0: Integrated AI Agent Support
+- Agent Memory (SQLite/Redis)
+- Safety Manager (confirmation, emergency stop)
+- Tool Discovery (MCP/OpenAI export)
+- LangChain/AutoGPT/MCP integrations
 """
 
 from __future__ import annotations
@@ -20,6 +26,16 @@ from datetime import datetime
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("agent_ros_bridge")
+
+# v0.5.0: Import AI integrations
+try:
+    from ..integrations.memory import AgentMemory
+    from ..integrations.safety import SafetyManager, SafetyLevel
+    from ..integrations.discovery import ToolDiscovery
+    INTEGRATIONS_AVAILABLE = True
+except ImportError:
+    INTEGRATIONS_AVAILABLE = False
+    logger.warning("AI integrations not available")
 
 
 # =============================================================================
@@ -388,7 +404,10 @@ class PluginManager:
 # =============================================================================
 
 class Bridge:
-    """Universal robot gateway - main entry point"""
+    """Universal robot gateway - main entry point
+    
+    v0.5.0: Added AI agent integrations
+    """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
@@ -399,8 +418,42 @@ class Bridge:
         self.plugin_manager.set_gateway(self)
         self.running = False
         
+        # v0.5.0: Initialize AI integrations
+        self.memory: Optional[AgentMemory] = None
+        self.safety: Optional[SafetyManager] = None
+        self.tools: Optional[ToolDiscovery] = None
+        
+        if INTEGRATIONS_AVAILABLE:
+            self._init_integrations()
+        
         # Set up message routing
         self.transport_manager.on_message(self._handle_message)
+    
+    def _init_integrations(self):
+        """Initialize v0.5.0 AI integrations"""
+        try:
+            # Agent Memory (SQLite default, Redis optional)
+            memory_backend = self.config.get("memory_backend", "sqlite")
+            memory_path = self.config.get("memory_path", ":memory:")
+            self.memory = AgentMemory(backend=memory_backend, path=memory_path)
+            logger.info(f"AgentMemory initialized ({memory_backend})")
+            
+            # Safety Manager
+            self.safety = SafetyManager()
+            # Register default safety policies
+            self.safety.register_policy("emergency_stop", SafetyLevel.DANGEROUS, 
+                                      "Emergency stop - requires confirmation")
+            self.safety.register_policy("move_arm", SafetyLevel.DANGEROUS,
+                                      "Arm movement - requires confirmation")
+            logger.info("SafetyManager initialized")
+            
+            # Tool Discovery
+            self.tools = ToolDiscovery(self)
+            logger.info("ToolDiscovery initialized")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize integrations: {e}")
+            # Continue without integrations - core functionality still works
     
     async def _handle_message(self, message: Message, identity: Identity) -> None:
         """Handle incoming message from transport"""
@@ -425,21 +478,60 @@ class Bridge:
                 )
     
     async def _handle_core_command(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Handle core gateway commands"""
+        """Handle core gateway commands
+        
+        v0.5.0: Integrated safety checks and memory logging
+        """
         if not message.command:
             return None
         
         cmd = message.command
         
+        # v0.5.0: Safety check for dangerous actions
+        if self.safety and self.safety.requires_confirmation(cmd.action):
+            request = await self.safety.request_confirmation(
+                cmd.action,
+                f"Execute {cmd.action}?",
+                timeout=30
+            )
+            approved = await self.safety.wait_for_confirmation(request.id, timeout=30)
+            
+            if not approved:
+                return Message(
+                    header=Header(correlation_id=message.header.message_id),
+                    event=Event(
+                        event_type="action_rejected",
+                        severity="warning",
+                        data={"action": cmd.action, "reason": "not_confirmed"}
+                    )
+                )
+        
+        # v0.5.0: Log to memory
+        if self.memory:
+            await self.memory.append(f"agent:{identity.id}:actions", {
+                "action": cmd.action,
+                "parameters": cmd.parameters,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+        
         if cmd.action == "discover":
             # Discover robots
             endpoints = await self.connector_registry.discover_all()
+            
+            # v0.5.0: Also discover tools if available
+            tools = []
+            if self.tools:
+                tools = self.tools.to_mcp_tools()
+            
             return Message(
                 header=Header(correlation_id=message.header.message_id),
                 telemetry=Telemetry(
                     topic="/discovery/results",
-                    data=[{"uri": e.uri, "name": e.name, "type": e.connector_type} 
-                          for e in endpoints]
+                    data={
+                        "robots": [{"uri": e.uri, "name": e.name, "type": e.connector_type} 
+                                  for e in endpoints],
+                        "tools": tools
+                    }
                 )
             )
         
@@ -523,6 +615,114 @@ class Bridge:
             await self.plugin_manager.unload_plugin(name)
         
         logger.info("Gateway stopped")
+    
+    # v0.5.0: AI Agent Integration Methods
+    
+    def get_langchain_tool(self, actions: Optional[List[str]] = None):
+        """Get LangChain tool for this bridge.
+        
+        Example:
+            from langchain.agents import initialize_agent
+            
+            tool = bridge.get_langchain_tool(["navigate", "move_arm"])
+            agent = initialize_agent([tool], llm, agent="zero-shot-react-description")
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+        
+        from ..integrations.langchain_adapter import ROSBridgeTool
+        return ROSBridgeTool(self, actions=actions)
+    
+    def get_autogpt_adapter(self):
+        """Get AutoGPT adapter for this bridge.
+        
+        Example:
+            adapter = bridge.get_autogpt_adapter()
+            commands = adapter.get_commands()
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+        
+        from ..integrations.autogpt_adapter import AutoGPTAdapter
+        return AutoGPTAdapter(self)
+    
+    def get_mcp_server(self, mode: str = "stdio"):
+        """Get MCP server transport for this bridge.
+        
+        Example:
+            mcp = bridge.get_mcp_server(mode="stdio")
+            await mcp.start()
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+        
+        from ..integrations.mcp_transport import MCPServerTransport
+        return MCPServerTransport(self, mode=mode)
+    
+    def get_dashboard(self, port: int = 8080):
+        """Get dashboard server for this bridge.
+        
+        Example:
+            dashboard = bridge.get_dashboard(port=8080)
+            await dashboard.start()
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+        
+        from ..integrations.dashboard_server import DashboardServer
+        return DashboardServer(self, port=port)
+    
+    async def execute_action(self, action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute an action via the bridge (used by AI integrations).
+        
+        This is the main entry point for AI agents to control robots.
+        
+        Args:
+            action: Action name (e.g., "navigate", "move_arm")
+            parameters: Action parameters
+            
+        Returns:
+            Action result
+        """
+        # Create command
+        cmd = Command(action=action, parameters=parameters)
+        
+        # Create dummy identity for AI agent
+        identity = Identity(
+            id="ai_agent",
+            name="AI Agent",
+            roles=["operator"]
+        )
+        
+        # Create message
+        msg = Message(command=cmd)
+        
+        # Handle via core command handler
+        response = await self._handle_core_command(msg, identity)
+        
+        if response and response.telemetry:
+            return response.telemetry.data
+        
+        return {"status": "error", "message": "No response from bridge"}
+    
+    def get_actions(self) -> List[str]:
+        """Get list of available actions (used by discovery)."""
+        # Return common actions - actual implementation would discover from robots
+        return [
+            "discover",
+            "fleet.list", 
+            "fleet.robots",
+            "robot.execute",
+            "emergency_stop"
+        ]
+    
+    def emergency_stop(self):
+        """Trigger emergency stop."""
+        if self.safety:
+            self.safety.trigger_emergency_stop("Manual emergency stop triggered")
+            logger.critical("EMERGENCY STOP triggered")
+        else:
+            logger.warning("Safety manager not available")
     
     @asynccontextmanager
     async def run(self):
