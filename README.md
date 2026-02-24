@@ -1,7 +1,7 @@
 # Agent ROS Bridge
 
-> 🎉 **v0.5.0 Coming Soon** — AI agent integrations are being rebuilt properly into gateway_v2.  
-> See [ROADMAP.md](ROADMAP.md) and [v0.5.0_PLAN.md](v0.5.0_PLAN.md) for details.
+> 🎉 **v0.5.0 Released** — Complete AI agent integration with ROS robots.  
+> After the honest v0.4.1 reset, v0.5.0 delivers on the original vision.
 
 ---
 
@@ -26,7 +26,7 @@ The bridge will **fail to start** without JWT_SECRET. This is by design — secu
 
 ---
 
-## ✅ What's Working (v0.4.1 / v0.5.0-alpha)
+## ✅ What's Working (v0.5.0)
 
 ### Core ROS Bridge
 - **Multi-Protocol** — WebSocket, gRPC, MQTT transports
@@ -38,128 +38,151 @@ The bridge will **fail to start** without JWT_SECRET. This is by design — secu
 - **Docker Examples** — Isolated testing environments
 - **Prometheus Metrics** — Basic observability
 
-### 🚧 AI Agent Integrations (v0.5.0 Preview)
+### 🤖 AI Agent Integrations (v0.5.0 — Fully Integrated)
 
-Code exists in `agent_ros_bridge/integrations/`:
+All features now **fully integrated** into gateway_v2:
 
-- **Agent Memory** — SQLite/Redis backends with TTL
-- **Safety Manager** — Action confirmation, emergency stop
-- **Tool Discovery** — Auto-discover ROS, export to MCP/OpenAI
-- **LangChain Adapter** — ROSBridgeTool, ROSAgent
-- **AutoGPT Adapter** — AutoGPT plugin support
-- **MCP Transport** — Model Context Protocol server
-- **Dashboard** — Real-time web UI
-
-**Status:** Implemented but not yet integrated into gateway_v2 core. Integration in progress.
-
----
-
-## Quick Start
-
-### Production (Native ROS)
-
-**Requirements:** Ubuntu 20.04/22.04 with ROS1 Noetic or ROS2 Humble/Jazzy
-
-```bash
-# Install
-pip install agent-ros-bridge
-
-# Set required secret
-export JWT_SECRET=$(openssl rand -base64 32)
-
-# Start bridge
-agent-ros-bridge --config config/bridge.yaml
-```
-
-### Docker Examples (Recommended for Testing)
-
-```bash
-# Clone repository
-git clone https://github.com/webthree549-bot/agent-ros-bridge.git
-cd agent-ros-bridge
-
-# Generate JWT secret
-export JWT_SECRET=$(openssl rand -base64 32)
-
-# Run example in Docker
-cd examples/quickstart
-docker-compose up
-```
-
-### Available Examples
-
-| Example | Description |
-|---------|-------------|
-| `examples/quickstart/` | Basic bridge |
-| `examples/fleet/` | Multi-robot fleet |
-| `examples/arm/` | Robot arm control |
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Agent Memory** | ✅ Working | SQLite/Redis backends with TTL |
+| **Safety Manager** | ✅ Working | Action confirmation, emergency stop |
+| **Tool Discovery** | ✅ Working | Auto-discover ROS, MCP/OpenAI export |
+| **LangChain** | ✅ Working | ROSBridgeTool, ROSAgent |
+| **AutoGPT** | ✅ Working | Native plugin adapter |
+| **MCP** | ✅ Working | Model Context Protocol (Claude Desktop) |
+| **Dashboard** | ✅ Working | Real-time web UI |
 
 ---
 
-## Installation
+## 🚀 Quick Start
 
-### Via PyPI
+### Installation
 
 ```bash
 pip install agent-ros-bridge
 ```
 
-### From Source
+### Set JWT Secret (Required)
 
 ```bash
-git clone https://github.com/webthree549-bot/agent-ros-bridge.git
-cd agent-ros-bridge
-pip install -e ".[dev]"
+export JWT_SECRET=$(openssl rand -base64 32)
 ```
 
----
-
-## Usage
-
-### Python API
+### With LangChain
 
 ```python
 from agent_ros_bridge import Bridge
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+from langchain.agents import initialize_agent
 
-# Bridge requires JWT_SECRET env var
+# Create bridge
 bridge = Bridge()
-bridge.transport_manager.register(WebSocketTransport({"port": 8765}))
-await bridge.start()
-```
 
-### With AI Features (v0.5.0)
-
-```python
-from agent_ros_bridge import Bridge
-from agent_ros_bridge.integrations import AgentMemory, SafetyManager, ROSBridgeTool
-
-# Create bridge with AI features
-bridge = Bridge()
-bridge.memory = AgentMemory()
-bridge.safety = SafetyManager()
+# Get LangChain tool
+tool = bridge.get_langchain_tool(["navigate", "move_arm"])
 
 # Use with LangChain
-from langchain.agents import initialize_agent
-tool = ROSBridgeTool(bridge)
 agent = initialize_agent([tool], llm, agent="zero-shot-react-description")
+agent.run("Navigate the robot to position (5, 3)")
+```
+
+### With AutoGPT
+
+```python
+from agent_ros_bridge import Bridge
+
+bridge = Bridge()
+adapter = bridge.get_autogpt_adapter()
+
+# Get AutoGPT commands
+commands = adapter.get_commands()
+```
+
+### MCP Server (Claude Desktop)
+
+```python
+from agent_ros_bridge import Bridge
+
+bridge = Bridge()
+mcp = bridge.get_mcp_server(mode="stdio")
+
+# Start MCP server
+await mcp.start()  # Claude Desktop can now control robots
+```
+
+### Dashboard
+
+```python
+from agent_ros_bridge import Bridge
+
+bridge = Bridge()
+dashboard = bridge.get_dashboard(port=8080)
+
+# Start dashboard
+await dashboard.start()  # http://localhost:8080
 ```
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 | Document | Description |
 |----------|-------------|
-| [ROADMAP.md](ROADMAP.md) | Future plans and honest assessment |
-| [v0.5.0_PLAN.md](v0.5.0_PLAN.md) | Detailed v0.5.0 execution plan |
-| [POST_MORTEM.md](POST_MORTEM.md) | What we learned from v0.4.0 |
-| [FEATURE_AUDIT.md](FEATURE_AUDIT.md) | Complete feature audit |
-| [docs/](docs/) | Full documentation |
+| [CHANGELOG.md](CHANGELOG.md) | Release notes |
+| [ROADMAP.md](ROADMAP.md) | Future plans |
+| [POST_MORTEM.md](POST_MORTEM.md) | Lessons learned from v0.4.0 |
+| [FEATURE_AUDIT.md](FEATURE_AUDIT.md) | Complete feature analysis |
+| [ACCOMPLISHMENTS.md](ACCOMPLISHMENTS.md) | What we built |
+| [examples/v0.5.0_integrations/](examples/v0.5.0_integrations/) | Usage examples |
 
 ---
 
-## Development
+## 🏗️ Architecture
+
+```python
+agent_ros_bridge/
+├── gateway_v2/          # Core bridge
+│   ├── core.py         # Bridge class with AI integrations
+│   ├── transports/     # WebSocket, gRPC, MQTT
+│   └── connectors/     # ROS1, ROS2
+│
+└── integrations/        # AI features (v0.5.0)
+    ├── memory.py       # Agent memory
+    ├── safety.py       # Safety confirmation
+    ├── discovery.py    # Tool discovery
+    ├── langchain_adapter.py    # LangChain
+    ├── autogpt_adapter.py      # AutoGPT
+    ├── mcp_transport.py        # MCP protocol
+    └── dashboard_server.py     # Web UI
+```
+
+**Key:** Everything properly wired together. No orphaned code.
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run integration tests
+pytest tests/integrations/
+```
+
+---
+
+## 📝 Examples
+
+See [examples/v0.5.0_integrations/](examples/v0.5.0_integrations/):
+
+- `langchain_example.py` — LangChain integration
+- `autogpt_example.py` — AutoGPT integration
+- `mcp_example.py` — MCP server for Claude Desktop
+- `dashboard_example.py` — Web dashboard
+
+---
+
+## 🔧 Development
 
 ```bash
 # Install dev dependencies
@@ -174,11 +197,21 @@ python -m build
 
 ---
 
-## Author
+## 📊 Version History
+
+| Version | Date | Status |
+|---------|------|--------|
+| v0.5.0 | 2026-02-23 | ✅ Current — Full AI integration |
+| v0.4.1 | 2026-02-23 | ✅ Honest release (cleanup) |
+| v0.4.0 | 2026-02-23 | ⚠️ Retracted (false claims) |
+
+---
+
+## 👤 Author
 
 **webthree549** <webthree549@gmail.com>
 
-## License
+## 📄 License
 
 [MIT License](LICENSE)
 
