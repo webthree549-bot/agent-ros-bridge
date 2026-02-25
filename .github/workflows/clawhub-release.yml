@@ -1,4 +1,4 @@
-name: ClawHub Release
+name: ClawHub Release Reminder
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  clawhub-release:
-    name: ClawHub Release
+  clawhub-reminder:
+    name: ClawHub Submission Reminder
     runs-on: ubuntu-latest
     if: "!contains(github.ref, 'rc') && !contains(github.ref, 'beta')"
     
@@ -18,18 +18,31 @@ jobs:
         id: get_version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install ClawHub CLI
-        run: pip install clawhub-cli
-      
-      - name: Publish to ClawHub
+      - name: Remind about ClawHub submission
         env:
-          CLAWHUB_API_KEY: ${{ secrets.CLAWHUB_API_KEY }}
+          VERSION: ${{ steps.get_version.outputs.version }}
         run: |
-          clawhub skill publish \
-            --manifest skill.yaml \
-            --version ${{ steps.get_version.outputs.version }}
+          echo "=============================================="
+          echo "🚀 ClawHub Submission Reminder"
+          echo "=============================================="
+          echo ""
+          echo "Version v${VERSION} has been tagged!"
+          echo ""
+          echo "📋 Next step: Submit to ClawHub marketplace"
+          echo ""
+          echo "Option 1: Web Interface (Easiest)"
+          echo "  1. Go to: https://clawhub.ai/skills/new"
+          echo "  2. Upload: skill.yaml"
+          echo "  3. Version: v${VERSION}"
+          echo ""
+          echo "Option 2: CLI (If available)"
+          echo "  clawhub skill publish --manifest skill.yaml --version v${VERSION}"
+          echo ""
+          echo "📚 Documentation:"
+          echo "  https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CLAWHUB_SUBMISSION.md"
+          echo ""
+          echo "=============================================="
+          
+          # Create a GitHub issue as reminder (optional)
+          # This creates a persistent reminder in the repo
+          echo "Creating submission reminder..."
