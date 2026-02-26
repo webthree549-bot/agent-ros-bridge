@@ -1,4 +1,8 @@
-# Core runtime dependencies (mirrors pyproject.toml [project.dependencies])
+# Agent ROS Bridge - Core Dependencies
+# Generated from pyproject.toml
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
 pyyaml>=6.0.1
 psutil>=5.9.5
 python-dotenv>=1.0.0
@@ -6,8 +10,9 @@ pyjwt>=2.8.0
 paho-mqtt>=1.6.0
 prometheus-client>=0.17.0
 aiohttp>=3.9.0
-typing-extensions>=4.7.0; python_version<'3.10'
+typing-extensions>=4.7.0; python_version<"3.10"
 
-# Transports (optional but commonly needed)
+# Transport dependencies (optional but recommended)
 websockets>=11.0
 grpcio>=1.56.0
+grpcio-tools>=1.56.0

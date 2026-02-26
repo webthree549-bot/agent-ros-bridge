@@ -122,7 +122,7 @@ Issues = "https://github.com/webthree549-bot/agent-ros-bridge/issues"
 Changelog = "https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CHANGELOG.md"
 
 [project.scripts]
-agent-ros-bridge = "agent_ros_bridge.gateway_v2.__main__:main"
+agent-ros-bridge = "agent_ros_bridge.__main__:main"
 
 [tool.hatch.version]
 source = "vcs"
