@@ -1,0 +1,61 @@
+syntax = "proto3";
+package agent_ros_bridge;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/webthree549-bot/agent-ros-bridge/proto";
+
+message Header {
+    string message_id = 1;
+    google.protobuf.Timestamp timestamp = 2;
+    string source = 3;
+    string target = 4;
+    string correlation_id = 5;
+}
+
+message Command {
+    string action = 1;
+    google.protobuf.Struct parameters = 2;
+    int32 timeout_ms = 3;
+    int32 priority = 4;
+}
+
+message Telemetry {
+    string topic = 1;
+    google.protobuf.Struct data = 2;
+    float quality = 3;
+}
+
+message Event {
+    string type = 1;
+    string severity = 2;
+    google.protobuf.Struct data = 3;
+}
+
+message Message {
+    Header header = 1;
+    Command command = 2;
+    Telemetry telemetry = 3;
+    Event event = 4;
+    google.protobuf.Struct metadata = 5;
+}
+
+message CommandResponse {
+    bool success = 1;
+    google.protobuf.Struct result = 2;
+    string error = 3;
+}
+
+message SubscriptionRequest {
+    repeated string topics = 1;
+    string robot_id = 2;
+}
+
+service BridgeService {
+    rpc SendCommand(Message) returns (CommandResponse);
+    rpc StreamTelemetry(stream Message) returns (stream Message);
+    rpc SubscribeTelemetry(SubscriptionRequest) returns (stream Telemetry);
+    rpc HealthCheck(google.protobuf.Empty) returns (CommandResponse);
+}

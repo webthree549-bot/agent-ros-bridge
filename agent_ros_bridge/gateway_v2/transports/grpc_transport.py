@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""gRPC Transport for OpenClaw Gateway
+"""gRPC Transport for Agent ROS Bridge
 
 High-performance gRPC transport for microservices, cloud deployments,
 and strongly-typed integrations.
@@ -11,13 +11,16 @@ import logging
 from typing import Dict, Any, Optional
 from concurrent import futures
 from datetime import datetime
+from google.protobuf import struct_pb2
 
 try:
     import grpc
-    from google.protobuf import struct_pb2, timestamp_pb2, empty_pb2
+    from google.protobuf import empty_pb2
+    from agent_ros_bridge.proto import bridge_pb2
     GRPC_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     GRPC_AVAILABLE = False
+    logging.debug(f"gRPC not available: {e}")
 
 from agent_ros_bridge.gateway_v2.core import (
     Transport, Message, Identity, Header, Command, Telemetry, Event
@@ -26,11 +29,8 @@ from agent_ros_bridge.gateway_v2.core import (
 logger = logging.getLogger("transport.grpc")
 
 
-# gRPC service definition (in Python for now, could be .proto)
-# This is a simplified version - full protobuf would be better
-
-class OpenClawService:
-    """gRPC service implementation"""
+class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE else object):
+    """Bridge service implementation"""
     
     def __init__(self, message_handler, transport):
         self.message_handler = message_handler
@@ -38,21 +38,31 @@ class OpenClawService:
     
     async def SendCommand(self, request, context):
         """Handle incoming command"""
-        identity = Identity(
-            id=str(context.peer()),
-            name=f"grpc_{context.peer()}",
-            roles=["authenticated"],  # Would check auth metadata
-            metadata={"transport": "grpc"}
-        )
-        
-        message = self._proto_to_message(request)
-        
-        if self.message_handler:
-            response = await self.message_handler(message, identity)
-            if response:
-                return self._message_to_proto(response)
-        
-        return self._create_empty_response()
+        try:
+            identity = Identity(
+                id=str(context.peer()),
+                name=f"grpc_{context.peer()}",
+                roles=["authenticated"],
+                metadata={"transport": "grpc", "method": "SendCommand"}
+            )
+            
+            message = self._proto_to_message(request)
+            
+            if self.message_handler:
+                response = await self.message_handler(message, identity)
+                if response:
+                    return self._message_to_proto_response(response)
+            
+            return bridge_pb2.CommandResponse(
+                success=False,
+                error="No handler registered"
+            )
+        except Exception as e:
+            logger.error(f"Error handling command: {e}")
+            return bridge_pb2.CommandResponse(
+                success=False,
+                error=str(e)
+            )
     
     async def StreamTelemetry(self, request_iterator, context):
         """Bidirectional streaming for telemetry"""
@@ -60,33 +70,73 @@ class OpenClawService:
             id=str(context.peer()),
             name=f"grpc_{context.peer()}",
             roles=["authenticated"],
-            metadata={"transport": "grpc"}
+            metadata={"transport": "grpc", "method": "StreamTelemetry"}
         )
         
         async for request in request_iterator:
-            message = self._proto_to_message(request)
-            
-            if self.message_handler:
-                response = await self.message_handler(message, identity)
-                if response:
-                    yield self._message_to_proto(response)
+            try:
+                message = self._proto_to_message(request)
+                
+                if self.message_handler:
+                    response = await self.message_handler(message, identity)
+                    if response:
+                        yield self._message_to_proto_response(response)
+            except Exception as e:
+                logger.error(f"Error in telemetry stream: {e}")
+                break
     
-    def _proto_to_message(self, proto):
-        """Convert protobuf to Message"""
-        # Simplified - full implementation would parse all fields
-        return Message(
-            header=Header(),
-            command=Command(action="test")
+    async def SubscribeTelemetry(self, request, context):
+        """Subscribe to telemetry stream"""
+        # This would typically connect to a telemetry publisher
+        # For now, yield a placeholder
+        yield bridge_pb2.Telemetry(
+            topic="status",
+            data=struct_pb2.Struct(),
+            quality=1.0
         )
     
-    def _message_to_proto(self, message: Message):
-        """Convert Message to protobuf"""
-        # Simplified - full implementation would serialize all fields
-        return empty_pb2.Empty()
+    async def HealthCheck(self, request, context):
+        """Health check endpoint"""
+        return bridge_pb2.CommandResponse(
+            success=True,
+            result=struct_pb2.Struct()
+        )
     
-    def _create_empty_response(self):
-        """Create empty response"""
-        return empty_pb2.Empty()
+    def _proto_to_message(self, proto) -> Message:
+        """Convert protobuf to Message"""
+        header = Header()
+        if proto.header and proto.header.message_id:
+            header.message_id = proto.header.message_id
+            header.source = proto.header.source
+            header.target = proto.header.target
+        
+        command = None
+        if proto.command and proto.command.action:
+            params = {}
+            if proto.command.parameters:
+                params = dict(proto.command.parameters.fields)
+            command = Command(
+                action=proto.command.action,
+                parameters=params,
+                timeout_ms=proto.command.timeout_ms,
+                priority=proto.command.priority
+            )
+        
+        return Message(header=header, command=command)
+    
+    def _message_to_proto_response(self, message: Message) -> bridge_pb2.CommandResponse:
+        """Convert Message to CommandResponse protobuf"""
+        result_struct = struct_pb2.Struct()
+        
+        if message.telemetry and message.telemetry.data:
+            if isinstance(message.telemetry.data, dict):
+                result_struct.update(message.telemetry.data)
+        
+        return bridge_pb2.CommandResponse(
+            success=True,
+            result=result_struct,
+            error=""
+        )
 
 
 class GRPCTransport(Transport):
@@ -108,27 +158,32 @@ class GRPCTransport(Transport):
             logger.error("grpc library not installed. Run: pip install grpcio grpcio-tools")
             return False
         
-        self.service = OpenClawService(self.message_handler, self)
+        self.service = BridgeServiceServicer(self.message_handler, self)
         
         # Create gRPC server
         self.server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
         
-        # Add service to server (simplified - would use generated code)
-        # In real implementation:
-        # openclaw_pb2_grpc.add_OpenClawServiceServicer_to_server(self.service, self.server)
+        # Register service to server
+        bridge_pb2.add_BridgeServiceServicer_to_server(self.service, self.server)
+        logger.info("BridgeService registered to gRPC server")
         
         # Bind to port
         if self.tls_cert and self.tls_key:
-            with open(self.tls_cert, 'rb') as f:
-                certificate_chain = f.read()
-            with open(self.tls_key, 'rb') as f:
-                private_key = f.read()
-            
-            credentials = grpc.ssl_server_credentials(
-                ((private_key, certificate_chain),)
-            )
-            self.server.add_secure_port(f"{self.host}:{self.port}", credentials)
-            logger.info(f"gRPC TLS enabled on {self.host}:{self.port}")
+            try:
+                with open(self.tls_cert, 'rb') as f:
+                    certificate_chain = f.read()
+                with open(self.tls_key, 'rb') as f:
+                    private_key = f.read()
+                
+                credentials = grpc.ssl_server_credentials(
+                    ((private_key, certificate_chain),)
+                )
+                self.server.add_secure_port(f"{self.host}:{self.port}", credentials)
+                logger.info(f"gRPC TLS enabled on {self.host}:{self.port}")
+            except Exception as e:
+                logger.error(f"Failed to load TLS certificates: {e}")
+                logger.info(f"Falling back to insecure port {self.host}:{self.port}")
+                self.server.add_insecure_port(f"{self.host}:{self.port}")
         else:
             self.server.add_insecure_port(f"{self.host}:{self.port}")
             logger.info(f"gRPC starting on {self.host}:{self.port}")
@@ -137,19 +192,18 @@ class GRPCTransport(Transport):
         if self.reflection:
             try:
                 from grpc_reflection.v1alpha import reflection
-                # In real implementation:
-                # SERVICE_NAMES = (
-                #     openclaw_pb2.DESCRIPTOR.services_by_name['OpenClawService'].full_name,
-                #     reflection.SERVICE_NAME,
-                # )
-                # reflection.enable_server_reflection(SERVICE_NAMES, self.server)
+                SERVICE_NAMES = (
+                    bridge_pb2.SERVICE_NAME,
+                    reflection.SERVICE_NAME,
+                )
+                reflection.enable_server_reflection(SERVICE_NAMES, self.server)
                 logger.info("gRPC reflection enabled")
             except ImportError:
-                logger.warning("grpc-reflection not available")
+                logger.warning("grpc-reflection not available, install with: pip install grpcio-reflection")
         
         await self.server.start()
         self.running = True
-        logger.info(f"gRPC transport started on {self.host}:{self.port}")
+        logger.info(f"gRPC transport started successfully")
         return True
     
     async def stop(self) -> None:
@@ -162,78 +216,13 @@ class GRPCTransport(Transport):
     
     async def send(self, message: Message, recipient: str) -> bool:
         """Send message to specific recipient"""
-        # gRPC is request/response, so this would require client tracking
-        # For now, this is a placeholder
-        logger.warning("gRPC send() not implemented - use request/response pattern")
+        logger.warning("gRPC send() not implemented - gRPC uses request/response pattern")
         return False
     
     async def broadcast(self, message: Message) -> list:
         """Broadcast to all connected clients"""
         logger.warning("gRPC broadcast() not implemented - gRPC is connection-oriented")
         return []
-
-
-# Proto file content for reference (would be in openclaw.proto)
-PROTO_DEFINITION = '''
-syntax = "proto3";
-package openclaw;
-
-import "google/protobuf/struct.proto";
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/empty.proto";
-
-message Header {
-    string message_id = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    string source = 3;
-    string target = 4;
-    string correlation_id = 5;
-}
-
-message Command {
-    string action = 1;
-    google.protobuf.Struct parameters = 2;
-    int32 timeout_ms = 3;
-    int32 priority = 4;
-}
-
-message Telemetry {
-    string topic = 1;
-    google.protobuf.Struct data = 2;
-    float quality = 3;
-}
-
-message Event {
-    string type = 1;
-    string severity = 2;
-    google.protobuf.Struct data = 3;
-}
-
-message Message {
-    Header header = 1;
-    Command command = 2;
-    Telemetry telemetry = 3;
-    Event event = 4;
-    google.protobuf.Struct metadata = 5;
-}
-
-message CommandResponse {
-    bool success = 1;
-    google.protobuf.Struct result = 2;
-    string error = 3;
-}
-
-service OpenClawService {
-    rpc SendCommand(Message) returns (CommandResponse);
-    rpc StreamTelemetry(stream Message) returns (stream Message);
-    rpc SubscribeTelemetry(SubscriptionRequest) returns (stream Telemetry);
-}
-
-message SubscriptionRequest {
-    repeated string topics = 1;
-    string robot_id = 2;
-}
-'''
 
 
 # Example usage
