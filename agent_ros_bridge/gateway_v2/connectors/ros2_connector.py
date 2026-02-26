@@ -88,7 +88,8 @@ class ROS2Robot(Robot):
             return
         
         # Create ROS2 subscription
-        # This is simplified - actual implementation needs message type mapping
+        # This uses std_msgs/String as a generic message type for demonstration
+        # In production, you'd map topic names to specific message types
         def callback(msg):
             telemetry = Telemetry(
                 topic=topic,
@@ -97,11 +98,18 @@ class ROS2Robot(Robot):
             )
             asyncio.create_task(self._telemetry_queue.put(telemetry))
         
-        # In real implementation, we'd need to determine the message type
-        # subscription = self.ros_node.create_subscription(
-        #     msg_type, topic, callback, 10
-        # )
-        # self.subscriptions[topic] = subscription
+        try:
+            # Try to import std_msgs for basic subscription support
+            from std_msgs.msg import String
+            subscription = self.ros_node.create_subscription(
+                String, topic, callback, 10
+            )
+            self.subscriptions[topic] = subscription
+            logger.info(f"Subscribed to ROS2 topic: {topic}")
+        except ImportError:
+            logger.warning(f"std_msgs not available, subscription to {topic} will use generic handler")
+        except Exception as e:
+            logger.error(f"Failed to subscribe to {topic}: {e}")
         
         # Yield from queue
         while self.connected:
@@ -121,19 +129,36 @@ class ROS2Robot(Robot):
         message_data = params.get("data")
         msg_type_str = params.get("type", "std_msgs/String")
         
-        # Create publisher if needed
-        if topic not in self.publishers:
-            # In real implementation, resolve message type from string
-            # publisher = self.ros_node.create_publisher(msg_type, topic, 10)
-            # self.publishers[topic] = publisher
-            pass
+        if not topic:
+            return {"status": "error", "message": "Topic is required"}
         
-        # Create and publish message
-        # msg = message_type()
-        # self._dict_to_ros_msg(message_data, msg)
-        # self.publishers[topic].publish(msg)
-        
-        return {"status": "published", "topic": topic}
+        try:
+            # Create publisher if needed
+            if topic not in self.publishers:
+                from std_msgs.msg import String
+                publisher = self.ros_node.create_publisher(String, topic, 10)
+                self.publishers[topic] = publisher
+                logger.info(f"Created publisher for topic: {topic}")
+            
+            # Create and publish message
+            from std_msgs.msg import String
+            msg = String()
+            if isinstance(message_data, str):
+                msg.data = message_data
+            elif isinstance(message_data, dict):
+                msg.data = message_data.get("data", str(message_data))
+            else:
+                msg.data = str(message_data)
+            
+            self.publishers[topic].publish(msg)
+            logger.debug(f"Published to {topic}: {msg.data[:100]}...")
+            
+            return {"status": "published", "topic": topic, "type": msg_type_str}
+        except ImportError:
+            return {"status": "error", "message": "std_msgs not available"}
+        except Exception as e:
+            logger.error(f"Failed to publish to {topic}: {e}")
+            return {"status": "error", "message": str(e)}
     
     async def _cmd_call_service(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """Call ROS2 service"""
@@ -171,8 +196,33 @@ class ROS2Robot(Robot):
     
     def _ros_msg_to_dict(self, msg) -> Dict[str, Any]:
         """Convert ROS message to dictionary"""
-        # Simplified - actual implementation would use msg.get_fields_and_field_types()
-        return {"_type": type(msg).__name__}
+        result = {"_type": type(msg).__name__}
+        
+        # Try to extract fields using get_fields_and_field_types() if available
+        try:
+            if hasattr(msg, 'get_fields_and_field_types'):
+                fields = msg.get_fields_and_field_types()
+                for field_name in fields.keys():
+                    value = getattr(msg, field_name, None)
+                    # Handle nested messages
+                    if hasattr(value, 'get_fields_and_field_types'):
+                        result[field_name] = self._ros_msg_to_dict(value)
+                    elif isinstance(value, list):
+                        result[field_name] = [
+                            self._ros_msg_to_dict(v) if hasattr(v, 'get_fields_and_field_types') else v
+                            for v in value
+                        ]
+                    else:
+                        result[field_name] = value
+            else:
+                # Fallback: try to get all attributes that aren't methods or private
+                for attr in dir(msg):
+                    if not attr.startswith('_') and not callable(getattr(msg, attr)):
+                        result[attr] = getattr(msg, attr)
+        except Exception as e:
+            logger.debug(f"Could not fully convert ROS message: {e}")
+        
+        return result
     
     def _dict_to_ros_msg(self, data: Dict[str, Any], msg):
         """Convert dictionary to ROS message"""
