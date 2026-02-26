@@ -188,9 +188,10 @@ htmlcov/
 # Ignore node_modules if any
 node_modules/
 
-# Ignore compiled proto files
-*_pb2.py
+# Ignore compiled proto files (but not our hand-written ones)
 *_pb2_grpc.py
+# *_pb2.py - Uncomment when using protoc generation
+# We commit bridge_pb2.py for now since it provides gRPC service definitions
 
 # Ignore local environment
 .env.local

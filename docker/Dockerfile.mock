@@ -1,0 +1,23 @@
+# Agent ROS Bridge - Quickstart Mock/Demo Image
+# This is a lightweight image for testing without ROS2
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source
+COPY . .
+RUN pip install --no-cache-dir -e .
+
+# Environment
+ENV PYTHONUNBUFFERED=1
+
+# Quickstart runs on 8766
+EXPOSE 8766
+
+# Run simulated robot example
+CMD ["python3", "examples/quickstart/simulated_robot.py"]
