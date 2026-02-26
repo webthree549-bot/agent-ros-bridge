@@ -273,8 +273,26 @@ class ConfigLoader:
         """Set nested attribute by dot path"""
         parts = path.split(".")
         for part in parts[:-1]:
-            obj = getattr(obj, part)
-        setattr(obj, parts[-1], value)
+            if isinstance(obj, dict):
+                obj = obj.get(part)
+                if obj is None:
+                    return  # Path doesn't exist, skip
+            else:
+                obj = getattr(obj, part, None)
+                if obj is None:
+                    return  # Path doesn't exist, skip
+        # Set final value, converting type if needed
+        final_key = parts[-1]
+        if isinstance(obj, dict):
+            obj[final_key] = value
+        else:
+            # Try to convert to existing type for primitive fields
+            existing = getattr(obj, final_key, None)
+            if existing is not None and isinstance(existing, bool):
+                value = value.lower() in ('true', '1', 'yes', 'on')
+            elif existing is not None and isinstance(existing, int):
+                value = int(value)
+            setattr(obj, final_key, value)
     
     @classmethod
     def _merge_configs(cls, base: "BridgeConfig", override: "BridgeConfig") -> "BridgeConfig":
