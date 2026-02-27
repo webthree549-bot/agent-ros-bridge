@@ -241,14 +241,15 @@ class TestConfigFileOrEnv:
     
     def test_falls_back_to_defaults(self):
         """Test that defaults are used when no config file found"""
-        # Ensure no env var pointing to valid config
-        env_vars = ["BRIDGE_CONFIG"] + [k for k in os.environ if k.startswith("BRIDGE_")]
-        cleared_env = {k: None for k in env_vars}
+        # Clear BRIDGE_ env vars by setting to empty string
+        env_vars = {k: "" for k in os.environ if k.startswith("BRIDGE_")}
         
-        with mock.patch.dict(os.environ, cleared_env, clear=True):
-            config = ConfigLoader.from_file_or_env()
-            assert config.name == "agent_ros_bridge"  # Default value
-            assert config.log_level == "INFO"  # Default value
+        with mock.patch.dict(os.environ, env_vars, clear=False):
+            # Also ensure BRIDGE_CONFIG points to non-existent file
+            with mock.patch.dict(os.environ, {"BRIDGE_CONFIG": "/nonexistent/config.yaml"}):
+                config = ConfigLoader.from_file_or_env()
+                assert config.name == "agent_ros_bridge"  # Default value
+                assert config.log_level == "INFO"  # Default value
 
 
 class TestNestedAttributeHandling:
@@ -394,7 +395,7 @@ class TestTransportConfig:
         transport = TransportConfig(
             enabled=True,
             host="0.0.0.0",
-            port":443,
+            port=443,
             tls_cert="/etc/ssl/cert.pem",
             tls_key="/etc/ssl/key.pem",
             options={"keepalive": 60}
