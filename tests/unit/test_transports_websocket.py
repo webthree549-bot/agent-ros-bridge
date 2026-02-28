@@ -9,10 +9,21 @@ import pytest
 from datetime import datetime
 from unittest import mock
 
-# Mock websockets before import
-with mock.patch.dict('sys.modules', {'websockets': mock.MagicMock()}):
-    from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
-    from agent_ros_bridge.gateway_v2.core import Message, Identity, Header, Command, Telemetry
+# Check optional dependencies
+try:
+    import websockets
+    WEBSOCKETS_AVAILABLE = True
+except ImportError:
+    WEBSOCKETS_AVAILABLE = False
+
+# Mock websockets before import if not available
+if not WEBSOCKETS_AVAILABLE:
+    mock_websockets = mock.MagicMock()
+    mock_websockets.exceptions = mock.MagicMock()
+    mock.patch.dict('sys.modules', {'websockets': mock_websockets, 'websockets.exceptions': mock_websockets.exceptions}).start()
+
+from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+from agent_ros_bridge.gateway_v2.core import Message, Identity, Header, Command, Telemetry
 
 
 class TestWebSocketTransportBasics:
