@@ -279,6 +279,7 @@ class TestErrorHandling:
         """Test behavior when ROS2 is not available"""
         # Skip if ROS2 is actually available (can't test the error path)
         from agent_ros_bridge.gateway_v2.connectors import ros2_connector
+
         if ros2_connector.ROS2_AVAILABLE:
             pytest.skip("ROS2 is available, cannot test error path")
 

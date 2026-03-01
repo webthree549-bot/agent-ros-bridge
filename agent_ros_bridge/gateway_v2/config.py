@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Configuration system for OpenClaw Gateway
 
 Supports YAML, JSON, environment variables, and dynamic configuration.
 """
 
-import os
-import yaml
 import json
 import logging
-from typing import Dict, Any, Optional, List
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 logger = logging.getLogger("gateway.config")
 
@@ -19,6 +19,7 @@ logger = logging.getLogger("gateway.config")
 @dataclass
 class TransportConfig:
     """Transport configuration"""
+
     enabled: bool = True
     host: str = "0.0.0.0"
     port: int = 0  # 0 means disabled
@@ -30,6 +31,7 @@ class TransportConfig:
 @dataclass
 class ROSEndpoint:
     """Remote ROS endpoint configuration"""
+
     id: str
     ros_type: str = "ros2"  # ros1, ros2
     ros_distro: str = "jazzy"  # noetic, humble, jazzy
@@ -48,6 +50,7 @@ class ROSEndpoint:
 @dataclass
 class ConnectorConfig:
     """Connector configuration"""
+
     enabled: bool = True
     # Multi-ROS support: list of ROS endpoints
     endpoints: List[ROSEndpoint] = field(default_factory=list)
@@ -58,6 +61,7 @@ class ConnectorConfig:
 @dataclass
 class SecurityConfig:
     """Security configuration"""
+
     enabled: bool = False
     authentication: List[str] = field(default_factory=lambda: ["jwt"])
     jwt_secret: Optional[str] = None
@@ -71,6 +75,7 @@ class SecurityConfig:
 @dataclass
 class PluginConfig:
     """Plugin configuration"""
+
     name: str
     enabled: bool = True
     source: Optional[str] = None  # Path or URL
@@ -80,73 +85,76 @@ class PluginConfig:
 @dataclass
 class BridgeConfig:
     """Main gateway configuration"""
+
     name: str = "agent_ros_bridge"
     log_level: str = "INFO"
-    
+
     # Transports
-    transports: Dict[str, TransportConfig] = field(default_factory=lambda: {
-        "websocket": TransportConfig(port=8765),
-        "grpc": TransportConfig(port=50051),
-        "tcp": TransportConfig(port=9999),
-    })
-    
+    transports: Dict[str, TransportConfig] = field(
+        default_factory=lambda: {
+            "websocket": TransportConfig(port=8765),
+            "grpc": TransportConfig(port=50051),
+            "tcp": TransportConfig(port=9999),
+        }
+    )
+
     # Connectors
-    connectors: Dict[str, ConnectorConfig] = field(default_factory=lambda: {
-        "ros2": ConnectorConfig(),
-        "mqtt": ConnectorConfig(),
-    })
-    
+    connectors: Dict[str, ConnectorConfig] = field(
+        default_factory=lambda: {
+            "ros2": ConnectorConfig(),
+            "mqtt": ConnectorConfig(),
+        }
+    )
+
     # Security
     security: SecurityConfig = field(default_factory=SecurityConfig)
-    
+
     # Plugins
     plugins: List[PluginConfig] = field(default_factory=list)
-    
+
     # Discovery
-    discovery: Dict[str, Any] = field(default_factory=lambda: {
-        "enabled": True,
-        "methods": ["mdns", "ros2"],
-        "interval": 30
-    })
-    
+    discovery: Dict[str, Any] = field(
+        default_factory=lambda: {"enabled": True, "methods": ["mdns", "ros2"], "interval": 30}
+    )
+
     # Telemetry
-    telemetry: Dict[str, Any] = field(default_factory=lambda: {
-        "enabled": True,
-        "metrics_port": 9090,
-        "tracing": True
-    })
-    
+    telemetry: Dict[str, Any] = field(
+        default_factory=lambda: {"enabled": True, "metrics_port": 9090, "tracing": True}
+    )
+
     # Storage
-    storage: Dict[str, Any] = field(default_factory=lambda: {
-        "type": "memory",  # memory, sqlite, postgres
-        "connection_string": None
-    })
+    storage: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "type": "memory",  # memory, sqlite, postgres
+            "connection_string": None,
+        }
+    )
 
 
 class ConfigLoader:
     """Configuration loader with environment variable support"""
-    
+
     ENV_PREFIX = "BRIDGE_"
 
     @classmethod
     def from_yaml(cls, path: str) -> "BridgeConfig":
         """Load configuration from YAML file"""
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = yaml.safe_load(f)
         return cls._dict_to_config(data)
-    
+
     @classmethod
     def from_json(cls, path: str) -> "BridgeConfig":
         """Load configuration from JSON file"""
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = json.load(f)
         return cls._dict_to_config(data)
-    
+
     @classmethod
     def from_env(cls) -> "BridgeConfig":
         """Load configuration from environment variables"""
         config = BridgeConfig()
-        
+
         # Simple env var mapping
         env_mappings = {
             "NAME": "name",
@@ -158,14 +166,14 @@ class ConfigLoader:
             "TLS_CERT": "security.tls_cert",
             "TLS_KEY": "security.tls_key",
         }
-        
+
         for env_key, config_key in env_mappings.items():
             env_val = os.getenv(f"{cls.ENV_PREFIX}{env_key}")
             if env_val is not None:
                 cls._set_nested_attr(config, config_key, env_val)
-        
+
         return config
-    
+
     @classmethod
     def from_file_or_env(cls, path: Optional[str] = None) -> "BridgeConfig":
         """Load from file or environment"""
@@ -178,27 +186,27 @@ class ConfigLoader:
             "~/.agent-ros-bridge/gateway.yaml",
             "/etc/agent-ros-bridge/gateway.yaml",
         ]
-        
+
         for p in config_paths:
             if p and Path(p).expanduser().exists():
-                if p.endswith('.yaml') or p.endswith('.yml'):
+                if p.endswith(".yaml") or p.endswith(".yml"):
                     config = cls.from_yaml(p)
                     logger.info(f"Loaded config from {p}")
                     break
-                elif p.endswith('.json'):
+                elif p.endswith(".json"):
                     config = cls.from_json(p)
                     logger.info(f"Loaded config from {p}")
                     break
         else:
             config = BridgeConfig()
             logger.info("Using default configuration")
-        
+
         # Override with environment variables
         env_config = cls.from_env()
         config = cls._merge_configs(config, env_config)
-        
+
         return config
-    
+
     @classmethod
     def _dict_to_config(cls, data: Dict[str, Any]) -> "BridgeConfig":
         """Convert dictionary to BridgeConfig"""
@@ -214,7 +222,7 @@ class ConfigLoader:
             telemetry=data.get("telemetry", {"enabled": True}),
             storage=data.get("storage", {"type": "memory"}),
         )
-    
+
     @classmethod
     def _parse_transports(cls, data: Dict[str, Any]) -> Dict[str, TransportConfig]:
         """Parse transport configurations"""
@@ -226,21 +234,20 @@ class ConfigLoader:
                 port=cfg.get("port", 0),
                 tls_cert=cfg.get("tls_cert"),
                 tls_key=cfg.get("tls_key"),
-                options=cfg.get("options", {})
+                options=cfg.get("options", {}),
             )
         return transports
-    
+
     @classmethod
     def _parse_connectors(cls, data: Dict[str, Any]) -> Dict[str, ConnectorConfig]:
         """Parse connector configurations"""
         connectors = {}
         for name, cfg in data.items():
             connectors[name] = ConnectorConfig(
-                enabled=cfg.get("enabled", True),
-                options=cfg.get("options", {})
+                enabled=cfg.get("enabled", True), options=cfg.get("options", {})
             )
         return connectors
-    
+
     @classmethod
     def _parse_security(cls, data: Dict[str, Any]) -> SecurityConfig:
         """Parse security configuration"""
@@ -252,22 +259,24 @@ class ConfigLoader:
             tls_cert=data.get("tls_cert"),
             tls_key=data.get("tls_key"),
             mtls_enabled=data.get("mtls_enabled", False),
-            ca_cert=data.get("ca_cert")
+            ca_cert=data.get("ca_cert"),
         )
-    
+
     @classmethod
     def _parse_plugins(cls, data: List[Dict[str, Any]]) -> List[PluginConfig]:
         """Parse plugin configurations"""
         plugins = []
         for p in data:
-            plugins.append(PluginConfig(
-                name=p.get("name", "unknown"),
-                enabled=p.get("enabled", True),
-                source=p.get("source"),
-                options=p.get("options", {})
-            ))
+            plugins.append(
+                PluginConfig(
+                    name=p.get("name", "unknown"),
+                    enabled=p.get("enabled", True),
+                    source=p.get("source"),
+                    options=p.get("options", {}),
+                )
+            )
         return plugins
-    
+
     @classmethod
     def _set_nested_attr(cls, obj: Any, path: str, value: Any) -> None:
         """Set nested attribute by dot path"""
@@ -289,32 +298,32 @@ class ConfigLoader:
             # Try to convert to existing type for primitive fields
             existing = getattr(obj, final_key, None)
             if existing is not None and isinstance(existing, bool):
-                value = value.lower() in ('true', '1', 'yes', 'on')
+                value = value.lower() in ("true", "1", "yes", "on")
             elif existing is not None and isinstance(existing, int):
                 value = int(value)
             setattr(obj, final_key, value)
-    
+
     @classmethod
     def _merge_configs(cls, base: "BridgeConfig", override: "BridgeConfig") -> "BridgeConfig":
         """Merge two configurations (override takes precedence)"""
         # Simplified merge - full implementation would handle all fields
         result = BridgeConfig()
-        
+
         # Copy base
         for field_name in base.__dataclass_fields__:
             setattr(result, field_name, getattr(base, field_name))
-        
+
         # Apply overrides (non-default values)
         for field_name in override.__dataclass_fields__:
             override_val = getattr(override, field_name)
             if override_val != getattr(BridgeConfig(), field_name):
                 setattr(result, field_name, override_val)
-        
+
         return result
 
 
 # Example configuration file content
-EXAMPLE_CONFIG_YAML = '''
+EXAMPLE_CONFIG_YAML = """
 name: "warehouse_gateway_01"
 log_level: INFO
 
@@ -386,7 +395,7 @@ storage:
   type: memory
   # type: sqlite
   # connection_string: ./data/gateway.db
-'''
+"""
 
 
 if __name__ == "__main__":
@@ -394,7 +403,7 @@ if __name__ == "__main__":
     with open("config_example.yaml", "w") as f:
         f.write(EXAMPLE_CONFIG_YAML)
     print("Created config_example.yaml")
-    
+
     # Example: Load configuration
     config = ConfigLoader.from_file_or_env()
     print(f"\nGateway name: {config.name}")

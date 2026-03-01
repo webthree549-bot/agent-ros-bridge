@@ -4,13 +4,13 @@ Multi-robot orchestration, task allocation, and fleet coordination.
 """
 
 from .orchestrator import (
+    FleetMetrics,
     FleetOrchestrator,
     FleetRobot,
     RobotCapability,
+    RobotStatus,
     Task,
     TaskStatus,
-    RobotStatus,
-    FleetMetrics
 )
 
 __all__ = [
@@ -20,5 +20,5 @@ __all__ = [
     "Task",
     "TaskStatus",
     "RobotStatus",
-    "FleetMetrics"
+    "FleetMetrics",
 ]

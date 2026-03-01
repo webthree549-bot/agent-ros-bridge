@@ -18,7 +18,7 @@ Example:
         AgentMemory, SafetyManager, ToolDiscovery,
         ROSBridgeTool, AutoGPTAdapter, MCPServerTransport
     )
-    
+
     # Create bridge with AI features
     bridge = Bridge()
     bridge.memory = AgentMemory()
@@ -28,13 +28,13 @@ Example:
 
 __version__ = "0.5.0"
 
-from .memory import AgentMemory
-from .safety import SafetyManager, SafetyLevel
-from .discovery import ToolDiscovery, ROSAction
-from .langchain_adapter import ROSBridgeTool, ROSAgent
 from .autogpt_adapter import AutoGPTAdapter
-from .mcp_transport import MCPServerTransport
 from .dashboard_server import DashboardServer
+from .discovery import ROSAction, ToolDiscovery
+from .langchain_adapter import ROSAgent, ROSBridgeTool
+from .mcp_transport import MCPServerTransport
+from .memory import AgentMemory
+from .safety import SafetyLevel, SafetyManager
 
 __all__ = [
     "AgentMemory",

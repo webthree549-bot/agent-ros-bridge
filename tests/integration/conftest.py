@@ -1,7 +1,8 @@
 """pytest configuration for integration tests"""
 
-import pytest
 import asyncio
+
+import pytest
 
 
 @pytest.fixture(scope="session")
@@ -16,19 +17,23 @@ def event_loop():
 def bridge_url():
     """Get bridge WebSocket URL from environment"""
     import os
+
     return os.environ.get("BRIDGE_URL", "ws://localhost:8766")
 
 
-@pytest.fixture(scope="session")  
+@pytest.fixture(scope="session")
 def mqtt_broker():
     """Get MQTT broker from environment"""
     import os
+
     return os.environ.get("MQTT_BROKER", "localhost")
 
 
 # Custom markers
 def pytest_configure(config):
     """Configure custom pytest markers"""
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "docker: marks tests as requiring Docker")
     config.addinivalue_line("markers", "mqtt: marks tests as requiring MQTT broker")

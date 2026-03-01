@@ -2,10 +2,11 @@
 
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any, Dict
 
 try:
     from aiohttp import web
+
     AIOHTTP_AVAILABLE = True
 except ImportError:
     AIOHTTP_AVAILABLE = False
@@ -15,66 +16,66 @@ logger = logging.getLogger(__name__)
 
 class DashboardServer:
     """Real-time dashboard for monitoring the bridge.
-    
+
     Provides:
     - Live telemetry
     - Connection status
     - Action history
     - Emergency stop button
-    
+
     Example:
         from agent_ros_bridge.gateway_v2.core import Bridge
         from agent_ros_bridge.integrations.dashboard_server import DashboardServer
-        
+
         bridge = Bridge()
         dashboard = DashboardServer(bridge, port=8080)
         await dashboard.start()
     """
-    
+
     def __init__(self, bridge, port: int = 8080):
         self.bridge = bridge
         self.port = port
         self.app = None
         self.runner = None
-        
+
         if not AIOHTTP_AVAILABLE:
             logger.warning("aiohttp not available, dashboard disabled")
         else:
             self._setup_routes()
-        
+
         logger.info(f"DashboardServer initialized (port: {port})")
-    
+
     def _setup_routes(self):
         """Setup HTTP routes."""
         if not AIOHTTP_AVAILABLE:
             return
-        
+
         self.app = web.Application()
-        self.app.router.add_get('/', self._handle_index)
-        self.app.router.add_get('/api/status', self._handle_status)
-        self.app.router.add_get('/api/metrics', self._handle_metrics)
-        self.app.router.add_post('/api/emergency_stop', self._handle_emergency_stop)
-    
+        self.app.router.add_get("/", self._handle_index)
+        self.app.router.add_get("/api/status", self._handle_status)
+        self.app.router.add_get("/api/metrics", self._handle_metrics)
+        self.app.router.add_post("/api/emergency_stop", self._handle_emergency_stop)
+
     async def start(self):
         """Start dashboard server."""
         if not AIOHTTP_AVAILABLE:
             logger.warning("Dashboard requires aiohttp")
             return
-        
+
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
-        
-        site = web.TCPSite(self.runner, 'localhost', self.port)
+
+        site = web.TCPSite(self.runner, "localhost", self.port)
         await site.start()
-        
+
         logger.info(f"Dashboard running at http://localhost:{self.port}")
-    
+
     async def stop(self):
         """Stop dashboard server."""
         if self.runner:
             await self.runner.cleanup()
             logger.info("Dashboard stopped")
-    
+
     async def _handle_index(self, request):
         """Serve main dashboard page."""
         html = """
@@ -138,8 +139,8 @@ class DashboardServer:
         </body>
         </html>
         """
-        return web.Response(text=html, content_type='text/html')
-    
+        return web.Response(text=html, content_type="text/html")
+
     async def _handle_status(self, request):
         """API: Get bridge status."""
         b = self.bridge
@@ -162,19 +163,16 @@ class DashboardServer:
                     name: {"running": t.running}
                     for name, t in b.transport_manager.transports.items()
                 },
-                "fleets": {
-                    name: {"robot_count": len(f.robots)}
-                    for name, f in b.fleets.items()
-                },
+                "fleets": {name: {"robot_count": len(f.robots)} for name, f in b.fleets.items()},
                 "memory_available": b.memory is not None,
                 "safety_available": b.safety is not None,
             }
         return web.json_response(metrics)
-    
+
     async def _handle_emergency_stop(self, request):
         """API: Trigger emergency stop."""
-        if self.bridge and hasattr(self.bridge, 'emergency_stop'):
+        if self.bridge and hasattr(self.bridge, "emergency_stop"):
             self.bridge.emergency_stop()
             return web.json_response({"status": "emergency_stop_triggered"})
-        
+
         return web.json_response({"error": "Emergency stop not available"}, status=500)
