@@ -12,6 +12,7 @@ try:
 except ImportError:
     LANGCHAIN_AVAILABLE = False
     BaseTool = object
+    CallbackManagerForToolRun = Any  # type: ignore
 
 logger = logging.getLogger(__name__)
 
