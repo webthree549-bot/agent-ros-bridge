@@ -19,6 +19,7 @@ Usage:
 """
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -145,13 +146,10 @@ class ROS2ActionClient(BaseActionClient):
             from rclpy.node import Node
 
             # Get or create node
-            try:
+            with contextlib.suppress(Exception):
                 self._node = rclpy.create_node(
                     f"action_client_{self.action_name.replace('/', '_')}"
                 )
-            except Exception:
-                # Node already exists
-                pass
 
             # Create action client
             self._client = ActionClient(self._node, self.action_type, self.action_name)
@@ -356,7 +354,9 @@ class SimulatedActionClient(BaseActionClient):
         """Simulated disconnect."""
         self._connected = False
 
-    async def send_goal(self, goal_data: Dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
+    async def send_goal(
+        self, goal_data: Dict[str, Any], _timeout_sec: float = 30.0
+    ) -> ActionResult:
         """Simulated goal execution with feedback."""
         import uuid
 
@@ -407,7 +407,7 @@ class SimulatedActionClient(BaseActionClient):
         return True
 
     def _generate_simulated_feedback(
-        self, step: int, total: int, goal_data: Dict
+        self, step: int, total: int, _goal_data: Dict
     ) -> Dict[str, Any]:
         """Generate simulated feedback based on action type."""
         progress = (step + 1) / total

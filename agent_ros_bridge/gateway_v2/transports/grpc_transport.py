@@ -77,13 +77,13 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                 logger.error(f"Error in telemetry stream: {e}")
                 break
 
-    async def SubscribeTelemetry(self, request, context):
+    async def SubscribeTelemetry(self, _request, _context):
         """Subscribe to telemetry stream."""
         # This would typically connect to a telemetry publisher
         # For now, yield a placeholder
         yield bridge_pb2.Telemetry(topic="status", data=struct_pb2.Struct(), quality=1.0)
 
-    async def HealthCheck(self, request, context):
+    async def HealthCheck(self, _request, _context):
         """Health check endpoint."""
         return bridge_pb2.CommandResponse(success=True, result=struct_pb2.Struct())
 

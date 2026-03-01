@@ -365,7 +365,7 @@ class Plugin(ABC):
         """Shutdown plugin."""
         pass
 
-    async def handle_message(self, message: Message, identity: Identity) -> Message | None:
+    async def handle_message(self, _message: Message, _identity: Identity) -> Message | None:
         """Handle message - return response or None."""
         return None
 

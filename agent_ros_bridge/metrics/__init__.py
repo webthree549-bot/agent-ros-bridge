@@ -316,11 +316,11 @@ class MetricsServer:
         """Start custom metrics HTTP server (no prometheus_client)."""
         from aiohttp import web
 
-        async def metrics_handler(request):
+        async def metrics_handler(_request):
             text = self.collector.get_metrics_text()
             return web.Response(text=text, content_type="text/plain")
 
-        async def health_handler(request):
+        async def health_handler(_request):
             return web.Response(text="OK")
 
         app = web.Application()

@@ -145,12 +145,14 @@ class RoleBasedAccessControl:
 
     def filter_response(self, roles: List[str], response: Dict[str, Any]) -> Dict[str, Any]:
         """Filter response based on role (e.g., hide sensitive data)."""
-        if "admin" not in roles and "operator" not in roles:
-            # Remove sensitive fields for viewers
-            if "robots" in response:
-                for robot in response["robots"]:
-                    robot.pop("internal_ip", None)
-                    robot.pop("serial_number", None)
+        if (
+            "admin" not in roles
+            and "operator" not in roles
+            and "robots" in response
+        ):
+            for robot in response["robots"]:
+                robot.pop("internal_ip", None)
+                robot.pop("serial_number", None)
         return response
 
 

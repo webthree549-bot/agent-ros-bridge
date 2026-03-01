@@ -268,7 +268,7 @@ class ROS1Connector(Connector):
 
         return endpoints
 
-    async def connect(self, uri: str, **kwargs) -> Optional[Robot]:
+    async def connect(self, uri: str, **_kwargs) -> Optional[Robot]:
         """Connect to a ROS1 robot by URI (ros1://<node_name>)."""
         node_name = uri.replace("ros1://", "")
         robot_id = node_name.replace("/", "_").lstrip("_")

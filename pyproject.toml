@@ -198,6 +198,8 @@ ignore = [
     "D107",
     "D203",
     "D213",
+    "ARG002",
+    "SIM102",
 ]
 exclude = [
     ".git",
@@ -213,13 +215,14 @@ exclude = [
 convention = "google"
 
 [tool.ruff.per-file-ignores]
-"tests/*" = ["D", "ARG"]
+"tests/*" = ["D", "ARG", "SIM117"]
 "**/__init__.py" = ["F401"]
 "agent_ros_bridge/integrations/dashboard_server.py" = ["E501"]
 "examples/*" = ["E501", "D", "ARG"]
 "scripts/*" = ["D"]
 "agent_ros_bridge/proto/*" = ["N802", "D205"]
-"agent_ros_bridge/gateway_v2/transports/grpc_transport.py" = ["N802", "N806"]
+"agent_ros_bridge/gateway_v2/transports/grpc_transport.py" = ["N802", "N806", "ARG"]
+"agent_ros_bridge/gateway_v2/transports/mqtt_transport.py" = ["ARG"]
 
 [tool.mypy]
 python_version = "3.8"

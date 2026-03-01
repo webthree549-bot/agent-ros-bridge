@@ -70,7 +70,7 @@ class GreenhousePlugin(Plugin):
 
         logger.info("Greenhouse plugin shutdown")
 
-    async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
+    async def handle_message(self, message: Message, _identity: Identity) -> Optional[Message]:
         """Handle greenhouse-specific commands."""
         if not message.command:
             return None

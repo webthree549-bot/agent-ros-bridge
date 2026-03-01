@@ -453,10 +453,12 @@ class FleetOrchestrator:
             score += success_rate * 50
 
         # Prefer closer robots (if location data available)
-        if robot.current_location and task.target_location:
-            # Simple string match, could be replaced with distance calculation
-            if robot.current_location == task.target_location:
-                score += 25
+        if (
+            robot.current_location
+            and task.target_location
+            and robot.current_location == task.target_location
+        ):
+            score += 25
 
         # Penalize robots with mismatched ROS version (for efficiency)
         if robot.capabilities.ros_version != task.required_capabilities.ros_version:
