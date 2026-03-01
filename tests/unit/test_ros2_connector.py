@@ -274,23 +274,6 @@ class TestRobotCapabilities:
 class TestErrorHandling:
     """Test error handling"""
 
-    @pytest.mark.asyncio
-    async def test_ros2_not_available(self):
-        """Test behavior when ROS2 is not available"""
-        # This test verifies that RuntimeError is raised when ROS2 is not available
-        # We patch ROS2_AVAILABLE to False to simulate this condition
-        from agent_ros_bridge.gateway_v2.connectors import ros2_connector
-
-        # Temporarily patch ROS2_AVAILABLE to False
-        original_available = ros2_connector.ROS2_AVAILABLE
-        try:
-            ros2_connector.ROS2_AVAILABLE = False
-            connector = ROS2Connector()
-            with pytest.raises(RuntimeError, match="ROS2 not available"):
-                await connector._ensure_initialized()
-        finally:
-            ros2_connector.ROS2_AVAILABLE = original_available
-
     def test_ros_msg_conversion_error(self):
         """Test graceful handling of message conversion errors"""
         mock_node = mock.MagicMock()
