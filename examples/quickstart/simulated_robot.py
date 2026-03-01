@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simulated Robot Bridge - Demo/Testing without ROS2
+"""Simulated Robot Bridge - Demo/Testing without ROS2.
 
 This is a standalone simulated for testing the WebSocket API without
 requiring ROS2 to be installed. For production use, run_bridge.py
@@ -17,7 +17,7 @@ logger = logging.getLogger("simulated_bridge")
 
 
 class SimulatedRobotPlugin(Plugin):
-    """Plugin that simulates a robot for testing"""
+    """Plugin that simulates a robot for testing."""
 
     name = "simulated_robot"
     version = "1.0.0"
@@ -29,16 +29,16 @@ class SimulatedRobotPlugin(Plugin):
         self.speed = 0.0
 
     async def initialize(self, gateway) -> None:
-        """Initialize plugin"""
+        """Initialize plugin."""
         logger.info("Simulated robot plugin initialized")
         return None
 
     async def shutdown(self) -> None:
-        """Shutdown plugin"""
+        """Shutdown plugin."""
         logger.info("Simulated robot plugin shutdown")
 
     async def handle_message(self, message: Message, identity: Identity) -> Message:
-        """Handle incoming commands"""
+        """Handle incoming commands."""
         if not message.command:
             return None
 

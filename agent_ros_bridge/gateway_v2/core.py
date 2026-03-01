@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenClaw Gateway - Universal Robot Gateway
+"""OpenClaw Gateway - Universal Robot Gateway.
 
 The next-generation architecture for robot-AI connectivity.
 Multi-protocol, multi-robot, cloud-native.
@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Set
+from typing import Any, AsyncIterator, Callable
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ except ImportError:
 
 
 class QoS(Enum):
-    """Quality of Service levels"""
+    """Quality of Service levels."""
 
     BEST_EFFORT = auto()  # Fire and forget
     AT_LEAST_ONCE = auto()  # Retry until ack
@@ -54,38 +54,38 @@ class QoS(Enum):
 
 @dataclass
 class Identity:
-    """Authenticated identity"""
+    """Authenticated identity."""
 
     id: str
     name: str
-    roles: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    roles: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Header:
-    """Message header"""
+    """Message header."""
 
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=datetime.utcnow)
     source: str = ""
     target: str = ""
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 @dataclass
 class Command:
-    """Robot command"""
+    """Robot command."""
 
     action: str
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
     timeout_ms: int = 5000
     priority: int = 5  # 1-10, lower = higher priority
 
 
 @dataclass
 class Telemetry:
-    """Sensor/telemetry data"""
+    """Sensor/telemetry data."""
 
     topic: str
     data: Any
@@ -94,23 +94,23 @@ class Telemetry:
 
 @dataclass
 class Event:
-    """System event"""
+    """System event."""
 
     event_type: str
     severity: str = "info"  # debug, info, warning, error, critical
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Message:
-    """Unified message format"""
+    """Unified message format."""
 
     header: Header = field(default_factory=Header)
-    command: Optional[Command] = None
-    telemetry: Optional[Telemetry] = None
-    event: Optional[Event] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    identity: Optional[Identity] = None
+    command: Command | None = None
+    telemetry: Telemetry | None = None
+    event: Event | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    identity: Identity | None = None
 
 
 # =============================================================================
@@ -119,71 +119,71 @@ class Message:
 
 
 class Transport(ABC):
-    """Abstract transport layer"""
+    """Abstract transport layer."""
 
-    def __init__(self, name: str, config: Dict[str, Any]):
+    def __init__(self, name: str, config: dict[str, Any]):
         self.name = name
         self.config = config
         self.running = False
-        self.message_handler: Optional[Callable[[Message, Identity], asyncio.Future]] = None
+        self.message_handler: Callable[[Message, Identity], asyncio.Future] | None = None
 
     @abstractmethod
     async def start(self) -> bool:
-        """Start the transport"""
+        """Start the transport."""
         pass
 
     @abstractmethod
     async def stop(self) -> None:
-        """Stop the transport"""
+        """Stop the transport."""
         pass
 
     @abstractmethod
     async def send(self, message: Message, recipient: str) -> bool:
-        """Send message to specific recipient"""
+        """Send message to specific recipient."""
         pass
 
     @abstractmethod
-    async def broadcast(self, message: Message) -> List[str]:
-        """Broadcast to all connected clients"""
+    async def broadcast(self, message: Message) -> list[str]:
+        """Broadcast to all connected clients."""
         pass
 
     def on_message(self, handler: Callable[[Message, Identity], asyncio.Future]):
-        """Register message handler"""
+        """Register message handler."""
         self.message_handler = handler
 
 
 class TransportManager:
-    """Manages multiple transport endpoints"""
+    """Manages multiple transport endpoints."""
 
     def __init__(self):
-        self.transports: Dict[str, Transport] = {}
-        self._message_handler: Optional[Callable] = None
+        self.transports: dict[str, Transport] = {}
+        self._message_handler: Callable | None = None
 
     def register(self, transport: Transport) -> None:
-        """Register a transport"""
+        """Register a transport."""
         self.transports[transport.name] = transport
         transport.on_message(self._route_message)
         logger.info(f"Registered transport: {transport.name}")
 
     def _route_message(self, message: Message, identity: Identity):
-        """Route incoming message to handler — schedules the coroutine on the running loop"""
+        """Route incoming message to handler — schedules the coroutine on the running loop."""
         if self._message_handler:
             asyncio.ensure_future(self._message_handler(message, identity))
 
     def on_message(self, handler: Callable[[Message, Identity], asyncio.Future]):
-        """Set global message handler"""
+        """Set global message handler."""
         self._message_handler = handler
 
     async def start_all(self) -> None:
-        """Start all registered transports"""
+        """Start all registered transports."""
         await asyncio.gather(*[t.start() for t in self.transports.values()])
 
     async def stop_all(self) -> None:
-        """Stop all transports"""
+        """Stop all transports."""
         await asyncio.gather(*[t.stop() for t in self.transports.values()])
 
     async def send(self, transport_name: str, message: Message, recipient: str) -> bool:
-        """Send via specific transport"""
+        """Send via specific transport."""
         if transport_name not in self.transports:
             raise ValueError(f"Unknown transport: {transport_name}")
         return await self.transports[transport_name].send(message, recipient)
@@ -195,39 +195,39 @@ class TransportManager:
 
 
 class Robot(ABC):
-    """Abstract robot representation"""
+    """Abstract robot representation."""
 
     def __init__(self, robot_id: str, name: str, connector_type: str):
         self.robot_id = robot_id
         self.name = name
         self.connector_type = connector_type
         self.connected = False
-        self.capabilities: Set[str] = set()
-        self.metadata: Dict[str, Any] = {}
-        self._subscribers: Dict[str, List[Callable]] = {}
+        self.capabilities: set[str] = set()
+        self.metadata: dict[str, Any] = {}
+        self._subscribers: dict[str, list[Callable]] = {}
 
     @abstractmethod
     async def connect(self) -> bool:
-        """Connect to robot"""
+        """Connect to robot."""
         pass
 
     @abstractmethod
     async def disconnect(self) -> None:
-        """Disconnect from robot"""
+        """Disconnect from robot."""
         pass
 
     @abstractmethod
     async def execute(self, command: Command) -> Any:
-        """Execute command on robot"""
+        """Execute command on robot."""
         pass
 
     @abstractmethod
     async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:
-        """Subscribe to telemetry topic"""
+        """Subscribe to telemetry topic."""
         pass
 
     def _notify_subscribers(self, topic: str, data: Telemetry):
-        """Notify subscribers of new data"""
+        """Notify subscribers of new data."""
         for callback in self._subscribers.get(topic, []):
             try:
                 callback(data)
@@ -236,45 +236,45 @@ class Robot(ABC):
 
 
 class Connector(ABC):
-    """Abstract robot connector"""
+    """Abstract robot connector."""
 
     connector_type: str = "abstract"
 
     @abstractmethod
     async def connect(self, uri: str, **kwargs) -> Robot:
-        """Connect to robot at URI"""
+        """Connect to robot at URI."""
         pass
 
     @abstractmethod
-    async def discover(self) -> List[RobotEndpoint]:
-        """Discover available robots"""
+    async def discover(self) -> list[RobotEndpoint]:
+        """Discover available robots."""
         pass
 
 
 @dataclass
 class RobotEndpoint:
-    """Discovered robot endpoint"""
+    """Discovered robot endpoint."""
 
     uri: str
     name: str
     connector_type: str
-    capabilities: List[str]
-    metadata: Dict[str, Any]
+    capabilities: list[str]
+    metadata: dict[str, Any]
 
 
 class ConnectorRegistry:
-    """Registry of robot connectors"""
+    """Registry of robot connectors."""
 
     def __init__(self):
-        self.connectors: Dict[str, Connector] = {}
+        self.connectors: dict[str, Connector] = {}
 
     def register(self, connector: Connector) -> None:
-        """Register a connector"""
+        """Register a connector."""
         self.connectors[connector.connector_type] = connector
         logger.info(f"Registered connector: {connector.connector_type}")
 
     async def connect(self, uri: str, **kwargs) -> Robot:
-        """Connect to robot using appropriate connector"""
+        """Connect to robot using appropriate connector."""
         # Parse URI to determine connector type
         # e.g., ros2://192.168.1.100:7411
         scheme = uri.split("://")[0]
@@ -284,8 +284,8 @@ class ConnectorRegistry:
 
         return await self.connectors[scheme].connect(uri, **kwargs)
 
-    async def discover_all(self) -> List[RobotEndpoint]:
-        """Discover robots using all connectors"""
+    async def discover_all(self) -> list[RobotEndpoint]:
+        """Discover robots using all connectors."""
         results = []
         for connector in self.connectors.values():
             try:
@@ -302,36 +302,36 @@ class ConnectorRegistry:
 
 
 class RobotFleet:
-    """Manages a fleet of robots"""
+    """Manages a fleet of robots."""
 
     def __init__(self, name: str):
         self.name = name
-        self.robots: Dict[str, Robot] = {}
-        self.groups: Dict[str, List[str]] = {}
+        self.robots: dict[str, Robot] = {}
+        self.groups: dict[str, list[str]] = {}
 
     def add_robot(self, robot: Robot) -> None:
-        """Add robot to fleet"""
+        """Add robot to fleet."""
         self.robots[robot.robot_id] = robot
         logger.info(f"Added robot {robot.name} to fleet {self.name}")
 
     def remove_robot(self, robot_id: str) -> None:
-        """Remove robot from fleet"""
+        """Remove robot from fleet."""
         if robot_id in self.robots:
             del self.robots[robot_id]
             logger.info(f"Removed robot {robot_id} from fleet {self.name}")
 
-    def get_robot(self, robot_id: str) -> Optional[Robot]:
-        """Get robot by ID"""
+    def get_robot(self, robot_id: str) -> Robot | None:
+        """Get robot by ID."""
         return self.robots.get(robot_id)
 
-    def select(self, predicate: Callable[[Robot], bool]) -> List[Robot]:
-        """Select robots matching predicate"""
+    def select(self, predicate: Callable[[Robot], bool]) -> list[Robot]:
+        """Select robots matching predicate."""
         return [r for r in self.robots.values() if predicate(r)]
 
     async def broadcast(
-        self, command: Command, selector: Optional[Callable[[Robot], bool]] = None
-    ) -> Dict[str, Any]:
-        """Broadcast command to selected robots"""
+        self, command: Command, selector: Callable[[Robot], bool] | None = None
+    ) -> dict[str, Any]:
+        """Broadcast command to selected robots."""
         targets = self.select(selector) if selector else list(self.robots.values())
 
         async def exec_with_id(robot: Robot):
@@ -350,39 +350,39 @@ class RobotFleet:
 
 
 class Plugin(ABC):
-    """Abstract plugin"""
+    """Abstract plugin."""
 
     name: str = "abstract_plugin"
     version: str = "0.0.1"
 
     @abstractmethod
     async def initialize(self, gateway: Bridge) -> None:
-        """Initialize plugin with gateway reference"""
+        """Initialize plugin with gateway reference."""
         pass
 
     @abstractmethod
     async def shutdown(self) -> None:
-        """Shutdown plugin"""
+        """Shutdown plugin."""
         pass
 
-    async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Handle message - return response or None"""
+    async def handle_message(self, message: Message, identity: Identity) -> Message | None:
+        """Handle message - return response or None."""
         return None
 
 
 class PluginManager:
-    """Manages plugins with hot reload"""
+    """Manages plugins with hot reload."""
 
     def __init__(self):
-        self.plugins: Dict[str, Plugin] = {}
-        self.gateway: Optional[Bridge] = None
+        self.plugins: dict[str, Plugin] = {}
+        self.gateway: Bridge | None = None
 
     def set_gateway(self, gateway: Bridge) -> None:
-        """Set gateway reference"""
+        """Set gateway reference."""
         self.gateway = gateway
 
     async def load_plugin(self, plugin: Plugin) -> None:
-        """Load and initialize a plugin"""
+        """Load and initialize a plugin."""
         if self.gateway is None:
             raise RuntimeError("Gateway not set")
 
@@ -391,14 +391,14 @@ class PluginManager:
         logger.info(f"Loaded plugin: {plugin.name} v{plugin.version}")
 
     async def unload_plugin(self, name: str) -> None:
-        """Unload a plugin"""
+        """Unload a plugin."""
         if name in self.plugins:
             await self.plugins[name].shutdown()
             del self.plugins[name]
             logger.info(f"Unloaded plugin: {name}")
 
-    async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Route message through plugins"""
+    async def handle_message(self, message: Message, identity: Identity) -> Message | None:
+        """Route message through plugins."""
         for plugin in self.plugins.values():
             try:
                 response = await plugin.handle_message(message, identity)
@@ -415,24 +415,24 @@ class PluginManager:
 
 
 class Bridge:
-    """Universal robot gateway - main entry point
+    """Universal robot gateway - main entry point.
 
     v0.5.0: Added AI agent integrations
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.transport_manager = TransportManager()
         self.connector_registry = ConnectorRegistry()
-        self.fleets: Dict[str, RobotFleet] = {}
+        self.fleets: dict[str, RobotFleet] = {}
         self.plugin_manager = PluginManager()
         self.plugin_manager.set_gateway(self)
         self.running = False
 
         # v0.5.0: Initialize AI integrations
-        self.memory: Optional[AgentMemory] = None
-        self.safety: Optional[SafetyManager] = None
-        self.tools: Optional[ToolDiscovery] = None
+        self.memory: AgentMemory | None = None
+        self.safety: SafetyManager | None = None
+        self.tools: ToolDiscovery | None = None
 
         if INTEGRATIONS_AVAILABLE:
             self._init_integrations()
@@ -441,7 +441,7 @@ class Bridge:
         self.transport_manager.on_message(self._handle_message)
 
     def _init_integrations(self):
-        """Initialize v0.5.0 AI integrations"""
+        """Initialize v0.5.0 AI integrations."""
         try:
             # Agent Memory (SQLite default, Redis optional)
             memory_backend = self.config.get("memory_backend", "sqlite")
@@ -469,7 +469,7 @@ class Bridge:
             # Continue without integrations - core functionality still works
 
     async def _handle_message(self, message: Message, identity: Identity) -> None:
-        """Handle incoming message from transport"""
+        """Handle incoming message from transport."""
         # Try plugins first
         response = await self.plugin_manager.handle_message(message, identity)
 
@@ -486,8 +486,8 @@ class Bridge:
                     identity.metadata.get("transport", "websocket"), response, identity.id
                 )
 
-    async def _handle_core_command(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Handle core gateway commands
+    async def _handle_core_command(self, message: Message, identity: Identity) -> Message | None:
+        """Handle core gateway commands.
 
         v0.5.0: Integrated safety checks and memory logging
         """
@@ -582,13 +582,13 @@ class Bridge:
         return None
 
     def create_fleet(self, name: str) -> RobotFleet:
-        """Create a new robot fleet"""
+        """Create a new robot fleet."""
         fleet = RobotFleet(name)
         self.fleets[name] = fleet
         return fleet
 
-    async def connect_robot(self, uri: str, fleet_name: Optional[str] = None, **kwargs) -> Robot:
-        """Connect to a robot and optionally add to fleet"""
+    async def connect_robot(self, uri: str, fleet_name: str | None = None, **kwargs) -> Robot:
+        """Connect to a robot and optionally add to fleet."""
         robot = await self.connector_registry.connect(uri, **kwargs)
 
         if fleet_name and fleet_name in self.fleets:
@@ -597,14 +597,14 @@ class Bridge:
         return robot
 
     async def start(self) -> None:
-        """Start the gateway"""
+        """Start the gateway."""
         logger.info("Starting Agent ROS Bridge...")
         await self.transport_manager.start_all()
         self.running = True
         logger.info("Bridge started")
 
     async def stop(self) -> None:
-        """Stop the gateway"""
+        """Stop the gateway."""
         logger.info("Stopping Agent ROS Bridge...")
         self.running = False
         await self.transport_manager.stop_all()
@@ -622,7 +622,7 @@ class Bridge:
 
     # v0.5.0: AI Agent Integration Methods
 
-    def get_langchain_tool(self, actions: Optional[List[str]] = None):
+    def get_langchain_tool(self, actions: list[str] | None = None):
         """Get LangChain tool for this bridge.
 
         Example:
@@ -680,7 +680,7 @@ class Bridge:
 
         return DashboardServer(self, port=port)
 
-    async def execute_action(self, action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_action(self, action: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """Execute an action via the bridge (used by AI integrations).
 
         This is the main entry point for AI agents to control robots.
@@ -709,7 +709,7 @@ class Bridge:
 
         return {"status": "error", "message": "No response from bridge"}
 
-    def get_actions(self) -> List[str]:
+    def get_actions(self) -> list[str]:
         """Get list of available actions (used by discovery)."""
         # Return common actions - actual implementation would discover from robots
         return ["discover", "fleet.list", "fleet.robots", "robot.execute", "emergency_stop"]
@@ -724,7 +724,7 @@ class Bridge:
 
     @asynccontextmanager
     async def run(self):
-        """Context manager for gateway lifecycle"""
+        """Context manager for gateway lifecycle."""
         await self.start()
         try:
             yield self
@@ -738,7 +738,7 @@ class Bridge:
 
 
 async def example():
-    """Example gateway usage"""
+    """Example gateway usage."""
     # Create gateway
     gateway = Bridge()
 
@@ -754,7 +754,7 @@ async def example():
     # await gateway.plugin_manager.load_plugin(GreenhousePlugin())
 
     # Create fleet
-    warehouse = gateway.create_fleet("warehouse")
+    gateway.create_fleet("warehouse")
 
     # Start gateway
     async with gateway.run():

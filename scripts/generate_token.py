@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Token generator CLI for Agent ROS Bridge
+"""Token generator CLI for Agent ROS Bridge.
 
 Usage:
     python scripts/generate_token.py --user admin --roles admin,operator

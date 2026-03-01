@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent ROS Bridge - Main Entry Point
+"""Agent ROS Bridge - Main Entry Point.
 
 Universal ROS bridge with multi-protocol support.
 """
@@ -26,7 +26,7 @@ logger = logging.getLogger("agent_ros_bridge")
 
 
 def setup_logging(log_level: str = "INFO"):
-    """Configure logging"""
+    """Configure logging."""
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -35,7 +35,7 @@ def setup_logging(log_level: str = "INFO"):
 
 
 def create_bridge_from_config(config: BridgeConfig) -> Bridge:
-    """Create and configure bridge from config"""
+    """Create and configure bridge from config."""
     bridge = Bridge(config.__dict__)
 
     # Register transports
@@ -90,7 +90,7 @@ def create_bridge_from_config(config: BridgeConfig) -> Bridge:
 
 
 async def run_bridge(config: BridgeConfig):
-    """Run the bridge"""
+    """Run the bridge."""
     setup_logging(config.log_level)
 
     logger.info("=" * 60)
@@ -125,7 +125,7 @@ async def run_bridge(config: BridgeConfig):
 
 
 def main():
-    """Main entry point"""
+    """Main entry point."""
     parser = argparse.ArgumentParser(
         description="Agent ROS Bridge - Universal ROS Bridge",
         formatter_class=argparse.RawDescriptionHelpFormatter,

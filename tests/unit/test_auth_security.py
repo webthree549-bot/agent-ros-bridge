@@ -18,6 +18,8 @@ except ImportError:
     JWT_AVAILABLE = False
     pytest.skip("PyJWT not available", allow_module_level=True)
 
+import contextlib
+
 from agent_ros_bridge.gateway_v2.core import Identity
 
 
@@ -361,18 +363,14 @@ class TestTokenTimingAttacks:
 
         # Measure valid token
         start = time.perf_counter()
-        try:
+        with contextlib.suppress(BaseException):
             auth_manager.validate_token(valid_token)
-        except:
-            pass
         valid_time = time.perf_counter() - start
 
         # Measure invalid signature
         start = time.perf_counter()
-        try:
+        with contextlib.suppress(BaseException):
             auth_manager.validate_token(valid_token[:-5] + "XXXXX")
-        except:
-            pass
         invalid_time = time.perf_counter() - start
 
         # Times should be reasonably similar (not a strict test)

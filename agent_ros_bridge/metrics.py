@@ -269,9 +269,8 @@ class HealthChecker:
         """
         # Check if transports are running
         for transport in self.bridge.transport_manager.get_transports():
-            if hasattr(transport, "_running"):
-                if not transport._running:
-                    return False
+            if hasattr(transport, "_running") and not transport._running:
+                return False
 
         return True
 

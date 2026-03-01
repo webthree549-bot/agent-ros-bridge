@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Arm Robot Demo - UR5/xArm/Franka Control
+"""Arm Robot Demo - UR5/xArm/Franka Control.
 
 Demonstrates arm robot manipulation with pick-and-place operations.
 
@@ -21,7 +21,7 @@ logger = logging.getLogger("arm_demo")
 
 
 async def demo_ur5_pick_place(arm: ArmRobotPlugin):
-    """Demonstrate UR5 pick and place"""
+    """Demonstrate UR5 pick and place."""
     print("\n🦾 UR5 Pick and Place Demo")
     print("=" * 50)
 
@@ -72,7 +72,7 @@ async def demo_ur5_pick_place(arm: ArmRobotPlugin):
 
 
 async def demo_cartesian_moves(arm: ArmRobotPlugin):
-    """Demonstrate cartesian space moves"""
+    """Demonstrate cartesian space moves."""
     print("\n📍 Cartesian Movement Demo")
     print("=" * 50)
 
@@ -92,7 +92,7 @@ async def demo_cartesian_moves(arm: ArmRobotPlugin):
 
 
 async def interactive_control(arm: ArmRobotPlugin):
-    """Interactive arm control via WebSocket"""
+    """Interactive arm control via WebSocket."""
     print("\n🎮 Interactive Arm Control")
     print("=" * 50)
     print("WebSocket: ws://localhost:8772")

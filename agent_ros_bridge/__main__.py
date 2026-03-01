@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent ROS Bridge - CLI Entry Point
+"""Agent ROS Bridge - CLI Entry Point.
 
 Usage:
     python -m agent_ros_bridge [options]
@@ -29,7 +29,7 @@ from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
 
 def setup_logging(level: str = "INFO") -> None:
-    """Setup logging configuration"""
+    """Setup logging configuration."""
     logging.basicConfig(
         level=getattr(logging, level.upper()),
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -38,7 +38,7 @@ def setup_logging(level: str = "INFO") -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse command line arguments"""
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         prog="agent_ros_bridge",
         description="Universal ROS1/ROS2 bridge for AI agents to control robots",
@@ -75,7 +75,7 @@ Examples:
 
 
 async def main() -> int:
-    """Main entry point"""
+    """Main entry point."""
     args = parse_args()
 
     # Setup logging

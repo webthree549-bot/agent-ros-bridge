@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Configuration system for OpenClaw Gateway
+"""Configuration system for OpenClaw Gateway.
 
 Supports YAML, JSON, environment variables, and dynamic configuration.
 """
@@ -18,7 +18,7 @@ logger = logging.getLogger("gateway.config")
 
 @dataclass
 class TransportConfig:
-    """Transport configuration"""
+    """Transport configuration."""
 
     enabled: bool = True
     host: str = "0.0.0.0"
@@ -30,7 +30,7 @@ class TransportConfig:
 
 @dataclass
 class ROSEndpoint:
-    """Remote ROS endpoint configuration"""
+    """Remote ROS endpoint configuration."""
 
     id: str
     ros_type: str = "ros2"  # ros1, ros2
@@ -49,7 +49,7 @@ class ROSEndpoint:
 
 @dataclass
 class ConnectorConfig:
-    """Connector configuration"""
+    """Connector configuration."""
 
     enabled: bool = True
     # Multi-ROS support: list of ROS endpoints
@@ -60,7 +60,7 @@ class ConnectorConfig:
 
 @dataclass
 class SecurityConfig:
-    """Security configuration"""
+    """Security configuration."""
 
     enabled: bool = False
     authentication: List[str] = field(default_factory=lambda: ["jwt"])
@@ -74,7 +74,7 @@ class SecurityConfig:
 
 @dataclass
 class PluginConfig:
-    """Plugin configuration"""
+    """Plugin configuration."""
 
     name: str
     enabled: bool = True
@@ -84,7 +84,7 @@ class PluginConfig:
 
 @dataclass
 class BridgeConfig:
-    """Main gateway configuration"""
+    """Main gateway configuration."""
 
     name: str = "agent_ros_bridge"
     log_level: str = "INFO"
@@ -132,27 +132,27 @@ class BridgeConfig:
 
 
 class ConfigLoader:
-    """Configuration loader with environment variable support"""
+    """Configuration loader with environment variable support."""
 
     ENV_PREFIX = "BRIDGE_"
 
     @classmethod
     def from_yaml(cls, path: str) -> "BridgeConfig":
-        """Load configuration from YAML file"""
+        """Load configuration from YAML file."""
         with open(path) as f:
             data = yaml.safe_load(f)
         return cls._dict_to_config(data)
 
     @classmethod
     def from_json(cls, path: str) -> "BridgeConfig":
-        """Load configuration from JSON file"""
+        """Load configuration from JSON file."""
         with open(path) as f:
             data = json.load(f)
         return cls._dict_to_config(data)
 
     @classmethod
     def from_env(cls) -> "BridgeConfig":
-        """Load configuration from environment variables"""
+        """Load configuration from environment variables."""
         config = BridgeConfig()
 
         # Simple env var mapping
@@ -176,7 +176,7 @@ class ConfigLoader:
 
     @classmethod
     def from_file_or_env(cls, path: Optional[str] = None) -> "BridgeConfig":
-        """Load from file or environment"""
+        """Load from file or environment."""
         # Try config file locations
         config_paths = [
             path,
@@ -209,7 +209,7 @@ class ConfigLoader:
 
     @classmethod
     def _dict_to_config(cls, data: Dict[str, Any]) -> "BridgeConfig":
-        """Convert dictionary to BridgeConfig"""
+        """Convert dictionary to BridgeConfig."""
         # Simplified conversion - full implementation would handle nested structures
         return BridgeConfig(
             name=data.get("name", "agent_ros_bridge"),
@@ -225,7 +225,7 @@ class ConfigLoader:
 
     @classmethod
     def _parse_transports(cls, data: Dict[str, Any]) -> Dict[str, TransportConfig]:
-        """Parse transport configurations"""
+        """Parse transport configurations."""
         transports = {}
         for name, cfg in data.items():
             transports[name] = TransportConfig(
@@ -240,7 +240,7 @@ class ConfigLoader:
 
     @classmethod
     def _parse_connectors(cls, data: Dict[str, Any]) -> Dict[str, ConnectorConfig]:
-        """Parse connector configurations"""
+        """Parse connector configurations."""
         connectors = {}
         for name, cfg in data.items():
             connectors[name] = ConnectorConfig(
@@ -250,7 +250,7 @@ class ConfigLoader:
 
     @classmethod
     def _parse_security(cls, data: Dict[str, Any]) -> SecurityConfig:
-        """Parse security configuration"""
+        """Parse security configuration."""
         return SecurityConfig(
             enabled=data.get("enabled", False),
             authentication=data.get("authentication", ["jwt"]),
@@ -264,7 +264,7 @@ class ConfigLoader:
 
     @classmethod
     def _parse_plugins(cls, data: List[Dict[str, Any]]) -> List[PluginConfig]:
-        """Parse plugin configurations"""
+        """Parse plugin configurations."""
         plugins = []
         for p in data:
             plugins.append(
@@ -279,7 +279,7 @@ class ConfigLoader:
 
     @classmethod
     def _set_nested_attr(cls, obj: Any, path: str, value: Any) -> None:
-        """Set nested attribute by dot path"""
+        """Set nested attribute by dot path."""
         parts = path.split(".")
         for part in parts[:-1]:
             if isinstance(obj, dict):
@@ -305,7 +305,7 @@ class ConfigLoader:
 
     @classmethod
     def _merge_configs(cls, base: "BridgeConfig", override: "BridgeConfig") -> "BridgeConfig":
-        """Merge two configurations (override takes precedence)"""
+        """Merge two configurations (override takes precedence)."""
         # Simplified merge - full implementation would handle all fields
         result = BridgeConfig()
 
@@ -334,17 +334,17 @@ transports:
     port: 8765
     # tls_cert: /etc/certs/gateway.crt
     # tls_key: /etc/certs/gateway.key
-  
+
   grpc:
     enabled: true
     host: 0.0.0.0
     port: 50051
-  
+
   tcp:
     enabled: true
     host: 0.0.0.0
     port: 9999
-  
+
   mqtt:
     enabled: false
     host: localhost
@@ -355,7 +355,7 @@ connectors:
     enabled: true
     options:
       domain_id: 0
-  
+
   mqtt:
     enabled: false
     options:
@@ -374,7 +374,7 @@ plugins:
     source: ./plugins/greenhouse_plugin.py
     options:
       control_interval: 5
-  
+
   - name: safety_monitor
     enabled: true
     source: ./plugins/safety.py

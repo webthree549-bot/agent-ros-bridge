@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MQTT Transport for OpenClaw Gateway
+"""MQTT Transport for OpenClaw Gateway.
 
 Connects to MQTT brokers for IoT sensor integration and
 low-bandwidth robot communication.
@@ -32,7 +32,7 @@ logger = logging.getLogger("transport.mqtt")
 
 
 class MQTTTransport(Transport):
-    """MQTT transport for IoT and sensor integration"""
+    """MQTT transport for IoT and sensor integration."""
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__("mqtt", config)
@@ -61,7 +61,7 @@ class MQTTTransport(Transport):
         self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     async def start(self) -> bool:
-        """Start MQTT client and connect to broker"""
+        """Start MQTT client and connect to broker."""
         if not MQTT_AVAILABLE:
             logger.error("paho-mqtt not installed. Run: pip install paho-mqtt>=1.6.0")
             return False
@@ -124,7 +124,7 @@ class MQTTTransport(Transport):
             return False
 
     async def stop(self) -> None:
-        """Stop MQTT client"""
+        """Stop MQTT client."""
         if self.client:
             self.client.loop_stop()
             self.client.disconnect()
@@ -133,7 +133,7 @@ class MQTTTransport(Transport):
         logger.info("MQTT transport stopped")
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
-        """MQTT connect callback (API v2 compatible)"""
+        """MQTT connect callback (API v2 compatible)."""
         if rc == 0:
             self._connected = True
             logger.info("Connected to MQTT broker")
@@ -141,13 +141,13 @@ class MQTTTransport(Transport):
             logger.error(f"MQTT connection failed with code: {rc}")
 
     def _on_disconnect(self, client, userdata, rc, properties=None):
-        """MQTT disconnect callback (API v2 compatible)"""
+        """MQTT disconnect callback (API v2 compatible)."""
         self._connected = False
         if rc != 0:
             logger.warning(f"Unexpected MQTT disconnection (rc={rc})")
 
     def _on_message(self, client, userdata, msg):
-        """MQTT message received callback (runs in background thread)"""
+        """MQTT message received callback (runs in background thread)."""
         try:
             # Parse message
             payload = json.loads(msg.payload.decode("utf-8"))
@@ -181,7 +181,7 @@ class MQTTTransport(Transport):
             logger.error(f"Error processing MQTT message: {e}")
 
     async def _process_messages(self):
-        """Process incoming MQTT messages"""
+        """Process incoming MQTT messages."""
         while self.running:
             try:
                 message, identity = await asyncio.wait_for(self._message_queue.get(), timeout=1.0)
@@ -197,7 +197,7 @@ class MQTTTransport(Transport):
                 logger.error(f"Error in MQTT message processing: {e}")
 
     async def send(self, message: Message, recipient: str) -> bool:
-        """Publish message to MQTT topic"""
+        """Publish message to MQTT topic."""
         if not self._connected or not self.client:
             logger.warning("MQTT not connected, cannot send")
             return False
@@ -229,7 +229,7 @@ class MQTTTransport(Transport):
             return False
 
     async def broadcast(self, message: Message) -> int:
-        """Broadcast to all MQTT subscribers"""
+        """Broadcast to all MQTT subscribers."""
         success = 0
         for client_id in self._identities:
             if await self.send(message, client_id):
@@ -237,7 +237,7 @@ class MQTTTransport(Transport):
         return success
 
     def _mqtt_to_message(self, payload: Dict[str, Any], topic: str) -> Message:
-        """Convert MQTT payload to Message"""
+        """Convert MQTT payload to Message."""
         header = Header(
             message_id=payload.get("id", ""),
             timestamp=datetime.fromisoformat(payload.get("timestamp"))
@@ -283,7 +283,7 @@ class MQTTTransport(Transport):
         )
 
     def _message_to_mqtt(self, message: Message) -> Dict[str, Any]:
-        """Convert Message to MQTT payload"""
+        """Convert Message to MQTT payload."""
         payload = {
             "id": message.header.message_id,
             "timestamp": message.header.timestamp.isoformat(),

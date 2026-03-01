@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""WebSocket Transport for OpenClaw Gateway
+"""WebSocket Transport for OpenClaw Gateway.
 
 Bidirectional WebSocket transport for browser-based agents,
 dashboards, and web applications.
@@ -40,7 +40,7 @@ logger = logging.getLogger("transport.websocket")
 
 
 class WebSocketTransport(Transport):
-    """WebSocket transport implementation with authentication"""
+    """WebSocket transport implementation with authentication."""
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__("websocket", config)
@@ -70,7 +70,7 @@ class WebSocketTransport(Transport):
             self.rbac = None
 
     async def start(self) -> bool:
-        """Start WebSocket server"""
+        """Start WebSocket server."""
         if not WEBSOCKETS_AVAILABLE:
             logger.error("websockets library not installed. Run: pip install websockets")
             return False
@@ -94,13 +94,13 @@ class WebSocketTransport(Transport):
         return True
 
     async def stop(self) -> None:
-        """Stop WebSocket server"""
+        """Stop WebSocket server."""
         if self.server:
             self.server.close()
             await self.server.wait_closed()
 
         # Close all client connections
-        for client_id, ws in list(self.clients.items()):
+        for _client_id, ws in list(self.clients.items()):
             await ws.close()
 
         self.clients.clear()
@@ -109,7 +109,7 @@ class WebSocketTransport(Transport):
         logger.info("WebSocket transport stopped")
 
     async def _handle_client(self, websocket: "WebSocketServerProtocol"):
-        """Handle client connection with authentication"""
+        """Handle client connection with authentication."""
         client_id = str(id(websocket))
 
         # Check authentication if enabled
@@ -242,7 +242,7 @@ class WebSocketTransport(Transport):
             del self.identities[client_id]
 
     async def send(self, message: Message, recipient: str) -> bool:
-        """Send message to specific client"""
+        """Send message to specific client."""
         if recipient not in self.clients:
             logger.warning(f"Recipient not found: {recipient}")
             return False
@@ -280,7 +280,7 @@ class WebSocketTransport(Transport):
         return results
 
     def _json_to_message(self, data: Dict[str, Any]) -> Message:
-        """Convert JSON to Message"""
+        """Convert JSON to Message."""
         # Handle malformed header (when it's a string instead of dict)
         header_data = data.get("header", {})
         if isinstance(header_data, str):
@@ -348,7 +348,7 @@ class WebSocketTransport(Transport):
         )
 
     def _message_to_json(self, message: Message) -> str:
-        """Convert Message to JSON"""
+        """Convert Message to JSON."""
         data = {
             "header": {
                 "message_id": message.header.message_id,
@@ -389,7 +389,7 @@ class WebSocketTransport(Transport):
 
 # Example usage
 async def example_server():
-    """Example WebSocket server"""
+    """Example WebSocket server."""
     from agent_ros_bridge.gateway_v2.core import Bridge
 
     gateway = Bridge()

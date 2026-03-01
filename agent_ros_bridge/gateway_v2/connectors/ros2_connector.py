@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS2 Connector for OpenClaw Gateway
+"""ROS2 Connector for OpenClaw Gateway.
 
 Connects to ROS2 robots and bridges ROS2 topics/services/actions
 to the OpenClaw unified message format.
@@ -33,7 +33,7 @@ logger = logging.getLogger("connector.ros2")
 
 @dataclass
 class ROS2Topic:
-    """ROS2 topic information"""
+    """ROS2 topic information."""
 
     name: str
     message_type: str
@@ -41,7 +41,7 @@ class ROS2Topic:
 
 
 class ROS2Robot(Robot):
-    """ROS2 robot implementation"""
+    """ROS2 robot implementation."""
 
     def __init__(self, robot_id: str, name: str, ros_node: Node):
         super().__init__(robot_id, name, "ros2")
@@ -52,7 +52,7 @@ class ROS2Robot(Robot):
         self._telemetry_queue: asyncio.Queue = asyncio.Queue()
 
     async def connect(self) -> bool:
-        """ROS2 robot is already connected via node"""
+        """ROS2 robot is already connected via node."""
         self.connected = True
         self.capabilities.add("publish")
         self.capabilities.add("subscribe")
@@ -61,7 +61,7 @@ class ROS2Robot(Robot):
         return True
 
     async def disconnect(self) -> None:
-        """Disconnect from ROS2"""
+        """Disconnect from ROS2."""
         self.connected = False
         # Cleanup subscriptions
         for sub in self.subscriptions.values():
@@ -70,7 +70,7 @@ class ROS2Robot(Robot):
         logger.info(f"ROS2 robot {self.name} disconnected")
 
     async def execute(self, command: Command) -> Any:
-        """Execute command on ROS2 robot"""
+        """Execute command on ROS2 robot."""
         action = command.action
         params = command.parameters
 
@@ -88,7 +88,7 @@ class ROS2Robot(Robot):
             raise ValueError(f"Unknown ROS2 command: {action}")
 
     async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:
-        """Subscribe to ROS2 topic"""
+        """Subscribe to ROS2 topic."""
         if topic in self.subscriptions:
             logger.warning(f"Already subscribed to {topic}")
             return
@@ -124,7 +124,7 @@ class ROS2Robot(Robot):
                 continue
 
     async def _cmd_publish(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Publish message to ROS2 topic"""
+        """Publish message to ROS2 topic."""
         topic = params.get("topic")
         message_data = params.get("data")
         msg_type_str = params.get("type", "std_msgs/String")
@@ -163,9 +163,9 @@ class ROS2Robot(Robot):
             return {"status": "error", "message": str(e)}
 
     async def _cmd_call_service(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Call ROS2 service"""
+        """Call ROS2 service."""
         service_name = params.get("service")
-        request_data = params.get("request")
+        params.get("request")
 
         # Create service client
         # client = self.ros_node.create_client(service_type, service_name)
@@ -177,31 +177,31 @@ class ROS2Robot(Robot):
         return {"status": "called", "service": service_name}
 
     async def _cmd_send_action(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Send ROS2 action goal"""
+        """Send ROS2 action goal."""
         action_name = params.get("action")
-        goal_data = params.get("goal")
+        params.get("goal")
 
         # Action client implementation
         return {"status": "goal_sent", "action": action_name}
 
     def _cmd_get_topics(self) -> List[Dict[str, Any]]:
-        """Get list of available topics"""
+        """Get list of available topics."""
         topic_names_and_types = self.ros_node.get_topic_names_and_types()
         return [{"name": name, "types": types} for name, types in topic_names_and_types]
 
     def _cmd_get_nodes(self) -> List[str]:
-        """Get list of ROS2 nodes"""
+        """Get list of ROS2 nodes."""
         return self.ros_node.get_node_names()
 
     def _ros_msg_to_dict(self, msg) -> Dict[str, Any]:
-        """Convert ROS message to dictionary"""
+        """Convert ROS message to dictionary."""
         result = {"_type": type(msg).__name__}
 
         # Try to extract fields using get_fields_and_field_types() if available
         try:
             if hasattr(msg, "get_fields_and_field_types"):
                 fields = msg.get_fields_and_field_types()
-                for field_name in fields.keys():
+                for field_name in fields:
                     value = getattr(msg, field_name, None)
                     # Handle nested messages
                     if hasattr(value, "get_fields_and_field_types"):
@@ -234,14 +234,14 @@ class ROS2Robot(Robot):
         return result
 
     def _dict_to_ros_msg(self, data: Dict[str, Any], msg):
-        """Convert dictionary to ROS message"""
+        """Convert dictionary to ROS message."""
         for key, value in data.items():
             if hasattr(msg, key):
                 setattr(msg, key, value)
 
 
 class ROS2Connector(Connector):
-    """ROS2 connector implementation"""
+    """ROS2 connector implementation."""
 
     connector_type = "ros2"
 
@@ -251,7 +251,7 @@ class ROS2Connector(Connector):
         self._initialized = False
 
     async def _ensure_initialized(self):
-        """Ensure ROS2 is initialized"""
+        """Ensure ROS2 is initialized."""
         if not ROS2_AVAILABLE:
             raise RuntimeError("ROS2 not available. Install rclpy.")
 
@@ -265,13 +265,13 @@ class ROS2Connector(Connector):
             asyncio.create_task(self._spin_ros())
 
     async def _spin_ros(self):
-        """Spin ROS2 node"""
+        """Spin ROS2 node."""
         while rclpy.ok():
             rclpy.spin_once(self.node, timeout_sec=0.1)
             await asyncio.sleep(0.001)
 
     async def connect(self, uri: str, **kwargs) -> Robot:
-        """Connect to ROS2 system
+        """Connect to ROS2 system.
 
         URI format: ros2://[<domain_id>]/[<namespace>]
 
@@ -300,7 +300,7 @@ class ROS2Connector(Connector):
         return robot
 
     async def discover(self) -> List[RobotEndpoint]:
-        """Discover ROS2 systems on network"""
+        """Discover ROS2 systems on network."""
         await self._ensure_initialized()
 
         endpoints = []
@@ -336,7 +336,7 @@ class ROS2Connector(Connector):
 
 # Example usage
 async def example():
-    """Example ROS2 connector usage"""
+    """Example ROS2 connector usage."""
     from agent_ros_bridge.gateway_v2.core import Bridge
 
     # Create gateway

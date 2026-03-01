@@ -1,4 +1,4 @@
-"""Agent ROS Bridge Protocol Buffer Definitions"""
+"""Agent ROS Bridge Protocol Buffer Definitions."""
 
 from agent_ros_bridge.proto.bridge_pb2 import (
     SERVICE_NAME,

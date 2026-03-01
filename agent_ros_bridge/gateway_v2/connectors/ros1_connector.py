@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROS1 Connector for OpenClaw Gateway
+"""ROS1 Connector for OpenClaw Gateway.
 
 Connects to ROS1 robots (Noetic) and bridges ROS topics/services/actions
 to the OpenClaw unified message format.
@@ -26,14 +26,14 @@ logger = logging.getLogger("connector.ros1")
 
 @dataclass
 class ROS1Topic:
-    """ROS1 topic information"""
+    """ROS1 topic information."""
 
     name: str
     message_type: str
 
 
 class ROS1Robot(Robot):
-    """ROS1 robot implementation"""
+    """ROS1 robot implementation."""
 
     def __init__(self, robot_id: str, name: str):
         super().__init__(robot_id, name, "ros1")
@@ -42,7 +42,7 @@ class ROS1Robot(Robot):
         self._telemetry_queue: asyncio.Queue = asyncio.Queue()
 
     async def connect(self) -> bool:
-        """Initialize ROS1 node"""
+        """Initialize ROS1 node."""
         if not ROS1_AVAILABLE:
             logger.error("ROS1 (rospy) not available")
             return False
@@ -60,7 +60,7 @@ class ROS1Robot(Robot):
             return False
 
     async def disconnect(self) -> None:
-        """Disconnect from ROS1"""
+        """Disconnect from ROS1."""
         self.connected = False
         # Unregister all subscribers and publishers
         for sub in self.subscribers.values():
@@ -72,7 +72,7 @@ class ROS1Robot(Robot):
         logger.info(f"ROS1 robot {self.name} disconnected")
 
     async def execute(self, command: Command) -> Any:
-        """Execute command on ROS1 robot"""
+        """Execute command on ROS1 robot."""
         action = command.action
         params = command.parameters
 
@@ -90,7 +90,7 @@ class ROS1Robot(Robot):
             return {"error": f"Unknown action: {action}"}
 
     async def _cmd_publish(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Publish to a ROS1 topic"""
+        """Publish to a ROS1 topic."""
         topic = params.get("topic")
         data = params.get("data", {})
         msg_type = params.get("message_type", "std_msgs/String")
@@ -112,7 +112,7 @@ class ROS1Robot(Robot):
             return {"error": str(e), "topic": topic}
 
     async def _cmd_subscribe(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Subscribe to a ROS1 topic"""
+        """Subscribe to a ROS1 topic."""
         topic = params.get("topic")
         msg_type = params.get("message_type", "std_msgs/String")
 
@@ -141,9 +141,9 @@ class ROS1Robot(Robot):
             return {"error": str(e), "topic": topic}
 
     async def _cmd_call_service(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Call a ROS1 service"""
+        """Call a ROS1 service."""
         service = params.get("service")
-        request = params.get("request", {})
+        params.get("request", {})
 
         try:
             rospy.wait_for_service(service, timeout=5.0)
@@ -153,7 +153,7 @@ class ROS1Robot(Robot):
             return {"error": str(e), "service": service}
 
     def _cmd_get_topics(self) -> Dict[str, Any]:
-        """Get list of available ROS1 topics"""
+        """Get list of available ROS1 topics."""
         if not ROS1_AVAILABLE:
             return {"topics": [], "error": "ROS1 not available"}
 
@@ -161,7 +161,7 @@ class ROS1Robot(Robot):
         return {"topics": [{"name": name, "type": msg_type} for name, msg_type in topics]}
 
     def _cmd_get_nodes(self) -> Dict[str, Any]:
-        """Get list of ROS1 nodes"""
+        """Get list of ROS1 nodes."""
         if not ROS1_AVAILABLE:
             return {"nodes": [], "error": "ROS1 not available"}
 
@@ -169,7 +169,7 @@ class ROS1Robot(Robot):
         return {"nodes": nodes}
 
     def _get_message_class(self, msg_type: str):
-        """Dynamically import ROS1 message class"""
+        """Dynamically import ROS1 message class."""
         try:
             parts = msg_type.split("/")
             if len(parts) == 2:
@@ -189,7 +189,7 @@ class ROS1Robot(Robot):
             return String
 
     def _build_message(self, msg_type: str, data: Dict[str, Any]):
-        """Build ROS1 message from dict"""
+        """Build ROS1 message from dict."""
         msg_class = self._get_message_class(msg_type)
         msg = msg_class()
 
@@ -201,7 +201,7 @@ class ROS1Robot(Robot):
         return msg
 
     def _msg_to_dict(self, msg) -> Dict[str, Any]:
-        """Convert ROS1 message to dict"""
+        """Convert ROS1 message to dict."""
         # Get all non-private attributes
         result = {}
         for slot in msg.__slots__ if hasattr(msg, "__slots__") else dir(msg):
@@ -226,7 +226,7 @@ class ROS1Robot(Robot):
                 continue
 
     async def get_telemetry(self) -> Optional[Telemetry]:
-        """Get telemetry data from queue"""
+        """Get telemetry data from queue."""
         try:
             data = self._telemetry_queue.get_nowait()
             return Telemetry(topic=data["topic"], data=data["data"], quality=1.0)
@@ -235,7 +235,7 @@ class ROS1Robot(Robot):
 
 
 class ROS1Connector(Connector):
-    """ROS1 (Noetic) connector"""
+    """ROS1 (Noetic) connector."""
 
     connector_type = "ros1"
 
@@ -245,7 +245,7 @@ class ROS1Connector(Connector):
         self._running = False
 
     async def discover(self) -> List[RobotEndpoint]:
-        """Discover ROS1 nodes as robot endpoints"""
+        """Discover ROS1 nodes as robot endpoints."""
         if not ROS1_AVAILABLE:
             return []
 
@@ -253,7 +253,7 @@ class ROS1Connector(Connector):
         try:
             nodes = rospy.get_node_names()
             for node in nodes:
-                node_id = node.replace("/", "_").lstrip("_")
+                node.replace("/", "_").lstrip("_")
                 endpoints.append(
                     RobotEndpoint(
                         uri=f"ros1://{node}",
@@ -269,7 +269,7 @@ class ROS1Connector(Connector):
         return endpoints
 
     async def connect(self, uri: str, **kwargs) -> Optional[Robot]:
-        """Connect to a ROS1 robot by URI (ros1://<node_name>)"""
+        """Connect to a ROS1 robot by URI (ros1://<node_name>)."""
         node_name = uri.replace("ros1://", "")
         robot_id = node_name.replace("/", "_").lstrip("_")
         robot = ROS1Robot(robot_id, node_name)

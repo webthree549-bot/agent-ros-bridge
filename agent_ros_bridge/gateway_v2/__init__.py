@@ -1,4 +1,4 @@
-"""Agent ROS Bridge v2 - Universal ROS Bridge
+"""Agent ROS Bridge v2 - Universal ROS Bridge.
 
 Multi-protocol, multi-robot, cloud-native connectivity platform.
 """

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Native ROS Setup Validation Script
+"""Native ROS Setup Validation Script.
 
 Validates that Agent ROS Bridge works correctly with native ROS installation.
 Run this before production deployment to verify your environment.
@@ -56,7 +56,7 @@ def print_info(text):
 
 
 def run_command(cmd, capture_output=True):
-    """Run shell command and return (success, output)"""
+    """Run shell command and return (success, output)."""
     try:
         result = subprocess.run(
             cmd, shell=True, capture_output=capture_output, text=True, timeout=10
@@ -69,7 +69,7 @@ def run_command(cmd, capture_output=True):
 
 
 def check_ros2():
-    """Validate ROS2 installation"""
+    """Validate ROS2 installation."""
     print_header("Checking ROS2 Installation")
 
     results = {"passed": 0, "failed": 0, "warnings": 0}
@@ -127,7 +127,7 @@ def check_ros2():
 
 
 def check_ros1():
-    """Validate ROS1 installation"""
+    """Validate ROS1 installation."""
     print_header("Checking ROS1 Installation")
 
     results = {"passed": 0, "failed": 0, "warnings": 0}
@@ -163,7 +163,7 @@ def check_ros1():
 
 
 def check_agent_ros_bridge():
-    """Validate Agent ROS Bridge installation"""
+    """Validate Agent ROS Bridge installation."""
     print_header("Checking Agent ROS Bridge")
 
     results = {"passed": 0, "failed": 0, "warnings": 0}
@@ -255,7 +255,7 @@ def check_agent_ros_bridge():
 
 
 def test_basic_functionality():
-    """Test basic bridge functionality"""
+    """Test basic bridge functionality."""
     print_header("Testing Basic Functionality")
 
     results = {"passed": 0, "failed": 0, "warnings": 0}
@@ -305,7 +305,7 @@ def test_basic_functionality():
 
 
 def print_summary(all_results):
-    """Print validation summary"""
+    """Print validation summary."""
     print_header("Validation Summary")
 
     total_passed = sum(r["passed"] for r in all_results.values())

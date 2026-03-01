@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fleet Orchestrator Demo
+"""Fleet Orchestrator Demo.
 
 Demonstrates multi-robot task allocation with a simulated warehouse fleet.
 
@@ -24,7 +24,7 @@ logger = logging.getLogger("fleet_demo")
 
 
 async def handle_fleet_command(orchestrator, message, identity):
-    """Handle fleet-related commands from WebSocket"""
+    """Handle fleet-related commands from WebSocket."""
     if not message.command:
         return None
 

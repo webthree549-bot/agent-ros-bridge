@@ -120,8 +120,8 @@ class AgentMemory:
 
         cursor = self.conn.cursor()
         cursor.execute(
-            """INSERT OR REPLACE INTO memories 
-               (key, value, expires_at, metadata) 
+            """INSERT OR REPLACE INTO memories
+               (key, value, expires_at, metadata)
                VALUES (?, ?, ?, ?)""",
             (
                 key,

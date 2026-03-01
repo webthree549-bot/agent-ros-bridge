@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 # Message definitions
 class Header(_message.Message):
-    """Message header"""
+    """Message header."""
 
     __slots__ = ("message_id", "timestamp", "source", "target", "correlation_id")
 
@@ -28,7 +28,7 @@ class Header(_message.Message):
 
 
 class Command(_message.Message):
-    """Robot command"""
+    """Robot command."""
 
     __slots__ = ("action", "parameters", "timeout_ms", "priority")
 
@@ -40,7 +40,7 @@ class Command(_message.Message):
 
 
 class Telemetry(_message.Message):
-    """Telemetry data"""
+    """Telemetry data."""
 
     __slots__ = ("topic", "data", "quality")
 
@@ -51,7 +51,7 @@ class Telemetry(_message.Message):
 
 
 class Event(_message.Message):
-    """System event"""
+    """System event."""
 
     __slots__ = ("type", "severity", "data")
 
@@ -62,7 +62,7 @@ class Event(_message.Message):
 
 
 class Message(_message.Message):
-    """Unified message"""
+    """Unified message."""
 
     __slots__ = ("header", "command", "telemetry", "event", "metadata")
 
@@ -75,7 +75,7 @@ class Message(_message.Message):
 
 
 class CommandResponse(_message.Message):
-    """Command response"""
+    """Command response."""
 
     __slots__ = ("success", "result", "error")
 
@@ -86,7 +86,7 @@ class CommandResponse(_message.Message):
 
 
 class SubscriptionRequest(_message.Message):
-    """Subscription request"""
+    """Subscription request."""
 
     __slots__ = ("topics", "robot_id")
 
@@ -97,35 +97,35 @@ class SubscriptionRequest(_message.Message):
 
 # gRPC Service
 class BridgeServiceServicer:
-    """Bridge service implementation interface"""
+    """Bridge service implementation interface."""
 
     def SendCommand(self, request, context):
-        """Send a command to the bridge"""
+        """Send a command to the bridge."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
     def StreamTelemetry(self, request_iterator, context):
-        """Bidirectional telemetry streaming"""
+        """Bidirectional telemetry streaming."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
     def SubscribeTelemetry(self, request, context):
-        """Subscribe to telemetry stream"""
+        """Subscribe to telemetry stream."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
     def HealthCheck(self, request, context):
-        """Health check endpoint"""
+        """Health check endpoint."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details("Method not implemented!")
         raise NotImplementedError("Method not implemented!")
 
 
 class BridgeServiceStub:
-    """Bridge service client stub"""
+    """Bridge service client stub."""
 
     def __init__(self, channel):
         self.SendCommand = channel.unary_unary(
@@ -151,7 +151,7 @@ class BridgeServiceStub:
 
 
 def add_BridgeServiceServicer_to_server(servicer, server):
-    """Add BridgeService servicer to gRPC server"""
+    """Add BridgeService servicer to gRPC server."""
     rpc_method_handlers = {
         "SendCommand": grpc.unary_unary_rpc_method_handler(
             servicer.SendCommand,

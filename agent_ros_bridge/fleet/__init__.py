@@ -1,4 +1,4 @@
-"""Fleet management module for Agent ROS Bridge
+"""Fleet management module for Agent ROS Bridge.
 
 Multi-robot orchestration, task allocation, and fleet coordination.
 """

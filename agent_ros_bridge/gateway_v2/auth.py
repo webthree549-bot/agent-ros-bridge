@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Authentication and authorization for Agent ROS Bridge
+"""Authentication and authorization for Agent ROS Bridge.
 
 Supports JWT tokens and API keys for securing WebSocket connections.
 """
@@ -17,7 +17,7 @@ logger = logging.getLogger("auth")
 
 @dataclass
 class AuthConfig:
-    """Authentication configuration - SECURITY: Always enabled, JWT_SECRET required"""
+    """Authentication configuration - SECURITY: Always enabled, JWT_SECRET required."""
 
     enabled: bool = True  # Always enabled, no disable option
     jwt_secret: Optional[str] = None
@@ -34,14 +34,14 @@ class AuthConfig:
 
 
 class Authenticator:
-    """JWT and API key authenticator"""
+    """JWT and API key authenticator."""
 
     def __init__(self, config: AuthConfig):
         self.config = config
         self._ensure_secret()
 
     def _ensure_secret(self):
-        """Ensure JWT secret exists - SECURITY: Always required"""
+        """Ensure JWT secret exists - SECURITY: Always required."""
         if not self.config.jwt_secret:
             raise ValueError(
                 "JWT_SECRET is required. "
@@ -52,7 +52,7 @@ class Authenticator:
     def create_token(
         self, user_id: str, roles: List[str] = None, metadata: Dict[str, Any] = None
     ) -> str:
-        """Create a new JWT token"""
+        """Create a new JWT token."""
         if not self.config.enabled:
             raise RuntimeError("Authentication is disabled")
 
@@ -68,7 +68,7 @@ class Authenticator:
         return token
 
     def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
-        """Verify a JWT token and return payload"""
+        """Verify a JWT token and return payload."""
         if not self.config.enabled:
             return {"sub": "anonymous", "roles": ["admin"]}  # Allow all if disabled
 
@@ -85,7 +85,7 @@ class Authenticator:
             return None
 
     def verify_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
-        """Verify an API key"""
+        """Verify an API key."""
         if not self.config.enabled:
             return {"sub": "anonymous", "roles": ["admin"]}
 
@@ -99,7 +99,7 @@ class Authenticator:
         return None
 
     def extract_token_from_query(self, query_string: str) -> Optional[str]:
-        """Extract JWT token from query string (token=xxx)"""
+        """Extract JWT token from query string (token=xxx)."""
         import urllib.parse
 
         params = urllib.parse.parse_qs(query_string)
@@ -108,12 +108,12 @@ class Authenticator:
         return None
 
     def extract_api_key_from_headers(self, headers: Dict[str, str]) -> Optional[str]:
-        """Extract API key from headers (X-API-Key)"""
+        """Extract API key from headers (X-API-Key)."""
         return headers.get("X-API-Key") or headers.get("x-api-key")
 
 
 class RoleBasedAccessControl:
-    """Role-based access control for robot commands"""
+    """Role-based access control for robot commands."""
 
     def __init__(self):
         # Define permission matrix
@@ -135,7 +135,7 @@ class RoleBasedAccessControl:
         }
 
     def can_execute(self, roles: List[str], action: str) -> bool:
-        """Check if any role allows the action"""
+        """Check if any role allows the action."""
         for role in roles:
             allowed = self.permissions.get(role, [])
             if "*" in allowed or action in allowed:
@@ -143,7 +143,7 @@ class RoleBasedAccessControl:
         return False
 
     def filter_response(self, roles: List[str], response: Dict[str, Any]) -> Dict[str, Any]:
-        """Filter response based on role (e.g., hide sensitive data)"""
+        """Filter response based on role (e.g., hide sensitive data)."""
         if "admin" not in roles and "operator" not in roles:
             # Remove sensitive fields for viewers
             if "robots" in response:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MQTT Transport Demo
+"""MQTT Transport Demo.
 
 Demonstrates MQTT transport for IoT sensor integration.
 Requires an MQTT broker (e.g., Mosquitto).
@@ -30,7 +30,7 @@ logger = logging.getLogger("mqtt_demo")
 
 
 class SensorSimulator:
-    """Simulates IoT sensors publishing to MQTT"""
+    """Simulates IoT sensors publishing to MQTT."""
 
     def __init__(self, broker="localhost", port=1883):
         self.broker = broker
@@ -38,7 +38,7 @@ class SensorSimulator:
         self.running = False
 
     async def start(self):
-        """Start publishing sensor data"""
+        """Start publishing sensor data."""
         try:
             import paho.mqtt.client as mqtt
         except ImportError:
@@ -86,13 +86,12 @@ class SensorSimulator:
 
 
 async def handle_message(message, identity):
-    """Handle incoming MQTT messages"""
+    """Handle incoming MQTT messages."""
     logger.info(f"📩 From {identity.name}: {message}")
 
     if message.command:
         # Execute command and return response
         cmd = message.command.action
-        params = message.command.parameters
 
         if cmd == "get_sensor_data":
             return Message(

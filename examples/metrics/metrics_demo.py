@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Metrics Demo - Prometheus Monitoring
+"""Metrics Demo - Prometheus Monitoring.
 
 Demonstrates metrics collection and Prometheus export.
 
@@ -23,8 +23,8 @@ logger = logging.getLogger("metrics_demo")
 
 
 async def simulate_robot_activity(metrics):
-    """Simulate robot activity for metrics demonstration"""
-    robot_ids = [f"robot_{i:03d}" for i in range(5)]
+    """Simulate robot activity for metrics demonstration."""
+    [f"robot_{i:03d}" for i in range(5)]
 
     while True:
         # Simulate random robot connections

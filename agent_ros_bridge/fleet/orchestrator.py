@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fleet Orchestrator for Agent ROS Bridge
+"""Fleet Orchestrator for Agent ROS Bridge.
 
 Manages multi-robot fleets with task allocation, load balancing,
 and coordination across heterogeneous robots (ROS1/ROS2 mixed).
@@ -13,6 +13,7 @@ Usage:
 """
 
 import asyncio
+import contextlib
 import logging
 import uuid
 from collections import deque
@@ -25,7 +26,7 @@ logger = logging.getLogger("fleet.orchestrator")
 
 
 class TaskStatus(Enum):
-    """Task lifecycle states"""
+    """Task lifecycle states."""
 
     PENDING = auto()
     ASSIGNED = auto()
@@ -36,7 +37,7 @@ class TaskStatus(Enum):
 
 
 class RobotStatus(Enum):
-    """Robot availability states"""
+    """Robot availability states."""
 
     IDLE = auto()
     BUSY = auto()
@@ -47,7 +48,7 @@ class RobotStatus(Enum):
 
 @dataclass
 class RobotCapability:
-    """Robot capabilities for task matching"""
+    """Robot capabilities for task matching."""
 
     can_navigate: bool = True
     can_manipulate: bool = False
@@ -61,7 +62,7 @@ class RobotCapability:
 
 @dataclass
 class Task:
-    """Fleet task definition"""
+    """Fleet task definition."""
 
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     type: str = "navigate"  # navigate, manipulate, transport, charge
@@ -84,7 +85,7 @@ class Task:
 
 @dataclass
 class FleetRobot:
-    """Robot in the fleet"""
+    """Robot in the fleet."""
 
     robot_id: str
     name: str
@@ -103,7 +104,7 @@ class FleetRobot:
 
 @dataclass
 class FleetMetrics:
-    """Fleet performance metrics"""
+    """Fleet performance metrics."""
 
     total_robots: int = 0
     active_robots: int = 0
@@ -117,7 +118,7 @@ class FleetMetrics:
 
 
 class FleetOrchestrator:
-    """Multi-robot fleet orchestration and task allocation"""
+    """Multi-robot fleet orchestration and task allocation."""
 
     def __init__(self):
         self.robots: Dict[str, FleetRobot] = {}
@@ -133,24 +134,22 @@ class FleetOrchestrator:
         self.on_robot_status_changed: Optional[Callable[[FleetRobot], None]] = None
 
     async def start(self):
-        """Start the orchestrator"""
+        """Start the orchestrator."""
         self.running = True
         self._allocation_loop_task = asyncio.create_task(self._allocation_loop())
         logger.info("🚀 Fleet orchestrator started")
 
     async def stop(self):
-        """Stop the orchestrator"""
+        """Stop the orchestrator."""
         self.running = False
         if self._allocation_loop_task:
             self._allocation_loop_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._allocation_loop_task
-            except asyncio.CancelledError:
-                pass
         logger.info("⏹️  Fleet orchestrator stopped")
 
     async def add_robot(self, robot: FleetRobot) -> bool:
-        """Add a robot to the fleet"""
+        """Add a robot to the fleet."""
         if robot.robot_id in self.robots:
             logger.warning(f"Robot {robot.robot_id} already in fleet")
             return False
@@ -160,7 +159,7 @@ class FleetOrchestrator:
         return True
 
     async def remove_robot(self, robot_id: str) -> bool:
-        """Remove a robot from the fleet"""
+        """Remove a robot from the fleet."""
         if robot_id not in self.robots:
             return False
 
@@ -175,7 +174,7 @@ class FleetOrchestrator:
         return True
 
     async def submit_task(self, task: Task) -> str:
-        """Submit a new task to the fleet"""
+        """Submit a new task to the fleet."""
         self.tasks[task.id] = task
 
         # Insert into priority queue (sorted by priority)
@@ -195,7 +194,7 @@ class FleetOrchestrator:
         return task.id
 
     async def cancel_task(self, task_id: str) -> bool:
-        """Cancel a pending or executing task"""
+        """Cancel a pending or executing task."""
         if task_id not in self.tasks:
             return False
 
@@ -205,9 +204,8 @@ class FleetOrchestrator:
             return False
 
         # Remove from queue if pending
-        if task.status == TaskStatus.PENDING:
-            if task in self.task_queue:
-                self.task_queue.remove(task)
+        if task.status == TaskStatus.PENDING and task in self.task_queue:
+            self.task_queue.remove(task)
 
         # Release robot if assigned
         if task.assigned_robot and task.assigned_robot in self.robots:
@@ -226,7 +224,7 @@ class FleetOrchestrator:
         location: Optional[str] = None,
         battery: Optional[float] = None,
     ):
-        """Update robot status from external monitor"""
+        """Update robot status from external monitor."""
         if robot_id not in self.robots:
             return
 
@@ -250,7 +248,7 @@ class FleetOrchestrator:
     async def report_task_progress(
         self, task_id: str, progress_percent: float, message: Optional[str] = None
     ):
-        """Report task progress from robot"""
+        """Report task progress from robot."""
         if task_id not in self.tasks:
             return
 
@@ -264,7 +262,7 @@ class FleetOrchestrator:
     async def complete_task(
         self, task_id: str, success: bool = True, result: Optional[Dict] = None
     ):
-        """Mark task as completed or failed"""
+        """Mark task as completed or failed."""
         if task_id not in self.tasks:
             return
 
@@ -302,7 +300,7 @@ class FleetOrchestrator:
         asyncio.create_task(self._allocate_tasks())
 
     def get_metrics(self) -> FleetMetrics:
-        """Get current fleet metrics"""
+        """Get current fleet metrics."""
         metrics = FleetMetrics()
         metrics.total_robots = len(self.robots)
         metrics.active_robots = sum(1 for r in self.robots.values() if r.status == RobotStatus.BUSY)
@@ -326,7 +324,7 @@ class FleetOrchestrator:
         return metrics
 
     def get_fleet_status(self) -> Dict[str, Any]:
-        """Get complete fleet status for dashboard"""
+        """Get complete fleet status for dashboard."""
         return {
             "robots": [
                 {
@@ -361,7 +359,7 @@ class FleetOrchestrator:
         }
 
     async def _allocation_loop(self):
-        """Background task allocation loop"""
+        """Background task allocation loop."""
         while self.running:
             try:
                 await self._allocate_tasks()
@@ -373,7 +371,7 @@ class FleetOrchestrator:
                 await asyncio.sleep(5.0)
 
     async def _allocate_tasks(self):
-        """Allocate pending tasks to available robots"""
+        """Allocate pending tasks to available robots."""
         if not self.task_queue:
             return
 
@@ -401,7 +399,7 @@ class FleetOrchestrator:
                 self.task_queue.remove(task)
 
     def _select_robot_for_task(self, task: Task) -> Optional[FleetRobot]:
-        """Select best robot for a task based on capabilities and availability"""
+        """Select best robot for a task based on capabilities and availability."""
         candidates = []
 
         for robot in self.robots.values():
@@ -429,7 +427,7 @@ class FleetOrchestrator:
         return candidates[0][0]
 
     def _can_robot_handle_task(self, robot: FleetRobot, task: Task) -> bool:
-        """Check if robot has required capabilities"""
+        """Check if robot has required capabilities."""
         caps = robot.capabilities
         required = task.required_capabilities
 
@@ -439,13 +437,10 @@ class FleetOrchestrator:
             return False
         if required.can_lift and not caps.can_lift:
             return False
-        if task.payload_kg > caps.max_payload_kg:
-            return False
-
-        return True
+        return not task.payload_kg > caps.max_payload_kg
 
     def _calculate_robot_score(self, robot: FleetRobot, task: Task) -> float:
-        """Calculate suitability score for robot-task pairing"""
+        """Calculate suitability score for robot-task pairing."""
         score = 100.0
 
         # Prefer robots with higher battery
@@ -470,7 +465,7 @@ class FleetOrchestrator:
         return score
 
     async def _assign_task_to_robot(self, task: Task, robot: FleetRobot):
-        """Assign a task to a robot"""
+        """Assign a task to a robot."""
         task.status = TaskStatus.ASSIGNED
         task.assigned_robot = robot.robot_id
         task.started_at = datetime.utcnow()
@@ -487,7 +482,7 @@ class FleetOrchestrator:
         asyncio.create_task(self._execute_task(task, robot))
 
     async def _execute_task(self, task: Task, robot: FleetRobot):
-        """Execute task on robot (simulated)"""
+        """Execute task on robot (simulated)."""
         task.status = TaskStatus.EXECUTING
 
         logger.info(f"▶️  Executing task {task.id} on {robot.name}")

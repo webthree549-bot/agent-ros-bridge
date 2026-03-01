@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""gRPC Transport for Agent ROS Bridge
+"""gRPC Transport for Agent ROS Bridge.
 
 High-performance gRPC transport for microservices, cloud deployments,
 and strongly-typed integrations.
@@ -29,14 +29,14 @@ logger = logging.getLogger("transport.grpc")
 
 
 class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE else object):
-    """Bridge service implementation"""
+    """Bridge service implementation."""
 
     def __init__(self, message_handler, transport):
         self.message_handler = message_handler
         self.transport = transport
 
     async def SendCommand(self, request, context):
-        """Handle incoming command"""
+        """Handle incoming command."""
         try:
             identity = Identity(
                 id=str(context.peer()),
@@ -58,7 +58,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             return bridge_pb2.CommandResponse(success=False, error=str(e))
 
     async def StreamTelemetry(self, request_iterator, context):
-        """Bidirectional streaming for telemetry"""
+        """Bidirectional streaming for telemetry."""
         identity = Identity(
             id=str(context.peer()),
             name=f"grpc_{context.peer()}",
@@ -79,17 +79,17 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                 break
 
     async def SubscribeTelemetry(self, request, context):
-        """Subscribe to telemetry stream"""
+        """Subscribe to telemetry stream."""
         # This would typically connect to a telemetry publisher
         # For now, yield a placeholder
         yield bridge_pb2.Telemetry(topic="status", data=struct_pb2.Struct(), quality=1.0)
 
     async def HealthCheck(self, request, context):
-        """Health check endpoint"""
+        """Health check endpoint."""
         return bridge_pb2.CommandResponse(success=True, result=struct_pb2.Struct())
 
     def _proto_to_message(self, proto) -> Message:
-        """Convert protobuf to Message"""
+        """Convert protobuf to Message."""
         header = Header()
         if proto.header and proto.header.message_id:
             header.message_id = proto.header.message_id
@@ -111,7 +111,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         return Message(header=header, command=command)
 
     def _message_to_proto_response(self, message: Message) -> bridge_pb2.CommandResponse:
-        """Convert Message to CommandResponse protobuf"""
+        """Convert Message to CommandResponse protobuf."""
         result_struct = struct_pb2.Struct()
 
         if message.telemetry and message.telemetry.data:
@@ -122,7 +122,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
 
 
 class GRPCTransport(Transport):
-    """gRPC transport implementation"""
+    """gRPC transport implementation."""
 
     def __init__(self, config: Dict[str, Any]):
         super().__init__("grpc", config)
@@ -135,7 +135,7 @@ class GRPCTransport(Transport):
         self.service = None
 
     async def start(self) -> bool:
-        """Start gRPC server"""
+        """Start gRPC server."""
         if not GRPC_AVAILABLE:
             logger.error("grpc library not installed. Run: pip install grpcio grpcio-tools")
             return False
@@ -190,7 +190,7 @@ class GRPCTransport(Transport):
         return True
 
     async def stop(self) -> None:
-        """Stop gRPC server"""
+        """Stop gRPC server."""
         if self.server:
             await self.server.stop(grace_period=5)
 
@@ -198,19 +198,19 @@ class GRPCTransport(Transport):
         logger.info("gRPC transport stopped")
 
     async def send(self, message: Message, recipient: str) -> bool:
-        """Send message to specific recipient"""
+        """Send message to specific recipient."""
         logger.warning("gRPC send() not implemented - gRPC uses request/response pattern")
         return False
 
     async def broadcast(self, message: Message) -> list:
-        """Broadcast to all connected clients"""
+        """Broadcast to all connected clients."""
         logger.warning("gRPC broadcast() not implemented - gRPC is connection-oriented")
         return []
 
 
 # Example usage
 async def example_server():
-    """Example gRPC server"""
+    """Example gRPC server."""
     from agent_ros_bridge.gateway_v2.core import Bridge
 
     gateway = Bridge()

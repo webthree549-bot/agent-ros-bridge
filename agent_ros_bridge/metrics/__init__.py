@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prometheus metrics exporter for Agent ROS Bridge
+"""Prometheus metrics exporter for Agent ROS Bridge.
 
 Provides metrics for monitoring robot fleets, bridge performance,
 and system health. Compatible with Prometheus + Grafana.
@@ -49,7 +49,7 @@ logger = logging.getLogger("metrics")
 
 @dataclass
 class MetricsSnapshot:
-    """Snapshot of current metrics"""
+    """Snapshot of current metrics."""
 
     timestamp: float
     robots_total: int = 0
@@ -64,7 +64,7 @@ class MetricsSnapshot:
 
 
 class MetricsCollector:
-    """Collects and exposes metrics for Prometheus"""
+    """Collects and exposes metrics for Prometheus."""
 
     def __init__(self, namespace: str = "agent_ros_bridge"):
         self.namespace = namespace
@@ -96,7 +96,7 @@ class MetricsCollector:
         self._start_time = time.time()
 
     def _init_metrics(self):
-        """Initialize Prometheus metric objects"""
+        """Initialize Prometheus metric objects."""
         ns = self.namespace
 
         # Info
@@ -174,7 +174,7 @@ class MetricsCollector:
 
     # Recording methods
     def record_message_sent(self, transport: str = "websocket", size_bytes: int = 0):
-        """Record message sent"""
+        """Record message sent."""
         self._counters["messages_sent"] += 1
         if PROMETHEUS_AVAILABLE:
             self.messages_sent.labels(transport=transport).inc()
@@ -182,7 +182,7 @@ class MetricsCollector:
                 self.message_size.observe(size_bytes)
 
     def record_message_received(self, transport: str = "websocket", size_bytes: int = 0):
-        """Record message received"""
+        """Record message received."""
         self._counters["messages_received"] += 1
         if PROMETHEUS_AVAILABLE:
             self.messages_received.labels(transport=transport).inc()
@@ -190,7 +190,7 @@ class MetricsCollector:
                 self.message_size.observe(size_bytes)
 
     def record_task_completed(self, task_type: str = "generic", duration_sec: float = 0.0):
-        """Record task completion"""
+        """Record task completion."""
         self._counters["tasks_completed"] += 1
         if PROMETHEUS_AVAILABLE:
             self.tasks_completed.labels(status="success").inc()
@@ -198,48 +198,48 @@ class MetricsCollector:
                 self.task_duration.labels(task_type=task_type).observe(duration_sec)
 
     def record_task_failed(self, task_type: str = "generic"):
-        """Record task failure"""
+        """Record task failure."""
         self._counters["tasks_failed"] += 1
         if PROMETHEUS_AVAILABLE:
             self.tasks_completed.labels(status="failed").inc()
 
     def record_connection_opened(self, transport: str = "websocket"):
-        """Record new connection"""
+        """Record new connection."""
         self._counters["connections_total"] += 1
         if PROMETHEUS_AVAILABLE:
             self.connections_total.labels(transport=transport).inc()
 
     def set_robots_online(self, count: int):
-        """Set number of online robots"""
+        """Set number of online robots."""
         self._gauges["robots_online"] = count
         if PROMETHEUS_AVAILABLE:
             self.robots_online.set(count)
 
     def set_robots_total(self, count: int):
-        """Set total number of robots"""
+        """Set total number of robots."""
         self._gauges["robots_total"] = count
         if PROMETHEUS_AVAILABLE:
             self.robots_total.set(count)
 
     def set_active_connections(self, count: int, transport: str = "websocket"):
-        """Set active connections"""
+        """Set active connections."""
         self._gauges["active_connections"] = count
         if PROMETHEUS_AVAILABLE:
             self.active_connections.labels(transport=transport).set(count)
 
     def set_task_queue_size(self, count: int):
-        """Set task queue size"""
+        """Set task queue size."""
         self._gauges["task_queue_size"] = count
         if PROMETHEUS_AVAILABLE:
             self.task_queue_size.set(count)
 
     def record_response_time(self, duration_sec: float):
-        """Record command response time"""
+        """Record command response time."""
         if PROMETHEUS_AVAILABLE:
             self.response_time.observe(duration_sec)
 
     def update_system_metrics(self):
-        """Update system resource metrics"""
+        """Update system resource metrics."""
         try:
             import psutil
 
@@ -255,7 +255,7 @@ class MetricsCollector:
             pass
 
     def get_snapshot(self) -> MetricsSnapshot:
-        """Get current metrics snapshot"""
+        """Get current metrics snapshot."""
         self.update_system_metrics()
 
         return MetricsSnapshot(
@@ -272,7 +272,7 @@ class MetricsCollector:
         )
 
     def get_metrics_text(self) -> str:
-        """Get metrics in Prometheus text format"""
+        """Get metrics in Prometheus text format."""
         if PROMETHEUS_AVAILABLE:
             from prometheus_client import generate_latest
 
@@ -292,7 +292,7 @@ active_connections {snapshot.active_connections}
 
 
 class MetricsServer:
-    """HTTP server for exposing metrics"""
+    """HTTP server for exposing metrics."""
 
     def __init__(self, port: int = 9090, collector: Optional[MetricsCollector] = None):
         self.port = port
@@ -301,7 +301,7 @@ class MetricsServer:
         self.running = False
 
     async def start(self):
-        """Start metrics server"""
+        """Start metrics server."""
         if PROMETHEUS_AVAILABLE:
             # Use prometheus_client's built-in server
             start_http_server(self.port, registry=self.collector.registry)
@@ -313,7 +313,7 @@ class MetricsServer:
         self.running = True
 
     async def _start_custom_server(self):
-        """Start custom metrics HTTP server (no prometheus_client)"""
+        """Start custom metrics HTTP server (no prometheus_client)."""
         from aiohttp import web
 
         async def metrics_handler(request):
@@ -335,7 +335,7 @@ class MetricsServer:
         logger.info(f"📊 Custom metrics server started on port {self.port}")
 
     def stop(self):
-        """Stop metrics server"""
+        """Stop metrics server."""
         self.running = False
 
 
@@ -344,7 +344,7 @@ _global_metrics: Optional[MetricsCollector] = None
 
 
 def get_metrics() -> MetricsCollector:
-    """Get global metrics collector"""
+    """Get global metrics collector."""
     global _global_metrics
     if _global_metrics is None:
         _global_metrics = MetricsCollector()

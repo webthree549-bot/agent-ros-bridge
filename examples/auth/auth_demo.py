@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Simulated Robot Bridge with Authentication Demo
+"""Simulated Robot Bridge with Authentication Demo.
 
 This demonstrates JWT authentication on the simulated bridge.
 """
@@ -15,7 +15,7 @@ logger = logging.getLogger("simulated_bridge")
 
 
 class SimulatedRobotPlugin(Plugin):
-    """Plugin that simulates a robot for testing"""
+    """Plugin that simulates a robot for testing."""
 
     name = "simulated_robot"
     version = "1.0.0"

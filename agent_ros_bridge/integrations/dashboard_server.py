@@ -100,20 +100,20 @@ class DashboardServer:
             <button class="emergency" onclick="emergencyStop()">EMERGENCY STOP</button>
             <h2>Metrics</h2>
             <pre id="metrics">Loading...</pre>
-            
+
             <script>
                 async function updateStatus() {
                     try {
                         const resp = await fetch('/api/status');
                         const data = await resp.json();
-                        document.getElementById('status').innerHTML = 
+                        document.getElementById('status').innerHTML =
                             '<div class="status ok">Bridge: ' + data.status + '</div>';
                     } catch (e) {
-                        document.getElementById('status').innerHTML = 
+                        document.getElementById('status').innerHTML =
                             '<div class="status error">Connection Error</div>';
                     }
                 }
-                
+
                 async function updateMetrics() {
                     try {
                         const resp = await fetch('/api/metrics');
@@ -123,14 +123,14 @@ class DashboardServer:
                         document.getElementById('metrics').textContent = 'Error loading metrics';
                     }
                 }
-                
+
                 async function emergencyStop() {
                     if (confirm('Are you sure you want to trigger emergency stop?')) {
                         await fetch('/api/emergency_stop', { method: 'POST' });
                         alert('Emergency stop triggered!');
                     }
                 }
-                
+
                 setInterval(updateStatus, 1000);
                 setInterval(updateMetrics, 5000);
                 updateStatus();

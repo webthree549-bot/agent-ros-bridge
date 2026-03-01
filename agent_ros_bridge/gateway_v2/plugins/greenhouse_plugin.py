@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Greenhouse Control Plugin for OpenClaw Gateway
+"""Greenhouse Control Plugin for OpenClaw Gateway.
 
 Example plugin showing how to build application-specific functionality
 on top of the universal gateway.
 """
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass
 from typing import Dict, Optional
@@ -25,7 +26,7 @@ logger = logging.getLogger("plugin.greenhouse")
 
 @dataclass
 class GreenhouseState:
-    """Greenhouse state tracking"""
+    """Greenhouse state tracking."""
 
     temperature: float = 25.0
     humidity: float = 50.0
@@ -38,7 +39,7 @@ class GreenhouseState:
 
 
 class GreenhousePlugin(Plugin):
-    """Greenhouse control plugin"""
+    """Greenhouse control plugin."""
 
     name = "greenhouse"
     version = "2.0.0"
@@ -49,7 +50,7 @@ class GreenhousePlugin(Plugin):
         self._control_task: Optional[asyncio.Task] = None
 
     async def initialize(self, gateway: Bridge) -> None:
-        """Initialize plugin"""
+        """Initialize plugin."""
         self.gateway = gateway
 
         # Create example greenhouse
@@ -61,18 +62,16 @@ class GreenhousePlugin(Plugin):
         logger.info(f"Greenhouse plugin v{self.version} initialized")
 
     async def shutdown(self) -> None:
-        """Shutdown plugin"""
+        """Shutdown plugin."""
         if self._control_task:
             self._control_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._control_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info("Greenhouse plugin shutdown")
 
     async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Handle greenhouse-specific commands"""
+        """Handle greenhouse-specific commands."""
         if not message.command:
             return None
 
@@ -155,7 +154,7 @@ class GreenhousePlugin(Plugin):
     def _make_status_response(
         self, trigger_message: Message, state: GreenhouseState, greenhouse_id: str
     ) -> Message:
-        """Create status response message"""
+        """Create status response message."""
         return Message(
             header=Header(correlation_id=trigger_message.header.message_id),
             telemetry=Telemetry(
@@ -174,7 +173,7 @@ class GreenhousePlugin(Plugin):
         )
 
     async def _control_loop(self) -> None:
-        """Automatic control loop"""
+        """Automatic control loop."""
         while True:
             try:
                 for greenhouse_id, state in self.greenhouses.items():
@@ -206,7 +205,7 @@ class GreenhousePlugin(Plugin):
 
 # Example usage
 async def example():
-    """Example greenhouse plugin usage"""
+    """Example greenhouse plugin usage."""
     from agent_ros_bridge.gateway_v2.core import Bridge
     from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 

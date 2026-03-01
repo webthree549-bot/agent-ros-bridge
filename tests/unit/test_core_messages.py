@@ -356,7 +356,7 @@ class TestMessage:
     def test_message_complete_flow(self):
         """Test complete message flow from command to response"""
         # 1. Client sends command
-        client_identity = Identity(id="client_1", name="Control Center", roles=["operator"])
+        Identity(id="client_1", name="Control Center", roles=["operator"])
         command_msg = Message(
             header=Header(message_id="req_001", source="client_1", target="robot_1"),
             command=Command(action="navigate_to", parameters={"x": 10, "y": 5}, priority=2),
@@ -395,7 +395,7 @@ class TestMessageDataclassFeatures:
         """Test message equality comparison"""
         msg1 = Message(header=Header(message_id="same_id"))
         msg2 = Message(header=Header(message_id="same_id"))
-        msg3 = Message(header=Header(message_id="different_id"))
+        Message(header=Header(message_id="different_id"))
 
         # Note: These will not be equal because Header() creates new timestamps
         # This test documents the current behavior
