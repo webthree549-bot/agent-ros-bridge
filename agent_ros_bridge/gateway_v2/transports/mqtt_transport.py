@@ -240,9 +240,11 @@ class MQTTTransport(Transport):
         """Convert MQTT payload to Message."""
         header = Header(
             message_id=payload.get("id", ""),
-            timestamp=datetime.fromisoformat(payload.get("timestamp"))
-            if "timestamp" in payload
-            else datetime.utcnow(),
+            timestamp=(
+                datetime.fromisoformat(payload.get("timestamp"))
+                if "timestamp" in payload
+                else datetime.utcnow()
+            ),
             source=topic,
             target="bridge",
         )

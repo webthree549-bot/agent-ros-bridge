@@ -212,9 +212,11 @@ class ROS2Robot(Robot):
                         result[field_name] = self._ros_msg_to_dict(value)
                     elif isinstance(value, list):
                         result[field_name] = [
-                            self._ros_msg_to_dict(v)
-                            if hasattr(v, "get_fields_and_field_types")
-                            else v
+                            (
+                                self._ros_msg_to_dict(v)
+                                if hasattr(v, "get_fields_and_field_types")
+                                else v
+                            )
                             for v in value
                         ]
                     else:

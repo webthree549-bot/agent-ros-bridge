@@ -130,9 +130,7 @@ class RoleBasedAccessControl:
                 "subscribe",
             ],
             "viewer": ["list_robots", "get_topics", "get_robot_state", "subscribe"],
-            "anonymous": [
-                "list_robots"  # Minimal info only
-            ],
+            "anonymous": ["list_robots"],  # Minimal info only
         }
 
     def can_execute(self, roles: List[str], action: str) -> bool:
@@ -145,11 +143,7 @@ class RoleBasedAccessControl:
 
     def filter_response(self, roles: List[str], response: Dict[str, Any]) -> Dict[str, Any]:
         """Filter response based on role (e.g., hide sensitive data)."""
-        if (
-            "admin" not in roles
-            and "operator" not in roles
-            and "robots" in response
-        ):
+        if "admin" not in roles and "operator" not in roles and "robots" in response:
             for robot in response["robots"]:
                 robot.pop("internal_ip", None)
                 robot.pop("serial_number", None)
