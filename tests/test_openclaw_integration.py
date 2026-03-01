@@ -32,92 +32,65 @@ def test_skill_manifest():
     assert "description:" in content, "Missing description"
 
     print("✅ skill.yaml manifest is valid")
-    return True
 
 
 def test_package_import():
     """Test that the package can be imported"""
     print("Testing package import...")
 
-    try:
-        from agent_ros_bridge import Bridge  # noqa: F401
+    from agent_ros_bridge import Bridge  # noqa: F401
 
-        print("✅ Bridge imported successfully")
+    print("✅ Bridge imported successfully")
 
-        from agent_ros_bridge import Command, Header, Message  # noqa: F401
+    from agent_ros_bridge import Command, Header, Message  # noqa: F401
 
-        print("✅ Message classes imported successfully")
+    print("✅ Message classes imported successfully")
 
-        from agent_ros_bridge.gateway_v2.transports.websocket import (
-            WebSocketTransport,  # noqa: F401
-        )
+    from agent_ros_bridge.gateway_v2.transports.websocket import (
+        WebSocketTransport,  # noqa: F401
+    )
 
-        print("✅ WebSocketTransport imported successfully")
-
-        return True
-    except ImportError as e:
-        print(f"❌ Import failed: {e}")
-        return False
+    print("✅ WebSocketTransport imported successfully")
 
 
 def test_fleet_import():
     """Test fleet module import"""
     print("Testing fleet module...")
 
-    try:
-        from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot  # noqa: F401
+    from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot  # noqa: F401
 
-        print("✅ Fleet module imported successfully")
-        return True
-    except ImportError as e:
-        print(f"❌ Fleet import failed: {e}")
-        return False
+    print("✅ Fleet module imported successfully")
 
 
 def test_actions_import():
     """Test actions module import"""
     print("Testing actions module...")
 
-    try:
-        from agent_ros_bridge.actions import create_action_client  # noqa: F401
+    from agent_ros_bridge.actions import create_action_client  # noqa: F401
 
-        print("✅ Actions module imported successfully")
-        return True
-    except ImportError as e:
-        print(f"❌ Actions import failed: {e}")
-        return False
+    print("✅ Actions module imported successfully")
 
 
 def test_metrics_import():
     """Test metrics module import"""
     print("Testing metrics module...")
 
-    try:
-        from agent_ros_bridge.metrics import MetricsServer, get_metrics  # noqa: F401
+    from agent_ros_bridge.metrics import MetricsServer, get_metrics  # noqa: F401
 
-        print("✅ Metrics module imported successfully")
-        return True
-    except ImportError as e:
-        print(f"❌ Metrics import failed: {e}")
-        return False
+    print("✅ Metrics module imported successfully")
 
 
 def test_basic_functionality():
     """Test basic bridge creation"""
     print("Testing basic functionality...")
 
-    try:
-        from agent_ros_bridge import Bridge
+    from agent_ros_bridge import Bridge
 
-        # Create bridge instance
-        bridge = Bridge()
-        assert bridge is not None, "Bridge creation failed"
+    # Create bridge instance
+    bridge = Bridge()
+    assert bridge is not None, "Bridge creation failed"
 
-        print("✅ Bridge created successfully")
-        return True
-    except Exception as e:
-        print(f"❌ Basic functionality test failed: {e}")
-        return False
+    print("✅ Bridge created successfully")
 
 
 def main():
@@ -142,8 +115,8 @@ def main():
         print(f"Test: {name}")
         print("=" * 60)
         try:
-            result = test_func()
-            results.append((name, result))
+            test_func()
+            results.append((name, True))
         except Exception as e:
             print(f"❌ Test failed with exception: {e}")
             results.append((name, False))

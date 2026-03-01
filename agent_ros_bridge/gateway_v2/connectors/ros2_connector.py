@@ -202,40 +202,45 @@ class ROS2Robot(Robot):
         result = {"_type": type(msg).__name__}
 
         # Try to extract fields using get_fields_and_field_types() if available
+        fields = None
         try:
             if hasattr(msg, "get_fields_and_field_types"):
                 fields = msg.get_fields_and_field_types()
-                for field_name in fields:
-                    value = getattr(msg, field_name, None)
-                    # Handle nested messages
-                    if hasattr(value, "get_fields_and_field_types"):
-                        result[field_name] = self._ros_msg_to_dict(value)
-                    elif isinstance(value, list):
-                        result[field_name] = [
-                            (
-                                self._ros_msg_to_dict(v)
-                                if hasattr(v, "get_fields_and_field_types")
-                                else v
-                            )
-                            for v in value
-                        ]
-                    else:
-                        result[field_name] = value
-            else:
-                # Fallback: try to get all attributes that aren't private or methods
-                # First try __dict__ for regular objects
-                msg_dict = getattr(msg, "__dict__", {})
-                for attr, value in msg_dict.items():
-                    if not attr.startswith("_") and not callable(value):
-                        result[attr] = value
-                # Also check for attributes set on MagicMock objects
-                for attr in ["data", "value", "topic", "name"]:
-                    if hasattr(msg, attr) and attr not in result:
-                        value = getattr(msg, attr)
-                        if not callable(value) and not attr.startswith("_"):
-                            result[attr] = value
         except Exception as e:
-            logger.debug(f"Could not fully convert ROS message: {e}")
+            logger.debug(f"Could not get fields from ROS message: {e}")
+
+        if fields:
+            for field_name in fields:
+                value = getattr(msg, field_name, None)
+                # Handle nested messages
+                if hasattr(value, "get_fields_and_field_types"):
+                    result[field_name] = self._ros_msg_to_dict(value)
+                elif isinstance(value, list):
+                    result[field_name] = [
+                        (
+                            self._ros_msg_to_dict(v)
+                            if hasattr(v, "get_fields_and_field_types")
+                            else v
+                        )
+                        for v in value
+                    ]
+                else:
+                    result[field_name] = value
+        else:
+            # Fallback: try to get all attributes that aren't private or methods
+            # First try __dict__ for regular objects
+            msg_dict = getattr(msg, "__dict__", {})
+            for attr, value in msg_dict.items():
+                if not attr.startswith("_") and not callable(value):
+                    result[attr] = value
+            # Also check for attributes set on MagicMock objects
+            for attr in ["data", "value", "topic", "name"]:
+                if hasattr(msg, attr) and attr not in result:
+                    value = getattr(msg, attr)
+                    if not callable(value) and not attr.startswith("_"):
+                        result[attr] = value
+
+        return result
 
         return result
 

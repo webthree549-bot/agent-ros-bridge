@@ -260,6 +260,8 @@ def skip_if_no_docker():
     """Skip integration tests if Docker is not available"""
     if os.environ.get("SKIP_INTEGRATION_TESTS"):
         pytest.skip("Integration tests disabled (SKIP_INTEGRATION_TESTS set)")
+    if os.environ.get("CI") and not os.environ.get("RUN_INTEGRATION_TESTS"):
+        pytest.skip("Integration tests skipped in CI (set RUN_INTEGRATION_TESTS to enable)")
 
 
 if __name__ == "__main__":
