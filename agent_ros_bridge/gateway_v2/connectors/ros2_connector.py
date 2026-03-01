@@ -27,7 +27,7 @@ except ImportError:
 
     # Define a placeholder Node class for type hints when rclpy is not available
     class Node:  # type: ignore
-        pass
+        """Placeholder Node class when rclpy is not available."""
 
 
 from agent_ros_bridge.gateway_v2.core import Command, Connector, Robot, RobotEndpoint, Telemetry

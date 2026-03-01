@@ -27,6 +27,7 @@ class AuthConfig:
     allowed_origins: List[str] = None
 
     def __post_init__(self):
+        """Initialize default values for mutable fields."""
         if self.api_keys is None:
             self.api_keys = {}
         if self.allowed_origins is None:

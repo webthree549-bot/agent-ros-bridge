@@ -217,6 +217,9 @@ convention = "google"
 "**/__init__.py" = ["F401"]
 "agent_ros_bridge/integrations/dashboard_server.py" = ["E501"]
 "examples/*" = ["E501", "D", "ARG"]
+"scripts/*" = ["D"]
+"agent_ros_bridge/proto/*" = ["N802", "D205"]
+"agent_ros_bridge/gateway_v2/transports/grpc_transport.py" = ["N802", "N806"]
 
 [tool.mypy]
 python_version = "3.8"

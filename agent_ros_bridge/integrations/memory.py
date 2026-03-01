@@ -21,6 +21,7 @@ class MemoryEntry:
     metadata: Dict[str, Any] = None
 
     def is_expired(self) -> bool:
+        """Check if the memory entry has expired."""
         if self.expires_at is None:
             return False
         return datetime.now() > self.expires_at
@@ -72,8 +73,8 @@ class AgentMemory:
             import redis
 
             self.redis = redis.from_url(url, decode_responses=True)
-        except ImportError:
-            raise ImportError("redis package required for Redis backend")
+        except ImportError as e:
+            raise ImportError("redis package required for Redis backend") from e
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value by key."""

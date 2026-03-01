@@ -311,30 +311,37 @@ class XArmController(BaseArmController):
         return True
 
     async def disconnect(self):
+        """Disconnect from the arm."""
         self.is_connected = False
 
     async def move_joints(
         self, joint_positions: List[float], velocity: Optional[float] = None
     ) -> bool:
+        """Move joints to specified positions."""
         logger.info(f"xArm moving to joints: {[round(j, 2) for j in joint_positions]}")
         await asyncio.sleep(2)
         return True
 
     async def move_cartesian(self, pose: CartesianPose, velocity: Optional[float] = None) -> bool:
+        """Move to cartesian pose."""
         logger.info(f"xArm cartesian: ({pose.x:.3f}, {pose.y:.3f}, {pose.z:.3f})")
         return True
 
     async def get_joint_states(self) -> List[JointState]:
+        """Get current joint states."""
         return []
 
     async def get_cartesian_pose(self) -> Optional[CartesianPose]:
+        """Get current cartesian pose."""
         return None
 
     async def set_gripper(self, position: float, effort: float = 0.5) -> bool:
+        """Set gripper position."""
         logger.info(f"xArm gripper: {position:.2f}")
         return True
 
     async def stop(self):
+        """Emergency stop."""
         logger.warning("🛑 xArm EMERGENCY STOP")
 
 
