@@ -101,6 +101,7 @@ class Message:
     telemetry: Optional[Telemetry] = None
     event: Optional[Event] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+    identity: Optional[Identity] = None
 
 
 # =============================================================================

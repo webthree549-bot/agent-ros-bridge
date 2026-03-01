@@ -240,21 +240,28 @@ class WebSocketTransport(Transport):
             logger.error(f"Failed to send to {recipient}: {e}")
             return False
     
-    async def broadcast(self, message: Message) -> list:
-        """Broadcast to all connected clients"""
+    async def broadcast(self, message: Message, exclude: Optional[str] = None) -> list:
+        """Broadcast to all connected clients.
+
+        Args:
+            message: Message to broadcast
+            exclude: Client ID to exclude from broadcast (optional)
+        """
         if not self.clients:
             return []
-        
+
         json_msg = self._message_to_json(message)
         results = []
-        
+
         for client_id, ws in list(self.clients.items()):
+            if exclude and client_id == exclude:
+                continue
             try:
                 await ws.send(json_msg)
                 results.append(client_id)
             except Exception as e:
                 logger.warning(f"Failed to broadcast to {client_id}: {e}")
-        
+
         return results
     
     def _json_to_message(self, data: Dict[str, Any]) -> Message:

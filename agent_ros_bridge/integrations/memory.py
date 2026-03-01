@@ -160,3 +160,29 @@ class AgentMemory:
         if isinstance(value, list):
             return value
         return [value]
+
+    async def list_keys(self) -> List[str]:
+        """List all keys in memory."""
+        if self.backend == "sqlite":
+            return await self._list_keys_sqlite()
+        return await self._list_keys_redis()
+
+    async def _list_keys_sqlite(self) -> List[str]:
+        """List all keys from SQLite."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT key, expires_at FROM memories")
+        rows = cursor.fetchall()
+        
+        keys = []
+        for key, expires_at in rows:
+            # Skip expired entries
+            if expires_at:
+                expires = datetime.fromisoformat(expires_at)
+                if datetime.now() > expires:
+                    continue
+            keys.append(key)
+        return keys
+
+    async def _list_keys_redis(self) -> List[str]:
+        """List all keys from Redis."""
+        return list(self.redis.scan_iter())

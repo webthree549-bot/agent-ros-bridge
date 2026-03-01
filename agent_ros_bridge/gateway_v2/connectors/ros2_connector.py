@@ -19,6 +19,9 @@ try:
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
+    # Define a placeholder Node class for type hints when rclpy is not available
+    class Node:  # type: ignore
+        pass
 
 from agent_ros_bridge.gateway_v2.core import (
     Connector, Robot, RobotEndpoint, Command, Telemetry
@@ -37,10 +40,11 @@ class ROS2Topic:
 
 class ROS2Robot(Robot):
     """ROS2 robot implementation"""
-    
+
     def __init__(self, robot_id: str, name: str, ros_node: Node):
         super().__init__(robot_id, name, "ros2")
         self.ros_node = ros_node
+        self.robot_type = "ros2"  # Compatibility alias for connector_type
         self.subscriptions: Dict[str, Any] = {}
         self.publishers: Dict[str, Any] = {}
         self._telemetry_queue: asyncio.Queue = asyncio.Queue()
@@ -197,7 +201,7 @@ class ROS2Robot(Robot):
     def _ros_msg_to_dict(self, msg) -> Dict[str, Any]:
         """Convert ROS message to dictionary"""
         result = {"_type": type(msg).__name__}
-        
+
         # Try to extract fields using get_fields_and_field_types() if available
         try:
             if hasattr(msg, 'get_fields_and_field_types'):
@@ -215,13 +219,14 @@ class ROS2Robot(Robot):
                     else:
                         result[field_name] = value
             else:
-                # Fallback: try to get all attributes that aren't methods or private
-                for attr in dir(msg):
-                    if not attr.startswith('_') and not callable(getattr(msg, attr)):
-                        result[attr] = getattr(msg, attr)
+                # Fallback: try to get all attributes from __dict__ that aren't private
+                msg_dict = getattr(msg, '__dict__', {})
+                for attr, value in msg_dict.items():
+                    if not attr.startswith('_'):
+                        result[attr] = value
         except Exception as e:
             logger.debug(f"Could not fully convert ROS message: {e}")
-        
+
         return result
     
     def _dict_to_ros_msg(self, data: Dict[str, Any], msg):

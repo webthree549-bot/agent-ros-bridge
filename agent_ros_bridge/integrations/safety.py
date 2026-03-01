@@ -163,20 +163,22 @@ class SafetyManager:
         logger.info(f"Confirmation rejected: {request_id}")
         return True
     
-    async def wait_for_confirmation(self, request_id: str, 
-                                   timeout: Optional[int] = None) -> bool:
+    async def wait_for_confirmation(self, request_id: str,
+                                   timeout: Optional[float] = None) -> bool:
         """Wait for confirmation with timeout."""
         request = self.pending.get(request_id)
         if request is None:
             return False
-        
+
         wait_time = timeout or request.timeout
-        
-        for _ in range(wait_time * 10):  # Check every 100ms
+
+        # Calculate number of iterations (check every 100ms)
+        iterations = int(wait_time * 10)
+        for _ in range(iterations):
             if request.resolved:
                 return request.approved
             await asyncio.sleep(0.1)
-        
+
         # Timeout - auto-reject
         await self.reject(request_id)
         return False
