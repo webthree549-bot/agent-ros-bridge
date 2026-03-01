@@ -40,15 +40,17 @@ def test_package_import():
     print("Testing package import...")
 
     try:
-        from agent_ros_bridge import Bridge
+        from agent_ros_bridge import Bridge  # noqa: F401
 
         print("✅ Bridge imported successfully")
 
-        from agent_ros_bridge import Command, Header, Message
+        from agent_ros_bridge import Command, Header, Message  # noqa: F401
 
         print("✅ Message classes imported successfully")
 
-        from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+        from agent_ros_bridge.gateway_v2.transports.websocket import (
+            WebSocketTransport,  # noqa: F401
+        )
 
         print("✅ WebSocketTransport imported successfully")
 
@@ -63,7 +65,7 @@ def test_fleet_import():
     print("Testing fleet module...")
 
     try:
-        from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot
+        from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot  # noqa: F401
 
         print("✅ Fleet module imported successfully")
         return True
@@ -77,7 +79,7 @@ def test_actions_import():
     print("Testing actions module...")
 
     try:
-        from agent_ros_bridge.actions import create_action_client
+        from agent_ros_bridge.actions import create_action_client  # noqa: F401
 
         print("✅ Actions module imported successfully")
         return True
@@ -91,7 +93,7 @@ def test_metrics_import():
     print("Testing metrics module...")
 
     try:
-        from agent_ros_bridge.metrics import MetricsServer, get_metrics
+        from agent_ros_bridge.metrics import MetricsServer, get_metrics  # noqa: F401
 
         print("✅ Metrics module imported successfully")
         return True

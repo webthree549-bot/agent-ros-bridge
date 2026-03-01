@@ -20,13 +20,10 @@ from typing import Any, Callable, Dict, Optional
 
 try:
     from prometheus_client import (
-        CONTENT_TYPE_LATEST,
         Counter,
         Gauge,
         Histogram,
         Info,
-        generate_latest,
-        start_http_server,
     )
 
     PROMETHEUS_AVAILABLE = True

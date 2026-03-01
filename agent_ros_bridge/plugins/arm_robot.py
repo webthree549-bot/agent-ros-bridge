@@ -68,6 +68,7 @@ class CartesianPose:
     qw: float = 1.0
 
     def to_list(self) -> List[float]:
+        """Convert pose to list format [x, y, z, qx, qy, qz, qw]."""
         return [self.x, self.y, self.z, self.qx, self.qy, self.qz, self.qw]
 
 

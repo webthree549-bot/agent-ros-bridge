@@ -14,7 +14,6 @@ from google.protobuf import struct_pb2
 
 try:
     import grpc
-    from google.protobuf import empty_pb2
 
     from agent_ros_bridge.proto import bridge_pb2
 

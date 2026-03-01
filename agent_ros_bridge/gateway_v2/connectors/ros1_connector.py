@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     import rospy
-    from rospy import Publisher, Subscriber
+    from rospy import Publisher, Subscriber  # noqa: F401
 
     ROS1_AVAILABLE = True
 except ImportError:
@@ -210,7 +210,7 @@ class ROS1Robot(Robot):
                     val = getattr(msg, slot)
                     if not callable(val):
                         result[slot] = val
-                except:
+                except Exception:
                     pass
         return result
 

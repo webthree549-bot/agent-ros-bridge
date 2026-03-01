@@ -149,7 +149,7 @@ class ROS2ActionClient(BaseActionClient):
                 self._node = rclpy.create_node(
                     f"action_client_{self.action_name.replace('/', '_')}"
                 )
-            except:
+            except Exception:
                 # Node already exists
                 pass
 
@@ -334,7 +334,7 @@ class ROS2ActionClient(BaseActionClient):
                     val = getattr(feedback_msg, attr)
                     if not callable(val):
                         result[attr] = val
-                except:
+                except Exception:
                     pass
         return result
 

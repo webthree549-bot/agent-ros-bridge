@@ -14,7 +14,11 @@ from typing import Any, AsyncIterator, Dict, List, Optional
 try:
     import rclpy
     from rclpy.node import Node
-    from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+    from rclpy.qos import (  # noqa: F401
+        DurabilityPolicy,
+        QoSProfile,
+        ReliabilityPolicy,
+    )
 
     ROS2_AVAILABLE = True
 except ImportError:

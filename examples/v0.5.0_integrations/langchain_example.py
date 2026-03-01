@@ -26,7 +26,7 @@ async def main():
 
     # Example with LangChain agent (requires langchain to be installed)
     try:
-        from langchain.agents import Tool, initialize_agent
+        from langchain.agents import initialize_agent
         from langchain.llms import OpenAI
 
         # Setup LLM (requires OPENAI_API_KEY)

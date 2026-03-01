@@ -150,7 +150,7 @@ class WebSocketTransport(Transport):
                         headers = dict(websocket.request_headers)
                     elif hasattr(websocket, "request") and hasattr(websocket.request, "headers"):
                         headers = dict(websocket.request.headers)
-                except:
+                except Exception:
                     pass
                 api_key = self.authenticator.extract_api_key_from_headers(headers)
                 if api_key:
