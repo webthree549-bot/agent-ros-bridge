@@ -266,7 +266,11 @@ class WebSocketTransport(Transport):
     
     def _json_to_message(self, data: Dict[str, Any]) -> Message:
         """Convert JSON to Message"""
+        # Handle malformed header (when it's a string instead of dict)
         header_data = data.get("header", {})
+        if isinstance(header_data, str):
+            header_data = {"message_id": header_data}
+
         header = Header(
             message_id=header_data.get("message_id", ""),
             timestamp=datetime.fromisoformat(header_data.get("timestamp", datetime.utcnow().isoformat())),
@@ -274,7 +278,7 @@ class WebSocketTransport(Transport):
             target=header_data.get("target", ""),
             correlation_id=header_data.get("correlation_id")
         )
-        
+
         # Parse command
         command = None
         if "command" in data:
@@ -285,7 +289,7 @@ class WebSocketTransport(Transport):
                 timeout_ms=cmd_data.get("timeout_ms", 5000),
                 priority=cmd_data.get("priority", 5)
             )
-        
+
         # Parse telemetry
         telemetry = None
         if "telemetry" in data:
@@ -295,7 +299,7 @@ class WebSocketTransport(Transport):
                 data=telem_data.get("data"),
                 quality=telem_data.get("quality", 1.0)
             )
-        
+
         # Parse event
         event = None
         if "event" in data:
@@ -305,13 +309,25 @@ class WebSocketTransport(Transport):
                 severity=event_data.get("severity", "info"),
                 data=event_data.get("data", {})
             )
-        
+
+        # Parse identity
+        identity = None
+        if "identity" in data:
+            id_data = data["identity"]
+            identity = Identity(
+                id=id_data.get("id", ""),
+                name=id_data.get("name", ""),
+                roles=id_data.get("roles", []),
+                metadata=id_data.get("metadata", {})
+            )
+
         return Message(
             header=header,
             command=command,
             telemetry=telemetry,
             event=event,
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
+            identity=identity
         )
     
     def _message_to_json(self, message: Message) -> str:

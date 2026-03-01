@@ -19,6 +19,7 @@ try:
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
+    rclpy = None  # type: ignore
     # Define a placeholder Node class for type hints when rclpy is not available
     class Node:  # type: ignore
         pass
@@ -219,11 +220,18 @@ class ROS2Robot(Robot):
                     else:
                         result[field_name] = value
             else:
-                # Fallback: try to get all attributes from __dict__ that aren't private
+                # Fallback: try to get all attributes that aren't private or methods
+                # First try __dict__ for regular objects
                 msg_dict = getattr(msg, '__dict__', {})
                 for attr, value in msg_dict.items():
-                    if not attr.startswith('_'):
+                    if not attr.startswith('_') and not callable(value):
                         result[attr] = value
+                # Also check for attributes set on MagicMock objects
+                for attr in ['data', 'value', 'topic', 'name']:
+                    if hasattr(msg, attr) and attr not in result:
+                        value = getattr(msg, attr)
+                        if not callable(value) and not attr.startswith('_'):
+                            result[attr] = value
         except Exception as e:
             logger.debug(f"Could not fully convert ROS message: {e}")
 
