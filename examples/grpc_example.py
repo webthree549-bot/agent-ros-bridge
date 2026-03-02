@@ -135,7 +135,10 @@ async def run_client():
 async def run_test():
     """Run server and client in same process for testing."""
     from agent_ros_bridge.gateway_v2.core import Bridge
-    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClientHelper, GRPCTransport
+    from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
+        GRPCClientHelper,
+        GRPCTransport,
+    )
 
     logger.info("=" * 60)
     logger.info("gRPC Integration Test")
@@ -181,7 +184,7 @@ async def run_test():
 
         # Test telemetry subscription (brief)
         msg_count = 0
-        async for telemetry in client.subscribe_telemetry(["_heartbeat"]):
+        async for _telemetry in client.subscribe_telemetry(["_heartbeat"]):
             msg_count += 1
             if msg_count >= 2:
                 break

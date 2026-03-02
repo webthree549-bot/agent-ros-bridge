@@ -14,6 +14,7 @@ Usage:
 """
 
 import asyncio
+import contextlib
 import logging
 from dataclasses import dataclass, field
 from math import cos, sin
@@ -138,7 +139,7 @@ class SimulatedROS2Node:
 
     def simulate_message(self, topic: str, data: Dict[str, Any], msg_type: str = "unknown"):
         """Simulate receiving a message on a topic."""
-        sim_msg = SimulatedMessage(topic=topic, data=data, msg_type=msg_type)
+        SimulatedMessage(topic=topic, data=data, msg_type=msg_type)
         if topic in self.subscribers:
             # Create a mock message object
             mock_msg = self._dict_to_msg(data, msg_type)
@@ -237,10 +238,8 @@ class SimulatedRobot:
         self._running = False
         if self._update_task:
             self._update_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._update_task
-            except asyncio.CancelledError:
-                pass
 
     def _setup_differential_drive(self):
         """Set up a differential drive robot simulation."""
@@ -370,7 +369,7 @@ class SimulatedROSEnvironment:
 
     async def _scenario_obstacle_avoidance(self):
         """Obstacle avoidance scenario."""
-        robot = await self.add_robot("explorer", "differential_drive")
+        await self.add_robot("explorer", "differential_drive")
         # Add simulated obstacles that affect scan data
 
     async def cleanup(self):

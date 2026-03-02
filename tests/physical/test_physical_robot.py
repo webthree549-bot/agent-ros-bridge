@@ -24,6 +24,7 @@ Usage:
 
 import argparse
 import asyncio
+import contextlib
 import json
 import logging
 import sys
@@ -93,10 +94,8 @@ class SafetyMonitor:
         self.active = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         logger.info("✓ Safety monitor stopped")
 
     async def _monitor_loop(self):
@@ -304,10 +303,7 @@ class PhysicalRobotTester:
             logger.info(f"Available topics: {len(topics)}")
 
             # Subscribe to a common telemetry topic
-            if self.robot.connector_type == "ros2":
-                test_topic = "/odom"
-            else:
-                test_topic = "/odom"
+            test_topic = "/odom" if self.robot.connector_type == "ros2" else "/odom"
 
             msg_count = 0
             async for telemetry in self.robot.subscribe(test_topic, timeout=5.0):
@@ -433,7 +429,7 @@ class PhysicalRobotTester:
             }
 
             logger.info("Sending: 0.3 rad/s rotation for 2 seconds")
-            result = await self.robot.execute(
+            await self.robot.execute(
                 Command(
                     action="publish",
                     parameters={

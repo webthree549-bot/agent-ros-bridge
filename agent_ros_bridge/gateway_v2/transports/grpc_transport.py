@@ -40,6 +40,8 @@ except ImportError as e:
     ServicerContext = Any
     StatusCode = Any
 
+import contextlib
+
 from agent_ros_bridge.gateway_v2.core import (
     Command,
     Event,
@@ -164,10 +166,8 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         finally:
             # Cleanup
             sender_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await sender_task
-            except asyncio.CancelledError:
-                pass
 
             self._unregister_client(client_id)
             logger.info(f"Client {client_id} ended bidirectional stream")
@@ -326,7 +326,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         # Extract JWT token from metadata
         auth_header = metadata.get("authorization", "")
         if auth_header.startswith("Bearer "):
-            token = auth_header[7:]
+            auth_header[7:]
             # TODO: Validate JWT and extract claims
             user_id = metadata.get("x-user-id", str(uuid.uuid4()))
             user_name = metadata.get("x-user-name", f"user_{user_id[:8]}")
@@ -612,7 +612,7 @@ class GRPCTransport(Transport):
             return []
 
         sent_to = []
-        proto_message = self.service._message_to_proto(message)
+        self.service._message_to_proto(message)
 
         # Convert to telemetry format for streaming clients
         telemetry = bridge_pb2.Telemetry(

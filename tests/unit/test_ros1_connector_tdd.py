@@ -229,7 +229,7 @@ class TestROS1RobotCommands:
     async def test_subscribe_async_generator(self):
         """Red: Subscribe should return async generator."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
-            with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
+            with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
                 from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
 
                 robot = ROS1Robot("test_id", "test_robot")
@@ -259,7 +259,7 @@ class TestROS1ConnectorDiscovery:
     async def test_discover_returns_endpoints(self):
         """Red: Discover should return list of RobotEndpoints."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
-            with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
+            with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
                 from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
 
                 # Mock system state

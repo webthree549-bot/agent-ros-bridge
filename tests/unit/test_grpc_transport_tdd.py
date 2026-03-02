@@ -451,7 +451,7 @@ class TestGRPCClientHelper:
     @pytest.mark.asyncio
     async def test_client_send_command(self):
         """Red: GRPCClient should send commands."""
-        with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
+        with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc"):
             with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
                 from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
 
