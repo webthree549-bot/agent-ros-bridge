@@ -6,19 +6,16 @@ to the OpenClaw unified message format.
 """
 
 import asyncio
+import importlib
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 try:
     import rclpy
     from rclpy.node import Node
-    from rclpy.qos import (  # noqa: F401
-        DurabilityPolicy,
-        QoSProfile,
-        ReliabilityPolicy,
-    )
+    from rclpy.qos import QoSProfile, ReliabilityPolicy
 
     ROS2_AVAILABLE = True
 except ImportError:
@@ -33,6 +30,90 @@ except ImportError:
 from agent_ros_bridge.gateway_v2.core import Command, Connector, Robot, RobotEndpoint, Telemetry
 
 logger = logging.getLogger("connector.ros2")
+
+
+# Message type registry for common ROS2 message types
+MESSAGE_TYPE_REGISTRY = {
+    # Standard messages
+    "std_msgs/String": ("std_msgs.msg", "String"),
+    "std_msgs/Float64": ("std_msgs.msg", "Float64"),
+    "std_msgs/Float32": ("std_msgs.msg", "Float32"),
+    "std_msgs/Int32": ("std_msgs.msg", "Int32"),
+    "std_msgs/Int64": ("std_msgs.msg", "Int64"),
+    "std_msgs/Bool": ("std_msgs.msg", "Bool"),
+    "std_msgs/Header": ("std_msgs.msg", "Header"),
+    "std_msgs/Empty": ("std_msgs.msg", "Empty"),
+    # Geometry messages
+    "geometry_msgs/Twist": ("geometry_msgs.msg", "Twist"),
+    "geometry_msgs/Pose": ("geometry_msgs.msg", "Pose"),
+    "geometry_msgs/PoseStamped": ("geometry_msgs.msg", "PoseStamped"),
+    "geometry_msgs/Point": ("geometry_msgs.msg", "Point"),
+    "geometry_msgs/Quaternion": ("geometry_msgs.msg", "Quaternion"),
+    "geometry_msgs/Transform": ("geometry_msgs.msg", "Transform"),
+    "geometry_msgs/TransformStamped": ("geometry_msgs.msg", "TransformStamped"),
+    "geometry_msgs/Vector3": ("geometry_msgs.msg", "Vector3"),
+    "geometry_msgs/Wrench": ("geometry_msgs.msg", "Wrench"),
+    # Sensor messages
+    "sensor_msgs/LaserScan": ("sensor_msgs.msg", "LaserScan"),
+    "sensor_msgs/Image": ("sensor_msgs.msg", "Image"),
+    "sensor_msgs/CompressedImage": ("sensor_msgs.msg", "CompressedImage"),
+    "sensor_msgs/PointCloud2": ("sensor_msgs.msg", "PointCloud2"),
+    "sensor_msgs/Imu": ("sensor_msgs.msg", "Imu"),
+    "sensor_msgs/NavSatFix": ("sensor_msgs.msg", "NavSatFix"),
+    "sensor_msgs/BatteryState": ("sensor_msgs.msg", "BatteryState"),
+    "sensor_msgs/JointState": ("sensor_msgs.msg", "JointState"),
+    "sensor_msgs/Range": ("sensor_msgs.msg", "Range"),
+    # Navigation messages
+    "nav_msgs/Odometry": ("nav_msgs.msg", "Odometry"),
+    "nav_msgs/Path": ("nav_msgs.msg", "Path"),
+    "nav_msgs/OccupancyGrid": ("nav_msgs.msg", "OccupancyGrid"),
+    "nav_msgs/MapMetaData": ("nav_msgs.msg", "MapMetaData"),
+    "nav_msgs/GridCells": ("nav_msgs.msg", "GridCells"),
+    # TF2 messages
+    "tf2_msgs/TFMessage": ("tf2_msgs.msg", "TFMessage"),
+    # Diagnostic messages
+    "diagnostic_msgs/DiagnosticArray": ("diagnostic_msgs.msg", "DiagnosticArray"),
+    "diagnostic_msgs/DiagnosticStatus": ("diagnostic_msgs.msg", "DiagnosticStatus"),
+    # Trajectory messages
+    "trajectory_msgs/JointTrajectory": ("trajectory_msgs.msg", "JointTrajectory"),
+    "trajectory_msgs/JointTrajectoryPoint": ("trajectory_msgs.msg", "JointTrajectoryPoint"),
+    # Control messages
+    "control_msgs/JointTrajectoryControllerState": (
+        "control_msgs.msg",
+        "JointTrajectoryControllerState",
+    ),  # noqa: E501
+    "control_msgs/GripperCommand": ("control_msgs.msg", "GripperCommand"),
+}
+
+
+def get_message_class(msg_type: str) -> Optional[Type]:
+    """Dynamically import and return a ROS2 message class.
+
+    Args:
+        msg_type: ROS message type string (e.g., "geometry_msgs/Twist")
+
+    Returns:
+        Message class or None if not available
+    """
+    if msg_type in MESSAGE_TYPE_REGISTRY:
+        module_name, class_name = MESSAGE_TYPE_REGISTRY[msg_type]
+        try:
+            module = importlib.import_module(module_name)
+            return getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            logger.debug(f"Could not import {msg_type}: {e}")
+            return None
+
+    # Try dynamic import for unknown types
+    try:
+        if "/" in msg_type:
+            pkg, msg = msg_type.split("/")
+            module = importlib.import_module(f"{pkg}.msg")
+            return getattr(module, msg)
+    except (ImportError, AttributeError) as e:
+        logger.debug(f"Dynamic import failed for {msg_type}: {e}")
+
+    return None
 
 
 @dataclass
@@ -91,32 +172,54 @@ class ROS2Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS2 command: {action}")
 
-    async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:
-        """Subscribe to ROS2 topic."""
+    async def subscribe(  # noqa: E501
+        self, topic: str, msg_type: Optional[str] = None
+    ) -> AsyncIterator[Telemetry]:
+        """Subscribe to ROS2 topic.
+
+        Args:
+            topic: ROS topic name
+            msg_type: Optional message type (e.g., "geometry_msgs/Twist").
+                     If not provided, will try to auto-detect from topic info.
+        """
         if topic in self.subscriptions:
             logger.warning(f"Already subscribed to {topic}")
+            # Still yield from queue for existing subscription
+            while self.connected:
+                try:
+                    telemetry = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
+                    if telemetry.topic == topic:
+                        yield telemetry
+                except asyncio.TimeoutError:
+                    continue
+            return
+
+        # Auto-detect message type if not provided
+        if msg_type is None:
+            msg_type = self._get_topic_message_type(topic)
+            if msg_type is None:
+                logger.error(f"Could not determine message type for {topic}")
+                return
+
+        # Get message class
+        msg_class = get_message_class(msg_type)
+        if msg_class is None:
+            logger.error(f"Could not import message type {msg_type} for {topic}")
             return
 
         # Create ROS2 subscription
-        # This uses std_msgs/String as a generic message type for demonstration
-        # In production, you'd map topic names to specific message types
         def callback(msg):
             telemetry = Telemetry(topic=topic, data=self._ros_msg_to_dict(msg), quality=1.0)
             asyncio.create_task(self._telemetry_queue.put(telemetry))
 
         try:
-            # Try to import std_msgs for basic subscription support
-            from std_msgs.msg import String
-
-            subscription = self.ros_node.create_subscription(String, topic, callback, 10)
+            qos = QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT)
+            subscription = self.ros_node.create_subscription(msg_class, topic, callback, qos)
             self.subscriptions[topic] = subscription
-            logger.info(f"Subscribed to ROS2 topic: {topic}")
-        except ImportError:
-            logger.warning(
-                f"std_msgs not available, subscription to {topic} will use generic handler"
-            )
+            logger.info(f"Subscribed to ROS2 topic: {topic} ({msg_type})")
         except Exception as e:
             logger.error(f"Failed to subscribe to {topic}: {e}")
+            return
 
         # Yield from queue
         while self.connected:
@@ -127,41 +230,69 @@ class ROS2Robot(Robot):
             except asyncio.TimeoutError:
                 continue
 
+    def _get_topic_message_type(self, topic: str) -> Optional[str]:
+        """Get the message type for a topic by introspecting ROS."""
+        try:
+            topic_names_and_types = self.ros_node.get_topic_names_and_types()
+            for name, types in topic_names_and_types:
+                if name == topic and types:
+                    return types[0]  # Return first type
+        except Exception as e:
+            logger.debug(f"Could not get topic type for {topic}: {e}")
+        return None
+
     async def _cmd_publish(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Publish message to ROS2 topic."""
+        """Publish message to ROS2 topic.
+
+        Args:
+            params: Dictionary containing:
+                - topic: ROS topic name
+                - data: Message data (dict or primitive)
+                - type: ROS message type (e.g., "geometry_msgs/Twist")
+
+        Returns:
+            Status dictionary
+        """
         topic = params.get("topic")
         message_data = params.get("data")
-        msg_type_str = params.get("type", "std_msgs/String")
+        msg_type_str = params.get("type")
 
         if not topic:
             return {"status": "error", "message": "Topic is required"}
 
+        # Auto-detect message type if not provided
+        if msg_type_str is None:
+            msg_type_str = self._get_topic_message_type(topic)
+            if msg_type_str is None:
+                return {
+                    "status": "error",
+                    "message": f"Could not determine message type for {topic}",
+                }
+
         try:
+            # Get message class
+            msg_class = get_message_class(msg_type_str)
+            if msg_class is None:
+                return {
+                    "status": "error",
+                    "message": f"Could not import message type {msg_type_str}",
+                }
+
             # Create publisher if needed
             if topic not in self.publishers:
-                from std_msgs.msg import String
-
-                publisher = self.ros_node.create_publisher(String, topic, 10)
+                qos = QoSProfile(depth=10, reliability=ReliabilityPolicy.RELIABLE)
+                publisher = self.ros_node.create_publisher(msg_class, topic, qos)
                 self.publishers[topic] = publisher
-                logger.info(f"Created publisher for topic: {topic}")
+                logger.info(f"Created publisher for topic: {topic} ({msg_type_str})")
 
-            # Create and publish message
-            from std_msgs.msg import String
-
-            msg = String()
-            if isinstance(message_data, str):
-                msg.data = message_data
-            elif isinstance(message_data, dict):
-                msg.data = message_data.get("data", str(message_data))
-            else:
-                msg.data = str(message_data)
+            # Create and populate message
+            msg = msg_class()
+            self._dict_to_ros_msg(message_data, msg)
 
             self.publishers[topic].publish(msg)
-            logger.debug(f"Published to {topic}: {msg.data[:100]}...")
+            logger.debug(f"Published to {topic}: {str(message_data)[:100]}...")
 
             return {"status": "published", "topic": topic, "type": msg_type_str}
-        except ImportError:
-            return {"status": "error", "message": "std_msgs not available"}
         except Exception as e:
             logger.error(f"Failed to publish to {topic}: {e}")
             return {"status": "error", "message": str(e)}
@@ -242,12 +373,44 @@ class ROS2Robot(Robot):
 
         return result
 
-        return result
-
     def _dict_to_ros_msg(self, data: Dict[str, Any], msg):
-        """Convert dictionary to ROS message."""
+        """Convert dictionary to ROS message.
+
+        Handles nested messages and arrays recursively.
+        """
+        if not isinstance(data, dict):
+            # Handle primitive types (e.g., std_msgs/String just has "data" field)
+            if hasattr(msg, "data"):
+                msg.data = data
+            return
+
         for key, value in data.items():
-            if hasattr(msg, key):
+            if not hasattr(msg, key):
+                continue
+
+            attr = getattr(msg, key)
+
+            # Handle nested ROS messages
+            if hasattr(attr, "__dict__") and isinstance(value, dict):
+                self._dict_to_ros_msg(value, attr)
+            # Handle arrays of ROS messages
+            elif isinstance(value, list) and attr:
+                # Check if it's a list of messages or primitives
+                if len(value) > 0 and isinstance(value[0], dict):
+                    # Array of nested messages - create each element
+                    msg_type = type(attr[0]) if attr else None
+                    if msg_type:
+                        new_list = []
+                        for item in value:
+                            nested_msg = msg_type()
+                            self._dict_to_ros_msg(item, nested_msg)
+                            new_list.append(nested_msg)
+                        setattr(msg, key, new_list)
+                else:
+                    # Array of primitives
+                    setattr(msg, key, value)
+            else:
+                # Primitive value
                 setattr(msg, key, value)
 
 

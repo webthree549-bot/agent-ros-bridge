@@ -666,6 +666,21 @@ class Bridge:
 
         return MCPServerTransport(self, mode=mode)
 
+    def get_tool_discovery(self):
+        """Get tool discovery for ROS introspection.
+
+        Example:
+            discovery = bridge.get_tool_discovery()
+            tools = discovery.discover_all()
+            mcp_tools = discovery.to_mcp_tools()
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+
+        from ..integrations.discovery import ToolDiscovery
+
+        return ToolDiscovery(self)
+
     def get_dashboard(self, port: int = 8080):
         """Get dashboard server for this bridge.
 
