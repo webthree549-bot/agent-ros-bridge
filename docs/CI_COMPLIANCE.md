@@ -90,20 +90,32 @@ pytest tests/e2e/
 - Published automatically on version tags
 - Version: 0.5.0
 
-## ⚠️ Known Issues (Minor)
+## ⚠️ Known Issues
 
-1. **Ruff Warnings** (14 total)
-   - Unused variables in test files (acceptable for tests)
-   - Unused mock assignments (test pattern)
-   - These don't fail CI
+### Fixed Issues
 
-2. **MyPy** 
+1. **~~Clear-text logging of sensitive data~~** ✅ FIXED
+   - **Alert:** CodeQL `py/clear-text-logging-sensitive-data`
+   - **File:** `scripts/generate_token.py`
+   - **Fix:** Write secrets/tokens to files with 0o600 permissions instead of stderr
+   - **Commit:** `04402f4`
+
+### Minor Issues (Non-blocking)
+
+1. **MyPy** 
    - Set to `|| true` (optional)
    - Some dynamic typing in connectors
 
-3. **Test Coverage**
+2. **Test Coverage**
    - Codecov upload may fail silently
    - Fail CI if error: false
+
+## 🔒 Security Compliance
+
+- ✅ CodeQL Security Analysis (no critical/high alerts)
+- ✅ No clear-text credential logging
+- ✅ Proper file permissions on sensitive data
+- ✅ JWT secret handling reviewed
 
 ## 🔄 CI/CD Workflow
 

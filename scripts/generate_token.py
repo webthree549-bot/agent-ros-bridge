@@ -50,7 +50,7 @@ def main():
         print(f"Secret saved to: {secret_file}")
         print("(File permissions set to 0o600)")
         print("\nTo use the secret:")
-        print(f'  export JWT_SECRET=$(cat {secret_file})')
+        print(f"  export JWT_SECRET=$(cat {secret_file})")
         print("\nOr add to config/bridge.yaml:")
         print("  transports:")
         print("    websocket:")
@@ -94,7 +94,7 @@ def main():
     print(f'  wscat -c "ws://localhost:8766?token=$(cat {token_file})"')
     print("\nOr in Python:")
     print(f'  with open("{token_file}") as f:')
-    print('      token = f.read().strip()')
+    print("      token = f.read().strip()")
     print('  headers = {"Authorization": f"Bearer {token}"}')
 
 
