@@ -37,21 +37,26 @@ def main():
 
     if args.generate_secret:
         secret = secrets.token_urlsafe(32)
-        # SECURITY: Write full secret to stderr to avoid logging sensitive data
-        sys.stderr.write("=" * 60 + "\n")
-        sys.stderr.write("Generated JWT Secret\n")
-        sys.stderr.write("=" * 60 + "\n")
-        sys.stderr.write(secret + "\n")
-        sys.stderr.write("=" * 60 + "\n")
-        sys.stderr.write("\nAdd to your environment:\n")
-        sys.stderr.write(f'  export JWT_SECRET="{secret}"\n')
-        sys.stderr.write("\nOr add to config/bridge.yaml:\n")
-        sys.stderr.write("  transports:\n")
-        sys.stderr.write("    websocket:\n")
-        sys.stderr.write("      auth:\n")
-        sys.stderr.write("        enabled: true\n")
-        sys.stderr.write(f'        jwt_secret: "{secret}"\n')
-        print("\n[Secret generated - see stderr output above]")
+        # SECURITY: Write secret to a file instead of stdout/stderr
+        # This prevents accidental logging of sensitive data
+        secret_file = ".jwt_secret"
+        with open(secret_file, "w") as f:
+            f.write(secret)
+        os.chmod(secret_file, 0o600)  # Restrict permissions
+
+        print("=" * 60)
+        print("Generated JWT Secret")
+        print("=" * 60)
+        print(f"Secret saved to: {secret_file}")
+        print("(File permissions set to 0o600)")
+        print("\nTo use the secret:")
+        print(f'  export JWT_SECRET=$(cat {secret_file})')
+        print("\nOr add to config/bridge.yaml:")
+        print("  transports:")
+        print("    websocket:")
+        print("      auth:")
+        print("        enabled: true")
+        print(f'        jwt_secret_file: "{secret_file}"')
         return
 
     if not args.secret:
@@ -75,17 +80,22 @@ def main():
     print(f"Roles: {', '.join(roles)}")
     print(f"Expires: {args.expiry} hours")
     print("=" * 60)
-    # SECURITY: Write full token to stderr to avoid logging sensitive data
-    # Only the masked token goes to stdout
-    print(f"{token[:20]}... [see stderr for full token]")
-    sys.stderr.write("=" * 60 + "\n")
-    sys.stderr.write("FULL TOKEN (copy this):\n")
-    sys.stderr.write(token + "\n")
-    sys.stderr.write("=" * 60 + "\n")
+    # SECURITY: Write token to a file instead of stdout/stderr
+    # This prevents accidental logging of sensitive data
+    token_file = ".jwt_token"
+    with open(token_file, "w") as f:
+        f.write(token)
+    os.chmod(token_file, 0o600)  # Restrict permissions
+
+    print(f"Token saved to: {token_file}")
+    print("(File permissions set to 0o600)")
+    print(f"\nMasked token: {token[:20]}...")
     print("\nUse with WebSocket connection:")
-    print('  wscat -c "ws://localhost:8766?token=<TOKEN_FROM_STDERR>"')
+    print(f'  wscat -c "ws://localhost:8766?token=$(cat {token_file})"')
     print("\nOr in Python:")
-    print(f'  headers = {{"Authorization": "Bearer {token[:20]}..."}}')
+    print(f'  with open("{token_file}") as f:')
+    print('      token = f.read().strip()')
+    print('  headers = {"Authorization": f"Bearer {token}"}')
 
 
 if __name__ == "__main__":
