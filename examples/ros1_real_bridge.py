@@ -38,8 +38,8 @@ async def main():
     logger.info("=" * 60)
 
     try:
-        from agent_ros_bridge.gateway_v2.core import Bridge, Command
         from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
+        from agent_ros_bridge.gateway_v2.core import Bridge, Command
     except ImportError as e:
         logger.error(f"Failed to import agent_ros_bridge: {e}")
         return
@@ -119,7 +119,9 @@ async def main():
         try:
             msg_count = 0
             async for telemetry in robot.subscribe("/turtle1/pose", msg_type="turtlesim/Pose"):
-                logger.info(f"  Received: x={telemetry.data.get('x', 0):.2f}, y={telemetry.data.get('y', 0):.2f}")
+                logger.info(
+                    f"  Received: x={telemetry.data.get('x', 0):.2f}, y={telemetry.data.get('y', 0):.2f}"
+                )
                 msg_count += 1
                 if msg_count >= 3:
                     break

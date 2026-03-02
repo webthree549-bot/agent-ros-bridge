@@ -11,7 +11,6 @@ import asyncio
 import os
 import sys
 import time
-from typing import AsyncIterator, Generator
 from unittest import mock
 
 import pytest
@@ -26,17 +25,15 @@ os.environ["SKIP_INTEGRATION_TESTS"] = "1"  # Skip integration tests by default 
 
 # Import simulation framework
 from tests.simulation import (
-    SimulatedROS2Node,
     SimulatedRobot,
+    SimulatedROS2Node,
     SimulatedROSEnvironment,
-    get_simulation,
-    reset_simulation,
 )
-
 
 # =============================================================================
 # Pytest Configuration Hooks
 # =============================================================================
+
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
@@ -113,6 +110,7 @@ def event_loop_policy():
 # Fast Test Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def event_loop():
     """Create a fresh event loop for each test."""
@@ -167,6 +165,7 @@ async def bridge_with_transport():
 # Simulation Fixtures
 # =============================================================================
 
+
 @pytest.fixture(scope="function")
 async def sim_node() -> SimulatedROS2Node:
     """Create a simulated ROS2 node."""
@@ -204,6 +203,7 @@ async def sim_turtlebot():
 # =============================================================================
 # Mock Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_ros2_modules():
@@ -258,6 +258,7 @@ def mock_ros2_robot():
 # Auth Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def auth_manager():
     """Create an auth manager for testing."""
@@ -276,6 +277,7 @@ def test_token(auth_manager):
 # Performance Monitoring
 # =============================================================================
 
+
 @pytest.fixture(autouse=True)
 def test_timer(request):
     """Time each test and report slow ones."""
@@ -291,6 +293,7 @@ def test_timer(request):
 # =============================================================================
 # Test Data Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def sample_command():
@@ -308,7 +311,7 @@ def sample_command():
 @pytest.fixture
 def sample_message():
     """Return a sample message for testing."""
-    from agent_ros_bridge.gateway_v2.core import Message, Command, Header, Identity
+    from agent_ros_bridge.gateway_v2.core import Command, Header, Identity, Message
 
     return Message(
         header=Header(),
@@ -333,20 +336,17 @@ def sample_telemetry():
 # Integration Test Fixtures (only used with --with-integration)
 # =============================================================================
 
+
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
     """Return the path to the docker-compose file for integration tests."""
-    return os.path.join(
-        str(pytestconfig.rootdir),
-        "examples",
-        "quickstart",
-        "docker-compose.yml"
-    )
+    return os.path.join(str(pytestconfig.rootdir), "examples", "quickstart", "docker-compose.yml")
 
 
 # =============================================================================
 # Utility Functions for Tests
 # =============================================================================
+
 
 async def wait_for_condition(condition_fn, timeout: float = 1.0, interval: float = 0.01):
     """Wait for a condition to become true.

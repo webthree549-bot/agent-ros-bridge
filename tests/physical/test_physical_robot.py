@@ -32,12 +32,13 @@ import traceback
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Callable, Dict, List, Optional
+
+from agent_ros_bridge.gateway_v2.core import Command
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("physical_test")
 
@@ -45,6 +46,7 @@ logger = logging.getLogger("physical_test")
 @dataclass
 class TestResult:
     """Result of a single test."""
+
     name: str
     passed: bool
     duration_ms: float
@@ -56,6 +58,7 @@ class TestResult:
 @dataclass
 class TestSuite:
     """A suite of tests."""
+
     name: str
     description: str
     tests: List[Callable]
@@ -74,7 +77,7 @@ class SafetyMonitor:
         self.limits = {
             "max_linear_velocity": 1.0,  # m/s
             "max_angular_velocity": 2.0,  # rad/s
-            "max_joint_velocity": 1.0,   # rad/s
+            "max_joint_velocity": 1.0,  # rad/s
             "timeout_no_telemetry": 5.0,  # seconds
         }
         self.violations: List[Dict] = []
@@ -105,10 +108,9 @@ class SafetyMonitor:
                 # Check telemetry timeout
                 if time.time() - last_telemetry > self.limits["timeout_no_telemetry"]:
                     logger.error("SAFETY VIOLATION: No telemetry received")
-                    self.violations.append({
-                        "type": "telemetry_timeout",
-                        "timestamp": datetime.now().isoformat()
-                    })
+                    self.violations.append(
+                        {"type": "telemetry_timeout", "timestamp": datetime.now().isoformat()}
+                    )
                     await self.emergency_stop("Telemetry timeout")
 
                 # Add more safety checks here based on telemetry data
@@ -138,7 +140,7 @@ class PhysicalRobotTester:
             "robot_id": robot.robot_id,
             "robot_type": robot.connector_type,
             "dry_run": dry_run,
-            "tests": []
+            "tests": [],
         }
 
     async def setup(self):
@@ -154,10 +156,7 @@ class PhysicalRobotTester:
 
         # Initialize safety monitor
         if not self.dry_run:
-            self.safety_monitor = SafetyMonitor(
-                self.robot,
-                self._emergency_stop
-            )
+            self.safety_monitor = SafetyMonitor(self.robot, self._emergency_stop)
             await self.safety_monitor.start()
 
         logger.info("✓ Setup complete")
@@ -182,14 +181,19 @@ class PhysicalRobotTester:
         if not self.dry_run:
             try:
                 # Send stop command
-                await self.robot.execute(Command(
-                    action="publish",
-                    parameters={
-                        "topic": "/cmd_vel",
-                        "type": "geometry_msgs/Twist",
-                        "data": {"linear": {"x": 0, "y": 0, "z": 0}, "angular": {"x": 0, "y": 0, "z": 0}}
-                    }
-                ))
+                await self.robot.execute(
+                    Command(
+                        action="publish",
+                        parameters={
+                            "topic": "/cmd_vel",
+                            "type": "geometry_msgs/Twist",
+                            "data": {
+                                "linear": {"x": 0, "y": 0, "z": 0},
+                                "angular": {"x": 0, "y": 0, "z": 0},
+                            },
+                        },
+                    )
+                )
                 logger.info("✓ Stop command sent")
             except Exception as e:
                 logger.error(f"Failed to send stop: {e}")
@@ -197,7 +201,7 @@ class PhysicalRobotTester:
         self.test_data["emergency_stop"] = {
             "triggered": True,
             "reason": reason,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     async def run_test(self, test_func: Callable, name: str) -> TestResult:
@@ -212,10 +216,7 @@ class PhysicalRobotTester:
             if self.dry_run:
                 logger.info("[DRY RUN] Would execute: " + name)
                 result = TestResult(
-                    name=name,
-                    passed=True,
-                    duration_ms=0,
-                    message="Dry run - no command executed"
+                    name=name, passed=True, duration_ms=0, message="Dry run - no command executed"
                 )
             else:
                 # Execute actual test
@@ -226,7 +227,7 @@ class PhysicalRobotTester:
                     name=name,
                     passed=True,
                     duration_ms=duration,
-                    message="Test completed successfully"
+                    message="Test completed successfully",
                 )
                 logger.info(f"✓ PASSED ({duration:.1f}ms)")
 
@@ -237,17 +238,19 @@ class PhysicalRobotTester:
                 passed=False,
                 duration_ms=duration,
                 message=str(e),
-                data={"traceback": traceback.format_exc()}
+                data={"traceback": traceback.format_exc()},
             )
             logger.error(f"✗ FAILED: {e}")
 
         self.results.append(result)
-        self.test_data["tests"].append({
-            "name": result.name,
-            "passed": result.passed,
-            "duration_ms": result.duration_ms,
-            "message": result.message
-        })
+        self.test_data["tests"].append(
+            {
+                "name": result.name,
+                "passed": result.passed,
+                "duration_ms": result.duration_ms,
+                "message": result.message,
+            }
+        )
 
         return result
 
@@ -258,7 +261,9 @@ class PhysicalRobotTester:
             "total": len(self.results),
             "passed": sum(1 for r in self.results if r.passed),
             "failed": sum(1 for r in self.results if not r.passed),
-            "success_rate": sum(1 for r in self.results if r.passed) / len(self.results) if self.results else 0
+            "success_rate": (
+                sum(1 for r in self.results if r.passed) / len(self.results) if self.results else 0
+            ),
         }
 
         # Save to file
@@ -283,6 +288,7 @@ class PhysicalRobotTester:
 
     async def test_connection(self):
         """Test 1: Verify robot connection."""
+
         async def _test():
             assert self.robot.connected, "Robot not connected"
             logger.info(f"✓ Robot connected: {self.robot.name}")
@@ -292,6 +298,7 @@ class PhysicalRobotTester:
 
     async def test_telemetry_reception(self):
         """Test 2: Verify telemetry is being received."""
+
         async def _test():
             topics = await self.robot.execute(Command(action="get_topics", parameters={}))
             logger.info(f"Available topics: {len(topics)}")
@@ -316,6 +323,7 @@ class PhysicalRobotTester:
 
     async def test_non_motion_commands(self):
         """Test 3: Non-motion commands (safe)."""
+
         async def _test():
             # Get topics
             result = await self.robot.execute(Command(action="get_topics", parameters={}))
@@ -325,20 +333,21 @@ class PhysicalRobotTester:
             try:
                 result = await self.robot.execute(Command(action="get_nodes", parameters={}))
                 logger.info(f"✓ Nodes: {len(result)} found")
-            except:
+            except Exception:
                 pass
 
             # Get services
             try:
                 result = await self.robot.execute(Command(action="get_services", parameters={}))
                 logger.info(f"✓ Services: {len(result)} found")
-            except:
+            except Exception:
                 pass
 
         return await self.run_test(_test, "Non-Motion Commands")
 
     async def test_tool_discovery(self):
         """Test 4: Tool discovery and AI integration."""
+
         async def _test():
             discovery = self.bridge.get_tool_discovery()
             tools = discovery.discover_all()
@@ -360,6 +369,7 @@ class PhysicalRobotTester:
 
     async def test_minimal_motion(self):
         """Test 5: Minimal motion test (small movement)."""
+
         async def _test():
             logger.warning("⚠️  EXECUTING MOTION - Ensure safe area!")
             await asyncio.sleep(2)  # Give time to abort
@@ -368,18 +378,20 @@ class PhysicalRobotTester:
             cmd_vel_topic = "/cmd_vel"
             twist_msg = {
                 "linear": {"x": 0.1, "y": 0.0, "z": 0.0},
-                "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
+                "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
             }
 
             logger.info("Sending: 0.1 m/s forward for 1 second")
-            result = await self.robot.execute(Command(
-                action="publish",
-                parameters={
-                    "topic": cmd_vel_topic,
-                    "type": "geometry_msgs/Twist",
-                    "data": twist_msg
-                }
-            ))
+            result = await self.robot.execute(
+                Command(
+                    action="publish",
+                    parameters={
+                        "topic": cmd_vel_topic,
+                        "type": "geometry_msgs/Twist",
+                        "data": twist_msg,
+                    },
+                )
+            )
             logger.info(f"Command result: {result}")
 
             # Wait 1 second
@@ -387,17 +399,19 @@ class PhysicalRobotTester:
 
             # Stop
             logger.info("Sending: Stop command")
-            result = await self.robot.execute(Command(
-                action="publish",
-                parameters={
-                    "topic": cmd_vel_topic,
-                    "type": "geometry_msgs/Twist",
-                    "data": {
-                        "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                        "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                    }
-                }
-            ))
+            result = await self.robot.execute(
+                Command(
+                    action="publish",
+                    parameters={
+                        "topic": cmd_vel_topic,
+                        "type": "geometry_msgs/Twist",
+                        "data": {
+                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                        },
+                    },
+                )
+            )
             logger.info(f"Stop result: {result}")
 
             logger.info("✓ Motion test complete")
@@ -406,6 +420,7 @@ class PhysicalRobotTester:
 
     async def test_rotation(self):
         """Test 6: Rotation test (in place)."""
+
         async def _test():
             logger.warning("⚠️  EXECUTING ROTATION - Ensure safe area!")
             await asyncio.sleep(2)
@@ -414,33 +429,37 @@ class PhysicalRobotTester:
             cmd_vel_topic = "/cmd_vel"
             twist_msg = {
                 "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                "angular": {"x": 0.0, "y": 0.0, "z": 0.3}
+                "angular": {"x": 0.0, "y": 0.0, "z": 0.3},
             }
 
             logger.info("Sending: 0.3 rad/s rotation for 2 seconds")
-            result = await self.robot.execute(Command(
-                action="publish",
-                parameters={
-                    "topic": cmd_vel_topic,
-                    "type": "geometry_msgs/Twist",
-                    "data": twist_msg
-                }
-            ))
+            result = await self.robot.execute(
+                Command(
+                    action="publish",
+                    parameters={
+                        "topic": cmd_vel_topic,
+                        "type": "geometry_msgs/Twist",
+                        "data": twist_msg,
+                    },
+                )
+            )
 
             await asyncio.sleep(2.0)
 
             # Stop
-            await self.robot.execute(Command(
-                action="publish",
-                parameters={
-                    "topic": cmd_vel_topic,
-                    "type": "geometry_msgs/Twist",
-                    "data": {
-                        "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                        "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                    }
-                }
-            ))
+            await self.robot.execute(
+                Command(
+                    action="publish",
+                    parameters={
+                        "topic": cmd_vel_topic,
+                        "type": "geometry_msgs/Twist",
+                        "data": {
+                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                        },
+                    },
+                )
+            )
 
             logger.info("✓ Rotation test complete")
 
@@ -448,6 +467,7 @@ class PhysicalRobotTester:
 
     async def test_square_pattern(self):
         """Test 7: Square pattern (advanced motion)."""
+
         async def _test():
             logger.warning("⚠️  EXECUTING PATTERN - Requires 1m x 1m clear space!")
             await asyncio.sleep(3)
@@ -457,59 +477,67 @@ class PhysicalRobotTester:
             # Move in a square: forward, turn, forward, turn...
             for i in range(4):
                 logger.info(f"Side {i+1}/4: Forward 0.5s")
-                await self.robot.execute(Command(
-                    action="publish",
-                    parameters={
-                        "topic": cmd_vel_topic,
-                        "type": "geometry_msgs/Twist",
-                        "data": {
-                            "linear": {"x": 0.1, "y": 0.0, "z": 0.0},
-                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                        }
-                    }
-                ))
+                await self.robot.execute(
+                    Command(
+                        action="publish",
+                        parameters={
+                            "topic": cmd_vel_topic,
+                            "type": "geometry_msgs/Twist",
+                            "data": {
+                                "linear": {"x": 0.1, "y": 0.0, "z": 0.0},
+                                "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            },
+                        },
+                    )
+                )
                 await asyncio.sleep(0.5)
 
                 # Stop
-                await self.robot.execute(Command(
-                    action="publish",
-                    parameters={
-                        "topic": cmd_vel_topic,
-                        "type": "geometry_msgs/Twist",
-                        "data": {
-                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                        }
-                    }
-                ))
+                await self.robot.execute(
+                    Command(
+                        action="publish",
+                        parameters={
+                            "topic": cmd_vel_topic,
+                            "type": "geometry_msgs/Twist",
+                            "data": {
+                                "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                                "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            },
+                        },
+                    )
+                )
                 await asyncio.sleep(0.5)
 
-                logger.info(f"Turn 90°")
-                await self.robot.execute(Command(
-                    action="publish",
-                    parameters={
-                        "topic": cmd_vel_topic,
-                        "type": "geometry_msgs/Twist",
-                        "data": {
-                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                            "angular": {"x": 0.0, "y": 0.0, "z": 0.5}
-                        }
-                    }
-                ))
+                logger.info("Turn 90°")
+                await self.robot.execute(
+                    Command(
+                        action="publish",
+                        parameters={
+                            "topic": cmd_vel_topic,
+                            "type": "geometry_msgs/Twist",
+                            "data": {
+                                "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                                "angular": {"x": 0.0, "y": 0.0, "z": 0.5},
+                            },
+                        },
+                    )
+                )
                 await asyncio.sleep(1.57)  # ~90 degrees at 0.5 rad/s
 
                 # Stop
-                await self.robot.execute(Command(
-                    action="publish",
-                    parameters={
-                        "topic": cmd_vel_topic,
-                        "type": "geometry_msgs/Twist",
-                        "data": {
-                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                        }
-                    }
-                ))
+                await self.robot.execute(
+                    Command(
+                        action="publish",
+                        parameters={
+                            "topic": cmd_vel_topic,
+                            "type": "geometry_msgs/Twist",
+                            "data": {
+                                "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                                "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            },
+                        },
+                    )
+                )
                 await asyncio.sleep(0.5)
 
             logger.info("✓ Square pattern complete")
@@ -525,26 +553,43 @@ TEST_SUITES = {
     "basic": TestSuite(
         name="Basic Connectivity",
         description="Non-motion tests only - completely safe",
-        tests=["test_connection", "test_telemetry_reception", "test_non_motion_commands", "test_tool_discovery"],
+        tests=[
+            "test_connection",
+            "test_telemetry_reception",
+            "test_non_motion_commands",
+            "test_tool_discovery",
+        ],
         requires_motion=False,
-        safety_level="low"
+        safety_level="low",
     ),
     "minimal": TestSuite(
         name="Minimal Motion",
         description="Basic connectivity + minimal motion tests",
-        tests=["test_connection", "test_telemetry_reception", "test_non_motion_commands",
-               "test_tool_discovery", "test_minimal_motion"],
+        tests=[
+            "test_connection",
+            "test_telemetry_reception",
+            "test_non_motion_commands",
+            "test_tool_discovery",
+            "test_minimal_motion",
+        ],
         requires_motion=True,
-        safety_level="medium"
+        safety_level="medium",
     ),
     "full": TestSuite(
         name="Full Test Suite",
         description="All tests including motion patterns",
-        tests=["test_connection", "test_telemetry_reception", "test_non_motion_commands",
-               "test_tool_discovery", "test_minimal_motion", "test_rotation", "test_square_pattern"],
+        tests=[
+            "test_connection",
+            "test_telemetry_reception",
+            "test_non_motion_commands",
+            "test_tool_discovery",
+            "test_minimal_motion",
+            "test_rotation",
+            "test_square_pattern",
+        ],
         requires_motion=True,
-        safety_level="high"
-    )
+        safety_level="high",
+    ),
 }
 
 
@@ -556,10 +601,12 @@ async def main():
     parser.add_argument("--uri", required=True, help="Robot URI (e.g., ros2://0/ or ros1:///)")
     parser.add_argument("--robot", default="unknown", help="Robot name/model")
     parser.add_argument("--dry-run", action="store_true", help="Dry run (no commands executed)")
-    parser.add_argument("--suite", default="basic", choices=list(TEST_SUITES.keys()),
-                        help="Test suite to run")
-    parser.add_argument("--confirm", action="store_true",
-                        help="Skip confirmation prompts (for automation)")
+    parser.add_argument(
+        "--suite", default="basic", choices=list(TEST_SUITES.keys()), help="Test suite to run"
+    )
+    parser.add_argument(
+        "--confirm", action="store_true", help="Skip confirmation prompts (for automation)"
+    )
 
     args = parser.parse_args()
 
@@ -568,13 +615,15 @@ async def main():
         parser.error("Must specify --ros2 or --ros1")
 
     # Import based on ROS version
-    from agent_ros_bridge.gateway_v2.core import Bridge, Command
+    from agent_ros_bridge.gateway_v2.core import Bridge
 
     if args.ros2:
         from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
+
         connector_class = ROS2Connector
     else:
         from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
+
         connector_class = ROS1Connector
 
     # Get test suite

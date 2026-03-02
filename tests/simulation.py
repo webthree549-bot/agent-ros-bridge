@@ -14,12 +14,11 @@ Usage:
 """
 
 import asyncio
-import json
-import uuid
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, AsyncIterator
-from unittest import mock
 import logging
+from dataclasses import dataclass, field
+from math import cos, sin
+from typing import Any, Callable, Dict, List, Optional
+from unittest import mock
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +26,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SimulatedMessage:
     """A simulated ROS message."""
+
     topic: str
     data: Any
     timestamp: float = field(default_factory=lambda: asyncio.get_event_loop().time())
@@ -36,6 +36,7 @@ class SimulatedMessage:
 @dataclass
 class SimulatedTopic:
     """A simulated ROS topic."""
+
     name: str
     msg_type: str
     publishers: List[str] = field(default_factory=list)
@@ -47,6 +48,7 @@ class SimulatedTopic:
 @dataclass
 class SimulatedService:
     """A simulated ROS service."""
+
     name: str
     service_type: str
     handler: Optional[Callable] = None
@@ -79,7 +81,7 @@ class SimulatedROS2Node:
             sim_msg = SimulatedMessage(
                 topic=topic,
                 data=self._msg_to_dict(msg),
-                msg_type=getattr(msg_class, '__name__', str(msg_class))
+                msg_type=getattr(msg_class, "__name__", str(msg_class)),
             )
             if topic in self.topics:
                 self.topics[topic].last_message = sim_msg
@@ -96,8 +98,7 @@ class SimulatedROS2Node:
         self.subscribers[topic] = callback
         if topic not in self.topics:
             self.topics[topic] = SimulatedTopic(
-                name=topic,
-                msg_type=getattr(msg_class, '__name__', str(msg_class))
+                name=topic, msg_type=getattr(msg_class, "__name__", str(msg_class))
             )
         self.topics[topic].subscribers.append(self.node_name)
 
@@ -110,24 +111,16 @@ class SimulatedROS2Node:
     def create_service(self, srv_type, name: str, callback):
         """Create a simulated service."""
         self.services[name] = SimulatedService(
-            name=name,
-            service_type=getattr(srv_type, '__name__', str(srv_type)),
-            handler=callback
+            name=name, service_type=getattr(srv_type, "__name__", str(srv_type)), handler=callback
         )
 
     def get_topic_names_and_types(self) -> List[tuple]:
         """Get all topics."""
-        return [
-            (name, [topic.msg_type])
-            for name, topic in self.topics.items()
-        ]
+        return [(name, [topic.msg_type]) for name, topic in self.topics.items()]
 
     def get_service_names_and_types(self) -> List[tuple]:
         """Get all services."""
-        return [
-            (name, [service.service_type])
-            for name, service in self.services.items()
-        ]
+        return [(name, [service.service_type]) for name, service in self.services.items()]
 
     def get_node_names(self) -> List[str]:
         """Get all node names."""
@@ -165,15 +158,13 @@ class SimulatedROS2Node:
     def add_service(self, name: str, service_type: str, handler: Optional[Callable] = None):
         """Add a service to the simulation."""
         self.services[name] = SimulatedService(
-            name=name,
-            service_type=service_type,
-            handler=handler
+            name=name, service_type=service_type, handler=handler
         )
 
     def _msg_to_dict(self, msg) -> Dict[str, Any]:
         """Convert a message to dictionary."""
-        if hasattr(msg, '__dict__'):
-            return {k: v for k, v in msg.__dict__.items() if not k.startswith('_')}
+        if hasattr(msg, "__dict__"):
+            return {k: v for k, v in msg.__dict__.items() if not k.startswith("_")}
         elif isinstance(msg, dict):
             return msg
         else:
@@ -187,7 +178,9 @@ class SimulatedROS2Node:
         msg._type = msg_type
         return msg
 
-    async def wait_for_message(self, topic: str, timeout: float = 1.0) -> Optional[SimulatedMessage]:
+    async def wait_for_message(
+        self, topic: str, timeout: float = 1.0
+    ) -> Optional[SimulatedMessage]:
         """Wait for a message on a topic."""
         deadline = asyncio.get_event_loop().time() + timeout
         while asyncio.get_event_loop().time() < deadline:
@@ -263,17 +256,12 @@ class SimulatedRobot:
         # Subscribe to velocity commands
         def on_cmd_vel(msg):
             """Handle velocity commands."""
-            linear = getattr(msg, 'linear', {})
-            angular = getattr(msg, 'angular', {})
-            self.state["linear_velocity"] = getattr(linear, 'x', 0.0)
-            self.state["angular_velocity"] = getattr(angular, 'z', 0.0)
+            linear = getattr(msg, "linear", {})
+            angular = getattr(msg, "angular", {})
+            self.state["linear_velocity"] = getattr(linear, "x", 0.0)
+            self.state["angular_velocity"] = getattr(angular, "z", 0.0)
 
-        self.node.create_subscription(
-            mock.MagicMock(),
-            "/cmd_vel",
-            on_cmd_vel,
-            None
-        )
+        self.node.create_subscription(mock.MagicMock(), "/cmd_vel", on_cmd_vel, None)
 
     def _setup_arm(self):
         """Set up a robotic arm simulation."""
@@ -297,12 +285,17 @@ class SimulatedRobot:
             odom_msg = {
                 "pose": {
                     "position": {"x": self.state["x"], "y": self.state["y"], "z": 0.0},
-                    "orientation": {"x": 0.0, "y": 0.0, "z": sin(self.state["theta"]/2), "w": cos(self.state["theta"]/2)}
+                    "orientation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": sin(self.state["theta"] / 2),
+                        "w": cos(self.state["theta"] / 2),
+                    },
                 },
                 "twist": {
                     "linear": {"x": v, "y": 0.0, "z": 0.0},
-                    "angular": {"x": 0.0, "y": 0.0, "z": omega}
-                }
+                    "angular": {"x": 0.0, "y": 0.0, "z": omega},
+                },
             }
             self.node.simulate_message("/odom", odom_msg, "nav_msgs/Odometry")
 
@@ -321,7 +314,9 @@ class SimulatedROSEnvironment:
         self.global_topics: Dict[str, SimulatedTopic] = {}
         self._running = False
 
-    async def add_robot(self, robot_id: str, robot_type: str = "differential_drive") -> SimulatedRobot:
+    async def add_robot(
+        self, robot_id: str, robot_type: str = "differential_drive"
+    ) -> SimulatedRobot:
         """Add a robot to the simulation."""
         robot = SimulatedRobot(robot_id, robot_type)
         await robot.start()
@@ -383,10 +378,6 @@ class SimulatedROSEnvironment:
         for robot in list(self.robots.values()):
             await robot.stop()
         self.robots.clear()
-
-
-# Import math for robot simulation
-from math import sin, cos
 
 
 # Singleton instance for tests

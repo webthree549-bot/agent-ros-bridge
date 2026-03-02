@@ -24,7 +24,9 @@ import logging
 import sys
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("grpc_example")
 
 
@@ -42,11 +44,13 @@ async def run_server():
     logger.info("✓ Bridge created")
 
     # Create gRPC transport
-    grpc_transport = GRPCTransport({
-        "host": "0.0.0.0",
-        "port": 50051,
-        "reflection": True,
-    })
+    grpc_transport = GRPCTransport(
+        {
+            "host": "0.0.0.0",
+            "port": 50051,
+            "reflection": True,
+        }
+    )
 
     bridge.transport_manager.register(grpc_transport)
     logger.info("✓ gRPC transport registered on port 50051")
@@ -76,14 +80,14 @@ async def run_server():
 
 async def run_client():
     """Run gRPC client example."""
-    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
+    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClientHelper
 
     logger.info("=" * 60)
     logger.info("Starting gRPC Client Example")
     logger.info("=" * 60)
 
     # Create client
-    client = GRPCClient(target="localhost:50051")
+    client = GRPCClientHelper(target="localhost:50051")
 
     try:
         # Connect
@@ -131,7 +135,7 @@ async def run_client():
 async def run_test():
     """Run server and client in same process for testing."""
     from agent_ros_bridge.gateway_v2.core import Bridge
-    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport, GRPCClient
+    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClientHelper, GRPCTransport
 
     logger.info("=" * 60)
     logger.info("gRPC Integration Test")
@@ -139,11 +143,13 @@ async def run_test():
 
     # Create bridge with gRPC transport
     bridge = Bridge()
-    grpc_transport = GRPCTransport({
-        "host": "127.0.0.1",
-        "port": 50052,  # Use different port for testing
-        "reflection": False,
-    })
+    grpc_transport = GRPCTransport(
+        {
+            "host": "127.0.0.1",
+            "port": 50052,  # Use different port for testing
+            "reflection": False,
+        }
+    )
     bridge.transport_manager.register(grpc_transport)
 
     # Start server
@@ -155,7 +161,7 @@ async def run_test():
 
     try:
         # Create client and connect
-        client = GRPCClient(target="127.0.0.1:50052")
+        client = GRPCClientHelper(target="127.0.0.1:50052")
         await client.connect()
         logger.info("✓ Client connected")
 
@@ -196,6 +202,7 @@ async def run_test():
     except Exception as e:
         logger.error(f"Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
     finally:

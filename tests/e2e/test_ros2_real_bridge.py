@@ -135,13 +135,15 @@ class TestROS2Publish:
 
         # With mocked modules, publish will fail to import message class
         # This test verifies the command parameter handling works correctly
-        result = await robot._cmd_publish({
-            "topic": "/cmd_vel",
-            "type": "geometry_msgs/Twist",
-            "data": {
-                "linear": {"x": 1.0, "y": 0.0, "z": 0.0},
-            },
-        })
+        result = await robot._cmd_publish(
+            {
+                "topic": "/cmd_vel",
+                "type": "geometry_msgs/Twist",
+                "data": {
+                    "linear": {"x": 1.0, "y": 0.0, "z": 0.0},
+                },
+            }
+        )
 
         # With mocked ROS, we get an error because message class can't be imported
         # but we verify the command structure is correct
@@ -153,10 +155,12 @@ class TestROS2Publish:
         """Test publishing attempts auto-detection"""
         robot, publisher, msg = mock_ros2_robot
 
-        result = await robot._cmd_publish({
-            "topic": "/cmd_vel",
-            "data": {"linear": {"x": 1.0}},
-        })
+        result = await robot._cmd_publish(
+            {
+                "topic": "/cmd_vel",
+                "data": {"linear": {"x": 1.0}},
+            }
+        )
 
         # Should attempt auto-detection (will fail with mocks but tests the path)
         assert "status" in result
@@ -166,9 +170,11 @@ class TestROS2Publish:
         """Test publishing without topic fails gracefully"""
         robot, publisher, msg = mock_ros2_robot
 
-        result = await robot._cmd_publish({
-            "data": {"test": "value"},
-        })
+        result = await robot._cmd_publish(
+            {
+                "data": {"test": "value"},
+            }
+        )
 
         assert result["status"] == "error"
         assert "Topic is required" in result["message"]

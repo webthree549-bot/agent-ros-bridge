@@ -3,17 +3,15 @@
 Tests written BEFORE implementation (following TDD Red-Green-Refactor).
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from dataclasses import dataclass
 
 pytestmark = [
     pytest.mark.unit,
     pytest.mark.skipif(
-        not pytest.importorskip("grpc", reason="gRPC not available"),
-        reason="grpc not installed"
-    )
+        not pytest.importorskip("grpc", reason="gRPC not available"), reason="grpc not installed"
+    ),
 ]
 
 
@@ -23,9 +21,9 @@ class TestGRPCTransportInitialization:
     def test_transport_initialization_defaults(self):
         """Red: Should initialize with default values."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-        
+
         transport = GRPCTransport({})
-        
+
         assert transport.name == "grpc"
         assert transport.host == "0.0.0.0"
         assert transport.port == 50051
@@ -37,7 +35,7 @@ class TestGRPCTransportInitialization:
     def test_transport_initialization_custom_config(self):
         """Red: Should accept custom configuration."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-        
+
         config = {
             "host": "127.0.0.1",
             "port": 50052,
@@ -48,9 +46,9 @@ class TestGRPCTransportInitialization:
             "tls_key": "/path/to/key",
             "ca_cert": "/path/to/ca",
         }
-        
+
         transport = GRPCTransport(config)
-        
+
         assert transport.host == "127.0.0.1"
         assert transport.port == 50052
         assert transport.reflection is False
@@ -68,13 +66,13 @@ class TestGRPCServerLifecycle:
         """Red: Start should create and start gRPC server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             transport = GRPCTransport({"port": 50051})
             result = await transport.start()
-            
+
             assert result is True
             assert transport.running
             mock_grpc.aio.server.assert_called_once()
@@ -85,14 +83,14 @@ class TestGRPCServerLifecycle:
         """Red: Stop should gracefully shutdown server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             transport = GRPCTransport({"port": 50051})
             await transport.start()
             await transport.stop()
-            
+
             assert not transport.running
             mock_server.stop.assert_called_once()
 
@@ -101,10 +99,10 @@ class TestGRPCServerLifecycle:
         """Red: Should return False if gRPC not available."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPC_AVAILABLE", False):
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             transport = GRPCTransport({})
             result = await transport.start()
-            
+
             assert result is False
 
 
@@ -116,17 +114,19 @@ class TestGRPCTLSConfiguration:
         """Red: Should enable TLS when cert and key provided."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             with patch("builtins.open", mock_open(read_data=b"cert_data")):
-                transport = GRPCTransport({
-                    "tls_cert": "/path/to/cert.pem",
-                    "tls_key": "/path/to/key.pem",
-                })
+                transport = GRPCTransport(
+                    {
+                        "tls_cert": "/path/to/cert.pem",
+                        "tls_key": "/path/to/key.pem",
+                    }
+                )
                 await transport.start()
-                
+
                 mock_grpc.ssl_server_credentials.assert_called_once()
                 mock_server.add_secure_port.assert_called_once()
 
@@ -135,18 +135,20 @@ class TestGRPCTLSConfiguration:
         """Red: Should enable mTLS when CA cert provided."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             with patch("builtins.open", mock_open(read_data=b"cert_data")):
-                transport = GRPCTransport({
-                    "tls_cert": "/path/to/cert.pem",
-                    "tls_key": "/path/to/key.pem",
-                    "ca_cert": "/path/to/ca.pem",
-                })
+                transport = GRPCTransport(
+                    {
+                        "tls_cert": "/path/to/cert.pem",
+                        "tls_key": "/path/to/key.pem",
+                        "ca_cert": "/path/to/ca.pem",
+                    }
+                )
                 await transport.start()
-                
+
                 # Should create credentials with client auth required
                 call_args = mock_grpc.ssl_server_credentials.call_args
                 assert call_args[1]["require_client_auth"] is True
@@ -156,17 +158,19 @@ class TestGRPCTLSConfiguration:
         """Red: Should fall back to insecure if TLS fails."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             with patch("builtins.open", side_effect=FileNotFoundError("Cert not found")):
-                transport = GRPCTransport({
-                    "tls_cert": "/invalid/path",
-                    "tls_key": "/invalid/path",
-                })
+                transport = GRPCTransport(
+                    {
+                        "tls_cert": "/invalid/path",
+                        "tls_key": "/invalid/path",
+                    }
+                )
                 result = await transport.start()
-                
+
                 assert result is True
                 mock_server.add_insecure_port.assert_called_once()
 
@@ -174,6 +178,7 @@ class TestGRPCTLSConfiguration:
 def mock_open(read_data=b""):
     """Helper to mock open() for file reads."""
     from unittest.mock import mock_open as _mock_open
+
     return _mock_open(read_data=read_data)
 
 
@@ -184,15 +189,17 @@ class TestGRPCServiceRegistration:
     async def test_bridge_service_registered(self):
         """Red: BridgeService should be registered to server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2") as mock_pb2:
+            with patch(
+                "agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"
+            ) as mock_pb2:
                 from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-                
+
                 mock_server = AsyncMock()
                 mock_grpc.aio.server.return_value = mock_server
-                
+
                 transport = GRPCTransport({})
                 await transport.start()
-                
+
                 mock_pb2.add_BridgeServiceServicer_to_server.assert_called_once()
 
     @pytest.mark.asyncio
@@ -201,13 +208,13 @@ class TestGRPCServiceRegistration:
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             with patch("grpc_reflection.v1alpha.reflection") as mock_reflection:
                 from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-                
+
                 mock_server = AsyncMock()
                 mock_grpc.aio.server.return_value = mock_server
-                
+
                 transport = GRPCTransport({"reflection": True})
                 await transport.start()
-                
+
                 mock_reflection.enable_server_reflection.assert_called_once()
 
 
@@ -218,10 +225,10 @@ class TestGRPCClientManagement:
     async def test_get_connected_clients_empty(self):
         """Red: Should return empty list when no clients."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-        
+
         transport = GRPCTransport({})
         clients = transport.get_connected_clients()
-        
+
         assert clients == []
 
     @pytest.mark.asyncio
@@ -229,18 +236,20 @@ class TestGRPCClientManagement:
         """Red: Should return transport statistics."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-            
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
-            transport = GRPCTransport({
-                "host": "0.0.0.0",
-                "port": 50051,
-            })
+
+            transport = GRPCTransport(
+                {
+                    "host": "0.0.0.0",
+                    "port": 50051,
+                }
+            )
             await transport.start()
-            
+
             stats = transport.get_stats()
-            
+
             assert stats["running"] is True
             assert stats["host"] == "0.0.0.0"
             assert stats["port"] == 50051
@@ -254,9 +263,9 @@ class TestGRPCMessageConversion:
     def test_proto_to_message_command(self):
         """Red: Should convert protobuf to Command."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         # Create mock proto message
         mock_proto = Mock()
         mock_proto.header.message_id = "test-id"
@@ -264,9 +273,9 @@ class TestGRPCMessageConversion:
         mock_proto.command.parameters.fields = {"key": "value"}
         mock_proto.command.timeout_ms = 10000
         mock_proto.command.priority = 3
-        
+
         message = servicer._proto_to_message(mock_proto)
-        
+
         assert message.header.message_id == "test-id"
         assert message.command.action == "test_action"
         assert message.command.parameters == {"key": "value"}
@@ -275,35 +284,36 @@ class TestGRPCMessageConversion:
 
     def test_message_to_proto_response(self):
         """Red: Should convert Message to CommandResponse protobuf."""
+        from agent_ros_bridge.gateway_v2.core import Event, Message, Telemetry
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        from agent_ros_bridge.gateway_v2.core import Message, Telemetry, Event
-        
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         message = Message(
             telemetry=Telemetry(topic="test", data={"status": "ok"}),
-            event=Event(event_type="test", severity="info", data={})
+            event=Event(event_type="test", severity="info", data={}),
         )
-        
+
         response = servicer._message_to_proto_response(message)
-        
+
         assert response.success is True
         assert "status" in str(response.result)
 
     def test_struct_to_dict_conversion(self):
         """Red: Should convert protobuf Struct to dict."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
         from google.protobuf import struct_pb2
-        
+
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         struct = struct_pb2.Struct()
         struct["key1"] = "value1"
         struct["key2"] = 123
         struct["nested"]["field"] = "nested_value"
-        
+
         result = servicer._struct_to_dict(struct)
-        
+
         assert result["key1"] == "value1"
         assert result["key2"] == 123
         assert result["nested"]["field"] == "nested_value"
@@ -315,9 +325,9 @@ class TestGRPCIdentityExtraction:
     def test_extract_identity_from_metadata(self):
         """Red: Should extract user identity from request metadata."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         mock_context = Mock()
         mock_context.invocation_metadata.return_value = [
             ("x-user-id", "user-123"),
@@ -326,9 +336,9 @@ class TestGRPCIdentityExtraction:
             ("authorization", "Bearer token123"),
         ]
         mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
-        
+
         identity = servicer._extract_identity(mock_context)
-        
+
         assert identity.id == "user-123"
         assert identity.name == "Test User"
         assert "operator" in identity.roles
@@ -338,15 +348,15 @@ class TestGRPCIdentityExtraction:
     def test_extract_anonymous_identity_no_auth(self):
         """Red: Should create anonymous identity without auth."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         mock_context = Mock()
         mock_context.invocation_metadata.return_value = []
         mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
-        
+
         identity = servicer._extract_identity(mock_context)
-        
+
         assert identity.id is not None  # Should generate UUID
         assert identity.name.startswith("anonymous_")
         assert "anonymous" in identity.roles
@@ -360,26 +370,25 @@ class TestGRPCServicerRPCs:
         """Red: Should handle SendCommand RPC."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-            
+
             mock_transport = Mock()
-            mock_transport.message_handler = AsyncMock(return_value=Mock(
-                telemetry=Mock(data={"result": "success"}),
-                event=None
-            ))
-            
+            mock_transport.message_handler = AsyncMock(
+                return_value=Mock(telemetry=Mock(data={"result": "success"}), event=None)
+            )
+
             servicer = BridgeServiceServicer(mock_transport)
-            
+
             mock_request = Mock()
             mock_request.header.message_id = "msg-1"
             mock_request.command.action = "test_action"
             mock_request.command.parameters.fields = {}
-            
+
             mock_context = Mock()
             mock_context.invocation_metadata.return_value = []
             mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
-            
+
             response = await servicer.SendCommand(mock_request, mock_context)
-            
+
             assert response.success is True
             mock_transport.message_handler.assert_called_once()
 
@@ -387,13 +396,13 @@ class TestGRPCServicerRPCs:
     async def test_health_check_rpc(self):
         """Red: Should handle HealthCheck RPC."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        
+
         servicer = BridgeServiceServicer(Mock())
-        
+
         mock_context = Mock()
-        
+
         response = await servicer.HealthCheck(Mock(), mock_context)
-        
+
         assert response.success is True
         assert "healthy" in str(response.result).lower()
 
@@ -401,22 +410,22 @@ class TestGRPCServicerRPCs:
     async def test_subscribe_telemetry_stream(self):
         """Red: Should stream telemetry via SubscribeTelemetry."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-        
+
         mock_transport = Mock()
         servicer = BridgeServiceServicer(mock_transport)
-        
+
         mock_request = Mock()
         mock_request.topics = ["/odom", "/scan"]
         mock_request.robot_id = "robot-1"
-        
+
         mock_context = Mock()
         mock_context.done.return_value = True  # Stop after first iteration
-        
+
         responses = []
         async for response in servicer.SubscribeTelemetry(mock_request, mock_context):
             responses.append(response)
             break  # Only collect one for test
-        
+
         assert len(responses) > 0
 
 
@@ -428,13 +437,13 @@ class TestGRPCClientHelper:
         """Red: GRPCClient should connect to server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
-            
+
             mock_channel = AsyncMock()
             mock_grpc.aio.insecure_channel.return_value = mock_channel
-            
+
             client = GRPCClient(target="localhost:50051")
             await client.connect()
-            
+
             mock_grpc.aio.insecure_channel.assert_called_once_with("localhost:50051")
             assert client.channel is not None
             assert client.stub is not None
@@ -445,19 +454,19 @@ class TestGRPCClientHelper:
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
                 from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
-                
+
                 mock_stub = AsyncMock()
                 mock_response = Mock()
                 mock_response.success = True
                 mock_response.result.fields = {"status": "ok"}
                 mock_response.error = ""
                 mock_stub.SendCommand.return_value = mock_response
-                
+
                 client = GRPCClient(target="localhost:50051")
                 client.stub = mock_stub
-                
+
                 result = await client.send_command("discover", {})
-                
+
                 assert result["success"] is True
                 assert result["result"]["status"] == "ok"
 
@@ -467,18 +476,18 @@ class TestGRPCClientHelper:
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc"):
             with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
                 from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
-                
+
                 mock_stub = AsyncMock()
                 mock_response = Mock()
                 mock_response.success = True
                 mock_response.result.fields = {"status": "healthy"}
                 mock_stub.HealthCheck.return_value = mock_response
-                
+
                 client = GRPCClient(target="localhost:50051")
                 client.stub = mock_stub
-                
+
                 result = await client.health_check()
-                
+
                 assert result["success"] is True
                 mock_stub.HealthCheck.assert_called_once()
 
@@ -490,25 +499,25 @@ class TestGRPCBroadcast:
     async def test_broadcast_to_all_clients(self):
         """Red: Should broadcast message to all connected clients."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
             from agent_ros_bridge.gateway_v2.core import Message, Telemetry
-            
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
-            
+
             transport = GRPCTransport({})
             await transport.start()
-            
+
             # Mock service with clients
             mock_client = Mock()
             mock_client.client_id = "client-1"
             transport.service = Mock()
             transport.service.clients = {"client-1": mock_client}
             transport.service._queue_telemetry = AsyncMock()
-            
+
             message = Message(telemetry=Telemetry(topic="broadcast", data={"alert": "test"}))
             recipients = await transport.broadcast(message)
-            
+
             assert "client-1" in recipients
 
 
@@ -518,14 +527,14 @@ class TestGRPCErrorHandling:
     @pytest.mark.asyncio
     async def test_send_to_disconnected_client(self):
         """Red: Should handle send to disconnected client."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
         from agent_ros_bridge.gateway_v2.core import Message
-        
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
         transport = GRPCTransport({})
         transport.service = None  # No service = no clients
-        
+
         result = await transport.send(Message(), "nonexistent-client")
-        
+
         assert result is False
 
     @pytest.mark.asyncio
@@ -533,21 +542,21 @@ class TestGRPCErrorHandling:
         """Red: Should return error when no message handler registered."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
-            
+
             mock_transport = Mock()
             mock_transport.message_handler = None
-            
+
             servicer = BridgeServiceServicer(mock_transport)
-            
+
             mock_request = Mock()
             mock_request.header.message_id = "msg-1"
             mock_request.command.action = "test"
-            
+
             mock_context = Mock()
             mock_context.invocation_metadata.return_value = []
             mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
-            
+
             response = await servicer.SendCommand(mock_request, mock_context)
-            
+
             assert response.success is False
             assert "No handler registered" in response.error

@@ -14,7 +14,6 @@ Features:
 """
 
 import asyncio
-import json
 import logging
 import time
 import uuid
@@ -41,7 +40,15 @@ except ImportError as e:
     ServicerContext = Any
     StatusCode = Any
 
-from agent_ros_bridge.gateway_v2.core import Command, Event, Header, Identity, Message, Telemetry, Transport
+from agent_ros_bridge.gateway_v2.core import (
+    Command,
+    Event,
+    Header,
+    Identity,
+    Message,
+    Telemetry,
+    Transport,
+)
 
 logger = logging.getLogger("transport.grpc")
 
@@ -68,7 +75,9 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         self._telemetry_queues: Dict[str, asyncio.Queue] = {}  # client_id -> queue
         self._shutdown_event = asyncio.Event()
 
-    async def SendCommand(self, request: bridge_pb2.Message, context: ServicerContext) -> bridge_pb2.CommandResponse:
+    async def SendCommand(
+        self, request: bridge_pb2.Message, context: ServicerContext
+    ) -> bridge_pb2.CommandResponse:
         """Handle incoming command (unary-unary)."""
         start_time = time.time()
         client_id = str(uuid.uuid4())
@@ -91,22 +100,14 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                     logger.debug(f"Command processed in {duration_ms:.2f}ms")
                     return self._message_to_proto_response(response)
 
-            return bridge_pb2.CommandResponse(
-                success=False,
-                error="No handler registered"
-            )
+            return bridge_pb2.CommandResponse(success=False, error="No handler registered")
 
         except Exception as e:
             logger.error(f"Error handling command: {e}")
-            return bridge_pb2.CommandResponse(
-                success=False,
-                error=str(e)
-            )
+            return bridge_pb2.CommandResponse(success=False, error=str(e))
 
     async def StreamTelemetry(
-        self,
-        request_iterator: AsyncIterator[bridge_pb2.Message],
-        context: ServicerContext
+        self, request_iterator: AsyncIterator[bridge_pb2.Message], context: ServicerContext
     ) -> AsyncIterator[bridge_pb2.Message]:
         """Bidirectional streaming for real-time commands and telemetry.
 
@@ -125,9 +126,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         logger.info(f"Client {client_id} started bidirectional stream")
 
         # Start telemetry sender task
-        sender_task = asyncio.create_task(
-            self._stream_telemetry_to_client(client_id, context)
-        )
+        sender_task = asyncio.create_task(self._stream_telemetry_to_client(client_id, context))
 
         try:
             async for request in request_iterator:
@@ -150,9 +149,9 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                             event=bridge_pb2.Event(
                                 type="error",
                                 severity="error",
-                                data=self._dict_to_struct({"error": str(e)})
+                                data=self._dict_to_struct({"error": str(e)}),
                             )
-                        )
+                        ),
                     )
 
                 # Check if context is still active
@@ -174,9 +173,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             logger.info(f"Client {client_id} ended bidirectional stream")
 
     async def SubscribeTelemetry(
-        self,
-        request: bridge_pb2.SubscriptionRequest,
-        context: ServicerContext
+        self, request: bridge_pb2.SubscriptionRequest, context: ServicerContext
     ) -> AsyncIterator[bridge_pb2.Telemetry]:
         """Server streaming for telemetry subscription."""
         client_id = str(uuid.uuid4())
@@ -205,8 +202,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                 try:
                     # Wait for telemetry with timeout
                     telemetry = await asyncio.wait_for(
-                        self._telemetry_queues[client_id].get(),
-                        timeout=1.0
+                        self._telemetry_queues[client_id].get(), timeout=1.0
                     )
                     yield telemetry
                 except asyncio.TimeoutError:
@@ -214,7 +210,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                     yield bridge_pb2.Telemetry(
                         topic="_heartbeat",
                         data=self._dict_to_struct({"timestamp": time.time()}),
-                        quality=1.0
+                        quality=1.0,
                     )
 
         except Exception as e:
@@ -224,23 +220,23 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             self._unregister_client(client_id)
             logger.info(f"Client {client_id} unsubscribed")
 
-    async def HealthCheck(self, _request: Empty, context: ServicerContext) -> bridge_pb2.CommandResponse:
+    async def HealthCheck(
+        self, _request: Empty, context: ServicerContext
+    ) -> bridge_pb2.CommandResponse:
         """Health check endpoint."""
         return bridge_pb2.CommandResponse(
             success=True,
-            result=self._dict_to_struct({
-                "status": "healthy",
-                "transport": "grpc",
-                "clients": len(self.clients),
-                "timestamp": time.time()
-            })
+            result=self._dict_to_struct(
+                {
+                    "status": "healthy",
+                    "transport": "grpc",
+                    "clients": len(self.clients),
+                    "timestamp": time.time(),
+                }
+            ),
         )
 
-    async def _stream_telemetry_to_client(
-        self,
-        client_id: str,
-        context: ServicerContext
-    ):
+    async def _stream_telemetry_to_client(self, client_id: str, context: ServicerContext):
         """Background task to stream telemetry to a client."""
         queue = self._telemetry_queues.get(client_id)
         if not queue:
@@ -258,12 +254,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         except Exception as e:
             logger.error(f"Telemetry stream error for {client_id}: {e}")
 
-    async def _subscribe_to_robot(
-        self,
-        robot_id: str,
-        topics: List[str],
-        client_id: str
-    ):
+    async def _subscribe_to_robot(self, robot_id: str, topics: List[str], client_id: str):
         """Subscribe to robot telemetry and route to client."""
         # This would integrate with the bridge's robot fleet
         # For now, create a command to subscribe
@@ -276,9 +267,8 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             message = Message(
                 header=Header(),
                 command=Command(
-                    action="robot.subscribe",
-                    parameters={"robot_id": robot_id, "topic": topic}
-                )
+                    action="robot.subscribe", parameters={"robot_id": robot_id, "topic": topic}
+                ),
             )
 
             try:
@@ -286,8 +276,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                 if response and response.telemetry:
                     # Route telemetry to client's queue
                     await self._queue_telemetry(
-                        client_id,
-                        self._telemetry_to_proto(response.telemetry)
+                        client_id, self._telemetry_to_proto(response.telemetry)
                     )
             except Exception as e:
                 logger.error(f"Failed to subscribe to {topic}: {e}")
@@ -317,7 +306,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             context=context,
             subscriptions=set(),
             connected_at=time.time(),
-            last_activity=time.time()
+            last_activity=time.time(),
         )
         self.clients[client_id] = client
         self.transport._on_client_connect(client_id, identity)
@@ -355,8 +344,8 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             metadata={
                 "transport": "grpc",
                 "peer": str(context.peer()),
-                "auth_header": auth_header[:20] + "..." if auth_header else None
-            }
+                "auth_header": auth_header[:20] + "..." if auth_header else None,
+            },
         )
 
     def _proto_to_message(self, proto: bridge_pb2.Message) -> Message:
@@ -379,7 +368,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
                 action=proto.command.action,
                 parameters=params,
                 timeout_ms=proto.command.timeout_ms or 5000,
-                priority=proto.command.priority or 5
+                priority=proto.command.priority or 5,
             )
 
         # Telemetry
@@ -388,7 +377,7 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             telemetry = Telemetry(
                 topic=proto.telemetry.topic,
                 data=self._struct_to_dict(proto.telemetry.data) if proto.telemetry.data else {},
-                quality=proto.telemetry.quality
+                quality=proto.telemetry.quality,
             )
 
         # Event
@@ -397,18 +386,14 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             event = Event(
                 event_type=proto.event.type,
                 severity=proto.event.severity,
-                data=self._struct_to_dict(proto.event.data) if proto.event.data else {}
+                data=self._struct_to_dict(proto.event.data) if proto.event.data else {},
             )
 
         # Metadata
         metadata = self._struct_to_dict(proto.metadata) if proto.metadata else {}
 
         return Message(
-            header=header,
-            command=command,
-            telemetry=telemetry,
-            event=event,
-            metadata=metadata
+            header=header, command=command, telemetry=telemetry, event=event, metadata=metadata
         )
 
     def _message_to_proto(self, message: Message) -> bridge_pb2.Message:
@@ -459,18 +444,14 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         if message.event and message.event.severity == "error":
             error = message.event.data.get("error", "Unknown error")
 
-        return bridge_pb2.CommandResponse(
-            success=error == "",
-            result=result_struct,
-            error=error
-        )
+        return bridge_pb2.CommandResponse(success=error == "", result=result_struct, error=error)
 
     def _telemetry_to_proto(self, telemetry: Telemetry) -> bridge_pb2.Telemetry:
         """Convert Telemetry to protobuf."""
         return bridge_pb2.Telemetry(
             topic=telemetry.topic,
             data=self._dict_to_struct(telemetry.data) if telemetry.data else struct_pb2.Struct(),
-            quality=telemetry.quality
+            quality=telemetry.quality,
         )
 
     def _struct_to_dict(self, struct: struct_pb2.Struct) -> Dict[str, Any]:
@@ -525,8 +506,7 @@ class GRPCTransport(Transport):
 
         # Create gRPC server
         self.server = grpc.aio.server(
-            futures.ThreadPoolExecutor(max_workers=self.max_workers),
-            options=options
+            futures.ThreadPoolExecutor(max_workers=self.max_workers), options=options
         )
 
         # Register service
@@ -548,7 +528,7 @@ class GRPCTransport(Transport):
                     credentials = grpc.ssl_server_credentials(
                         ((private_key, certificate_chain),),
                         root_certificates=ca_cert,
-                        require_client_auth=True
+                        require_client_auth=True,
                     )
                     logger.info("gRPC mTLS enabled")
                 else:
@@ -617,7 +597,7 @@ class GRPCTransport(Transport):
                 Telemetry(
                     topic=message.command.action if message.command else "message",
                     data=message.telemetry.data if message.telemetry else {},
-                    quality=1.0
+                    quality=1.0,
                 )
             )
             await self.service._queue_telemetry(recipient, proto_telemetry)
@@ -637,11 +617,13 @@ class GRPCTransport(Transport):
         # Convert to telemetry format for streaming clients
         telemetry = bridge_pb2.Telemetry(
             topic="broadcast",
-            data=self.service._dict_to_struct({
-                "message_id": message.header.message_id,
-                "data": message.telemetry.data if message.telemetry else {}
-            }),
-            quality=1.0
+            data=self.service._dict_to_struct(
+                {
+                    "message_id": message.header.message_id,
+                    "data": message.telemetry.data if message.telemetry else {},
+                }
+            ),
+            quality=1.0,
         )
 
         for client_id in list(self.service.clients.keys()):
@@ -673,7 +655,7 @@ class GRPCTransport(Transport):
                 "peer": c.peer,
                 "subscriptions": list(c.subscriptions),
                 "connected_at": c.connected_at,
-                "last_activity": c.last_activity
+                "last_activity": c.last_activity,
             }
             for c in self.service.clients.values()
         ]
@@ -687,12 +669,12 @@ class GRPCTransport(Transport):
             "tls_enabled": bool(self.tls_cert),
             "mtls_enabled": bool(self.tls_cert and self.ca_cert),
             "connected_clients": len(self.service.clients) if self.service else 0,
-            "clients": self.get_connected_clients()
+            "clients": self.get_connected_clients(),
         }
 
 
 # Client-side helper for testing
-class GRPCClient:
+class GRPCClientHelper:
     """Helper class for gRPC client connections."""
 
     def __init__(self, target: str = "localhost:50051", tls: bool = False):
@@ -720,16 +702,15 @@ class GRPCClient:
         message = bridge_pb2.Message(
             header=bridge_pb2.Header(message_id=str(uuid.uuid4())),
             command=bridge_pb2.Command(
-                action=action,
-                parameters=self._dict_to_struct(parameters or {})
-            )
+                action=action, parameters=self._dict_to_struct(parameters or {})
+            ),
         )
 
         response = await self.stub.SendCommand(message)
         return {
             "success": response.success,
             "result": self._struct_to_dict(response.result),
-            "error": response.error
+            "error": response.error,
         }
 
     async def health_check(self) -> Dict[str, Any]:
@@ -738,30 +719,22 @@ class GRPCClient:
             raise RuntimeError("Not connected")
 
         response = await self.stub.HealthCheck(Empty())
-        return {
-            "success": response.success,
-            "result": self._struct_to_dict(response.result)
-        }
+        return {"success": response.success, "result": self._struct_to_dict(response.result)}
 
     async def subscribe_telemetry(
-        self,
-        topics: List[str],
-        robot_id: str = ""
+        self, topics: List[str], robot_id: str = ""
     ) -> AsyncIterator[Telemetry]:
         """Subscribe to telemetry stream."""
         if not self.stub:
             raise RuntimeError("Not connected")
 
-        request = bridge_pb2.SubscriptionRequest(
-            topics=topics,
-            robot_id=robot_id
-        )
+        request = bridge_pb2.SubscriptionRequest(topics=topics, robot_id=robot_id)
 
         async for proto_telemetry in self.stub.SubscribeTelemetry(request):
             yield Telemetry(
                 topic=proto_telemetry.topic,
                 data=self._struct_to_dict(proto_telemetry.data),
-                quality=proto_telemetry.quality
+                quality=proto_telemetry.quality,
             )
 
     def _dict_to_struct(self, data: Dict[str, Any]) -> struct_pb2.Struct:
@@ -784,8 +757,8 @@ class GRPCClient:
 # Example usage
 async def example_server():
     """Example gRPC server with full features."""
-    from agent_ros_bridge.gateway_v2.core import Bridge
     from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
+    from agent_ros_bridge.gateway_v2.core import Bridge
 
     # Create bridge
     gateway = Bridge()
@@ -795,14 +768,16 @@ async def example_server():
     gateway.connector_registry.register(ros2)
 
     # Create gRPC transport with TLS
-    grpc_transport = GRPCTransport({
-        "host": "0.0.0.0",
-        "port": 50051,
-        "reflection": True,
-        # "tls_cert": "/path/to/server.crt",
-        # "tls_key": "/path/to/server.key",
-        # "ca_cert": "/path/to/ca.crt",  # For mTLS
-    })
+    grpc_transport = GRPCTransport(
+        {
+            "host": "0.0.0.0",
+            "port": 50051,
+            "reflection": True,
+            # "tls_cert": "/path/to/server.crt",
+            # "tls_key": "/path/to/server.key",
+            # "ca_cert": "/path/to/ca.crt",  # For mTLS
+        }
+    )
 
     gateway.transport_manager.register(grpc_transport)
 

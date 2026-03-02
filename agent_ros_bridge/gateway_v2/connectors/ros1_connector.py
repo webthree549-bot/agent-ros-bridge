@@ -14,8 +14,6 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Type
 
 try:
     import rospy
-    from rospy import Publisher, Subscriber
-    from std_msgs.msg import Header
 
     ROS1_AVAILABLE = True
 except ImportError:
@@ -355,19 +353,25 @@ class ROS1Robot(Robot):
 
         try:
             rospy.wait_for_service(service_name, timeout=5.0)
-            
+
             # Get service type from system state
             service_type = self._get_service_type(service_name)
             if service_type is None:
-                return {"status": "error", "message": f"Could not determine service type for {service_name}"}
-            
+                return {
+                    "status": "error",
+                    "message": f"Could not determine service type for {service_name}",
+                }
+
             # Import service class
             try:
                 pkg, srv = service_type.split("/")
                 srv_module = importlib.import_module(f"{pkg}.srv")
                 srv_class = getattr(srv_module, srv)
             except Exception as e:
-                return {"status": "error", "message": f"Could not import service type {service_type}: {e}"}
+                return {
+                    "status": "error",
+                    "message": f"Could not import service type {service_type}: {e}",
+                }
 
             # Create service proxy
             proxy = rospy.ServiceProxy(service_name, srv_class)
@@ -379,11 +383,11 @@ class ROS1Robot(Robot):
 
             # Call service
             response = proxy(request)
-            
+
             return {
                 "status": "called",
                 "service": service_name,
-                "response": self._ros_msg_to_dict(response)
+                "response": self._ros_msg_to_dict(response),
             }
         except rospy.ROSException as e:
             return {"status": "error", "message": f"Service timeout: {e}"}
@@ -394,13 +398,12 @@ class ROS1Robot(Robot):
         """Get service type from ROS master."""
         try:
             import rosgraph
+
             master = rosgraph.Master(self._node_name or "agent_ros_bridge")
             _, _, services = master.getSystemState()
             for svc, nodes in services:
                 if svc == service_name and nodes:
                     # Get service type from first provider
-                    provider = nodes[0]
-                    node_api = master.lookupNode(provider)
                     # This is complex in ROS1, often requires parsing node XML-RPC
                     # For now, return a common default or None
                     return None
@@ -418,25 +421,25 @@ class ROS1Robot(Robot):
         # This is a simplified implementation
         try:
             import actionlib
-            
+
             if action_type is None:
                 return {"status": "error", "message": "Action type required for ROS1 actions"}
-            
+
             # Parse action type
             pkg, action = action_type.split("/")
             action_module = importlib.import_module(f"{pkg}.msg")
             action_class = getattr(action_module, action + "Action")
             goal_class = getattr(action_module, action + "Goal")
-            
+
             # Create action client
             client = actionlib.SimpleActionClient(action_name, action_class)
             client.wait_for_server(timeout=rospy.Duration(5.0))
-            
+
             # Create and send goal
             goal = goal_class()
             self._dict_to_ros_msg(goal_data, goal)
             client.send_goal(goal)
-            
+
             return {"status": "goal_sent", "action": action_name}
         except Exception as e:
             logger.error(f"Failed to send action goal: {e}")
@@ -458,7 +461,13 @@ class ROS1Robot(Robot):
         if not ROS1_AVAILABLE:
             return []
         try:
-            return rosgraph.get_master().getNodeNames()[2]  # Returns (code, statusMessage, nodeNames)
+            import rosgraph
+
+            master = rosgraph.Master(self._node_name or "agent_ros_bridge")
+            code, _, nodes = master.getNodeNames()
+            if code == 1:
+                return nodes
+            return []
         except Exception as e:
             logger.error(f"Failed to get nodes: {e}")
             return []
@@ -469,6 +478,7 @@ class ROS1Robot(Robot):
             return []
         try:
             import rosgraph
+
             master = rosgraph.Master(self._node_name or "agent_ros_bridge")
             _, _, services = master.getSystemState()
             return [{"name": svc, "providers": nodes} for svc, nodes in services]
@@ -481,10 +491,15 @@ class ROS1Robot(Robot):
         namespace = params.get("namespace", "")
         try:
             import rosgraph
+
             master = rosgraph.Master(self._node_name or "agent_ros_bridge")
             code, msg, params_list = master.getParamNames()
             if code == 1:
-                filtered = [p for p in params_list if p.startswith(namespace)] if namespace else params_list
+                filtered = (
+                    [p for p in params_list if p.startswith(namespace)]
+                    if namespace
+                    else params_list
+                )
                 return {"status": "ok", "params": filtered}
             return {"status": "error", "message": msg}
         except Exception as e:
