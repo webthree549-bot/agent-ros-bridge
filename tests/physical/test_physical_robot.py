@@ -44,7 +44,7 @@ logger = logging.getLogger("physical_test")
 
 
 @dataclass
-class PhysicalPhysicalTestResult:
+class PhysicalTestResult:
     """Result of a single test."""
 
     name: str
@@ -56,7 +56,7 @@ class PhysicalPhysicalTestResult:
 
 
 @dataclass
-class RobotRobotTestSuite:
+class RobotTestSuite:
     """A suite of tests."""
 
     name: str
