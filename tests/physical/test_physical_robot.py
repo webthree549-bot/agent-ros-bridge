@@ -44,7 +44,7 @@ logger = logging.getLogger("physical_test")
 
 
 @dataclass
-class TestResult:
+class PhysicalPhysicalTestResult:
     """Result of a single test."""
 
     name: str
@@ -56,7 +56,7 @@ class TestResult:
 
 
 @dataclass
-class TestSuite:
+class RobotRobotTestSuite:
     """A suite of tests."""
 
     name: str
@@ -133,7 +133,7 @@ class PhysicalRobotTester:
         self.bridge = bridge
         self.robot = robot
         self.dry_run = dry_run
-        self.results: List[TestResult] = []
+        self.results: List[PhysicalTestResult] = []
         self.safety_monitor: Optional[SafetyMonitor] = None
         self.test_data: Dict[str, Any] = {
             "start_time": datetime.now().isoformat(),
@@ -204,7 +204,7 @@ class PhysicalRobotTester:
             "timestamp": datetime.now().isoformat(),
         }
 
-    async def run_test(self, test_func: Callable, name: str) -> TestResult:
+    async def run_test(self, test_func: Callable, name: str) -> PhysicalTestResult:
         """Run a single test with timing and error handling."""
         logger.info(f"\n{'='*70}")
         logger.info(f"TEST: {name}")
@@ -215,7 +215,7 @@ class PhysicalRobotTester:
         try:
             if self.dry_run:
                 logger.info("[DRY RUN] Would execute: " + name)
-                result = TestResult(
+                result = PhysicalTestResult(
                     name=name, passed=True, duration_ms=0, message="Dry run - no command executed"
                 )
             else:
@@ -223,7 +223,7 @@ class PhysicalRobotTester:
                 await test_func()
                 duration = (time.time() - start_time) * 1000
 
-                result = TestResult(
+                result = PhysicalTestResult(
                     name=name,
                     passed=True,
                     duration_ms=duration,
@@ -233,7 +233,7 @@ class PhysicalRobotTester:
 
         except Exception as e:
             duration = (time.time() - start_time) * 1000
-            result = TestResult(
+            result = PhysicalTestResult(
                 name=name,
                 passed=False,
                 duration_ms=duration,
@@ -550,7 +550,7 @@ class PhysicalRobotTester:
 # =================================================================
 
 TEST_SUITES = {
-    "basic": TestSuite(
+    "basic": RobotTestSuite(
         name="Basic Connectivity",
         description="Non-motion tests only - completely safe",
         tests=[
@@ -562,7 +562,7 @@ TEST_SUITES = {
         requires_motion=False,
         safety_level="low",
     ),
-    "minimal": TestSuite(
+    "minimal": RobotTestSuite(
         name="Minimal Motion",
         description="Basic connectivity + minimal motion tests",
         tests=[
@@ -575,7 +575,7 @@ TEST_SUITES = {
         requires_motion=True,
         safety_level="medium",
     ),
-    "full": TestSuite(
+    "full": RobotTestSuite(
         name="Full Test Suite",
         description="All tests including motion patterns",
         tests=[
