@@ -1,0 +1,239 @@
+{
+  "robot_configs": {
+    "turtlebot3": {
+      "name": "TurtleBot3",
+      "manufacturer": "Robotis",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "topics": {
+        "cmd_vel": "/cmd_vel",
+        "odom": "/odom",
+        "scan": "/scan",
+        "imu": "/imu",
+        "battery": "/battery_state"
+      },
+      "limits": {
+        "max_linear_velocity": 0.22,
+        "max_angular_velocity": 2.84,
+        "max_linear_accel": 1.0,
+        "max_angular_accel": 4.0
+      },
+      "test_area": {
+        "width_m": 2.0,
+        "length_m": 2.0,
+        "surface": "flat_non_slip"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "software",
+        "requires_clearance": false,
+        "max_test_duration_min": 10
+      }
+    },
+    "turtlebot3_sim": {
+      "name": "TurtleBot3 (Simulation)",
+      "manufacturer": "Robotis/Gazebo",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "simulator": "gazebo",
+      "topics": {
+        "cmd_vel": "/cmd_vel",
+        "odom": "/odom",
+        "scan": "/scan"
+      },
+      "limits": {
+        "max_linear_velocity": 0.22,
+        "max_angular_velocity": 2.84
+      },
+      "test_area": {
+        "width_m": 10.0,
+        "length_m": 10.0,
+        "surface": "simulation"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "software",
+        "requires_clearance": false,
+        "notes": "Safe for full test suite"
+      }
+    },
+    "fetch": {
+      "name": "Fetch Mobile Manipulator",
+      "manufacturer": "Fetch Robotics",
+      "ros_version": "ros1",
+      "ros_distro": "noetic",
+      "default_uri": "ros1:///",
+      "topics": {
+        "cmd_vel": "/base_controller/command",
+        "odom": "/odom",
+        "scan": "/base_scan",
+        "arm_state": "/arm_controller/state"
+      },
+      "limits": {
+        "max_linear_velocity": 1.0,
+        "max_angular_velocity": 1.0,
+        "max_arm_velocity": 0.5
+      },
+      "test_area": {
+        "width_m": 3.0,
+        "length_m": 3.0,
+        "height_m": 2.5,
+        "surface": "flat_non_slip"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "physical_button",
+        "requires_clearance": true,
+        "notes": "Has arm - maintain 1.5m clearance",
+        "max_test_duration_min": 15
+      }
+    },
+    "turtlesim": {
+      "name": "TurtleSim",
+      "manufacturer": "ROS Tutorial",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "simulator": "turtlesim",
+      "topics": {
+        "cmd_vel": "/turtle1/cmd_vel",
+        "pose": "/turtle1/pose"
+      },
+      "limits": {
+        "max_linear_velocity": 2.0,
+        "max_angular_velocity": 2.0
+      },
+      "test_area": {
+        "width_m": 11.0,
+        "length_m": 11.0,
+        "surface": "simulation"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "close_window",
+        "requires_clearance": false,
+        "notes": "Perfect for testing - completely safe"
+      }
+    },
+    "husky": {
+      "name": "Husky UGV",
+      "manufacturer": "Clearpath Robotics",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "topics": {
+        "cmd_vel": "/husky/cmd_vel",
+        "odom": "/husky/odom",
+        "scan": "/scan",
+        "gps": "/gps/fix"
+      },
+      "limits": {
+        "max_linear_velocity": 1.0,
+        "max_angular_velocity": 1.0,
+        "max_linear_accel": 3.0,
+        "max_angular_accel": 6.0
+      },
+      "test_area": {
+        "width_m": 5.0,
+        "length_m": 5.0,
+        "surface": "outdoor_rough",
+        "notes": "Designed for outdoor use"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "physical_button",
+        "requires_clearance": true,
+        "notes": "Heavy robot (50kg) - use caution",
+        "max_test_duration_min": 20
+      }
+    },
+    "create3": {
+      "name": "iRobot Create 3",
+      "manufacturer": "iRobot",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "topics": {
+        "cmd_vel": "/cmd_vel",
+        "odom": "/odom",
+        "ir_intensity": "/ir_intensity",
+        "cliff_intensity": "/cliff_intensity"
+      },
+      "limits": {
+        "max_linear_velocity": 0.5,
+        "max_angular_velocity": 2.0
+      },
+      "test_area": {
+        "width_m": 2.0,
+        "length_m": 2.0,
+        "surface": "flat_carpet_or_hardwood"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "button_or_app",
+        "requires_clearance": false,
+        "notes": "Lightweight - good for beginners",
+        "max_test_duration_min": 30
+      }
+    },
+    "custom": {
+      "name": "Custom Robot",
+      "manufacturer": "User Defined",
+      "ros_version": "ros2",
+      "ros_distro": "humble",
+      "default_uri": "ros2://0/",
+      "topics": {
+        "cmd_vel": "/cmd_vel",
+        "odom": "/odom",
+        "scan": "/scan"
+      },
+      "limits": {
+        "max_linear_velocity": 1.0,
+        "max_angular_velocity": 2.0
+      },
+      "test_area": {
+        "width_m": 3.0,
+        "length_m": 3.0,
+        "surface": "flat"
+      },
+      "safety": {
+        "has_estop": true,
+        "estop_type": "unknown",
+        "requires_clearance": true,
+        "notes": "Configure for your specific robot"
+      }
+    }
+  },
+  "test_profiles": {
+    "conservative": {
+      "description": "Ultra-safe settings for new robots or cautious environments",
+      "velocity_scale": 0.3,
+      "motion_duration_scale": 0.5,
+      "timeout_multiplier": 2.0,
+      "required_clearance_m": 2.0
+    },
+    "normal": {
+      "description": "Standard test settings",
+      "velocity_scale": 0.5,
+      "motion_duration_scale": 1.0,
+      "timeout_multiplier": 1.0,
+      "required_clearance_m": 1.0
+    },
+    "aggressive": {
+      "description": "Faster tests for well-known robots",
+      "velocity_scale": 0.8,
+      "motion_duration_scale": 1.0,
+      "timeout_multiplier": 0.8,
+      "required_clearance_m": 1.5
+    }
+  },
+  "safety_defaults": {
+    "max_test_duration_min": 30,
+    "telemetry_timeout_sec": 5.0,
+    "connection_timeout_sec": 10.0,
+    "motion_pause_between_tests_sec": 2.0,
+    "emergency_stop_debounce_sec": 1.0
+  }
+}
