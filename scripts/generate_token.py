@@ -51,7 +51,10 @@ def main():
         if args.encrypt_secret:
             encryption_key = os.environ.get("JWT_SECRET_KEY")
             if not encryption_key:
-                print("Error: JWT_SECRET_KEY environment variable is required when using --encrypt-secret")
+                print(
+                    "Error: JWT_SECRET_KEY environment variable is required "
+                    "when using --encrypt-secret"
+                )
                 sys.exit(1)
             try:
                 fernet = Fernet(encryption_key.encode("utf-8"))
