@@ -250,6 +250,8 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--tb=short",
+    "-x",  # Stop on first failure
+    "--ff",  # Run failed tests first
 ]
 markers = [
     "unit: Unit tests",
@@ -257,12 +259,14 @@ markers = [
     "slow: Slow tests",
     "ros: ROS-dependent tests",
     "hardware: Hardware-dependent tests",
+    "simulation: Tests using simulation framework",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
 asyncio_mode = "auto"
+timeout = 30  # 30 second timeout per test
 
 [tool.coverage.run]
 source = ["agent_ros_bridge"]
