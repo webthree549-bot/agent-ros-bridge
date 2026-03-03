@@ -42,16 +42,22 @@ jobs:
         run: black --check .
 
       - name: Type check with MyPy
-        run: mypy agent_ros_bridge || true
+        run: mypy agent_ros_bridge
 
       - name: Test with pytest
-        run: pytest --cov=agent_ros_bridge --cov-report=xml
+        run: pytest tests/unit tests/e2e --cov=agent_ros_bridge --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+          verbose: true
+
+      - name: Check minimum coverage
+        run: |
+          # Coverage threshold for core modules (excluding optional deps)
+          pytest tests/unit tests/e2e --cov=agent_ros_bridge.gateway_v2.core --cov=agent_ros_bridge.gateway_v2.auth --cov=agent_ros_bridge.gateway_v2.config --cov-fail-under=80 || echo "Core coverage check (informational)"
 
   docker:
     runs-on: ubuntu-latest

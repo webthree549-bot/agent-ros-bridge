@@ -83,6 +83,34 @@ repos:
         args: ['--ignore', 'DL3008', '--ignore', 'DL3013']
 
   # ========================================
+  # TDD Compliance
+  # ========================================
+  - repo: local
+    hooks:
+      - id: check-tdd
+        name: Check TDD Compliance
+        entry: python scripts/check_tdd.py
+        language: python
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  # ========================================
+  # Container Security
+  # ========================================
+  - repo: https://github.com/aquasecurity/trivy
+    rev: v0.48.3
+    hooks:
+      - id: trivy-docker
+        name: Trivy Docker Scan
+        entry: trivy
+        args: ['image', '--severity', 'HIGH,CRITICAL', '--exit-code', '1']
+        language: system
+        pass_filenames: false
+        files: Dockerfile
+        stages: [pre-push]
+
+  # ========================================
   # Git
   # ========================================
   - repo: https://github.com/commitizen-tools/commitizen
