@@ -4,6 +4,21 @@
 
 ---
 
+## ✅ v0.5.1 — Latest (Released 2026-03-03)
+
+**Status:** ✅ **COMPLETE AND RELEASED**
+
+### Improvements over v0.5.0
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **gRPC JWT Auth** | ✅ Complete | Full JWT validation for gRPC transport |
+| **Code Quality** | ✅ Complete | Zero linting errors (69 warnings fixed) |
+| **Audit Report** | ✅ Complete | Comprehensive 92/100 health score |
+| **Docker Release** | ✅ Complete | Multi-platform images (amd64/arm64) |
+
+---
+
 ## ✅ v0.5.0 — Complete (Released 2026-02-23)
 
 **Status:** ✅ **COMPLETE AND RELEASED**
@@ -106,7 +121,8 @@ Working examples in `examples/v0.5.0_integrations/`:
 
 | Version | Date | Status | Notes |
 |---------|------|--------|-------|
-| **v0.5.0** | 2026-02-23 | ✅ **Current** | Complete AI integration |
+| **v0.5.1** | 2026-03-03 | ✅ **Current** | gRPC JWT auth, zero linting errors |
+| v0.5.0 | 2026-02-23 | ✅ Released | Complete AI integration |
 | v0.4.1 | 2026-02-23 | ✅ Released | Honest cleanup release |
 | v0.4.0 | 2026-02-23 | ⚠️ Retracted | False claims, premature |
 
@@ -136,13 +152,13 @@ Working examples in `examples/v0.5.0_integrations/`:
 
 ## 🔗 Links
 
-- **Latest Release:** https://github.com/webthree549-bot/agent-ros-bridge/releases/tag/v0.5.0
+- **Latest Release:** https://github.com/webthree549-bot/agent-ros-bridge/releases/tag/v0.5.1
 - **PyPI:** https://pypi.org/project/agent-ros-bridge/
 - **Examples:** examples/v0.5.0_integrations/
 - **Docs:** [README.md](README.md)
 
 ---
 
-*Last updated: 2026-02-24*  
-*Status: v0.5.0 Complete*  
+*Last updated: 2026-03-03*  
+*Status: v0.5.1 Complete*  
 *Author: webthree549*
