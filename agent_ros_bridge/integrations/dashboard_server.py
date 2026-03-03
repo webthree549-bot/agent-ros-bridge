@@ -76,7 +76,7 @@ class DashboardServer:
             await self.runner.cleanup()
             logger.info("Dashboard stopped")
 
-    async def _handle_index(self, request):
+    async def _handle_index(self, _request):
         """Serve main dashboard page."""
         html = """
         <!DOCTYPE html>
@@ -152,7 +152,7 @@ class DashboardServer:
         }
         return web.json_response(status)
 
-    async def _handle_metrics(self, request):
+    async def _handle_metrics(self, _request):
         """API: Get runtime metrics."""
         b = self.bridge
         metrics: Dict[str, Any] = {}

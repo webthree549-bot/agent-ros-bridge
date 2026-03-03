@@ -156,6 +156,12 @@ class ROS1Robot(Robot):
     """ROS1 robot implementation."""
 
     def __init__(self, robot_id: str, name: str):
+        """Initialize ROS1 robot with ID and name.
+
+        Args:
+            robot_id: Unique identifier for the robot.
+            name: Human-readable robot name.
+        """
         super().__init__(robot_id, name, "ros1")
         self.robot_type = "ros1"  # Compatibility alias
         self.subscribers: Dict[str, Any] = {}
@@ -594,6 +600,11 @@ class ROS1Connector(Connector):
     connector_type = "ros1"
 
     def __init__(self, master_uri: Optional[str] = None):
+        """Initialize ROS1 connector with optional master URI.
+
+        Args:
+            master_uri: ROS master URI (e.g., "http://localhost:11311").
+        """
         self.master_uri = master_uri
         self.robots: Dict[str, ROS1Robot] = {}
         self._initialized = False

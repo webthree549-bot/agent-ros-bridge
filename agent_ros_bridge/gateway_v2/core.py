@@ -122,6 +122,12 @@ class Transport(ABC):
     """Abstract transport layer."""
 
     def __init__(self, name: str, config: dict[str, Any]):
+        """Initialize transport with name and configuration.
+
+        Args:
+            name: Transport identifier (e.g., "websocket", "grpc").
+            config: Transport-specific configuration dictionary.
+        """
         self.name = name
         self.config = config
         self.running = False
@@ -156,6 +162,7 @@ class TransportManager:
     """Manages multiple transport endpoints."""
 
     def __init__(self):
+        """Initialize transport manager with empty transport registry."""
         self.transports: dict[str, Transport] = {}
         self._message_handler: Callable | None = None
 
@@ -198,6 +205,13 @@ class Robot(ABC):
     """Abstract robot representation."""
 
     def __init__(self, robot_id: str, name: str, connector_type: str):
+        """Initialize robot with ID, name, and connector type.
+
+        Args:
+            robot_id: Unique identifier for the robot.
+            name: Human-readable robot name.
+            connector_type: Type of connector (e.g., "ros1", "ros2").
+        """
         self.robot_id = robot_id
         self.name = name
         self.connector_type = connector_type
@@ -266,6 +280,7 @@ class ConnectorRegistry:
     """Registry of robot connectors."""
 
     def __init__(self):
+        """Initialize empty connector registry."""
         self.connectors: dict[str, Connector] = {}
 
     def register(self, connector: Connector) -> None:
@@ -305,6 +320,11 @@ class RobotFleet:
     """Manages a fleet of robots."""
 
     def __init__(self, name: str):
+        """Initialize fleet with name.
+
+        Args:
+            name: Fleet identifier name.
+        """
         self.name = name
         self.robots: dict[str, Robot] = {}
         self.groups: dict[str, list[str]] = {}
@@ -421,6 +441,12 @@ class Bridge:
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize Bridge gateway with optional configuration.
+
+        Args:
+            config: Gateway configuration dictionary including memory backend,
+                safety settings, and integration options.
+        """
         self.config = config or {}
         self.transport_manager = TransportManager()
         self.connector_registry = ConnectorRegistry()

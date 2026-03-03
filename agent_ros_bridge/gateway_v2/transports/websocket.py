@@ -43,6 +43,12 @@ class WebSocketTransport(Transport):
     """WebSocket transport implementation with authentication."""
 
     def __init__(self, config: Dict[str, Any]):
+        """Initialize WebSocket transport with configuration.
+
+        Args:
+            config: Transport configuration including host, port, TLS settings,
+                and optional authentication configuration.
+        """
         super().__init__("websocket", config)
         self.host = config.get("host", "0.0.0.0")
         self.port = config.get("port", 8765)

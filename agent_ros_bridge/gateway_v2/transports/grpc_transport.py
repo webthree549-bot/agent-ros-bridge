@@ -72,6 +72,11 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
     """Bridge service implementation with full streaming support."""
 
     def __init__(self, transport: "GRPCTransport"):
+        """Initialize servicer with transport reference.
+
+        Args:
+            transport: Parent gRPC transport instance for message handling.
+        """
         self.transport = transport
         self.clients: Dict[str, GRPCClient] = {}
         self._telemetry_queues: Dict[str, asyncio.Queue] = {}  # client_id -> queue
@@ -436,9 +441,10 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         """Convert Message to CommandResponse protobuf."""
         result_struct = struct_pb2.Struct()
 
-        if message.telemetry and message.telemetry.data:
-            if isinstance(message.telemetry.data, dict):
-                result_struct.update(message.telemetry.data)
+        if message.telemetry and message.telemetry.data and isinstance(
+            message.telemetry.data, dict
+        ):
+            result_struct.update(message.telemetry.data)
 
         error = ""
         if message.event and message.event.severity == "error":
@@ -470,6 +476,12 @@ class GRPCTransport(Transport):
     """gRPC transport implementation with full streaming support."""
 
     def __init__(self, config: Dict[str, Any]):
+        """Initialize gRPC transport with configuration.
+
+        Args:
+            config: gRPC server configuration including host, port, TLS settings,
+                reflection, and connection management options.
+        """
         super().__init__("grpc", config)
         self.host = config.get("host", "0.0.0.0")
         self.port = config.get("port", 50051)
@@ -678,6 +690,12 @@ class GRPCClientHelper:
     """Helper class for gRPC client connections."""
 
     def __init__(self, target: str = "localhost:50051", tls: bool = False):
+        """Initialize gRPC client helper.
+
+        Args:
+            target: gRPC server address (e.g., "localhost:50051").
+            tls: Whether to use TLS encryption.
+        """
         self.target = target
         self.tls = tls
         self.channel = None

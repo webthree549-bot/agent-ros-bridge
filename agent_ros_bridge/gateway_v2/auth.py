@@ -38,6 +38,11 @@ class Authenticator:
     """JWT and API key authenticator."""
 
     def __init__(self, config: AuthConfig):
+        """Initialize authenticator with configuration.
+
+        Args:
+            config: Authentication configuration including JWT secret and API keys.
+        """
         self.config = config
         self._ensure_secret()
 
@@ -117,6 +122,7 @@ class RoleBasedAccessControl:
     """Role-based access control for robot commands."""
 
     def __init__(self):
+        """Initialize RBAC with default permission matrix."""
         # Define permission matrix
         self.permissions = {
             "admin": ["*"],  # All actions

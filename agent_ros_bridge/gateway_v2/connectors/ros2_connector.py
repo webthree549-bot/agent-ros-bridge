@@ -129,6 +129,13 @@ class ROS2Robot(Robot):
     """ROS2 robot implementation."""
 
     def __init__(self, robot_id: str, name: str, ros_node: Node):
+        """Initialize ROS2 robot with ID, name, and node.
+
+        Args:
+            robot_id: Unique identifier for the robot.
+            name: Human-readable robot name.
+            ros_node: ROS2 node instance for communication.
+        """
         super().__init__(robot_id, name, "ros2")
         self.ros_node = ros_node
         self.robot_type = "ros2"  # Compatibility alias for connector_type
@@ -420,6 +427,11 @@ class ROS2Connector(Connector):
     connector_type = "ros2"
 
     def __init__(self, domain_id: int = 0):
+        """Initialize ROS2 connector with domain ID.
+
+        Args:
+            domain_id: ROS2 domain ID for node isolation (default: 0).
+        """
         self.domain_id = domain_id
         self.node: Optional[Node] = None
         self._initialized = False

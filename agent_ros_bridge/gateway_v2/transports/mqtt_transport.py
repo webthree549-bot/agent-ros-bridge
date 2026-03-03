@@ -35,6 +35,12 @@ class MQTTTransport(Transport):
     """MQTT transport for IoT and sensor integration."""
 
     def __init__(self, config: Dict[str, Any]):
+        """Initialize MQTT transport with broker configuration.
+
+        Args:
+            config: MQTT broker configuration including host, port,
+                authentication credentials, and TLS settings.
+        """
         super().__init__("mqtt", config)
         self.broker_host = config.get("host", "localhost")
         self.broker_port = config.get("port", 1883)
