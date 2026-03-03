@@ -56,6 +56,7 @@ class SafetyManager:
     """
 
     def __init__(self):
+        """Initialize safety manager with empty policies and audit log."""
         self.policies: Dict[str, SafetyPolicy] = {}
         self.pending: Dict[str, ConfirmationRequest] = {}
         self.audit_log: List[Dict] = []

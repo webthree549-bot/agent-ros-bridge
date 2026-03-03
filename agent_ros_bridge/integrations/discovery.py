@@ -36,6 +36,11 @@ class ToolDiscovery:
     """
 
     def __init__(self, bridge=None):
+        """Initialize tool discovery with optional bridge reference.
+
+        Args:
+            bridge: Gateway bridge instance for robot access.
+        """
         self.bridge = bridge
         self._cache: Dict[str, ROSAction] = {}
         logger.info("ToolDiscovery initialized")

@@ -33,6 +33,12 @@ class DashboardServer:
     """
 
     def __init__(self, bridge, port: int = 8080):
+        """Initialize dashboard server with bridge and port.
+
+        Args:
+            bridge: Gateway bridge instance for robot access.
+            port: HTTP server port (default: 8080).
+        """
         self.bridge = bridge
         self.port = port
         self.app = None
@@ -169,7 +175,7 @@ class DashboardServer:
             }
         return web.json_response(metrics)
 
-    async def _handle_emergency_stop(self, request):
+    async def _handle_emergency_stop(self, _request):
         """API: Trigger emergency stop."""
         if self.bridge and hasattr(self.bridge, "emergency_stop"):
             self.bridge.emergency_stop()

@@ -345,14 +345,13 @@ def main():
     all_results = {}
 
     # Auto-detect or validate specific versions
-    if not args.ros1 and not args.ros2:
+    if not args.ros1 and not args.ros2 and "ROS_DISTRO" in os.environ:
         # Auto-detect
-        if "ROS_DISTRO" in os.environ:
-            distro = os.environ["ROS_DISTRO"]
-            if distro in ["humble", "jazzy", "galactic", "foxy"]:
-                args.ros2 = True
-            elif distro in ["noetic", "melodic", "kinetic"]:
-                args.ros1 = True
+        distro = os.environ["ROS_DISTRO"]
+        if distro in ["humble", "jazzy", "galactic", "foxy"]:
+            args.ros2 = True
+        elif distro in ["noetic", "melodic", "kinetic"]:
+            args.ros1 = True
 
     # Run validations
     if args.ros2 or (not args.ros1 and not args.ros2):

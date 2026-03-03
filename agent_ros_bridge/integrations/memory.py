@@ -39,6 +39,12 @@ class AgentMemory:
     """
 
     def __init__(self, backend: str = "sqlite", **kwargs):
+        """Initialize agent memory with specified backend.
+
+        Args:
+            backend: Storage backend ("sqlite" or "redis").
+            **kwargs: Backend-specific configuration options.
+        """
         self.backend = backend
         self._init_backend(**kwargs)
         logger.info(f"AgentMemory initialized with {backend} backend")

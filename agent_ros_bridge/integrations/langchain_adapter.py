@@ -54,6 +54,13 @@ class ROSBridgeTool(BaseTool):
     actions: List[str] = None
 
     def __init__(self, bridge, actions: Optional[List[str]] = None, **kwargs):
+        """Initialize LangChain adapter with bridge and actions.
+
+        Args:
+            bridge: Gateway bridge instance for robot control.
+            actions: List of available actions.
+            **kwargs: Additional arguments for BaseTool.
+        """
         if not LANGCHAIN_AVAILABLE:
             raise ImportError("langchain package required")
 
@@ -131,6 +138,12 @@ class ROSAgent:
     """
 
     def __init__(self, bridge, llm=None):
+        """Initialize ROS agent with bridge and optional LLM.
+
+        Args:
+            bridge: Gateway bridge instance for robot control.
+            llm: Language model for planning (optional).
+        """
         self.bridge = bridge
         self.llm = llm
         self.tool = ROSBridgeTool(bridge)
