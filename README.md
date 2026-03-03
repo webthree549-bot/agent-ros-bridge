@@ -26,7 +26,7 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 │  │  Transports  │  │  Core Bridge│  │  AI Integrations   │  │
 │  │  WebSocket   │  │  JWT Auth   │  │  Memory (SQLite)   │  │
 │  │  MQTT        │  │  RBAC       │  │  Safety Manager    │  │
-│  │  gRPC*       │  │  Fleet Mgmt │  │  Tool Discovery    │  │
+│  │  gRPC        │  │  Fleet Mgmt │  │  Tool Discovery    │  │
 │  └──────────────┘  └─────────────┘  └────────────────────┘  │
 └──────────────────────────┬──────────────────────────────────┘
                            │  rclpy / rospy
@@ -34,8 +34,6 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
               ▼                         ▼
        ROS2 (Jazzy/Humble)         ROS1 (Noetic)
 ```
-
-> `*` gRPC transport: server starts, proto integration in progress.
 
 ---
 
@@ -45,6 +43,7 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 |---------|--------|-------|
 | WebSocket transport | ✅ Working | Full duplex, TLS support |
 | MQTT transport | ✅ Working | paho v2 compatible |
+| gRPC transport | ✅ Working | Bidirectional streaming, TLS/mTLS, JWT auth |
 | JWT authentication | ✅ Working | Per-transport, RBAC included |
 | Agent memory (SQLite) | ✅ Working | TTL, append, list ops |
 | Agent memory (Redis) | ✅ Working | Same API, Redis backend |
@@ -55,10 +54,9 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 | AutoGPT adapter | ✅ Working | Command discovery & execution |
 | Web dashboard | ✅ Working | HTTP polling, emergency stop button |
 | Simulated robot | ✅ Working | No ROS needed — perfect for testing |
-| ROS2 connector | 🔧 In Progress | Connect/discover works; publish/subscribe being implemented |
-| ROS1 connector | 🔧 In Progress | Structure complete; needs end-to-end testing |
-| gRPC transport | 🔧 In Progress | Server starts; proto/service registration pending |
-| Tool auto-discovery | 🔧 In Progress | Format converters ready; ROS introspection pending |
+| ROS2 connector | ✅ Working | Dynamic message types, publish/subscribe, discovery |
+| ROS1 connector | ✅ Working | Full feature parity with ROS2 |
+| Tool auto-discovery | ✅ Working | Real-time topic/service/action introspection |
 
 ---
 

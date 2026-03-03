@@ -25,6 +25,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.5.1] - 2026-03-03
+
+### Added
+- **gRPC JWT Authentication** — Full JWT validation for gRPC transport with Bearer token support
+- **Comprehensive Audit Report** — 371-line project health assessment (92/100 score)
+
+### Changed
+- **Zero Linting Errors** — Fixed all 69 documentation warnings (D107, ARG002)
+- **Updated pyproject.toml** — Migrated to `[tool.ruff.lint]` configuration
+
+### Fixed
+- **CI Formatting** — Black formatting and Ruff import sorting issues
+- **gRPC Identity Extraction** — Proper JWT claim extraction (sub, roles, metadata)
+
+### Security
+- **gRPC Auth** — Rejects requests with invalid/missing JWT tokens when auth enabled
+
 ## [0.5.0] - 2026-02-23
 
 ### Major Release: AI Agent Integration
