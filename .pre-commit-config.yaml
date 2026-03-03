@@ -22,7 +22,7 @@ repos:
       - id: check-case-conflict
       - id: detect-private-key
       - id: mixed-line-ending
-      - id: requirements-txt-fixer
+      # - id: requirements-txt-fixer  # Disabled - we use pyproject.toml as source of truth
 
   # ========================================
   # Python
@@ -65,11 +65,13 @@ repos:
         args: ['-c', 'pyproject.toml']
         additional_dependencies: ['bandit[toml]']
 
-  - repo: https://github.com/trailofbits/pip-audit
-    rev: v2.6.1
-    hooks:
-      - id: pip-audit
-        args: ['--requirement', 'requirements.txt']
+  # pip-audit disabled - requires requirements.txt
+  # Consider using: pip-audit --desc on venv after pip install -e "."
+  # - repo: https://github.com/trailofbits/pip-audit
+  #   rev: v2.6.1
+  #   hooks:
+  #     - id: pip-audit
+  #       args: ['--requirement', 'requirements.txt']
 
   # ========================================
   # Docker

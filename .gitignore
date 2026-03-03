@@ -196,3 +196,6 @@ node_modules/
 # Ignore local environment
 .env.local
 .env.*.local
+
+# Ignore memory directory (personal notes)
+memory/
