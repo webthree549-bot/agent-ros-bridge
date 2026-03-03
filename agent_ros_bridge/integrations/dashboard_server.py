@@ -147,8 +147,12 @@ class DashboardServer:
         """
         return web.Response(text=html, content_type="text/html")
 
-    async def _handle_status(self, request):
-        """API: Get bridge status."""
+    async def _handle_status(self, _request):
+        """API: Get bridge status.
+
+        Args:
+            _request: Unused (for API compatibility).
+        """
         b = self.bridge
         status = {
             "status": "running" if (b and b.running) else "stopped",

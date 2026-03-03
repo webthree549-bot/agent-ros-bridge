@@ -92,6 +92,11 @@ class BaseArmController(ABC):
     """Abstract base class for arm controllers."""
 
     def __init__(self, config: ArmConfig):
+        """Initialize base arm controller.
+
+        Args:
+            config: Arm robot configuration.
+        """
         self.config = config
         self.state = ArmState.IDLE
         self.current_joints: List[JointState] = []
@@ -157,6 +162,11 @@ class URController(BaseArmController):
     """Universal Robots controller (ROS1/ROS2)."""
 
     def __init__(self, config: ArmConfig):
+        """Initialize UR controller.
+
+        Args:
+            config: Arm robot configuration.
+        """
         super().__init__(config)
         self.topic_prefix = f"/{config.namespace}" if config.namespace else ""
         self.joint_names = config.joint_names or [
@@ -218,9 +228,14 @@ class URController(BaseArmController):
             self._node.destroy_node()
 
     async def move_joints(
-        self, joint_positions: List[float], velocity: Optional[float] = None
+        self, joint_positions: List[float], _velocity: Optional[float] = None
     ) -> bool:
-        """Move UR to joint positions."""
+        """Move UR to joint positions.
+
+        Args:
+            joint_positions: Target joint positions in radians.
+            _velocity: Unused (for API compatibility).
+        """
         if not self.is_connected:
             return False
 
@@ -256,8 +271,13 @@ class URController(BaseArmController):
             self.state = ArmState.ERROR
             return False
 
-    async def move_cartesian(self, pose: CartesianPose, velocity: Optional[float] = None) -> bool:
-        """UR cartesian move (requires IK)."""
+    async def move_cartesian(self, pose: CartesianPose, _velocity: Optional[float] = None) -> bool:
+        """UR cartesian move (requires IK).
+
+        Args:
+            pose: Target cartesian pose.
+            _velocity: Unused (for API compatibility).
+        """
         logger.info(f"UR cartesian move to: ({pose.x:.3f}, {pose.y:.3f}, {pose.z:.3f})")
         # Would need IK solver here
         # For now, return False to indicate not implemented
@@ -271,8 +291,16 @@ class URController(BaseArmController):
         """Get current pose."""
         return self.current_pose
 
-    async def set_gripper(self, position: float, effort: float = 0.5) -> bool:
-        """Control UR gripper."""
+    async def set_gripper(self, position: float, _effort: float = 0.5) -> bool:
+        """Control UR gripper.
+
+        Args:
+            position: Gripper position (0=open, 1=closed).
+            _effort: Unused (for API compatibility).
+
+        Returns:
+            True if command sent successfully.
+        """
         logger.info(f"UR gripper: {position:.2f}")
         return True
 
@@ -293,6 +321,11 @@ class XArmController(BaseArmController):
     """UFACTORY xArm controller."""
 
     def __init__(self, config: ArmConfig):
+        """Initialize xArm controller.
+
+        Args:
+            config: Arm robot configuration.
+        """
         super().__init__(config)
         self.joint_names = config.joint_names or [
             "joint1",
@@ -315,15 +348,28 @@ class XArmController(BaseArmController):
         self.is_connected = False
 
     async def move_joints(
-        self, joint_positions: List[float], velocity: Optional[float] = None
+        self, joint_positions: List[float], _velocity: Optional[float] = None
     ) -> bool:
-        """Move joints to specified positions."""
+        """Move joints to specified positions.
+
+        Args:
+            joint_positions: Target joint positions in radians.
+            _velocity: Unused (for API compatibility).
+        """
         logger.info(f"xArm moving to joints: {[round(j, 2) for j in joint_positions]}")
         await asyncio.sleep(2)
         return True
 
-    async def move_cartesian(self, pose: CartesianPose, velocity: Optional[float] = None) -> bool:
-        """Move to cartesian pose."""
+    async def move_cartesian(self, pose: CartesianPose, _velocity: Optional[float] = None) -> bool:
+        """Move to cartesian pose.
+
+        Args:
+            pose: Target cartesian pose.
+            _velocity: Unused (for API compatibility).
+
+        Returns:
+            True if command sent successfully.
+        """
         logger.info(f"xArm cartesian: ({pose.x:.3f}, {pose.y:.3f}, {pose.z:.3f})")
         return True
 
@@ -335,8 +381,16 @@ class XArmController(BaseArmController):
         """Get current cartesian pose."""
         return None
 
-    async def set_gripper(self, position: float, effort: float = 0.5) -> bool:
-        """Set gripper position."""
+    async def set_gripper(self, position: float, _effort: float = 0.5) -> bool:
+        """Set gripper position.
+
+        Args:
+            position: Gripper position (0=open, 1=closed).
+            _effort: Unused (for API compatibility).
+
+        Returns:
+            True if command sent successfully.
+        """
         logger.info(f"xArm gripper: {position:.2f}")
         return True
 
@@ -352,6 +406,13 @@ class ArmRobotPlugin(Plugin):
     version = "1.0.0"
 
     def __init__(self, arm_type: str = "ur", ros_version: str = "ros2", namespace: str = ""):
+        """Initialize arm robot plugin.
+
+        Args:
+            arm_type: Type of arm robot (ur, xarm, franka, generic).
+            ros_version: ROS version to use (ros1, ros2).
+            namespace: ROS namespace for the robot.
+        """
         self.arm_type = ArmType(arm_type)
         self.config = ArmConfig(
             arm_type=self.arm_type, ros_version=ros_version, namespace=namespace
@@ -368,8 +429,12 @@ class ArmRobotPlugin(Plugin):
         else:
             raise ValueError(f"Unsupported arm type: {self.arm_type}")
 
-    async def initialize(self, gateway) -> None:
-        """Initialize plugin (Plugin ABC)."""
+    async def initialize(self, _gateway) -> None:
+        """Initialize plugin (Plugin ABC).
+
+        Args:
+            _gateway: Unused (for API compatibility).
+        """
         success = await self.controller.connect()
         if success:
             logger.info(f"Arm robot plugin initialized: {self.arm_type.value}")
@@ -379,8 +444,16 @@ class ArmRobotPlugin(Plugin):
         if self.controller:
             await self.controller.disconnect()
 
-    async def handle_message(self, message: Message, identity: Identity) -> Optional[Message]:
-        """Route arm.* commands from the bridge message bus."""
+    async def handle_message(self, message: Message, _identity: Identity) -> Optional[Message]:
+        """Route arm.* commands from the bridge message bus.
+
+        Args:
+            message: Incoming message from the bridge.
+            _identity: Unused (for API compatibility).
+
+        Returns:
+            Response message or None if not handled.
+        """
         if not message.command or not message.command.action.startswith("arm."):
             return None
         result = await self.handle_command(message.command.action, message.command.parameters)
