@@ -51,7 +51,7 @@ class ROSBridgeTool(BaseTool):
     name: str = "ros_bridge"
     description: str = "Control ROS robots via the bridge"
     bridge: Any = None
-    actions: List[str] = None
+    actions: Optional[List[str]] = None
 
     def __init__(self, bridge, actions: Optional[List[str]] = None, **kwargs):
         """Initialize LangChain adapter with bridge and actions.
@@ -75,7 +75,7 @@ class ROSBridgeTool(BaseTool):
     def _build_description(self) -> str:
         """Build tool description from available actions."""
         desc = "Control ROS robot with these actions:\n"
-        for action in self.actions:
+        for action in self.actions or []:
             desc += f"- {action}\n"
         desc += "\nUse specific action names as the 'action' parameter."
         return desc
@@ -128,7 +128,7 @@ class ROSBridgeTool(BaseTool):
 
     def get_available_actions(self) -> List[str]:
         """Get list of available actions."""
-        return self.actions.copy()
+        return (self.actions or []).copy()
 
 
 class ROSAgent:

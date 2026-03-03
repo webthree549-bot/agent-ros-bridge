@@ -23,8 +23,8 @@ class AuthConfig:
     jwt_secret: Optional[str] = None
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
-    api_keys: Dict[str, Dict[str, Any]] = None
-    allowed_origins: List[str] = None
+    api_keys: Optional[Dict[str, Dict[str, Any]]] = None
+    allowed_origins: Optional[List[str]] = None
 
     def __post_init__(self):
         """Initialize default values for mutable fields."""
@@ -56,7 +56,7 @@ class Authenticator:
             )
 
     def create_token(
-        self, user_id: str, roles: List[str] = None, metadata: Dict[str, Any] = None
+        self, user_id: str, roles: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Create a new JWT token."""
         if not self.config.enabled:
@@ -95,7 +95,7 @@ class Authenticator:
         if not self.config.enabled:
             return {"sub": "anonymous", "roles": ["admin"]}
 
-        if api_key in self.config.api_keys:
+        if self.config.api_keys and api_key in self.config.api_keys:
             key_data = self.config.api_keys[api_key]
             return {
                 "sub": key_data.get("user_id", "api_user"),

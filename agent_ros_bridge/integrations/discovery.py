@@ -64,9 +64,9 @@ class ToolDiscovery:
 
         return tools
 
-    def _get_all_robots(self):
+    def _get_all_robots(self) -> List[Any]:
         """Get all robots from all fleets."""
-        robots = []
+        robots: List[Any] = []
         if not self.bridge:
             return robots
 
@@ -77,7 +77,7 @@ class ToolDiscovery:
 
     def _discover_topics(self) -> List[ROSAction]:
         """Discover ROS topics from connected robots (ROS1 & ROS2)."""
-        tools = []
+        tools: List[ROSAction] = []
 
         for robot in self._get_all_robots():
             try:
@@ -95,7 +95,7 @@ class ToolDiscovery:
 
     def _discover_ros2_topics(self, robot) -> List[ROSAction]:
         """Discover ROS2 topics."""
-        tools = []
+        tools: List[ROSAction] = []
 
         if not hasattr(robot, "ros_node") or not robot.ros_node:
             return tools
@@ -169,7 +169,7 @@ class ToolDiscovery:
 
     def _discover_ros2_services(self, robot) -> List[ROSAction]:
         """Discover ROS2 services."""
-        tools = []
+        tools: List[ROSAction] = []
 
         if not hasattr(robot, "ros_node") or not robot.ros_node:
             return tools

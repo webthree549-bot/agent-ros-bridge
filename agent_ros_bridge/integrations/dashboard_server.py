@@ -2,14 +2,18 @@
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 try:
     from aiohttp import web
 
     AIOHTTP_AVAILABLE = True
+    Application = web.Application
+    AppRunner = web.AppRunner
 except ImportError:
     AIOHTTP_AVAILABLE = False
+    Application = Any
+    AppRunner = Any
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +45,8 @@ class DashboardServer:
         """
         self.bridge = bridge
         self.port = port
-        self.app = None
-        self.runner = None
+        self.app: Optional[Application] = None
+        self.runner: Optional[AppRunner] = None
 
         if not AIOHTTP_AVAILABLE:
             logger.warning("aiohttp not available, dashboard disabled")

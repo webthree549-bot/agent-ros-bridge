@@ -18,7 +18,7 @@ class MemoryEntry:
     value: Any
     created_at: datetime
     expires_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = None
+    metadata: Optional[Dict[str, Any]] = None
 
     def is_expired(self) -> bool:
         """Check if the memory entry has expired."""
