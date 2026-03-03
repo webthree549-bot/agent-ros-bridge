@@ -79,6 +79,13 @@ class BaseActionClient:
     """Base class for ROS action clients."""
 
     def __init__(self, action_name: str, action_type: str, ros_version: str = "ros2"):
+        """Initialize action client with name and type.
+
+        Args:
+            action_name: Name of the ROS action.
+            action_type: Type of the action (e.g., "nav2_msgs/action/NavigateToPose").
+            ros_version: ROS version ("ros1" or "ros2").
+        """
         self.action_name = action_name
         self.action_type = action_type
         self.ros_version = ros_version
@@ -135,6 +142,12 @@ class ROS2ActionClient(BaseActionClient):
     """ROS2 action client using rclpy."""
 
     def __init__(self, action_name: str, action_type: str):
+        """Initialize ROS2 action client.
+
+        Args:
+            action_name: Name of the ROS2 action.
+            action_type: Type of the action.
+        """
         super().__init__(action_name, action_type, "ros2")
         self._goal_handle = None
 

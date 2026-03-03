@@ -85,7 +85,7 @@ class ROSBridgeTool(BaseTool):
             return loop.run_until_complete(self._arun(query, run_manager))
 
     async def _arun(
-        self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None
+        self, query: str, _run_manager: Optional[CallbackManagerForToolRun] = None
     ) -> str:
         """Execute tool (asynchronous)."""
         try:

@@ -197,7 +197,7 @@ class MetricsCollector:
             if duration_sec > 0:
                 self.task_duration.labels(task_type=task_type).observe(duration_sec)
 
-    def record_task_failed(self, task_type: str = "generic"):
+    def record_task_failed(self, _task_type: str = "generic"):
         """Record task failure."""
         self._counters["tasks_failed"] += 1
         if PROMETHEUS_AVAILABLE:

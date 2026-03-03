@@ -45,6 +45,7 @@ class GreenhousePlugin(Plugin):
     version = "2.0.0"
 
     def __init__(self):
+        """Initialize greenhouse plugin with empty state."""
         self.greenhouses: Dict[str, GreenhouseState] = {}
         self.gateway: Optional[Bridge] = None
         self._control_task: Optional[asyncio.Task] = None

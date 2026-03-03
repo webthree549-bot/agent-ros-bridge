@@ -121,6 +121,7 @@ class FleetOrchestrator:
     """Multi-robot fleet orchestration and task allocation."""
 
     def __init__(self):
+        """Initialize fleet orchestrator with empty robot and task registries."""
         self.robots: Dict[str, FleetRobot] = {}
         self.tasks: Dict[str, Task] = {}
         self.task_queue: List[Task] = []  # Priority queue
