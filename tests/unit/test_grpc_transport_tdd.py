@@ -560,3 +560,184 @@ class TestGRPCErrorHandling:
 
             assert response.success is False
             assert "No handler registered" in response.error
+
+
+class TestGRPCJWTAuthentication:
+    """Test 12: gRPC should support JWT authentication."""
+
+    def test_transport_auth_config_defaults(self):
+        """Red: Should have auth disabled by default."""
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
+        transport = GRPCTransport({})
+
+        assert transport.auth_enabled is False
+        assert transport.jwt_secret is None
+
+    def test_transport_auth_config_enabled(self):
+        """Red: Should accept auth configuration."""
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
+        config = {
+            "auth": {
+                "enabled": True,
+                "jwt_secret": "test-secret-key",
+            }
+        }
+
+        transport = GRPCTransport(config)
+
+        assert transport.auth_enabled is True
+        assert transport.jwt_secret == "test-secret-key"
+
+    @pytest.mark.asyncio
+    async def test_extract_identity_with_valid_jwt(self):
+        """Red: Should extract identity from valid JWT token."""
+        with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.AUTH_AVAILABLE", True):
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
+                BridgeServiceServicer,
+                GRPCTransport,
+            )
+
+            # Create transport with auth enabled
+            transport = GRPCTransport(
+                {
+                    "auth": {
+                        "enabled": True,
+                        "jwt_secret": "test-secret-key-for-jwt-signing",
+                    }
+                }
+            )
+
+            servicer = BridgeServiceServicer(transport)
+
+            # Create a valid JWT token
+            import jwt
+
+            token = jwt.encode(
+                {"sub": "user-123", "roles": ["admin", "user"]},
+                "test-secret-key-for-jwt-signing",
+                algorithm="HS256",
+            )
+
+            mock_context = Mock()
+            mock_context.invocation_metadata.return_value = [
+                ("authorization", f"Bearer {token}"),
+            ]
+            mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
+
+            identity = servicer._extract_identity(mock_context)
+
+            assert identity.id == "user-123"
+            assert identity.roles == ["admin", "user"]
+            assert identity.metadata["auth_status"] == "authenticated"
+
+    @pytest.mark.asyncio
+    async def test_extract_identity_with_invalid_jwt(self):
+        """Red: Should reject invalid JWT token."""
+        with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.AUTH_AVAILABLE", True):
+            from grpc import StatusCode
+
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
+                BridgeServiceServicer,
+                GRPCTransport,
+            )
+
+            # Create transport with auth enabled
+            transport = GRPCTransport(
+                {
+                    "auth": {
+                        "enabled": True,
+                        "jwt_secret": "test-secret-key-for-jwt-signing",
+                    }
+                }
+            )
+
+            servicer = BridgeServiceServicer(transport)
+
+            # Create an invalid JWT token (wrong secret)
+            import jwt
+
+            token = jwt.encode(
+                {"sub": "user-123", "roles": ["admin"]},
+                "wrong-secret-key",
+                algorithm="HS256",
+            )
+
+            mock_context = Mock()
+            mock_context.invocation_metadata.return_value = [
+                ("authorization", f"Bearer {token}"),
+            ]
+            mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
+
+            # Should raise exception and set gRPC error code
+            with pytest.raises(Exception, match="Authentication failed"):
+                servicer._extract_identity(mock_context)
+
+            mock_context.set_code.assert_called_once_with(StatusCode.UNAUTHENTICATED)
+
+    @pytest.mark.asyncio
+    async def test_extract_identity_without_token_when_auth_required(self):
+        """Red: Should reject requests without token when auth is enabled."""
+        with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.AUTH_AVAILABLE", True):
+            from grpc import StatusCode
+
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
+                BridgeServiceServicer,
+                GRPCTransport,
+            )
+
+            # Create transport with auth enabled
+            transport = GRPCTransport(
+                {
+                    "auth": {
+                        "enabled": True,
+                        "jwt_secret": "test-secret-key",
+                    }
+                }
+            )
+
+            servicer = BridgeServiceServicer(transport)
+
+            mock_context = Mock()
+            mock_context.invocation_metadata.return_value = []  # No auth header
+            mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
+
+            # Should raise exception and set gRPC error code
+            with pytest.raises(Exception, match="Authentication failed"):
+                servicer._extract_identity(mock_context)
+
+            mock_context.set_code.assert_called_once_with(StatusCode.UNAUTHENTICATED)
+
+    @pytest.mark.asyncio
+    async def test_extract_identity_anonymous_when_auth_disabled(self):
+        """Red: Should allow anonymous access when auth is disabled."""
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
+            BridgeServiceServicer,
+            GRPCTransport,
+        )
+
+        # Create transport without auth
+        transport = GRPCTransport({})
+
+        servicer = BridgeServiceServicer(transport)
+
+        mock_context = Mock()
+        mock_context.invocation_metadata.return_value = []  # No auth header
+        mock_context.peer.return_value = "ipv4:127.0.0.1:12345"
+
+        identity = servicer._extract_identity(mock_context)
+
+        assert identity.roles == ["anonymous"]
+        assert identity.metadata["auth_status"] == "anonymous"
+
+    def test_get_stats_includes_auth_status(self):
+        """Red: Should include auth status in stats."""
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
+        transport = GRPCTransport({"auth": {"enabled": True, "jwt_secret": "secret"}})
+
+        stats = transport.get_stats()
+
+        assert "auth_enabled" in stats
+        assert stats["auth_enabled"] is True

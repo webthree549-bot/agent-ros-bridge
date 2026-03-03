@@ -52,6 +52,13 @@ from agent_ros_bridge.gateway_v2.core import (
     Transport,
 )
 
+try:
+    from agent_ros_bridge.gateway_v2.auth import AuthConfig, Authenticator
+
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
+
 logger = logging.getLogger("transport.grpc")
 
 
@@ -81,6 +88,20 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         self.clients: Dict[str, GRPCClient] = {}
         self._telemetry_queues: Dict[str, asyncio.Queue] = {}  # client_id -> queue
         self._shutdown_event = asyncio.Event()
+        self._authenticator: Optional[Authenticator] = None
+
+        # Initialize authenticator if auth is enabled
+        if AUTH_AVAILABLE and transport.auth_enabled:
+            try:
+                self._authenticator = Authenticator(
+                    AuthConfig(
+                        enabled=True,
+                        jwt_secret=transport.jwt_secret,
+                    )
+                )
+                logger.info("gRPC JWT authentication enabled")
+            except ValueError as e:
+                logger.error(f"Failed to initialize gRPC authenticator: {e}")
 
     async def SendCommand(
         self, request: bridge_pb2.Message, context: ServicerContext
@@ -325,22 +346,43 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         self.transport._on_client_disconnect(client_id)
 
     def _extract_identity(self, context: ServicerContext) -> Identity:
-        """Extract identity from gRPC metadata."""
+        """Extract identity from gRPC metadata with JWT validation."""
         metadata = dict(context.invocation_metadata() or [])
 
         # Extract JWT token from metadata
         auth_header = metadata.get("authorization", "")
+        token = None
         if auth_header.startswith("Bearer "):
-            auth_header[7:]
-            # TODO: Validate JWT and extract claims
-            user_id = metadata.get("x-user-id", str(uuid.uuid4()))
-            user_name = metadata.get("x-user-name", f"user_{user_id[:8]}")
-            roles_str = metadata.get("x-roles", "")
-            roles = roles_str.split(",") if roles_str else ["authenticated"]
+            token = auth_header[7:]
+
+        # Validate JWT if authenticator is available and token is present
+        if self._authenticator and token:
+            payload = self._authenticator.verify_token(token)
+            if payload:
+                # Extract claims from validated token
+                user_id = payload.get("sub", str(uuid.uuid4()))
+                user_name = metadata.get("x-user-name", f"user_{user_id[:8]}")
+                roles = payload.get("roles", ["authenticated"])
+                token_metadata = payload.get("metadata", {})
+                auth_status = "authenticated"
+            else:
+                # Token validation failed - reject the request
+                context.set_code(StatusCode.UNAUTHENTICATED)
+                context.set_details("Invalid or expired JWT token")
+                raise Exception("Authentication failed: Invalid or expired JWT token")
+        elif self._authenticator and not token:
+            # Authentication required but no token provided
+            context.set_code(StatusCode.UNAUTHENTICATED)
+            context.set_details("JWT token required")
+            raise Exception("Authentication failed: JWT token required")
         else:
+            # No authenticator configured - use metadata or anonymous
             user_id = metadata.get("x-user-id", str(uuid.uuid4()))
             user_name = metadata.get("x-user-name", f"anonymous_{user_id[:8]}")
-            roles = ["anonymous"]
+            roles_str = metadata.get("x-roles", "")
+            roles = roles_str.split(",") if roles_str else ["anonymous"]
+            token_metadata = {}
+            auth_status = "anonymous" if not token else "unverified"
 
         return Identity(
             id=user_id,
@@ -349,7 +391,8 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
             metadata={
                 "transport": "grpc",
                 "peer": str(context.peer()),
-                "auth_header": auth_header[:20] + "..." if auth_header else None,
+                "auth_status": auth_status,
+                "token_metadata": token_metadata,
             },
         )
 
@@ -482,7 +525,7 @@ class GRPCTransport(Transport):
 
         Args:
             config: gRPC server configuration including host, port, TLS settings,
-                reflection, and connection management options.
+                reflection, connection management, and authentication options.
         """
         super().__init__("grpc", config)
         self.host = config.get("host", "0.0.0.0")
@@ -493,6 +536,19 @@ class GRPCTransport(Transport):
         self.reflection = config.get("reflection", True)
         self.max_workers = config.get("max_workers", 10)
         self.keepalive_time_ms = config.get("keepalive_time_ms", 10000)
+
+        # Authentication configuration
+        auth_config = config.get("auth", {})
+        self.auth_enabled = auth_config.get("enabled", False)
+        self.jwt_secret = auth_config.get("jwt_secret")
+        if AUTH_AVAILABLE and self.auth_enabled:
+            if not self.jwt_secret:
+                logger.warning(
+                    "gRPC auth enabled but no JWT secret configured. "
+                    "Set auth.jwt_secret in config or JWT_SECRET env var."
+                )
+            else:
+                logger.info("gRPC JWT authentication configured")
 
         self.server: Optional[Server] = None
         self.service: Optional[BridgeServiceServicer] = None
@@ -682,6 +738,7 @@ class GRPCTransport(Transport):
             "port": self.port,
             "tls_enabled": bool(self.tls_cert),
             "mtls_enabled": bool(self.tls_cert and self.ca_cert),
+            "auth_enabled": self.auth_enabled,
             "connected_clients": len(self.service.clients) if self.service else 0,
             "clients": self.get_connected_clients(),
         }
@@ -776,7 +833,7 @@ class GRPCClientHelper:
 
 # Example usage
 async def example_server():
-    """Example gRPC server with full features."""
+    """Example gRPC server with full features including JWT auth."""
     from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
     from agent_ros_bridge.gateway_v2.core import Bridge
 
@@ -787,12 +844,17 @@ async def example_server():
     ros2 = ROS2Connector()
     gateway.connector_registry.register(ros2)
 
-    # Create gRPC transport with TLS
+    # Create gRPC transport with TLS and JWT authentication
     grpc_transport = GRPCTransport(
         {
             "host": "0.0.0.0",
             "port": 50051,
             "reflection": True,
+            # JWT Authentication - requires clients to provide valid tokens
+            # "auth": {
+            #     "enabled": True,
+            #     "jwt_secret": "your-secret-key-here",  # Or set JWT_SECRET env var
+            # },
             # "tls_cert": "/path/to/server.crt",
             # "tls_key": "/path/to/server.key",
             # "ca_cert": "/path/to/ca.crt",  # For mTLS
@@ -806,6 +868,7 @@ async def example_server():
         logger.info("=" * 60)
         logger.info("gRPC Server running on port 50051")
         logger.info("Features: bidirectional streaming, telemetry subscription")
+        logger.info("Authentication: JWT (optional - enable in config)")
         logger.info("=" * 60)
 
         # Print stats periodically
