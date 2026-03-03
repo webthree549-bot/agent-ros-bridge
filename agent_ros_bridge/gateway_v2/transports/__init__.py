@@ -11,12 +11,13 @@ Example:
     ws = WebSocketTransport({"port": 8765})
 """
 
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
+from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
 # gRPC is optional - only import if protobuf is available
 try:
     from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
     __all__ = ["WebSocketTransport", "GRPCTransport", "MQTTTransport"]
 except ImportError:
     __all__ = ["WebSocketTransport", "MQTTTransport"]

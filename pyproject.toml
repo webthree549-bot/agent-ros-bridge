@@ -179,6 +179,17 @@ known_first_party = ["agent_ros_bridge"]
 [tool.ruff]
 target-version = "py38"
 line-length = 100
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "docs",
+    ".eggs",
+]
+
+[tool.ruff.lint]
 select = [
     "E",
     "F",
@@ -201,20 +212,11 @@ ignore = [
     "ARG002",
     "SIM102",
 ]
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "docs",
-    ".eggs",
-]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D", "ARG", "SIM117"]
 "**/__init__.py" = ["F401"]
 "agent_ros_bridge/integrations/dashboard_server.py" = ["E501"]

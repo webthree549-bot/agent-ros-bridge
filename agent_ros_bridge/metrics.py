@@ -192,6 +192,11 @@ class MetricsMiddleware:
     """Middleware to automatically collect metrics from bridge operations."""
 
     def __init__(self, collector: MetricsCollector):
+        """Initialize metrics middleware with collector.
+
+        Args:
+            collector: Metrics collector for recording operations.
+        """
         self.collector = collector
 
     @asynccontextmanager
@@ -218,6 +223,11 @@ class HealthChecker:
     """Health check endpoint for monitoring systems."""
 
     def __init__(self, bridge):
+        """Initialize health checker with bridge reference.
+
+        Args:
+            bridge: Gateway bridge instance to check.
+        """
         self.bridge = bridge
         self._checks: Dict[str, Callable] = {}
 

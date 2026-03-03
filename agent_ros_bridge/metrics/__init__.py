@@ -67,6 +67,11 @@ class MetricsCollector:
     """Collects and exposes metrics for Prometheus."""
 
     def __init__(self, namespace: str = "agent_ros_bridge"):
+        """Initialize metrics collector with namespace.
+
+        Args:
+            namespace: Prometheus namespace prefix for metrics.
+        """
         self.namespace = namespace
         self.registry = CollectorRegistry() if PROMETHEUS_AVAILABLE else None
         self._initialized = False
@@ -295,6 +300,12 @@ class MetricsServer:
     """HTTP server for exposing metrics."""
 
     def __init__(self, port: int = 9090, collector: Optional[MetricsCollector] = None):
+        """Initialize metrics server with port and collector.
+
+        Args:
+            port: HTTP server port for metrics endpoint.
+            collector: Metrics collector instance (creates default if None).
+        """
         self.port = port
         self.collector = collector or MetricsCollector()
         self.server = None

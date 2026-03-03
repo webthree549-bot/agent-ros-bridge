@@ -25,6 +25,12 @@ class MCPServerTransport:
     """
 
     def __init__(self, bridge, mode: str = "stdio"):
+        """Initialize MCP transport with bridge and mode.
+
+        Args:
+            bridge: Gateway bridge instance for robot control.
+            mode: Transport mode ("stdio" or "sse").
+        """
         self.bridge = bridge
         self.mode = mode  # "stdio" or "sse"
         self.tools: List[Dict] = []

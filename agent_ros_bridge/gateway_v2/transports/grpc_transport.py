@@ -441,8 +441,10 @@ class BridgeServiceServicer(bridge_pb2.BridgeServiceServicer if GRPC_AVAILABLE e
         """Convert Message to CommandResponse protobuf."""
         result_struct = struct_pb2.Struct()
 
-        if message.telemetry and message.telemetry.data and isinstance(
-            message.telemetry.data, dict
+        if (
+            message.telemetry
+            and message.telemetry.data
+            and isinstance(message.telemetry.data, dict)
         ):
             result_struct.update(message.telemetry.data)
 

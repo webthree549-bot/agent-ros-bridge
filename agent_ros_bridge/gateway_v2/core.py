@@ -394,6 +394,7 @@ class PluginManager:
     """Manages plugins with hot reload."""
 
     def __init__(self):
+        """Initialize plugin manager with empty registry."""
         self.plugins: dict[str, Plugin] = {}
         self.gateway: Bridge | None = None
 

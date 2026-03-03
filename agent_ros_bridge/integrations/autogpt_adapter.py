@@ -24,6 +24,11 @@ class AutoGPTAdapter:
     """
 
     def __init__(self, bridge):
+        """Initialize AutoGPT adapter with bridge reference.
+
+        Args:
+            bridge: Gateway bridge instance for robot control.
+        """
         self.bridge = bridge
         self.commands: Dict[str, Dict] = {}
         logger.info("AutoGPTAdapter initialized")
