@@ -489,11 +489,11 @@ class ArmRobotPlugin(Plugin):
                 if self.controller is None:
                     return {"error": "Controller not initialized"}
                 joints = await self.controller.get_joint_states()
-                pose: Optional[CartesianPose] = await self.controller.get_cartesian_pose()
+                current_pose: Optional[CartesianPose] = await self.controller.get_cartesian_pose()
                 return {
                     "state": self.controller.state.value,
                     "joints": [{"pos": j.position} for j in joints],
-                    "pose": pose.__dict__ if pose else None,
+                    "pose": current_pose.__dict__ if current_pose else None,
                 }
 
             elif command == "arm.gripper":

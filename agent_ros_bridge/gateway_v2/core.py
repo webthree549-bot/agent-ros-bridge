@@ -21,7 +21,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, AsyncIterator, Callable
+from typing import Any, AsyncIterator, Callable, Dict
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
