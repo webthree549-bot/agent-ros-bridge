@@ -76,6 +76,33 @@ jobs:
           export JWT_SECRET=test123
           docker run --rm -e JWT_SECRET agent-ros-bridge:test agent-ros-bridge --version
 
+  ros2-compat:
+    name: ROS2 Compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ros-distro: [humble, iron, jazzy]
+    container:
+      image: ros:${{ matrix.ros-distro }}-ros-base
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3-pip python3-pytest
+          pip3 install --break-system-packages -e ".[test]"
+
+      - name: Source ROS2 and run tests
+        run: |
+          source /opt/ros/${{ matrix.ros-distro }}/setup.bash
+          pytest tests/unit/test_ros2_connector.py -v --tb=short
+
+      - name: Validate ROS2 setup
+        run: |
+          source /opt/ros/${{ matrix.ros-distro }}/setup.bash
+          python3 scripts/validate_ros_setup.py --ros2
+
   release:
     needs: [test, docker]
     runs-on: ubuntu-latest
