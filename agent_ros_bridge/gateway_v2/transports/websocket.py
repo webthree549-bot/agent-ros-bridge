@@ -54,9 +54,11 @@ class WebSocketTransport(Transport):
         self.port = config.get("port", 8765)
         self.tls_cert = config.get("tls_cert")
         self.tls_key = config.get("tls_key")
-        self.server = None
-        self.clients: Dict[str, WebSocketServerProtocol] = {}
+        self.server: Optional[Any] = None
+        self.clients: Dict[str, Any] = {}
         self.identities: Dict[str, Identity] = {}
+        self.authenticator: Optional[Authenticator] = None
+        self.rbac: Optional[Any] = None
 
         # Initialize authentication
         auth_config = config.get("auth", {})
@@ -71,9 +73,6 @@ class WebSocketTransport(Transport):
             )
             self.rbac = RoleBasedAccessControl()
             logger.info("WebSocket authentication enabled")
-        else:
-            self.authenticator: Optional[Authenticator] = None
-            self.rbac = None
 
     async def start(self) -> bool:
         """Start WebSocket server."""

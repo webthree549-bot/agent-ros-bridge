@@ -60,7 +60,7 @@ class MQTTTransport(Transport):
         # Subscriptions
         self.subscribed_topics = config.get("subscriptions", ["#"])
 
-        self.client = None
+        self.client: Optional[Any] = None
         self._connected = False
         self._message_queue: asyncio.Queue = asyncio.Queue()
         self._identities: Dict[str, Identity] = {}
@@ -73,6 +73,10 @@ class MQTTTransport(Transport):
             return False
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=self.client_id)
+
+        if self.client is None:
+            logger.error("Failed to create MQTT client")
+            return False
 
         # Set callbacks
         self.client.on_connect = self._on_connect
@@ -117,8 +121,9 @@ class MQTTTransport(Transport):
 
             # Subscribe to topics
             for topic in self.subscribed_topics:
-                self.client.subscribe(topic)
-                logger.info(f"Subscribed to MQTT topic: {topic}")
+                if self.client is not None:
+                    self.client.subscribe(topic)
+                    logger.info(f"Subscribed to MQTT topic: {topic}")
 
             # Start message processing loop
             asyncio.create_task(self._process_messages())
@@ -234,23 +239,21 @@ class MQTTTransport(Transport):
             logger.error(f"Error sending MQTT message: {e}")
             return False
 
-    async def broadcast(self, message: Message) -> int:
+    async def broadcast(self, message: Message) -> List[str]:
         """Broadcast to all MQTT subscribers."""
-        success = 0
+        sent: List[str] = []
         for client_id in self._identities:
             if await self.send(message, client_id):
-                success += 1
-        return success
+                sent.append(client_id)
+        return sent
 
     def _mqtt_to_message(self, payload: Dict[str, Any], topic: str) -> Message:
         """Convert MQTT payload to Message."""
+        timestamp_str = payload.get("timestamp")
+        timestamp = datetime.fromisoformat(timestamp_str) if isinstance(timestamp_str, str) else datetime.utcnow()
         header = Header(
             message_id=payload.get("id", ""),
-            timestamp=(
-                datetime.fromisoformat(payload.get("timestamp"))
-                if "timestamp" in payload
-                else datetime.utcnow()
-            ),
+            timestamp=timestamp,
             source=topic,
             target="bridge",
         )

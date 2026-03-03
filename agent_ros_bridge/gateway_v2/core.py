@@ -584,6 +584,8 @@ class Bridge:
         elif cmd.action == "fleet.robots":
             # List robots in fleet
             fleet_name = cmd.parameters.get("fleet")
+            if fleet_name is None:
+                return None
             fleet = self.fleets.get(fleet_name)
             if fleet:
                 return Message(
@@ -597,6 +599,8 @@ class Bridge:
         elif cmd.action == "robot.execute":
             # Execute command on specific robot
             robot_id = cmd.parameters.get("robot_id")
+            if robot_id is None:
+                return None
             for fleet in self.fleets.values():
                 robot = fleet.get_robot(robot_id)
                 if robot:
@@ -747,7 +751,8 @@ class Bridge:
         response = await self._handle_core_command(msg, identity)
 
         if response and response.telemetry:
-            return response.telemetry.data
+            data: Dict[str, Any] = response.telemetry.data
+            return data
 
         return {"status": "error", "message": "No response from bridge"}
 

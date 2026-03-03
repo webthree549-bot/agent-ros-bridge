@@ -489,7 +489,7 @@ class ArmRobotPlugin(Plugin):
                 if self.controller is None:
                     return {"error": "Controller not initialized"}
                 joints = await self.controller.get_joint_states()
-                pose = await self.controller.get_cartesian_pose()
+                pose: Optional[CartesianPose] = await self.controller.get_cartesian_pose()
                 return {
                     "state": self.controller.state.value,
                     "joints": [{"pos": j.position} for j in joints],

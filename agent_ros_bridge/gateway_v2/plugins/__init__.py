@@ -8,9 +8,9 @@ to the agent-ros-bridge gateway. Plugins can:
     - Extend robot capabilities
 
 Example:
-    from agent_ros_bridge.gateway_v2.plugins import GatewayPlugin
+    from agent_ros_bridge.gateway_v2.core import Plugin
 
-    class MyPlugin(GatewayPlugin):
+    class MyPlugin(Plugin):
         name = "my_plugin"
         version = "1.0.0"
 
@@ -19,6 +19,6 @@ Example:
             pass
 """
 
-from agent_ros_bridge.gateway_v2.core import GatewayPlugin
+from agent_ros_bridge.gateway_v2.core import Plugin
 
-__all__ = ["GatewayPlugin"]
+__all__ = ["Plugin"]
