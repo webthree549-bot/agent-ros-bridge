@@ -79,7 +79,7 @@ class ArmConfig:
     arm_type: ArmType
     ros_version: str = "ros2"  # ros1, ros2
     namespace: str = ""
-    joint_names: List[str] = None
+    joint_names: Optional[List[str]] = None
     base_frame: str = "base_link"
     end_effector_frame: str = "tool0"
     max_joint_velocity: float = 3.0  # rad/s
@@ -435,6 +435,9 @@ class ArmRobotPlugin(Plugin):
         Args:
             _gateway: Unused (for API compatibility).
         """
+        if self.controller is None:
+            logger.error("Controller not initialized")
+            return
         success = await self.controller.connect()
         if success:
             logger.info(f"Arm robot plugin initialized: {self.arm_type.value}")
@@ -483,6 +486,8 @@ class ArmRobotPlugin(Plugin):
                 return {"success": success}
 
             elif command == "arm.get_state":
+                if self.controller is None:
+                    return {"error": "Controller not initialized"}
                 joints = await self.controller.get_joint_states()
                 pose = await self.controller.get_cartesian_pose()
                 return {
@@ -517,6 +522,9 @@ async def move_ur_to_home(arm: ArmRobotPlugin):
 
 async def pick_and_place(arm: ArmRobotPlugin, pick_pose: CartesianPose, place_pose: CartesianPose):
     """Execute pick and place operation."""
+    if arm.controller is None:
+        raise RuntimeError("Controller not initialized")
+
     # Open gripper
     await arm.handle_command("arm.gripper", {"position": 0.0})
 

@@ -219,6 +219,13 @@ class ROS2ActionClient(BaseActionClient):
             goal_msg = self._create_goal_message(goal_data)
 
             # Send goal
+            if self._client is None:
+                return ActionResult(
+                    goal_id=goal_id,
+                    success=False,
+                    status=ActionStatus.LOST,
+                    error_message="Client not connected",
+                )
             self._goal_handle = await self._client.send_goal_async(
                 goal_msg, feedback_callback=self._on_feedback
             )

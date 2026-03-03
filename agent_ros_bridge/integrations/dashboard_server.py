@@ -8,12 +8,12 @@ try:
     from aiohttp import web
 
     AIOHTTP_AVAILABLE = True
-    Application = web.Application
-    AppRunner = web.AppRunner
+    ApplicationType = web.Application
+    AppRunnerType = web.AppRunner
 except ImportError:
     AIOHTTP_AVAILABLE = False
-    Application = Any
-    AppRunner = Any
+    ApplicationType = Any  # type: ignore[misc, assignment]
+    AppRunnerType = Any  # type: ignore[misc, assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,8 @@ class DashboardServer:
         """
         self.bridge = bridge
         self.port = port
-        self.app: Optional[Application] = None
-        self.runner: Optional[AppRunner] = None
+        self.app: Optional[ApplicationType] = None
+        self.runner: Optional[AppRunnerType] = None
 
         if not AIOHTTP_AVAILABLE:
             logger.warning("aiohttp not available, dashboard disabled")
@@ -72,6 +72,9 @@ class DashboardServer:
             logger.warning("Dashboard requires aiohttp")
             return
 
+        if self.app is None:
+            logger.warning("Dashboard app not initialized")
+            return
         self.runner = web.AppRunner(self.app)
         await self.runner.setup()
 
