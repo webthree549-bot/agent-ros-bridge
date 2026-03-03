@@ -94,7 +94,7 @@ class BaseActionClient:
         self._result_callbacks: List[Callable[[ActionResult], None]] = []
         self._current_goal: Optional[ActionGoal] = None
         self._start_time: Optional[datetime] = None
-        self._client = None
+        self._client: Optional[Any] = None
         self._connected = False
 
     async def connect(self) -> bool:
@@ -149,7 +149,7 @@ class ROS2ActionClient(BaseActionClient):
             action_type: Type of the action.
         """
         super().__init__(action_name, action_type, "ros2")
-        self._goal_handle = None
+        self._goal_handle: Optional[Any] = None
 
     async def connect(self) -> bool:
         """Connect to ROS2 action server."""
@@ -223,7 +223,7 @@ class ROS2ActionClient(BaseActionClient):
                 goal_msg, feedback_callback=self._on_feedback
             )
 
-            if not self._goal_handle.accepted:
+            if self._goal_handle is None or not self._goal_handle.accepted:
                 self.status = ActionStatus.REJECTED
                 return ActionResult(
                     goal_id=goal_id,
@@ -236,6 +236,13 @@ class ROS2ActionClient(BaseActionClient):
             logger.info(f"▶️  Action goal accepted: {goal_id}")
 
             # Wait for result with timeout
+            if self._goal_handle is None:
+                return ActionResult(
+                    goal_id=goal_id,
+                    success=False,
+                    status=ActionStatus.LOST,
+                    error_message="Goal handle is None",
+                )
             result_future = self._goal_handle.get_result_async()
 
             try:

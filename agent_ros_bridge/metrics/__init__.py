@@ -28,6 +28,7 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from typing import Dict, Optional
 
 try:
@@ -97,7 +98,7 @@ class MetricsCollector:
         }
 
         # History for time-series data
-        self._history = deque(maxlen=1000)
+        self._history: deque = deque(maxlen=1000)
         self._start_time = time.time()
 
     def _init_metrics(self):
@@ -281,7 +282,8 @@ class MetricsCollector:
         if PROMETHEUS_AVAILABLE:
             from prometheus_client import generate_latest
 
-            return generate_latest(self.registry).decode("utf-8")
+            result: str = generate_latest(self.registry).decode("utf-8")
+            return result
         else:
             # Simple text format fallback
             snapshot = self.get_snapshot()

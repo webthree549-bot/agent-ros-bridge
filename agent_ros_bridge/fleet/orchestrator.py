@@ -99,7 +99,7 @@ class FleetRobot:
 
     # Runtime
     last_seen: datetime = field(default_factory=datetime.utcnow)
-    task_history: deque = field(default_factory=lambda: deque(maxlen=100))
+    task_history: deque[Any] = field(default_factory=lambda: deque(maxlen=100))
 
 
 @dataclass
@@ -294,7 +294,7 @@ class FleetOrchestrator:
             task.status = TaskStatus.FAILED
             task.error_message = result.get("error") if result else "Unknown error"
             logger.error(f"❌ Task failed: {task_id} - {task.error_message}")
-            if self.on_task_failed:
+            if self.on_task_failed and task.error_message:
                 self.on_task_failed(task, task.error_message)
 
         # Trigger reallocation
