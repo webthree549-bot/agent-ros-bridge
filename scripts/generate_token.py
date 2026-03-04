@@ -92,11 +92,11 @@ def main():
             print("=" * 60)
             if args.print_secret:
                 print(
-                    "\nWARNING: The secret will be printed to stdout. Ensure your terminal "
+                    "\nWARNING: The secret will be printed to stderr. Ensure your terminal "
                     "output is not being logged or captured before proceeding.\n"
                 )
                 print("JWT Secret (handle securely):")
-                print(secret)
+                print(secret, file=sys.stderr)
                 print(
                     "\nSECURITY NOTICE: Store this secret in a secure secret manager and "
                     "avoid keeping it in shell history, logs, or other persistent storage."
