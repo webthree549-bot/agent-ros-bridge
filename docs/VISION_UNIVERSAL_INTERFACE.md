@@ -27,16 +27,16 @@ Our implementation revealed six architectural pillars that are **framework-agnos
 
 ### 1.2 Why These Pillars Are Universal
 
-| Pillar | LangChain | AutoGPT | MCP | OpenAI | HuggingFace |
-|--------|-----------|---------|-----|--------|-------------|
-| **NL Abstraction** | Tools | Commands | Resources | Functions | Tools |
-| **Context** | Memory | Memory | Context | Thread | State |
-| **Capability** | Tool def | Skill | Resource | Schema | Tool |
-| **Safety** | Callbacks | Validation | Policy | Guardrails | Checks |
-| **Transport** | API | API | Stdio/SSE | HTTP | API |
-| **Evolution** | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Pillar | OpenClaw | LangChain | AutoGPT | MCP | OpenAI | HuggingFace |
+|--------|----------|-----------|---------|-----|--------|-------------|
+| **NL Abstraction** | ✅ First-class | Tools | Commands | Resources | Functions | Tools |
+| **Context** | ✅ Built-in | Memory | Memory | Context | Thread | State |
+| **Capability** | ✅ Skills | Tool def | Skill | Resource | Schema | Tool |
+| **Safety** | ✅ Validation | Callbacks | Validation | Policy | Guardrails | Checks |
+| **Transport** | ✅ Universal | API | API | Stdio/SSE | HTTP | API |
+| **Evolution** | ✅ ClawHub | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-**Insight:** All frameworks need these five capabilities. They just implement them differently.
+**Insight:** All frameworks need these six capabilities. OpenClaw is uniquely positioned with first-class support for all pillars, especially Evolution through the ClawHub ecosystem.
 
 ---
 
