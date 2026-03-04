@@ -227,7 +227,7 @@ convention = "google"
 "agent_ros_bridge/gateway_v2/transports/mqtt_transport.py" = ["ARG"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -237,8 +237,22 @@ ignore_missing_imports = true
 show_error_codes = true
 pretty = true
 
+# Allow untyped defs in specific modules with known issues
 [[tool.mypy.overrides]]
 module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "agent_ros_bridge.gateway_v2.transports.grpc_transport"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = "agent_ros_bridge.__main__"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "agent_ros_bridge.gateway_v2.__main__"
 disallow_untyped_defs = false
 
 [tool.pytest.ini_options]

@@ -42,7 +42,9 @@ jobs:
         run: black --check .
 
       - name: Type check with MyPy
-        run: mypy agent_ros_bridge || echo "MyPy found issues (non-blocking for now)"
+        run: mypy agent_ros_bridge
+        # Note: 25 known type errors exist (see docs/MYPY_KNOWN_ISSUES.md)
+        # New code should not introduce additional errors
 
       - name: Test with pytest
         run: pytest tests/unit tests/e2e --cov=agent_ros_bridge --cov-report=xml
