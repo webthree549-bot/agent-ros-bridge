@@ -1,0 +1,346 @@
+"""Command-line interface for Agent ROS Bridge."""
+
+import argparse
+import asyncio
+import os
+import sys
+from pathlib import Path
+
+from . import Bridge
+from .gateway_v2.config import Config
+
+
+def main():
+    """Main CLI entry point."""
+    parser = argparse.ArgumentParser(
+        prog="agent-ros-bridge",
+        description="Universal interface for AI agents to control ROS robots",
+    )
+    
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 0.5.0"
+    )
+    
+    parser.add_argument(
+        "--config",
+        "-c",
+        type=str,
+        default="config/bridge.yaml",
+        help="Path to configuration file (default: config/bridge.yaml)"
+    )
+    
+    parser.add_argument(
+        "--websocket-port",
+        "-w",
+        type=int,
+        default=8765,
+        help="WebSocket port (default: 8765)"
+    )
+    
+    parser.add_argument(
+        "--mqtt-port",
+        "-m",
+        type=int,
+        default=1883,
+        help="MQTT port (default: 1883)"
+    )
+    
+    parser.add_argument(
+        "--grpc-port",
+        "-g",
+        type=int,
+        default=50051,
+        help="gRPC port (default: 50051)"
+    )
+    
+    parser.add_argument(
+        "--jwt-secret",
+        "-j",
+        type=str,
+        default=None,
+        help="JWT secret (or set JWT_SECRET env var)"
+    )
+    
+    parser.add_argument(
+        "--database-url",
+        "-d",
+        type=str,
+        default="sqlite:///agent_ros_bridge.db",
+        help="Database URL (default: sqlite:///agent_ros_bridge.db)"
+    )
+    
+    parser.add_argument(
+        "--redis-url",
+        "-r",
+        type=str,
+        default=None,
+        help="Redis URL (optional)"
+    )
+    
+    parser.add_argument(
+        "--log-level",
+        "-l",
+        type=str,
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Log level (default: INFO)"
+    )
+    
+    parser.add_argument(
+        "--skill-path",
+        "-s",
+        type=str,
+        default=None,
+        help="Path to OpenClaw skill directory"
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+    
+    # Start command
+    start_parser = subparsers.add_parser(
+        "start",
+        help="Start the bridge server"
+    )
+    start_parser.add_argument(
+        "--daemon",
+        "-D",
+        action="store_true",
+        help="Run as daemon"
+    )
+    
+    # Config command
+    config_parser = subparsers.add_parser(
+        "config",
+        help="Manage configuration"
+    )
+    config_parser.add_argument(
+        "--init",
+        action="store_true",
+        help="Initialize default configuration"
+    )
+    config_parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate configuration"
+    )
+    
+    # Skill command
+    skill_parser = subparsers.add_parser(
+        "skill",
+        help="Manage OpenClaw skills"
+    )
+    skill_parser.add_argument(
+        "--package",
+        type=str,
+        help="Package skill for distribution"
+    )
+    skill_parser.add_argument(
+        "--validate",
+        type=str,
+        help="Validate skill structure"
+    )
+    
+    # Status command
+    status_parser = subparsers.add_parser(
+        "status",
+        help="Check bridge status"
+    )
+    
+    args = parser.parse_args()
+    
+    # Set up logging
+    import logging
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    
+    # Handle JWT secret
+    jwt_secret = args.jwt_secret or os.environ.get("JWT_SECRET")
+    if not jwt_secret:
+        print("Error: JWT_SECRET not set. Use --jwt-secret or JWT_SECRET env var.")
+        sys.exit(1)
+    
+    os.environ["JWT_SECRET"] = jwt_secret
+    
+    # Execute command
+    if args.command == "start" or args.command is None:
+        asyncio.run(start_bridge(args))
+    elif args.command == "config":
+        handle_config(args)
+    elif args.command == "skill":
+        handle_skill(args)
+    elif args.command == "status":
+        handle_status(args)
+    else:
+        parser.print_help()
+
+
+async def start_bridge(args):
+    """Start the bridge server."""
+    print(f"🚀 Starting Agent ROS Bridge v0.5.0")
+    print(f"   WebSocket: ws://localhost:{args.websocket_port}")
+    print(f"   MQTT: mqtt://localhost:{args.mqtt_port}")
+    print(f"   gRPC: grpc://localhost:{args.grpc_port}")
+    print(f"   Database: {args.database_url}")
+    
+    try:
+        bridge = Bridge()
+        
+        # Configure transports
+        from .gateway_v2.transports.websocket import WebSocketTransport
+        bridge.transport_manager.register(WebSocketTransport({
+            "port": args.websocket_port
+        }))
+        
+        # Start bridge
+        async with bridge.run():
+            print(f"\n✅ Bridge is running!")
+            print(f"   Press Ctrl+C to stop\n")
+            
+            # Keep running
+            while True:
+                await asyncio.sleep(1)
+                
+    except KeyboardInterrupt:
+        print("\n\n🛑 Stopping bridge...")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
+
+
+def handle_config(args):
+    """Handle config commands."""
+    if args.init:
+        config_path = Path("config/bridge.yaml")
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        default_config = """# Agent ROS Bridge Configuration
+# Generated by agent-ros-bridge config --init
+
+bridge:
+  name: "agent-ros-bridge"
+  version: "0.5.0"
+
+transports:
+  websocket:
+    enabled: true
+    port: 8765
+    host: "0.0.0.0"
+  
+  mqtt:
+    enabled: true
+    port: 1883
+    host: "0.0.0.0"
+  
+  grpc:
+    enabled: true
+    port: 50051
+    host: "0.0.0.0"
+
+auth:
+  jwt:
+    algorithm: "HS256"
+    access_token_expire_minutes: 30
+
+database:
+  url: "sqlite:///agent_ros_bridge.db"
+  # For PostgreSQL:
+  # url: "postgresql://user:pass@localhost:5432/bridge"
+
+logging:
+  level: "INFO"
+  format: "json"
+"""
+        
+        config_path.write_text(default_config)
+        print(f"✅ Created default configuration: {config_path}")
+        print(f"   Edit this file and run: agent-ros-bridge --config {config_path}")
+        
+    elif args.validate:
+        print("✅ Configuration validation not yet implemented")
+    else:
+        print("Use --init to create default config or --validate to check config")
+
+
+def handle_skill(args):
+    """Handle skill commands."""
+    if args.package:
+        skill_path = Path(args.package)
+        if not skill_path.exists():
+            print(f"❌ Skill path not found: {skill_path}")
+            return
+        
+        print(f"📦 Packaging skill: {skill_path}")
+        
+        # Import packaging script
+        from skills.agent_ros_bridge.scripts.package_skill import package_skill
+        
+        output_dir = Path("dist")
+        output_dir.mkdir(exist_ok=True)
+        
+        try:
+            output_file = package_skill(skill_path, output_dir)
+            print(f"✅ Packaged: {output_file}")
+            print(f"   Upload to ClawHub: npx clawhub publish {output_file}")
+        except Exception as e:
+            print(f"❌ Packaging failed: {e}")
+    
+    elif args.validate:
+        skill_path = Path(args.validate)
+        print(f"🔍 Validating skill: {skill_path}")
+        
+        # Run validation
+        import subprocess
+        result = subprocess.run(
+            ["python", "-m", "pytest", "tests/skills/test_skill_structure.py", "-v"],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode == 0:
+            print("✅ Skill validation passed")
+        else:
+            print("❌ Skill validation failed")
+            print(result.stdout)
+    else:
+        print("Use --package <path> to package skill or --validate <path> to validate")
+
+
+def handle_status(args):
+    """Handle status command."""
+    print("📊 Agent ROS Bridge Status")
+    print("=" * 40)
+    
+    # Check if bridge is running
+    import socket
+    
+    def check_port(port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('localhost', port))
+        sock.close()
+        return result == 0
+    
+    ws_status = "🟢 Running" if check_port(8765) else "🔴 Stopped"
+    mqtt_status = "🟢 Running" if check_port(1883) else "🔴 Stopped"
+    grpc_status = "🟢 Running" if check_port(50051) else "🔴 Stopped"
+    
+    print(f"WebSocket (8765): {ws_status}")
+    print(f"MQTT (1883):      {mqtt_status}")
+    print(f"gRPC (50051):     {grpc_status}")
+    
+    # Check database
+    db_path = Path("agent_ros_bridge.db")
+    if db_path.exists():
+        size = db_path.stat().st_size
+        print(f"Database:         🟢 {size / 1024:.1f} KB")
+    else:
+        print(f"Database:         ⚪ Not initialized")
+    
+    print("\n💡 Start bridge: agent-ros-bridge start")
+
+
+if __name__ == "__main__":
+    main()

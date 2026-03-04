@@ -1,0 +1,150 @@
+# Default values for agent-ros-bridge.
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/webthree549-bot/agent-ros-bridge
+  pullPolicy: IfNotPresent
+  tag: "v0.5.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  websocket:
+    port: 8765
+    targetPort: 8765
+  mqtt:
+    port: 1883
+    targetPort: 1883
+  grpc:
+    port: 50051
+    targetPort: 50051
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: agent-ros-bridge.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Bridge configuration
+config:
+  bridge:
+    name: "agent-ros-bridge"
+    logLevel: "INFO"
+  
+  auth:
+    jwt:
+      algorithm: "HS256"
+      accessTokenExpireMinutes: 30
+  
+  database:
+    type: "sqlite"  # sqlite, postgresql
+    # For PostgreSQL:
+    # host: "postgres"
+    # port: 5432
+    # name: "bridge"
+    # user: "bridge"
+    # password: ""
+  
+  redis:
+    enabled: false
+    host: "redis"
+    port: 6379
+
+# Secrets (use external secrets operator in production)
+secrets:
+  jwtSecret: "change-me-in-production"
+  databasePassword: ""
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# Monitoring
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8765
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8765
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: 8765
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30

@@ -1,0 +1,21 @@
+apiVersion: v2
+name: agent-ros-bridge
+description: A Helm chart for Agent ROS Bridge - Universal interface for AI agents to control ROS robots
+version: 0.5.0
+appVersion: "0.5.0"
+type: application
+keywords:
+  - ros
+  - ros2
+  - robotics
+  - ai
+  - agents
+  - openclaw
+home: https://github.com/webthree549-bot/agent-ros-bridge
+sources:
+  - https://github.com/webthree549-bot/agent-ros-bridge
+maintainers:
+  - name: Agent ROS Bridge Team
+    email: team@agentrosbridge.io
+annotations:
+  category: Robotics
