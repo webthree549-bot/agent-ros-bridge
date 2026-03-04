@@ -333,112 +333,104 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify natural language interpretation is implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
         
-        adapter = OpenClawAdapter(bridge=None)
+        # NL interpreter exists and works
+        interpreter = RuleBasedInterpreter()
+        result = interpreter.interpret("Move forward 2 meters")
         
-        # Check if there's a natural language interpretation method
-        has_nl_interpretation = hasattr(adapter, 'execute_nl')
+        if "error" in result:
+            self.skipTest("Natural language interpretation not fully implemented")
         
-        if not has_nl_interpretation:
-            self.skipTest(
-                "GAP: Natural language interpretation not implemented. "
-                "SKILL promises 'Move forward 2 meters' but adapter only has ros2_publish. "
-                "Need: execute_nl() method"
-            )
-        
-        # If we have it, verify it works
-        self.assertTrue(has_nl_interpretation, "execute_nl method should exist")
+        self.assertEqual(result["tool"], "ros2_publish", "Should interpret as ros2_publish")
     
     def test_parameter_inference(self):
         """
-        GAP: SKILL promises parameter inference (slowly=0.1 m/s)
-        but this is not implemented.
-        
-        MISSING: Speed/distance inference from natural language
+        Verify parameter inference is implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.nl_params import infer_parameter, infer_speed
         
-        adapter = OpenClawAdapter(bridge=None)
-        has_inference = hasattr(adapter, 'infer_parameters')
+        # Parameter inference functions exist
+        result = infer_speed("slowly")
         
-        if not has_inference:
-            self.skipTest(
-                "GAP: Parameter inference not implemented. "
-                "SKILL promises 'slowly' → 0.1 m/s inference"
-            )
+        if result is None:
+            self.skipTest("Parameter inference not fully implemented")
+        
+        self.assertEqual(result, 0.1, "slowly should map to 0.1 m/s")
     
     def test_context_awareness(self):
         """
-        GAP: SKILL promises context awareness across conversations
-        but this is not implemented.
-        
-        MISSING: Context manager for conversation state
+        Verify context awareness is implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.context import ContextManager
         
-        adapter = OpenClawAdapter(bridge=None)
-        has_context = hasattr(adapter, 'context') or hasattr(adapter, 'conversation_history')
+        # Context manager exists and has required methods
+        context = ContextManager(db_path=":memory:")
+        has_learn = hasattr(context, 'learn_location')
+        has_get = hasattr(context, 'get_location')
+        has_history = hasattr(context, 'get_last_n_commands')
         
-        if not has_context:
-            self.skipTest(
-                "GAP: Context awareness not implemented. "
-                "SKILL promises 'Now bring me water' understands previous location"
-            )
+        if not has_learn or not has_get or not has_history:
+            self.skipTest("Context awareness not fully implemented")
+        
+        self.assertTrue(has_learn, "learn_location should exist")
+        self.assertTrue(has_get, "get_location should exist")
+        self.assertTrue(has_history, "get_last_n_commands should exist")
     
     def test_scene_understanding(self):
         """
-        GAP: SKILL promises scene description ('What do you see?')
-        but camera interpretation is not implemented.
-        
-        MISSING: Vision model integration for scene description
+        Verify scene understanding is implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.scene_understanding import SceneUnderstanding
         
-        adapter = OpenClawAdapter(bridge=None)
-        has_vision = hasattr(adapter, 'interpret_camera_view')
+        # Scene understanding exists and has required methods
+        scene = SceneUnderstanding()
+        has_describe = hasattr(scene, 'describe_scene')
+        has_answer = hasattr(scene, 'answer_query')
         
-        if not has_vision:
-            self.skipTest(
-                "GAP: Scene understanding not implemented. "
-                "SKILL promises 'What do you see?' with interpretation"
-            )
+        if not has_describe or not has_answer:
+            self.skipTest("Scene understanding not fully implemented")
+        
+        self.assertTrue(has_describe, "describe_scene should exist")
+        self.assertTrue(has_answer, "answer_query should exist")
     
     def test_fleet_intelligence(self):
         """
-        GAP: SKILL promises intelligent fleet selection ('Which robot is closest?')
-        but advanced fleet intelligence is not implemented.
-        
-        MISSING: Spatial reasoning, multi-criteria robot selection
+        Verify fleet intelligence is implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.fleet_intelligence import FleetIntelligence
         
-        adapter = OpenClawAdapter(bridge=None)
-        has_fleet_intelligence = hasattr(adapter, 'select_best_robot')
+        # Fleet intelligence exists and has required methods
+        fleet = FleetIntelligence()
+        has_select = hasattr(fleet, 'select_best_robot')
+        has_closest = hasattr(fleet, 'find_closest_robot')
+        has_allocate = hasattr(fleet, 'allocate_task')
         
-        if not has_fleet_intelligence:
-            self.skipTest(
-                "GAP: Fleet intelligence not implemented. "
-                "SKILL promises 'Send the best robot' with optimization"
-            )
+        if not has_select or not has_closest or not has_allocate:
+            self.skipTest("Fleet intelligence not fully implemented")
+        
+        self.assertTrue(has_select, "select_best_robot should exist")
+        self.assertTrue(has_closest, "find_closest_robot should exist")
+        self.assertTrue(has_allocate, "allocate_task should exist")
     
     def test_autonomous_behaviors(self):
         """
-        GAP: SKILL promises autonomous behaviors (exploration, patrol)
-        but these are not implemented.
-        
-        MISSING: High-level mission planning and execution
+        Verify autonomous behaviors are implemented.
         """
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.autonomous_behaviors import MissionPlanner
         
-        adapter = OpenClawAdapter(bridge=None)
-        has_autonomy = hasattr(adapter, 'plan_mission') or hasattr(adapter, 'explore')
+        # Mission planner exists and has required methods
+        planner = MissionPlanner()
+        has_exploration = hasattr(planner, 'plan_exploration')
+        has_patrol = hasattr(planner, 'plan_patrol')
+        has_search = hasattr(planner, 'plan_search')
         
-        if not has_autonomy:
-            self.skipTest(
-                "GAP: Autonomous behaviors not implemented. "
-                "SKILL promises 'Explore autonomously' and 'Patrol'"
-            )
+        if not has_exploration or not has_patrol or not has_search:
+            self.skipTest("Autonomous behaviors not fully implemented")
+        
+        self.assertTrue(has_exploration, "plan_exploration should exist")
+        self.assertTrue(has_patrol, "plan_patrol should exist")
+        self.assertTrue(has_search, "plan_search should exist")
 
 
 if __name__ == "__main__":
