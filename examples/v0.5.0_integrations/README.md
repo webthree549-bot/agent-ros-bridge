@@ -1,78 +1,92 @@
-# v0.5.0 Integration Examples
+# AI Framework Integration Examples
 
-This directory contains examples demonstrating the v0.5.0 AI agent integrations.
+**Version:** v0.5.1  
+**Purpose:** Demonstrate LangChain, AutoGPT, MCP, and Dashboard integrations
+
+---
+
+## Quick Start
+
+```bash
+# Set required secrets
+export JWT_SECRET=$(openssl rand -base64 32)
+export OPENAI_API_KEY=sk-...  # For LangChain example
+
+# Run all examples
+docker-compose up
+
+# Or run specific example
+docker-compose run --rm langchain-bridge python3 /app/langchain_example.py
+```
+
+---
 
 ## Examples
 
-### 1. LangChain Integration
+### 1. LangChain Integration (`langchain_example.py`)
 
+**What it shows:** Using Agent ROS Bridge as a LangChain tool
+
+**Prerequisites:**
+- OpenAI API key
+- langchain installed (in container)
+
+**Run:**
 ```bash
-python langchain_example.py
+export OPENAI_API_KEY=sk-...
+docker-compose up langchain-bridge
 ```
 
-Shows how to use ROSBridgeTool with LangChain agents.
+### 2. AutoGPT Integration (`autogpt_example.py`)
 
-**Requirements:**
+**What it shows:** Agent ROS Bridge as AutoGPT command provider
+
+**Run:**
 ```bash
-pip install langchain openai
+docker-compose up autogpt-bridge
 ```
 
-### 2. AutoGPT Integration
+### 3. MCP Integration (`mcp_example.py`)
 
+**What it shows:** Model Context Protocol server for Claude Desktop
+
+**Run:**
 ```bash
-python autogpt_example.py
+docker-compose up mcp-bridge
 ```
 
-Shows how to expose bridge actions as AutoGPT commands.
+### 4. Dashboard Integration (`dashboard_example.py`)
 
-### 3. MCP Server (Claude Desktop)
+**What it shows:** Web dashboard for monitoring
 
+**Run:**
 ```bash
-python mcp_example.py
+docker-compose up dashboard-bridge
 ```
 
-Starts an MCP server for Claude Desktop integration.
+---
 
-**Claude Desktop Config:**
-Add to your Claude Desktop configuration file to enable robot control.
+## Architecture
 
-### 4. Dashboard
-
-```bash
-python dashboard_example.py
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────┐
+│   AI Framework  │────▶│  Agent ROS Bridge│────▶│   Robot     │
+│  (LangChain/etc)│     │  (WebSocket/MQTT)│     │  (ROS1/ROS2)│
+└─────────────────┘     └──────────────────┘     └─────────────┘
 ```
 
-Starts the web dashboard on http://localhost:8080
+---
 
-## Common Setup
+## Troubleshooting
 
-All examples require:
+**"langchain not installed"**
+- The Docker image includes all dependencies
+- Run via docker-compose, not directly
 
-1. **JWT Secret:**
-   ```bash
-   export JWT_SECRET=$(openssl rand -base64 32)
-   ```
+**"OPENAI_API_KEY not set"**
+- Required for LangChain example
+- Get key from: https://platform.openai.com
 
-2. **Installed Package:**
-   ```bash
-   pip install agent-ros-bridge
-   ```
+---
 
-3. **ROS Environment** (for real robots):
-   ```bash
-   source /opt/ros/humble/setup.bash  # or jazzy
-   ```
-
-## Safety Features
-
-All examples include:
-- ✅ JWT authentication
-- ✅ Safety confirmation for dangerous actions
-- ✅ Emergency stop capability
-- ✅ Audit logging
-
-## Next Steps
-
-- Try the examples with simulated robots (Docker)
-- Integrate with your AI agent
-- Build custom tools using the Bridge API
+*Part of Agent ROS Bridge v0.5.1*

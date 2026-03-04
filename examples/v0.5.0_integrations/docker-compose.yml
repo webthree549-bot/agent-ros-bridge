@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  langchain-bridge:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "8766:8766"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./langchain_example.py:/app/example.py:ro
+    command: ["python3", "/app/example.py"]
+    networks:
+      - bridge-network
+
+networks:
+  bridge-network:
+    driver: bridge
