@@ -266,8 +266,6 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--tb=short",
-    "-x",  # Stop on first failure
-    "--ff",  # Run failed tests first
 ]
 markers = [
     "unit: Unit tests",
