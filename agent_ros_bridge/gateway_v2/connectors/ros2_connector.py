@@ -110,8 +110,8 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         if "/" in msg_type:
             pkg, msg = msg_type.split("/")
             module = importlib.import_module(f"{pkg}.msg")
-            result: Optional[Type] = getattr(module, msg)
-            return result
+            result2: Optional[Type] = getattr(module, msg)
+            return result2
     except (ImportError, AttributeError) as e:
         logger.debug(f"Dynamic import failed for {msg_type}: {e}")
 
@@ -497,7 +497,7 @@ class ROS2Connector(Connector):
         """Discover ROS2 systems on network."""
         await self._ensure_initialized()
 
-        endpoints = []
+        endpoints: List[RobotEndpoint] = []
 
         # Get all topics
         if self.node is None:
