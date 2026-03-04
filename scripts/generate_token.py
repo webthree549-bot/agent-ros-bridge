@@ -44,11 +44,9 @@ def main():
 
     if args.generate_secret:
         secret = secrets.token_urlsafe(32)
-        # SECURITY: Write secret to a file instead of stdout/stderr
-        # This prevents accidental logging of sensitive data
-        secret_file = ".jwt_secret"
-        secret_to_store = secret
+
         if args.encrypt_secret:
+            # Encrypt secret before writing to disk
             encryption_key = os.environ.get("JWT_SECRET_KEY")
             if not encryption_key:
                 print(
@@ -62,28 +60,37 @@ def main():
                 print(f"Error: Invalid JWT_SECRET_KEY for Fernet encryption: {e}")
                 sys.exit(1)
             secret_to_store = fernet.encrypt(secret.encode("utf-8")).decode("utf-8")
-        with open(secret_file, "w") as f:
-            f.write(secret_to_store)
-        os.chmod(secret_file, 0o600)  # Restrict permissions
 
-        print("=" * 60)
-        print("Generated JWT Secret")
-        print("=" * 60)
-        print(f"Secret saved to: {secret_file}")
-        print("(File permissions set to 0o600)")
-        if args.encrypt_secret:
+            # Write encrypted secret to file
+            secret_file = ".jwt_secret"
+            with open(secret_file, "w") as f:
+                f.write(secret_to_store)
+            os.chmod(secret_file, 0o600)  # Restrict permissions
+
+            print("=" * 60)
+            print("Generated JWT Secret (Encrypted)")
+            print("=" * 60)
+            print(f"Encrypted secret saved to: {secret_file}")
+            print("(File permissions set to 0o600)")
             print("\nNOTE: Secret is stored encrypted with key from JWT_SECRET_KEY.")
             print("To decrypt in your application, construct a Fernet instance with JWT_SECRET_KEY")
             print("and call fernet.decrypt(open('.jwt_secret', 'rb').read()).")
         else:
+            # Print secret to stdout without writing to disk
+            # This avoids clear-text storage of sensitive data
+            print("=" * 60)
+            print("Generated JWT Secret")
+            print("=" * 60)
+            print(f"\n{secret}\n")
+            print("=" * 60)
+            print("\nSECURITY NOTICE: This secret is NOT stored on disk.")
+            print("Copy it now and store it securely (e.g., in a password manager).")
             print("\nTo use the secret:")
-            print(f"  export JWT_SECRET=$(cat {secret_file})")
-            print("\nOr add to config/bridge.yaml:")
-            print("  transports:")
-            print("    websocket:")
-            print("      auth:")
-            print("        enabled: true")
-            print(f'        jwt_secret_file: "{secret_file}"')
+            print("  export JWT_SECRET=<copy-the-secret-above>")
+            print("\nOr add to your environment file or config/bridge.yaml:")
+            print("  jwt_secret: <copy-the-secret-above>")
+            print("\nTo generate an encrypted secret file instead, use:")
+            print("  python scripts/generate_token.py --generate-secret --encrypt-secret")
         return
 
     if not args.secret:
