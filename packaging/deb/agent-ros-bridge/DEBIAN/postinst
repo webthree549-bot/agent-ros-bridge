@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+echo "Setting up agent-ros-bridge..."
+
+# Create user
+echo "Creating bridge user..."
+useradd -r -s /bin/false bridge || true
+
+# Create directories
+echo "Creating directories..."
+mkdir -p /var/lib/agent-ros-bridge
+mkdir -p /var/log/agent-ros-bridge
+mkdir -p /etc/agent-ros-bridge
+
+# Set permissions
+chown -R bridge:bridge /var/lib/agent-ros-bridge
+chown -R bridge:bridge /var/log/agent-ros-bridge
+
+# Install Python package
+echo "Installing Python package..."
+cd /usr/share/agent-ros-bridge
+python3 -m pip install --no-cache-dir -e .
+
+# Enable and start service
+echo "Enabling service..."
+systemctl daemon-reload
+systemctl enable agent-ros-bridge
+
+echo "Setup complete!"
+echo ""
+echo "Start the service: sudo systemctl start agent-ros-bridge"
+echo "Check status: sudo systemctl status agent-ros-bridge"
+echo "View logs: sudo journalctl -u agent-ros-bridge -f"

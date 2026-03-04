@@ -1,0 +1,20 @@
+Package: agent-ros-bridge
+Version: 0.5.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: python3 (>= 3.10), python3-pip, python3-venv
+Recommends: redis-server, postgresql
+Maintainer: Agent ROS Bridge Team <team@agentrosbridge.io>
+Description: Universal interface for AI agents to control ROS robots
+ Agent ROS Bridge provides a natural language interface for controlling
+ ROS1 and ROS2 robots. It supports multiple AI frameworks including
+ OpenClaw, LangChain, AutoGPT, and MCP.
+ .
+ Features:
+  - Natural language robot control
+  - Multi-robot fleet management
+  - Context-aware conversations
+  - Safety and validation
+  - Autonomous behaviors
+Homepage: https://github.com/webthree549-bot/agent-ros-bridge

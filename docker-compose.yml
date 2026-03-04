@@ -1,66 +1,104 @@
 version: '3.8'
 
 services:
-  # ROS1 bridge (Noetic)
-  ros1-bridge:
+  # Agent ROS Bridge main service
+  bridge:
     build:
       context: .
-      dockerfile: docker/Dockerfile.ros1
-    image: agent-ros-bridge:ros1
-    container_name: agent-ros-bridge-ros1
-    profiles: ["ros1"]
+      dockerfile: Dockerfile
+      target: production
+    image: agentrosbridge/agent-ros-bridge:latest
+    container_name: agent-ros-bridge
+    restart: unless-stopped
     ports:
-      - "8765:8765"    # WebSocket
+      - "8765:8765"  # WebSocket
+      - "1883:1883"  # MQTT
       - "50051:50051"  # gRPC
     environment:
-      - ROS_MASTER_URI=http://ros-master:11311
-      - ROS_HOSTNAME=ros1-bridge
-    networks:
-      - ros-network
-
-  # ROS2 bridge (Jazzy)
-  ros2-bridge:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ros2
-    image: agent-ros-bridge:ros2
-    container_name: agent-ros-bridge-ros2
-    profiles: ["ros2"]
-    ports:
-      - "8767:8765"    # WebSocket (host:container)
-    environment:
-      - ROS_DOMAIN_ID=0
-      - ROS_LOCALHOST_ONLY=0
-    networks:
-      - ros-network
-
-  # ROS1 Master (required for ROS1)
-  ros-master:
-    image: ros:noetic-ros-core
-    container_name: ros-master
-    profiles: ["ros1"]
-    command: roscore
-    networks:
-      - ros-network
-
-  # Optional: TurtleBot4 simulator (ROS2)
-  turtlebot4-sim:
-    image: ros:jazzy-desktop
-    container_name: turtlebot4-sim
-    profiles: ["sim"]
-    environment:
-      - ROS_DOMAIN_ID=0
-      - DISPLAY=${DISPLAY:-:0}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///app/data/bridge.db}
+      - REDIS_URL=${REDIS_URL:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    command: >
-      bash -c "
-        source /opt/ros/jazzy/setup.bash &&
-        ros2 launch turtlebot4_gz_bringup turtlebot4_gz.launch.py
-      "
+      - bridge-data:/app/data
+      - ./config:/app/config:ro
     networks:
-      - ros-network
+      - bridge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL database (optional, for production)
+  postgres:
+    image: postgres:15-alpine
+    container_name: agent-ros-bridge-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=bridge
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bridge}
+      - POSTGRES_DB=bridge
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bridge-network
+    profiles:
+      - postgres
+
+  # Redis cache (optional, for production)
+  redis:
+    image: redis:7-alpine
+    container_name: agent-ros-bridge-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - bridge-network
+    profiles:
+      - redis
+
+  # Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agent-ros-bridge-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - bridge-network
+    profiles:
+      - monitoring
+
+  # Grafana dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agent-ros-bridge-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - bridge-network
+    profiles:
+      - monitoring
+
+volumes:
+  bridge-data:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
-  ros-network:
+  bridge-network:
     driver: bridge

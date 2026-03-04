@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Stop service
+systemctl stop agent-ros-bridge || true
+systemctl disable agent-ros-bridge || true
+
+echo "agent-ros-bridge removed."
+echo "Data in /var/lib/agent-ros-bridge preserved."
