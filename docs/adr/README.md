@@ -17,6 +17,7 @@ An Architecture Decision Record (ADR) captures an important architectural decisi
 | [0005](0005-ai-framework-integrations.md) | AI Framework Integration Strategy | Accepted | 2026-02 |
 | [0006](0006-tdd-workflow.md) | Test-Driven Development Workflow | Accepted | 2026-03 |
 | [0007](0007-code-quality-standards.md) | Code Quality and Linting Standards | Accepted | 2026-03 |
+| [0008](0008-openclaw-integration.md) | OpenClaw Integration Architecture | Accepted | 2026-03 |
 
 ## Status Definitions
 

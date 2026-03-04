@@ -6,6 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/agent-ros-bridge.svg)](https://pypi.org/project/agent-ros-bridge/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://pypi.org/project/agent-ros-bridge/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![OpenClaw](https://img.shields.io/badge/OpenClaw-Skill%20Ready-orange.svg)](https://clawhub.ai)
 
 ---
 
@@ -16,7 +17,7 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      AI AGENT LAYER                          │
-│   LangChain · AutoGPT · Claude (MCP) · Custom Agents        │
+│   LangChain · AutoGPT · Claude (MCP) · OpenClaw · Custom    │
 └──────────────────────────┬──────────────────────────────────┘
                            │  WebSocket / MQTT / gRPC
                            ▼
@@ -52,6 +53,7 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 | LangChain adapter | ✅ Working | `ROSBridgeTool`, `ROSAgent` |
 | MCP server (stdio) | ✅ Working | Claude Desktop integration |
 | AutoGPT adapter | ✅ Working | Command discovery & execution |
+| OpenClaw adapter | ✅ Working | ClawHub skill + extension support |
 | Web dashboard | ✅ Working | HTTP polling, emergency stop button |
 | Simulated robot | ✅ Working | No ROS needed — perfect for testing |
 | ROS2 connector | ✅ Working | Dynamic message types, publish/subscribe, discovery |
@@ -193,6 +195,45 @@ commands = adapter.get_commands()
 # Execute a command
 result = await adapter.execute_command("ros_navigate", target="zone_a")
 ```
+
+### With OpenClaw
+
+```python
+from agent_ros_bridge import Bridge
+
+bridge = Bridge()
+adapter = bridge.get_openclaw_adapter()
+
+# Get ClawHub skill path
+skill_path = adapter.get_skill_path()
+print(f"Skill location: {skill_path}")
+# Package for ClawHub: cd {skill_path} && python scripts/package_skill.py
+
+# Or use extension mode
+tools = adapter.get_tools()
+result = await adapter.execute_tool("ros2_publish", {
+    "topic": "/cmd_vel",
+    "message": {"linear": {"x": 0.5}}
+})
+```
+
+**Install via ClawHub:**
+```bash
+# When published to ClawHub
+npx clawhub@latest install agent-ros-bridge
+
+# Or manually package and install
+cd skills/agent-ros-bridge
+python scripts/package_skill.py
+# Upload dist/agent-ros-bridge.skill to ClawHub
+```
+
+**Natural language commands (via OpenClaw):**
+- `"Move forward 1 meter"` → publishes to `/cmd_vel`
+- `"Navigate to the kitchen"` → sends Nav2 goal
+- `"What do you see?"` → captures camera frame
+- `"Check the battery"` → reads `/battery_state`
+- `"Emergency stop"` → triggers safety e-stop
 
 ### Agent memory
 
@@ -368,7 +409,7 @@ agent-ros-bridge --version
 | [`examples/actions/`](examples/actions/) | ROS Actions (nav2, manipulation) | `./run.sh` |
 | [`examples/mqtt_iot/`](examples/mqtt_iot/) | MQTT IoT devices + bridge | `docker-compose up` |
 | [`examples/metrics/`](examples/metrics/) | Prometheus metrics + Grafana | `docker-compose up` |
-| [`examples/v0.5.0_integrations/`](examples/v0.5.0_integrations/) | LangChain, AutoGPT, MCP, Dashboard | `python <example>.py` |
+| [`examples/v0.5.0_integrations/`](examples/v0.5.0_integrations/) | LangChain, AutoGPT, MCP, OpenClaw, Dashboard | `python <example>.py` |
 
 ---
 
@@ -398,9 +439,10 @@ agent_ros_bridge/
 ├── integrations/            # AI agent integrations
 │   ├── memory.py            # AgentMemory — SQLite/Redis with TTL  ✅
 │   ├── safety.py            # SafetyManager — confirmation + e-stop ✅
-│   ├── discovery.py         # ToolDiscovery — MCP/OpenAI export    🔧
+│   ├── discovery.py         # ToolDiscovery — MCP/OpenAI export    ✅
 │   ├── langchain_adapter.py # ROSBridgeTool, ROSAgent               ✅
 │   ├── autogpt_adapter.py   # AutoGPT command adapter               ✅
+│   ├── openclaw_adapter.py  # OpenClaw/ClawHub integration          ✅
 │   ├── mcp_transport.py     # MCP stdio server                      ✅
 │   └── dashboard_server.py  # aiohttp web dashboard                 ✅
 │
@@ -410,8 +452,14 @@ agent_ros_bridge/
 ├── plugins/
 │   └── arm_robot.py         # UR / xArm / Franka arm plugin         🔧
 │
-└── actions/
-    └── __init__.py          # ROS Action client (ROS2 + simulated)  ✅
+├── actions/
+│   └── __init__.py          # ROS Action client (ROS2 + simulated)  ✅
+│
+└── skills/
+    └── agent-ros-bridge/    # OpenClaw/ClawHub skill                ✅
+        ├── SKILL.md         # Skill definition
+        ├── references/      # ROS1/ROS2 guides
+        └── scripts/         # Packaging script
 ```
 
 ---

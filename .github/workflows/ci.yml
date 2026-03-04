@@ -77,6 +77,10 @@ jobs:
           # Coverage threshold for core modules (excluding optional deps)
           pytest tests/unit tests/e2e --cov=agent_ros_bridge.gateway_v2.core --cov=agent_ros_bridge.gateway_v2.auth --cov=agent_ros_bridge.gateway_v2.config --cov-fail-under=80 || echo "Core coverage check (informational)"
 
+      - name: Test OpenClaw skill
+        run: |
+          pytest tests/skills/ -v
+
   docker:
     runs-on: ubuntu-latest
     steps:
@@ -147,5 +151,37 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  skill-release:
+    name: Release OpenClaw Skill
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Package OpenClaw skill
+        run: |
+          cd skills/agent-ros-bridge
+          python scripts/package_skill.py ../../dist
+
+      - name: Upload skill artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-skill
+          path: dist/*.skill
+
+      - name: Attach skill to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.skill
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

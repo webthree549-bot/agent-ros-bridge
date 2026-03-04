@@ -726,6 +726,38 @@ class Bridge:
 
         return DashboardServer(self, port=port)
 
+    def get_openclaw_adapter(self, include_ros1: bool = False):
+        """Get OpenClaw adapter for this bridge.
+
+        Provides integration with the OpenClaw AI agent framework through
+        ClawHub skills. The adapter provides:
+
+        1. Skill Mode: Access to ClawHub skill for OpenClaw agents
+        2. Extension Mode: Direct tool execution (optional)
+
+        Example:
+            adapter = bridge.get_openclaw_adapter()
+
+            # Get skill path for ClawHub
+            skill_path = adapter.get_skill_path()
+
+            # Or use extension mode
+            tools = adapter.get_tools()
+            result = await adapter.execute_tool("ros2_publish", {...})
+
+        Args:
+            include_ros1: Whether to include ROS1-specific tools.
+
+        Returns:
+            OpenClawAdapter instance.
+        """
+        if not INTEGRATIONS_AVAILABLE:
+            raise ImportError("Integrations not available")
+
+        from ..integrations.openclaw_adapter import OpenClawAdapter
+
+        return OpenClawAdapter(self, include_ros1=include_ros1)
+
     async def execute_action(self, action: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """Execute an action via the bridge (used by AI integrations).
 
