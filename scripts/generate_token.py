@@ -29,6 +29,14 @@ def main():
         action="store_true",
         help="Encrypt generated JWT secret at rest using key from JWT_SECRET_KEY env var",
     )
+    parser.add_argument(
+        "--print-secret",
+        action="store_true",
+        help=(
+            "Print generated secret to stdout. WARNING: stdout may be captured in logs; "
+            "use only in a secure, non-logged environment."
+        ),
+    )
     parser.add_argument("--user", default="admin", help="User ID for token (default: admin)")
     parser.add_argument("--roles", default="admin", help="Comma-separated roles (default: admin)")
     parser.add_argument(
@@ -76,19 +84,41 @@ def main():
             print("To decrypt in your application, construct a Fernet instance with JWT_SECRET_KEY")
             print("and call fernet.decrypt(open('.jwt_secret', 'rb').read()).")
         else:
-            # Print secret to stdout without writing to disk
-            # This avoids clear-text storage of sensitive data
+            # Optionally print secret to stdout without writing to disk.
+            # This avoids clear-text storage of sensitive data on disk; printing is
+            # disabled by default to reduce the risk of the secret ending up in logs.
             print("=" * 60)
             print("Generated JWT Secret")
             print("=" * 60)
-            print(f"\n{secret}\n")
-            print("=" * 60)
-            print("\nSECURITY NOTICE: This secret is NOT stored on disk.")
-            print("Copy it now and store it securely (e.g., in a password manager).")
+            if args.print_secret:
+                print(
+                    "\nWARNING: The secret will be written to a local file instead of "
+                    "being printed to stdout, to reduce the risk of it ending up in logs.\n"
+                )
+                secret_file = ".jwt_secret_plain"
+                with open(secret_file, "w") as f:
+                    f.write(secret)
+                os.chmod(secret_file, 0o600)
+                print(
+                    f"Secret written to: {secret_file} (permissions set to 0o600).\n"
+                )
+                print(
+                    "SECURITY NOTICE: Move this secret to a secure secret manager and "
+                    "delete the file as soon as possible."
+                )
+            else:
+                print(
+                    "\nThe generated secret has NOT been printed to stdout to avoid "
+                    "exposure in logs."
+                )
+                print(
+                    "If you are in a secure, non-logged environment and want to see "
+                    "the secret, re-run this command with --print-secret."
+                )
             print("\nTo use the secret:")
-            print("  export JWT_SECRET=<copy-the-secret-above>")
+            print("  export JWT_SECRET=<copy-the-secret-value>")
             print("\nOr add to your environment file or config/bridge.yaml:")
-            print("  jwt_secret: <copy-the-secret-above>")
+            print("  jwt_secret: <copy-the-secret-value>")
             print("\nTo generate an encrypted secret file instead, use:")
             print("  python scripts/generate_token.py --generate-secret --encrypt-secret")
         return
