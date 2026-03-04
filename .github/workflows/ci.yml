@@ -42,9 +42,25 @@ jobs:
         run: black --check .
 
       - name: Type check with MyPy
-        run: mypy agent_ros_bridge
-        # Note: 25 known type errors exist (see docs/MYPY_KNOWN_ISSUES.md)
-        # New code should not introduce additional errors
+        run: |
+          # Run mypy and capture output
+          OUTPUT=$(mypy agent_ros_bridge 2>&1) || true
+          echo "$OUTPUT"
+          
+          # Count errors
+          ERROR_COUNT=$(echo "$OUTPUT" | grep -c "error:" || echo "0")
+          echo "MyPy found $ERROR_COUNT errors"
+          
+          # Allow the 25 known errors, fail on new ones
+          if [ "$ERROR_COUNT" -gt 25 ]; then
+            echo "❌ MyPy found $ERROR_COUNT errors (max allowed: 25)"
+            echo "See docs/MYPY_KNOWN_ISSUES.md for details"
+            exit 1
+          elif [ "$ERROR_COUNT" -lt 25 ]; then
+            echo "✅ MyPy errors reduced! Update docs/MYPY_KNOWN_ISSUES.md"
+          else
+            echo "✅ MyPy passed (25 known errors, no new issues)"
+          fi
 
       - name: Test with pytest
         run: pytest tests/unit tests/e2e --cov=agent_ros_bridge --cov-report=xml
