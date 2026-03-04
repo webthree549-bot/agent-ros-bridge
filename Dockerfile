@@ -1,29 +1,68 @@
-# Agent ROS Bridge — Production image
-# This is a thin wrapper that delegates to docker/Dockerfile
-# For CI compatibility: docker build -t agent-ros-bridge .
+# Multi-stage Dockerfile for production
+FROM python:3.11-slim as builder
 
-FROM ros:jazzy-ros-base
-
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-pip \
-    python3-venv \
+    gcc \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY requirements.txt requirements-dev.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+
+# Production stage
+FROM python:3.11-slim as production
+
+# Create non-root user
+RUN groupadd -r bridge && useradd -r -g bridge bridge
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=bridge:bridge agent_ros_bridge/ ./agent_ros_bridge/
+COPY --chown=bridge:bridge skills/ ./skills/
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Switch to non-root user
+USER bridge
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8765/health')" || exit 1
+
+# Expose ports
+EXPOSE 8765 50051
+
+# Run application
+CMD ["python", "-m", "agent_ros_bridge.gateway_v2.core"]
+
+# Development stage
+FROM builder as development
+
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
+# Mount source code as volume for hot reload
+VOLUME ["/app"]
 
-COPY . .
-RUN pip3 install --break-system-packages --no-cache-dir -e .
-
-# Source ROS2 on bash login (non-interactive shells use ENV)
-ENV ROS_DISTRO=jazzy
-RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc
-
-ENV PYTHONUNBUFFERED=1
-EXPOSE 8765 50051
-
-# Use the new module entry point
-ENTRYPOINT ["python3", "-m", "agent_ros_bridge"]
-CMD []
+CMD ["python", "-m", "pytest", "-v", "--watch"]
