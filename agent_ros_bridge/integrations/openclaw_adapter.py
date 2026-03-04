@@ -626,12 +626,18 @@ class OpenClawAdapter:
         natural language commands.
         """
         from .nl_interpreter import RuleBasedInterpreter
+        from .context import ContextManager, ContextAwareNLInterpreter
         
         self.nl_interpreter = RuleBasedInterpreter()
-        logger.info("Natural language support enabled")
+        self.context_manager = ContextManager()
+        self.contextual_interpreter = ContextAwareNLInterpreter(
+            self.nl_interpreter, 
+            self.context_manager
+        )
+        logger.info("Natural language support enabled with context awareness")
 
     async def execute_nl(self, nl_command: str, session_id: str = "default") -> Dict[str, Any]:
-        """Execute natural language command.
+        """Execute natural language command with context awareness.
         
         This method fulfills the SKILL promise of natural language control.
         
@@ -650,18 +656,18 @@ class OpenClawAdapter:
                 "result": {"success": True, ...}
             }
             
-            >>> await adapter.execute_nl("Turn left 90 degrees")
+            >>> await adapter.execute_nl("Go to kitchen")
             {
-                "command": "Turn left 90 degrees",
-                "interpreted_as": {"tool": "ros2_publish", "topic": "/cmd_vel", ...},
+                "command": "Go to kitchen",
+                "interpreted_as": {"tool": "ros2_action_goal", "location": "kitchen", ...},
                 "result": {"success": True, ...}
             }
         """
-        if not hasattr(self, 'nl_interpreter'):
+        if not hasattr(self, 'contextual_interpreter'):
             self.enable_natural_language()
         
-        # Interpret the natural language command
-        interpretation = self.nl_interpreter.interpret(nl_command, context=None)
+        # Interpret with context awareness
+        interpretation = self.contextual_interpreter.interpret(nl_command, session_id)
         
         if "error" in interpretation:
             return {
@@ -674,10 +680,23 @@ class OpenClawAdapter:
         # Extract tool and parameters
         tool_name = interpretation.get("tool")
         params = {k: v for k, v in interpretation.items() 
-                  if k not in ["tool", "explanation", "note"]}
+                  if k not in ["tool", "explanation", "note", "location_name"]}
         
         # Execute the interpreted command
         result = await self.execute_tool(tool_name, params)
+        
+        # Log to context
+        self.context_manager.log_interaction(
+            session_id, nl_command, interpretation, result
+        )
+        
+        # Update context if navigation succeeded
+        if tool_name == "ros2_action_goal" and result.get("success"):
+            location = interpretation.get("location_name")
+            if location:
+                ctx = self.context_manager.get_context(session_id)
+                ctx.current_location = location
+                self.context_manager.save_context(ctx)
         
         return {
             "success": result.get("success", False),
@@ -690,3 +709,38 @@ class OpenClawAdapter:
             },
             "result": result
         }
+    
+    def learn_location(self, session_id: str, name: str, coordinates: Dict[str, float]):
+        """Teach the robot a named location.
+        
+        This enables commands like "Go to kitchen" after learning.
+        
+        Args:
+            session_id: Session identifier
+            name: Location name (e.g., "kitchen", "charging station")
+            coordinates: Dict with x, y coordinates
+            
+        Example:
+            >>> adapter.learn_location("session1", "kitchen", {"x": 5.0, "y": 3.0})
+            >>> # Now "Go to kitchen" will navigate to these coordinates
+        """
+        if not hasattr(self, 'context_manager'):
+            self.enable_natural_language()
+        
+        self.context_manager.learn_location(session_id, name, coordinates)
+        logger.info(f"Learned location '{name}' for session {session_id}")
+    
+    def get_conversation_history(self, session_id: str, n: int = 5) -> List[Dict]:
+        """Get recent conversation history.
+        
+        Args:
+            session_id: Session identifier
+            n: Number of interactions to retrieve
+            
+        Returns:
+            List of recent commands and responses
+        """
+        if not hasattr(self, 'context_manager'):
+            self.enable_natural_language()
+        
+        return self.context_manager.get_last_n_commands(session_id, n)
