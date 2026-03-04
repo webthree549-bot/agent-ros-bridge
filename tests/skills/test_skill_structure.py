@@ -304,14 +304,16 @@ class TestScriptsStructure(unittest.TestCase):
 
     def test_scripts_are_executable(self):
         """Test that scripts are valid Python/shell scripts."""
+        import ast
+        
         if not self.scripts_dir.exists():
             self.skipTest("No scripts directory")
         
         for script_file in self.scripts_dir.iterdir():
             if script_file.is_file() and script_file.suffix == '.py':
-                # Try to parse as Python
+                # Try to parse as Python using AST (safer than compile)
                 try:
-                    compile(script_file.read_text(), script_file.name, 'exec')
+                    ast.parse(script_file.read_text())
                 except SyntaxError as e:
                     self.fail(f"Script {script_file.name} has syntax error: {e}")
 

@@ -24,8 +24,10 @@ class TestPackagingScript(unittest.TestCase):
 
     def test_package_script_is_valid_python(self):
         """Test that packaging script is valid Python."""
+        import ast
+        
         try:
-            compile(PACKAGE_SCRIPT.read_text(), PACKAGE_SCRIPT.name, 'exec')
+            ast.parse(PACKAGE_SCRIPT.read_text())
         except SyntaxError as e:
             self.fail(f"Package script has syntax error: {e}")
 
