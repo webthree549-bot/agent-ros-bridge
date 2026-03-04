@@ -92,19 +92,14 @@ def main():
             print("=" * 60)
             if args.print_secret:
                 print(
-                    "\nWARNING: The secret will be written to a local file instead of "
-                    "being printed to stdout, to reduce the risk of it ending up in logs.\n"
+                    "\nWARNING: The secret will be printed to stdout. Ensure your terminal "
+                    "output is not being logged or captured before proceeding.\n"
                 )
-                secret_file = ".jwt_secret_plain"
-                with open(secret_file, "w") as f:
-                    f.write(secret)
-                os.chmod(secret_file, 0o600)
+                print("JWT Secret (handle securely):")
+                print(secret)
                 print(
-                    f"Secret written to: {secret_file} (permissions set to 0o600).\n"
-                )
-                print(
-                    "SECURITY NOTICE: Move this secret to a secure secret manager and "
-                    "delete the file as soon as possible."
+                    "\nSECURITY NOTICE: Store this secret in a secure secret manager and "
+                    "avoid keeping it in shell history, logs, or other persistent storage."
                 )
             else:
                 print(
