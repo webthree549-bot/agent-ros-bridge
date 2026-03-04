@@ -614,3 +614,79 @@ class OpenClawAdapter:
             })
         
         return rosclaw_tools
+
+    # ===================================================================
+    # Natural Language Support (NEW)
+    # ===================================================================
+
+    def enable_natural_language(self):
+        """Enable natural language interpretation.
+        
+        This adds NL support to fulfill SKILL promises about
+        natural language commands.
+        """
+        from .nl_interpreter import RuleBasedInterpreter
+        
+        self.nl_interpreter = RuleBasedInterpreter()
+        logger.info("Natural language support enabled")
+
+    async def execute_nl(self, nl_command: str, session_id: str = "default") -> Dict[str, Any]:
+        """Execute natural language command.
+        
+        This method fulfills the SKILL promise of natural language control.
+        
+        Args:
+            nl_command: Natural language command (e.g., "Move forward 2 meters")
+            session_id: Session ID for context tracking
+            
+        Returns:
+            Execution result with interpretation details
+            
+        Examples:
+            >>> await adapter.execute_nl("Move forward 2 meters")
+            {
+                "command": "Move forward 2 meters",
+                "interpreted_as": {"tool": "ros2_publish", "topic": "/cmd_vel", ...},
+                "result": {"success": True, ...}
+            }
+            
+            >>> await adapter.execute_nl("Turn left 90 degrees")
+            {
+                "command": "Turn left 90 degrees",
+                "interpreted_as": {"tool": "ros2_publish", "topic": "/cmd_vel", ...},
+                "result": {"success": True, ...}
+            }
+        """
+        if not hasattr(self, 'nl_interpreter'):
+            self.enable_natural_language()
+        
+        # Interpret the natural language command
+        interpretation = self.nl_interpreter.interpret(nl_command, context=None)
+        
+        if "error" in interpretation:
+            return {
+                "success": False,
+                "command": nl_command,
+                "error": interpretation["error"],
+                "suggestion": interpretation.get("suggestion", "")
+            }
+        
+        # Extract tool and parameters
+        tool_name = interpretation.get("tool")
+        params = {k: v for k, v in interpretation.items() 
+                  if k not in ["tool", "explanation", "note"]}
+        
+        # Execute the interpreted command
+        result = await self.execute_tool(tool_name, params)
+        
+        return {
+            "success": result.get("success", False),
+            "command": nl_command,
+            "interpretation": {
+                "tool": tool_name,
+                "parameters": params,
+                "explanation": interpretation.get("explanation", ""),
+                "note": interpretation.get("note", "")
+            },
+            "result": result
+        }

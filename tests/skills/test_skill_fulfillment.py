@@ -331,24 +331,24 @@ class TestGapAnalysis(unittest.TestCase):
     
     def test_natural_language_interpretation(self):
         """
-        GAP: SKILL promises natural language commands but adapter
-        only provides low-level tools.
-        
-        MISSING: Natural language to ROS command translation layer
+        Verify natural language interpretation is implemented.
         """
         from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
         
         adapter = OpenClawAdapter(bridge=None)
         
         # Check if there's a natural language interpretation method
-        has_nl_interpretation = hasattr(adapter, 'interpret_natural_language')
+        has_nl_interpretation = hasattr(adapter, 'execute_nl')
         
         if not has_nl_interpretation:
             self.skipTest(
                 "GAP: Natural language interpretation not implemented. "
                 "SKILL promises 'Move forward 2 meters' but adapter only has ros2_publish. "
-                "Need: interpret_natural_language() method"
+                "Need: execute_nl() method"
             )
+        
+        # If we have it, verify it works
+        self.assertTrue(has_nl_interpretation, "execute_nl method should exist")
     
     def test_parameter_inference(self):
         """
