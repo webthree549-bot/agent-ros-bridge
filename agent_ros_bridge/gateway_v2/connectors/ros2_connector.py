@@ -99,7 +99,8 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         module_name, class_name = MESSAGE_TYPE_REGISTRY[msg_type]
         try:
             module = importlib.import_module(module_name)
-            return getattr(module, class_name)
+            result: Optional[Type] = getattr(module, class_name)
+            return result
         except (ImportError, AttributeError) as e:
             logger.debug(f"Could not import {msg_type}: {e}")
             return None
@@ -109,7 +110,8 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         if "/" in msg_type:
             pkg, msg = msg_type.split("/")
             module = importlib.import_module(f"{pkg}.msg")
-            return getattr(module, msg)
+            result: Optional[Type] = getattr(module, msg)
+            return result
     except (ImportError, AttributeError) as e:
         logger.debug(f"Dynamic import failed for {msg_type}: {e}")
 
@@ -179,9 +181,10 @@ class ROS2Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS2 command: {action}")
 
-    async def subscribe(  # noqa: E501
-        self, topic: str, msg_type: Optional[str] = None
+    async def subscribe(
+        self, topic: str, **kwargs: Any
     ) -> AsyncIterator[Telemetry]:
+        msg_type: Optional[str] = kwargs.get("msg_type")
         """Subscribe to ROS2 topic.
 
         Args:
@@ -243,7 +246,8 @@ class ROS2Robot(Robot):
             topic_names_and_types = self.ros_node.get_topic_names_and_types()
             for name, types in topic_names_and_types:
                 if name == topic and types:
-                    return types[0]  # Return first type
+                    result: Optional[str] = types[0]  # Return first type
+                    return result
         except Exception as e:
             logger.debug(f"Could not get topic type for {topic}: {e}")
         return None
@@ -294,7 +298,8 @@ class ROS2Robot(Robot):
 
             # Create and populate message
             msg = msg_class()
-            self._dict_to_ros_msg(message_data, msg)
+            if message_data is not None:
+                self._dict_to_ros_msg(message_data, msg)
 
             self.publishers[topic].publish(msg)
             logger.debug(f"Published to {topic}: {str(message_data)[:100]}...")
@@ -333,11 +338,14 @@ class ROS2Robot(Robot):
 
     def _cmd_get_nodes(self) -> List[str]:
         """Get list of ROS2 nodes."""
-        return self.ros_node.get_node_names()
+        if self.ros_node is None:
+            return []
+        result: List[str] = self.ros_node.get_node_names()
+        return result
 
-    def _ros_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _ros_msg_to_dict(self, msg: Any) -> Dict[str, Any]:
         """Convert ROS message to dictionary."""
-        result = {"_type": type(msg).__name__}
+        result: Dict[str, Any] = {"_type": type(msg).__name__}
 
         # Try to extract fields using get_fields_and_field_types() if available
         fields = None
@@ -492,6 +500,8 @@ class ROS2Connector(Connector):
         endpoints = []
 
         # Get all topics
+        if self.node is None:
+            return endpoints
         topics = self.node.get_topic_names_and_types()
 
         # Group by namespace to find robots

@@ -111,7 +111,8 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         module_name, class_name = MESSAGE_TYPE_REGISTRY[msg_type]
         try:
             module = importlib.import_module(module_name)
-            return getattr(module, class_name)
+            result: Optional[Type] = getattr(module, class_name)
+            return result
         except (ImportError, AttributeError) as e:
             logger.debug(f"Could not import {msg_type}: {e}")
             return None
@@ -121,7 +122,8 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         if "/" in msg_type:
             pkg, msg = msg_type.split("/")
             module = importlib.import_module(f"{pkg}.msg")
-            return getattr(module, msg)
+            result: Optional[Type] = getattr(module, msg)
+            return result
     except (ImportError, AttributeError) as e:
         logger.debug(f"Dynamic import failed for {msg_type}: {e}")
 
@@ -230,7 +232,7 @@ class ROS1Robot(Robot):
             raise ValueError(f"Unknown ROS1 command: {action}")
 
     async def subscribe(
-        self, topic: str, msg_type: Optional[str] = None
+        self, topic: str, **kwargs: Any
     ) -> AsyncIterator[Telemetry]:
         """Subscribe to ROS1 topic.
 
@@ -239,6 +241,7 @@ class ROS1Robot(Robot):
             msg_type: Optional message type (e.g., "geometry_msgs/Twist").
                      If not provided, will try to auto-detect from topic info.
         """
+        msg_type: Optional[str] = kwargs.get("msg_type")
         if topic in self.subscribers:
             logger.warning(f"Already subscribed to {topic}")
             # Still yield from queue for existing subscription
@@ -292,7 +295,8 @@ class ROS1Robot(Robot):
             topics = rospy.get_published_topics()
             for name, msg_type in topics:
                 if name == topic:
-                    return msg_type
+                    result: Optional[str] = msg_type
+                    return result
         except Exception as e:
             logger.debug(f"Could not get topic type for {topic}: {e}")
         return None
@@ -361,6 +365,11 @@ class ROS1Robot(Robot):
             rospy.wait_for_service(service_name, timeout=5.0)
 
             # Get service type from system state
+            if service_name is None:
+                return {
+                    "status": "error",
+                    "message": "Service name is required",
+                }
             service_type = self._get_service_type(service_name)
             if service_type is None:
                 return {
@@ -381,7 +390,8 @@ class ROS1Robot(Robot):
 
             # Create service proxy
             proxy = rospy.ServiceProxy(service_name, srv_class)
-            self.service_proxies[service_name] = proxy
+            if service_name is not None:
+                self.service_proxies[service_name] = proxy
 
             # Build request
             request = srv_class._request_class()
@@ -472,7 +482,8 @@ class ROS1Robot(Robot):
             master = rosgraph.Master(self._node_name or "agent_ros_bridge")
             code, _, nodes = master.getNodeNames()
             if code == 1:
-                return nodes
+                result: List[str] = nodes
+                return result
             return []
         except Exception as e:
             logger.error(f"Failed to get nodes: {e}")
@@ -521,9 +532,9 @@ class ROS1Robot(Robot):
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def _ros_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _ros_msg_to_dict(self, msg: Any) -> Dict[str, Any]:
         """Convert ROS message to dictionary."""
-        result = {"_type": type(msg).__name__}
+        result: Dict[str, Any] = {"_type": type(msg).__name__}
 
         # ROS1 messages use __slots__
         if hasattr(msg, "__slots__"):

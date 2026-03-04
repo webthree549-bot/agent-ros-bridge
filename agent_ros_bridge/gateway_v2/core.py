@@ -153,7 +153,7 @@ class Transport(ABC):
         """Broadcast to all connected clients."""
         pass
 
-    def on_message(self, handler: Callable[[Message, Identity], asyncio.Future]):
+    def on_message(self, handler: Callable[[Message, Identity], Any]):
         """Register message handler."""
         self.message_handler = handler
 
@@ -164,7 +164,7 @@ class TransportManager:
     def __init__(self):
         """Initialize transport manager with empty transport registry."""
         self.transports: dict[str, Transport] = {}
-        self._message_handler: Callable | None = None
+        self._message_handler: Callable[[Message, Identity], Any] | None = None
 
     def register(self, transport: Transport) -> None:
         """Register a transport."""
@@ -177,7 +177,7 @@ class TransportManager:
         if self._message_handler:
             asyncio.ensure_future(self._message_handler(message, identity))
 
-    def on_message(self, handler: Callable[[Message, Identity], asyncio.Future]):
+    def on_message(self, handler: Callable[[Message, Identity], Any]):
         """Set global message handler."""
         self._message_handler = handler
 
