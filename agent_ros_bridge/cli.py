@@ -84,7 +84,7 @@ def main():
     skill_parser.add_argument("--validate", type=str, help="Validate skill structure")
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Check bridge status")
+    subparsers.add_parser("status", help="Check bridge status")
 
     args = parser.parse_args()
 
@@ -167,12 +167,12 @@ transports:
     enabled: true
     port: 8765
     host: "0.0.0.0"
-  
+
   mqtt:
     enabled: true
     port: 1883
     host: "0.0.0.0"
-  
+
   grpc:
     enabled: true
     port: 50051

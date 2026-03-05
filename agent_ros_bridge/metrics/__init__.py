@@ -22,13 +22,11 @@ Usage:
     metrics.record_task_completed(duration=5.2)
 """
 
-import asyncio
 import logging
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any
 
 try:
     from prometheus_client import (

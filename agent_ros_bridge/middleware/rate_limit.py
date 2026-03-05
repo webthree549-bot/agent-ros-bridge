@@ -182,7 +182,7 @@ def rate_limit(
             allowed = await limiter.is_allowed(key, config)
 
             if not allowed:
-                raise RateLimitExceeded(
+                raise RateLimitExceededError(
                     f"Rate limit exceeded. Try again in {config.cooldown_seconds}s."
                 )
 
@@ -193,7 +193,7 @@ def rate_limit(
     return decorator
 
 
-class RateLimitExceeded(Exception):
+class RateLimitExceededError(Exception):
     """Exception raised when rate limit is exceeded."""
 
     pass

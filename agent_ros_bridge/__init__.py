@@ -46,7 +46,7 @@ from agent_ros_bridge.gateway_v2.core import (  # noqa: F401
 
 # Fleet management
 try:
-    from agent_ros_bridge.fleet import (
+    from agent_ros_bridge.fleet import (  # noqa: F401
         FleetMetrics,
         FleetOrchestrator,
         FleetRobot,
