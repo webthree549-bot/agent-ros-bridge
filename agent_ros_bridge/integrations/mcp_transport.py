@@ -3,7 +3,6 @@
 import asyncio
 import json
 import logging
-from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ class MCPServerTransport:
         """
         self.bridge = bridge
         self.mode = mode  # "stdio" or "sse"
-        self.tools: List[Dict] = []
+        self.tools: list[dict] = []
         self.running = False
         logger.info(f"MCPServerTransport initialized (mode: {mode})")
 
@@ -95,7 +94,7 @@ class MCPServerTransport:
         # This would require an HTTP server
         logger.info("SSE mode not yet implemented")
 
-    async def _handle_message(self, message: Dict) -> Optional[Dict]:
+    async def _handle_message(self, message: dict) -> dict | None:
         """Handle incoming MCP message."""
         method = message.get("method")
         msg_id = message.get("id")
@@ -124,7 +123,7 @@ class MCPServerTransport:
 
         return None
 
-    async def _execute_tool(self, tool_name: str, arguments: Dict) -> Dict:
+    async def _execute_tool(self, tool_name: str, arguments: dict) -> dict:
         """Execute a tool via bridge."""
         try:
             if not self.bridge:
@@ -145,7 +144,7 @@ class MCPServerTransport:
         except Exception as e:
             return {"content": [{"type": "text", "text": str(e)}], "isError": True}
 
-    async def _send_message(self, message: Dict):
+    async def _send_message(self, message: dict):
         """Send message to client."""
         print(json.dumps(message), flush=True)
 

@@ -17,11 +17,12 @@ import asyncio
 import logging
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, AsyncIterator, Callable, Dict
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -360,7 +361,7 @@ class RobotFleet:
                     robot.execute(command), timeout=command.timeout_ms / 1000
                 )
                 return robot.robot_id, {"status": "success", "result": result}
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return robot.robot_id, {"status": "timeout"}
             except Exception as e:
                 return robot.robot_id, {"status": "error", "error": str(e)}
@@ -783,7 +784,7 @@ class Bridge:
         response = await self._handle_core_command(msg, identity)
 
         if response and response.telemetry:
-            data: Dict[str, Any] = response.telemetry.data
+            data: dict[str, Any] = response.telemetry.data
             return data
 
         return {"status": "error", "message": "No response from bridge"}

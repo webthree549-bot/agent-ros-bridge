@@ -17,10 +17,11 @@ import contextlib
 import logging
 import uuid
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger("fleet.orchestrator")
 
@@ -57,7 +58,7 @@ class RobotCapability:
     max_speed_ms: float = 1.0
     battery_hours: float = 4.0
     ros_version: str = "ros2"  # ros1, ros2
-    special_skills: Set[str] = field(default_factory=set)
+    special_skills: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -67,20 +68,20 @@ class Task:
     id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     type: str = "navigate"  # navigate, manipulate, transport, charge
     priority: int = 5  # 1-10, lower = higher priority
-    target_location: Optional[str] = None
+    target_location: str | None = None
     payload_kg: float = 0.0
     required_capabilities: RobotCapability = field(default_factory=RobotCapability)
-    deadline: Optional[datetime] = None
-    dependencies: List[str] = field(default_factory=list)  # Task IDs that must complete first
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    deadline: datetime | None = None
+    dependencies: list[str] = field(default_factory=list)  # Task IDs that must complete first
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Runtime fields
     status: TaskStatus = TaskStatus.PENDING
-    assigned_robot: Optional[str] = None
+    assigned_robot: str | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
 
 
 @dataclass
@@ -91,8 +92,8 @@ class FleetRobot:
     name: str
     capabilities: RobotCapability
     status: RobotStatus = RobotStatus.IDLE
-    current_task: Optional[str] = None
-    current_location: Optional[str] = None
+    current_task: str | None = None
+    current_location: str | None = None
     battery_percent: float = 100.0
     total_tasks_completed: int = 0
     ros_endpoint: str = "localhost"  # For multi-ROS
@@ -122,17 +123,17 @@ class FleetOrchestrator:
 
     def __init__(self):
         """Initialize fleet orchestrator with empty robot and task registries."""
-        self.robots: Dict[str, FleetRobot] = {}
-        self.tasks: Dict[str, Task] = {}
-        self.task_queue: List[Task] = []  # Priority queue
+        self.robots: dict[str, FleetRobot] = {}
+        self.tasks: dict[str, Task] = {}
+        self.task_queue: list[Task] = []  # Priority queue
         self.running = False
-        self._allocation_loop_task: Optional[asyncio.Task] = None
+        self._allocation_loop_task: asyncio.Task | None = None
 
         # Callbacks
-        self.on_task_assigned: Optional[Callable[[Task, FleetRobot], None]] = None
-        self.on_task_completed: Optional[Callable[[Task, FleetRobot], None]] = None
-        self.on_task_failed: Optional[Callable[[Task, str], None]] = None
-        self.on_robot_status_changed: Optional[Callable[[FleetRobot], None]] = None
+        self.on_task_assigned: Callable[[Task, FleetRobot], None] | None = None
+        self.on_task_completed: Callable[[Task, FleetRobot], None] | None = None
+        self.on_task_failed: Callable[[Task, str], None] | None = None
+        self.on_robot_status_changed: Callable[[FleetRobot], None] | None = None
 
     async def start(self):
         """Start the orchestrator."""
@@ -222,8 +223,8 @@ class FleetOrchestrator:
         self,
         robot_id: str,
         status: RobotStatus,
-        location: Optional[str] = None,
-        battery: Optional[float] = None,
+        location: str | None = None,
+        battery: float | None = None,
     ):
         """Update robot status from external monitor."""
         if robot_id not in self.robots:
@@ -247,7 +248,7 @@ class FleetOrchestrator:
             asyncio.create_task(self._allocate_tasks())
 
     async def report_task_progress(
-        self, task_id: str, progress_percent: float, message: Optional[str] = None
+        self, task_id: str, progress_percent: float, message: str | None = None
     ):
         """Report task progress from robot."""
         if task_id not in self.tasks:
@@ -260,9 +261,7 @@ class FleetOrchestrator:
 
         logger.debug(f"Task {task_id} progress: {progress_percent}%")
 
-    async def complete_task(
-        self, task_id: str, success: bool = True, result: Optional[Dict] = None
-    ):
+    async def complete_task(self, task_id: str, success: bool = True, result: dict | None = None):
         """Mark task as completed or failed."""
         if task_id not in self.tasks:
             return
@@ -324,7 +323,7 @@ class FleetOrchestrator:
 
         return metrics
 
-    def get_fleet_status(self) -> Dict[str, Any]:
+    def get_fleet_status(self) -> dict[str, Any]:
         """Get complete fleet status for dashboard."""
         return {
             "robots": [
@@ -399,7 +398,7 @@ class FleetOrchestrator:
                 await self._assign_task_to_robot(task, robot)
                 self.task_queue.remove(task)
 
-    def _select_robot_for_task(self, task: Task) -> Optional[FleetRobot]:
+    def _select_robot_for_task(self, task: Task) -> FleetRobot | None:
         """Select best robot for a task based on capabilities and availability."""
         candidates = []
 

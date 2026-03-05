@@ -1,8 +1,8 @@
 """Dashboard Server - Real-time web UI for monitoring."""
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 try:
     from aiohttp import web
@@ -45,8 +45,8 @@ class DashboardServer:
         """
         self.bridge = bridge
         self.port = port
-        self.app: Optional[ApplicationType] = None
-        self.runner: Optional[AppRunnerType] = None
+        self.app: ApplicationType | None = None
+        self.runner: AppRunnerType | None = None
 
         if not AIOHTTP_AVAILABLE:
             logger.warning("aiohttp not available, dashboard disabled")
@@ -163,7 +163,7 @@ class DashboardServer:
         b = self.bridge
         status = {
             "status": "running" if (b and b.running) else "stopped",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "transports": list(b.transport_manager.transports.keys()) if b else [],
             "fleets": list(b.fleets.keys()) if b else [],
         }
@@ -172,7 +172,7 @@ class DashboardServer:
     async def _handle_metrics(self, _request):
         """API: Get runtime metrics."""
         b = self.bridge
-        metrics: Dict[str, Any] = {}
+        metrics: dict[str, Any] = {}
         if b:
             metrics = {
                 "running": b.running,

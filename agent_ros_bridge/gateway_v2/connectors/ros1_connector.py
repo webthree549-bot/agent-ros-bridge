@@ -8,9 +8,10 @@ to the OpenClaw unified message format.
 import asyncio
 import importlib
 import logging
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, AsyncIterator, Dict, List, Optional, Type
+from typing import Any
 
 try:
     import rospy
@@ -98,7 +99,7 @@ MESSAGE_TYPE_REGISTRY = {
 }
 
 
-def get_message_class(msg_type: str) -> Optional[Type]:
+def get_message_class(msg_type: str) -> type | None:
     """Dynamically import and return a ROS1 message class.
 
     Args:
@@ -111,7 +112,7 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         module_name, class_name = MESSAGE_TYPE_REGISTRY[msg_type]
         try:
             module = importlib.import_module(module_name)
-            result: Optional[Type] = getattr(module, class_name)
+            result: type | None = getattr(module, class_name)
             return result
         except (ImportError, AttributeError) as e:
             logger.debug(f"Could not import {msg_type}: {e}")
@@ -122,7 +123,7 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         if "/" in msg_type:
             pkg, msg = msg_type.split("/")
             module = importlib.import_module(f"{pkg}.msg")
-            result2: Optional[Type] = getattr(module, msg)
+            result2: type | None = getattr(module, msg)
             return result2
     except (ImportError, AttributeError) as e:
         logger.debug(f"Dynamic import failed for {msg_type}: {e}")
@@ -166,11 +167,11 @@ class ROS1Robot(Robot):
         """
         super().__init__(robot_id, name, "ros1")
         self.robot_type = "ros1"  # Compatibility alias
-        self.subscribers: Dict[str, Any] = {}
-        self.publishers: Dict[str, Any] = {}
-        self.service_proxies: Dict[str, Any] = {}
+        self.subscribers: dict[str, Any] = {}
+        self.publishers: dict[str, Any] = {}
+        self.service_proxies: dict[str, Any] = {}
         self._telemetry_queue: asyncio.Queue = asyncio.Queue()
-        self._node_name: Optional[str] = None
+        self._node_name: str | None = None
 
     async def connect(self) -> bool:
         """Initialize ROS1 node."""
@@ -231,9 +232,7 @@ class ROS1Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS1 command: {action}")
 
-    async def subscribe(
-        self, topic: str, **kwargs: Any
-    ) -> AsyncIterator[Telemetry]:
+    async def subscribe(self, topic: str, **kwargs: Any) -> AsyncIterator[Telemetry]:
         """Subscribe to ROS1 topic.
 
         Args:
@@ -241,7 +240,7 @@ class ROS1Robot(Robot):
             msg_type: Optional message type (e.g., "geometry_msgs/Twist").
                      If not provided, will try to auto-detect from topic info.
         """
-        msg_type: Optional[str] = kwargs.get("msg_type")
+        msg_type: str | None = kwargs.get("msg_type")
         if topic in self.subscribers:
             logger.warning(f"Already subscribed to {topic}")
             # Still yield from queue for existing subscription
@@ -250,7 +249,7 @@ class ROS1Robot(Robot):
                     telemetry = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
                     if telemetry.topic == topic:
                         yield telemetry
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
             return
 
@@ -286,22 +285,22 @@ class ROS1Robot(Robot):
                 telemetry = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
                 if telemetry.topic == topic:
                     yield telemetry
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
 
-    def _get_topic_message_type(self, topic: str) -> Optional[str]:
+    def _get_topic_message_type(self, topic: str) -> str | None:
         """Get the message type for a topic by introspecting ROS."""
         try:
             topics = rospy.get_published_topics()
             for name, msg_type in topics:
                 if name == topic:
-                    result: Optional[str] = msg_type
+                    result: str | None = msg_type
                     return result
         except Exception as e:
             logger.debug(f"Could not get topic type for {topic}: {e}")
         return None
 
-    async def _cmd_publish(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_publish(self, params: dict[str, Any]) -> dict[str, Any]:
         """Publish message to ROS1 topic.
 
         Args:
@@ -356,7 +355,7 @@ class ROS1Robot(Robot):
             logger.error(f"Failed to publish to {topic}: {e}")
             return {"status": "error", "message": str(e)}
 
-    async def _cmd_call_service(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_call_service(self, params: dict[str, Any]) -> dict[str, Any]:
         """Call ROS1 service."""
         service_name = params.get("service")
         request_data = params.get("request", {})
@@ -410,7 +409,7 @@ class ROS1Robot(Robot):
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def _get_service_type(self, service_name: str) -> Optional[str]:
+    def _get_service_type(self, service_name: str) -> str | None:
         """Get service type from ROS master."""
         try:
             import rosgraph
@@ -427,7 +426,7 @@ class ROS1Robot(Robot):
             logger.debug(f"Could not get service type for {service_name}: {e}")
         return None
 
-    async def _cmd_send_action(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_send_action(self, params: dict[str, Any]) -> dict[str, Any]:
         """Send ROS1 action goal."""
         action_name = params.get("action")
         goal_data = params.get("goal", {})
@@ -461,7 +460,7 @@ class ROS1Robot(Robot):
             logger.error(f"Failed to send action goal: {e}")
             return {"status": "error", "message": str(e)}
 
-    def _cmd_get_topics(self) -> List[Dict[str, Any]]:
+    def _cmd_get_topics(self) -> list[dict[str, Any]]:
         """Get list of available topics."""
         if not ROS1_AVAILABLE:
             return []
@@ -472,7 +471,7 @@ class ROS1Robot(Robot):
             logger.error(f"Failed to get topics: {e}")
             return []
 
-    def _cmd_get_nodes(self) -> List[str]:
+    def _cmd_get_nodes(self) -> list[str]:
         """Get list of ROS1 nodes."""
         if not ROS1_AVAILABLE:
             return []
@@ -482,14 +481,14 @@ class ROS1Robot(Robot):
             master = rosgraph.Master(self._node_name or "agent_ros_bridge")
             code, _, nodes = master.getNodeNames()
             if code == 1:
-                result: List[str] = nodes
+                result: list[str] = nodes
                 return result
             return []
         except Exception as e:
             logger.error(f"Failed to get nodes: {e}")
             return []
 
-    def _cmd_get_services(self) -> List[Dict[str, Any]]:
+    def _cmd_get_services(self) -> list[dict[str, Any]]:
         """Get list of available services."""
         if not ROS1_AVAILABLE:
             return []
@@ -503,7 +502,7 @@ class ROS1Robot(Robot):
             logger.error(f"Failed to get services: {e}")
             return []
 
-    def _cmd_get_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _cmd_get_params(self, params: dict[str, Any]) -> dict[str, Any]:
         """Get ROS parameters."""
         namespace = params.get("namespace", "")
         try:
@@ -522,7 +521,7 @@ class ROS1Robot(Robot):
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def _cmd_set_param(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _cmd_set_param(self, params: dict[str, Any]) -> dict[str, Any]:
         """Set ROS parameter."""
         param_name = params.get("name")
         param_value = params.get("value")
@@ -532,9 +531,9 @@ class ROS1Robot(Robot):
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
-    def _ros_msg_to_dict(self, msg: Any) -> Dict[str, Any]:
+    def _ros_msg_to_dict(self, msg: Any) -> dict[str, Any]:
         """Convert ROS message to dictionary."""
-        result: Dict[str, Any] = {"_type": type(msg).__name__}
+        result: dict[str, Any] = {"_type": type(msg).__name__}
 
         # ROS1 messages use __slots__
         if hasattr(msg, "__slots__"):
@@ -610,14 +609,14 @@ class ROS1Connector(Connector):
 
     connector_type = "ros1"
 
-    def __init__(self, master_uri: Optional[str] = None):
+    def __init__(self, master_uri: str | None = None):
         """Initialize ROS1 connector with optional master URI.
 
         Args:
             master_uri: ROS master URI (e.g., "http://localhost:11311").
         """
         self.master_uri = master_uri
-        self.robots: Dict[str, ROS1Robot] = {}
+        self.robots: dict[str, ROS1Robot] = {}
         self._initialized = False
 
     async def _ensure_initialized(self):
@@ -631,7 +630,7 @@ class ROS1Connector(Connector):
             os.environ["ROS_MASTER_URI"] = self.master_uri
         self._initialized = True
 
-    async def discover(self) -> List[RobotEndpoint]:
+    async def discover(self) -> list[RobotEndpoint]:
         """Discover ROS1 systems on network."""
         if not ROS1_AVAILABLE:
             return []
@@ -694,7 +693,7 @@ class ROS1Connector(Connector):
 
         return endpoints
 
-    async def connect(self, uri: str, **kwargs) -> Optional[Robot]:
+    async def connect(self, uri: str, **kwargs) -> Robot | None:
         """Connect to a ROS1 robot.
 
         URI formats:

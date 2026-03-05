@@ -21,10 +21,11 @@ Usage:
 import asyncio
 import contextlib
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("ros_actions")
 
@@ -48,7 +49,7 @@ class ActionGoal:
     """Action goal definition."""
 
     goal_id: str
-    goal_data: Dict[str, Any]
+    goal_data: dict[str, Any]
     action_type: str  # e.g., "nav2_msgs/action/NavigateToPose"
     timeout_sec: float = 30.0
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -59,7 +60,7 @@ class ActionFeedback:
     """Action feedback during execution."""
 
     goal_id: str
-    feedback_data: Dict[str, Any]
+    feedback_data: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.utcnow)
 
 
@@ -70,8 +71,8 @@ class ActionResult:
     goal_id: str
     success: bool
     status: ActionStatus
-    result_data: Dict[str, Any] = field(default_factory=dict)
-    error_message: Optional[str] = None
+    result_data: dict[str, Any] = field(default_factory=dict)
+    error_message: str | None = None
     execution_time_sec: float = 0.0
 
 
@@ -90,11 +91,11 @@ class BaseActionClient:
         self.action_type = action_type
         self.ros_version = ros_version
         self.status = ActionStatus.IDLE
-        self._feedback_callbacks: List[Callable[[ActionFeedback], None]] = []
-        self._result_callbacks: List[Callable[[ActionResult], None]] = []
-        self._current_goal: Optional[ActionGoal] = None
-        self._start_time: Optional[datetime] = None
-        self._client: Optional[Any] = None
+        self._feedback_callbacks: list[Callable[[ActionFeedback], None]] = []
+        self._result_callbacks: list[Callable[[ActionResult], None]] = []
+        self._current_goal: ActionGoal | None = None
+        self._start_time: datetime | None = None
+        self._client: Any | None = None
         self._connected = False
 
     async def connect(self) -> bool:
@@ -105,7 +106,7 @@ class BaseActionClient:
         """Disconnect from action server."""
         raise NotImplementedError
 
-    async def send_goal(self, goal_data: Dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
+    async def send_goal(self, goal_data: dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
         """Send goal to action server."""
         raise NotImplementedError
 
@@ -149,7 +150,7 @@ class ROS2ActionClient(BaseActionClient):
             action_type: Type of the action.
         """
         super().__init__(action_name, action_type, "ros2")
-        self._goal_handle: Optional[Any] = None
+        self._goal_handle: Any | None = None
 
     async def connect(self) -> bool:
         """Connect to ROS2 action server."""
@@ -189,7 +190,7 @@ class ROS2ActionClient(BaseActionClient):
             self._client.destroy()
         self._connected = False
 
-    async def send_goal(self, goal_data: Dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
+    async def send_goal(self, goal_data: dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
         """Send goal to ROS2 action server."""
         if not self._connected:
             return ActionResult(
@@ -299,7 +300,7 @@ class ROS2ActionClient(BaseActionClient):
                 self._notify_result(result)
                 return result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 self.status = ActionStatus.ABORTED
                 await self.cancel_goal()
                 return ActionResult(
@@ -337,7 +338,7 @@ class ROS2ActionClient(BaseActionClient):
 
         self._notify_feedback(feedback)
 
-    def _create_goal_message(self, goal_data: Dict[str, Any]):
+    def _create_goal_message(self, goal_data: dict[str, Any]):
         """Create goal message from dict (simplified)."""
 
         # This would need proper message type handling
@@ -349,7 +350,7 @@ class ROS2ActionClient(BaseActionClient):
 
         return GoalMsg(goal_data)
 
-    def _parse_feedback(self, feedback_msg) -> Dict[str, Any]:
+    def _parse_feedback(self, feedback_msg) -> dict[str, Any]:
         """Parse feedback message to dict."""
         # Extract attributes from feedback message
         result = {}
@@ -363,7 +364,7 @@ class ROS2ActionClient(BaseActionClient):
                     pass
         return result
 
-    def _parse_result(self, result_msg) -> Dict[str, Any]:
+    def _parse_result(self, result_msg) -> dict[str, Any]:
         """Parse result message to dict."""
         return self._parse_feedback(result_msg)
 
@@ -382,7 +383,7 @@ class SimulatedActionClient(BaseActionClient):
         self._connected = False
 
     async def send_goal(
-        self, goal_data: Dict[str, Any], _timeout_sec: float = 30.0
+        self, goal_data: dict[str, Any], _timeout_sec: float = 30.0
     ) -> ActionResult:
         """Simulated goal execution with feedback."""
         import uuid
@@ -434,8 +435,8 @@ class SimulatedActionClient(BaseActionClient):
         return True
 
     def _generate_simulated_feedback(
-        self, step: int, total: int, _goal_data: Dict
-    ) -> Dict[str, Any]:
+        self, step: int, total: int, _goal_data: dict
+    ) -> dict[str, Any]:
         """Generate simulated feedback based on action type."""
         progress = (step + 1) / total
 

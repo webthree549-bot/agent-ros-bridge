@@ -3,7 +3,7 @@
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from langchain.callbacks.manager import CallbackManagerForToolRun
@@ -24,7 +24,7 @@ class LangChainAction:
 
     name: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
 
 
 class ROSBridgeTool(BaseTool):
@@ -51,9 +51,9 @@ class ROSBridgeTool(BaseTool):
     name: str = "ros_bridge"
     description: str = "Control ROS robots via the bridge"
     bridge: Any = None
-    actions: Optional[List[str]] = None
+    actions: list[str] | None = None
 
-    def __init__(self, bridge, actions: Optional[List[str]] = None, **kwargs):
+    def __init__(self, bridge, actions: list[str] | None = None, **kwargs):
         """Initialize LangChain adapter with bridge and actions.
 
         Args:
@@ -80,7 +80,7 @@ class ROSBridgeTool(BaseTool):
         desc += "\nUse specific action names as the 'action' parameter."
         return desc
 
-    def _run(self, query: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+    def _run(self, query: str, run_manager: CallbackManagerForToolRun | None = None) -> str:
         """Execute tool (synchronous)."""
         import asyncio
 
@@ -91,9 +91,7 @@ class ROSBridgeTool(BaseTool):
             loop = asyncio.new_event_loop()
             return loop.run_until_complete(self._arun(query, run_manager))
 
-    async def _arun(
-        self, query: str, _run_manager: Optional[CallbackManagerForToolRun] = None
-    ) -> str:
+    async def _arun(self, query: str, _run_manager: CallbackManagerForToolRun | None = None) -> str:
         """Execute tool (asynchronous)."""
         try:
             # Parse query to determine action
@@ -126,7 +124,7 @@ class ROSBridgeTool(BaseTool):
         # Default to first available action
         return self.actions[0] if self.actions else "unknown"
 
-    def get_available_actions(self) -> List[str]:
+    def get_available_actions(self) -> list[str]:
         """Get list of available actions."""
         return (self.actions or []).copy()
 
@@ -149,7 +147,7 @@ class ROSAgent:
         self.tool = ROSBridgeTool(bridge)
         logger.info("ROSAgent initialized")
 
-    async def run(self, task: str) -> Dict[str, Any]:
+    async def run(self, task: str) -> dict[str, Any]:
         """Execute a task with planning.
 
         Example:
@@ -171,7 +169,7 @@ class ROSAgent:
             "success": all(not r.get("error") for r in results),
         }
 
-    def _plan_task(self, task: str) -> List[str]:
+    def _plan_task(self, task: str) -> list[str]:
         """Break task into steps."""
         # Placeholder - real impl would use LLM
         return [f"Execute: {task}"]

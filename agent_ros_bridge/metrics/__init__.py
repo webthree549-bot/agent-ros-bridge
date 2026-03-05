@@ -29,7 +29,6 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from typing import Dict, Optional
 
 try:
     from prometheus_client import (
@@ -301,7 +300,7 @@ active_connections {snapshot.active_connections}
 class MetricsServer:
     """HTTP server for exposing metrics."""
 
-    def __init__(self, port: int = 9090, collector: Optional[MetricsCollector] = None):
+    def __init__(self, port: int = 9090, collector: MetricsCollector | None = None):
         """Initialize metrics server with port and collector.
 
         Args:
@@ -353,7 +352,7 @@ class MetricsServer:
 
 
 # Global metrics instance
-_global_metrics: Optional[MetricsCollector] = None
+_global_metrics: MetricsCollector | None = None
 
 
 def get_metrics() -> MetricsCollector:

@@ -14,9 +14,10 @@ Example:
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 try:
     from prometheus_client import (
@@ -54,7 +55,7 @@ class MetricsCollector:
     - Error rates
     """
 
-    def __init__(self, bridge, config: Optional[MetricConfig] = None):
+    def __init__(self, bridge, config: MetricConfig | None = None):
         """Initialize metrics collector.
 
         Args:
@@ -229,7 +230,7 @@ class HealthChecker:
             bridge: Gateway bridge instance to check.
         """
         self.bridge = bridge
-        self._checks: Dict[str, Callable] = {}
+        self._checks: dict[str, Callable] = {}
 
     def register_check(self, name: str, check_func: Callable):
         """Register a health check.
@@ -240,7 +241,7 @@ class HealthChecker:
         """
         self._checks[name] = check_func
 
-    async def check_health(self) -> Dict[str, Any]:
+    async def check_health(self) -> dict[str, Any]:
         """Run all health checks.
 
         Returns:

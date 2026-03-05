@@ -9,7 +9,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import paho.mqtt.client as mqtt
@@ -34,7 +34,7 @@ logger = logging.getLogger("transport.mqtt")
 class MQTTTransport(Transport):
     """MQTT transport for IoT and sensor integration."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize MQTT transport with broker configuration.
 
         Args:
@@ -60,11 +60,11 @@ class MQTTTransport(Transport):
         # Subscriptions
         self.subscribed_topics = config.get("subscriptions", ["#"])
 
-        self.client: Optional[Any] = None
+        self.client: Any | None = None
         self._connected = False
         self._message_queue: asyncio.Queue = asyncio.Queue()
-        self._identities: Dict[str, Identity] = {}
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._identities: dict[str, Identity] = {}
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     async def start(self) -> bool:
         """Start MQTT client and connect to broker."""
@@ -202,7 +202,7 @@ class MQTTTransport(Transport):
                     if response:
                         await self.send(response, identity.id)
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Error in MQTT message processing: {e}")
@@ -239,18 +239,22 @@ class MQTTTransport(Transport):
             logger.error(f"Error sending MQTT message: {e}")
             return False
 
-    async def broadcast(self, message: Message) -> List[str]:
+    async def broadcast(self, message: Message) -> list[str]:
         """Broadcast to all MQTT subscribers."""
-        sent: List[str] = []
+        sent: list[str] = []
         for client_id in self._identities:
             if await self.send(message, client_id):
                 sent.append(client_id)
         return sent
 
-    def _mqtt_to_message(self, payload: Dict[str, Any], topic: str) -> Message:
+    def _mqtt_to_message(self, payload: dict[str, Any], topic: str) -> Message:
         """Convert MQTT payload to Message."""
         timestamp_str = payload.get("timestamp")
-        timestamp = datetime.fromisoformat(timestamp_str) if isinstance(timestamp_str, str) else datetime.utcnow()
+        timestamp = (
+            datetime.fromisoformat(timestamp_str)
+            if isinstance(timestamp_str, str)
+            else datetime.utcnow()
+        )
         header = Header(
             message_id=payload.get("id", ""),
             timestamp=timestamp,
@@ -293,7 +297,7 @@ class MQTTTransport(Transport):
             metadata=payload.get("metadata", {}),
         )
 
-    def _message_to_mqtt(self, message: Message) -> Dict[str, Any]:
+    def _message_to_mqtt(self, message: Message) -> dict[str, Any]:
         """Convert Message to MQTT payload."""
         payload = {
             "id": message.header.message_id,

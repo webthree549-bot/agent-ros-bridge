@@ -4,7 +4,6 @@ Converts natural language descriptions to numeric parameters.
 """
 
 import re
-from typing import Optional
 
 # Natural language to numeric mappings
 NL_PARAM_MAPPINGS = {
@@ -59,20 +58,20 @@ NL_PARAM_MAPPINGS = {
         "minute": 60,
         "minutes": 60,
         "hour": 3600,
-    }
+    },
 }
 
 
-def infer_parameter(param_type: str, nl_value: str) -> Optional[float]:
+def infer_parameter(param_type: str, nl_value: str) -> float | None:
     """Convert natural language to numeric parameter.
-    
+
     Args:
         param_type: Type of parameter (speed, distance, angle, duration)
         nl_value: Natural language description
-        
+
     Returns:
         Numeric value or None if not found
-        
+
     Examples:
         >>> infer_parameter("speed", "slowly")
         0.1
@@ -83,53 +82,53 @@ def infer_parameter(param_type: str, nl_value: str) -> Optional[float]:
     """
     if param_type not in NL_PARAM_MAPPINGS:
         return None
-    
+
     mapping = NL_PARAM_MAPPINGS[param_type]
     nl_value_lower = nl_value.lower().strip()
-    
+
     # Exact match
     if nl_value_lower in mapping:
         return mapping[nl_value_lower]
-    
+
     # Try to extract number (e.g., "90 degrees" → 90)
     numeric = parse_numeric(nl_value)
     if numeric is not None:
         return numeric
-    
+
     # Partial match (e.g., "slowly please" → "slowly")
     for key, value in mapping.items():
         if key in nl_value_lower:
             return value
-    
+
     return None
 
 
-def parse_numeric(value: str) -> Optional[float]:
+def parse_numeric(value: str) -> float | None:
     """Extract number from string.
-    
+
     Handles:
     - "2 meters" → 2.0
     - "90 degrees" → 90.0
     - "1.5 m" → 1.5
     - "about 3" → 3.0
-    
+
     Returns:
         Numeric value or None if no number found
     """
     # Remove common words
-    cleaned = re.sub(r'\b(about|around|approximately|roughly)\b', '', value, flags=re.I)
-    
+    cleaned = re.sub(r"\b(about|around|approximately|roughly)\b", "", value, flags=re.I)
+
     # Extract number
-    match = re.search(r'(\d+(?:\.\d+)?)', cleaned)
+    match = re.search(r"(\d+(?:\.\d+)?)", cleaned)
     if match:
         return float(match.group(1))
-    
+
     return None
 
 
 def infer_speed(description: str) -> float:
     """Infer speed from description.
-    
+
     Returns default 0.5 m/s if not specified.
     """
     speed = infer_parameter("speed", description)
@@ -138,7 +137,7 @@ def infer_speed(description: str) -> float:
 
 def infer_distance(description: str) -> float:
     """Infer distance from description.
-    
+
     Returns default 1.0 m if not specified.
     """
     distance = infer_parameter("distance", description)
@@ -147,7 +146,7 @@ def infer_distance(description: str) -> float:
 
 def infer_angle(description: str) -> float:
     """Infer angle from description.
-    
+
     Returns default 90 degrees if not specified.
     """
     angle = infer_parameter("angle", description)

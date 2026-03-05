@@ -9,7 +9,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     import websockets
@@ -42,7 +42,7 @@ logger = logging.getLogger("transport.websocket")
 class WebSocketTransport(Transport):
     """WebSocket transport implementation with authentication."""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """Initialize WebSocket transport with configuration.
 
         Args:
@@ -54,11 +54,11 @@ class WebSocketTransport(Transport):
         self.port = config.get("port", 8765)
         self.tls_cert = config.get("tls_cert")
         self.tls_key = config.get("tls_key")
-        self.server: Optional[Any] = None
-        self.clients: Dict[str, Any] = {}
-        self.identities: Dict[str, Identity] = {}
-        self.authenticator: Optional[Authenticator] = None
-        self.rbac: Optional[Any] = None
+        self.server: Any | None = None
+        self.clients: dict[str, Any] = {}
+        self.identities: dict[str, Identity] = {}
+        self.authenticator: Authenticator | None = None
+        self.rbac: Any | None = None
 
         # Initialize authentication
         auth_config = config.get("auth", {})
@@ -260,7 +260,7 @@ class WebSocketTransport(Transport):
             logger.error(f"Failed to send to {recipient}: {e}")
             return False
 
-    async def broadcast(self, message: Message, exclude: Optional[str] = None) -> list:
+    async def broadcast(self, message: Message, exclude: str | None = None) -> list:
         """Broadcast to all connected clients.
 
         Args:
@@ -284,7 +284,7 @@ class WebSocketTransport(Transport):
 
         return results
 
-    def _json_to_message(self, data: Dict[str, Any]) -> Message:
+    def _json_to_message(self, data: dict[str, Any]) -> Message:
         """Convert JSON to Message."""
         # Handle malformed header (when it's a string instead of dict)
         header_data = data.get("header", {})
