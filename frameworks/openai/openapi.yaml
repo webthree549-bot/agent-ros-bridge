@@ -1,0 +1,131 @@
+openapi: 3.0.1
+info:
+  title: Agent ROS Bridge API
+  description: API for controlling ROS1/ROS2 robots with natural language
+  version: 'v0.5.0'
+servers:
+  - url: https://agent-ros-bridge.example.com
+paths:
+  /api/v1/nl:
+    post:
+      operationId: executeNaturalLanguage
+      summary: Execute a natural language robot command
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  description: Natural language command
+                robot_id:
+                  type: string
+                  description: Optional robot ID
+      responses:
+        "200":
+          description: Command executed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  result:
+                    type: object
+  /api/v1/publish:
+    post:
+      operationId: publishMessage
+      summary: Publish a message to a ROS topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic:
+                  type: string
+                  description: ROS topic name
+                message_type:
+                  type: string
+                  description: ROS message type
+                data:
+                  type: object
+                  description: Message data
+      responses:
+        "200":
+          description: Message published successfully
+  /api/v1/subscribe:
+    post:
+      operationId: subscribeTopic
+      summary: Subscribe to a ROS topic
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic:
+                  type: string
+                message_type:
+                  type: string
+                timeout:
+                  type: number
+      responses:
+        "200":
+          description: Subscription successful
+  /api/v1/action:
+    post:
+      operationId: executeAction
+      summary: Execute a ROS action
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action_name:
+                  type: string
+                action_type:
+                  type: string
+                goal:
+                  type: object
+                timeout:
+                  type: number
+      responses:
+        "200":
+          description: Action executed successfully
+  /api/v1/robots:
+    get:
+      operationId: listRobots
+      summary: List all connected robots
+      responses:
+        "200":
+          description: List of robots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  robots:
+                    type: array
+                    items:
+                      type: object
+  /api/v1/robots/{robot_id}:
+    get:
+      operationId: getRobotInfo
+      summary: Get robot information
+      parameters:
+        - name: robot_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Robot information

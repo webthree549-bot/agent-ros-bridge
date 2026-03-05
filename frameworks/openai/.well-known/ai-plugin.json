@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Agent ROS Bridge",
+  "name_for_model": "agent_ros_bridge",
+  "description_for_human": "Control ROS1/ROS2 robots with natural language through the Agent ROS Bridge.",
+  "description_for_model": "Plugin for controlling ROS robots. Use this to send movement commands, read sensors, execute actions, and manage robot fleets. Supports natural language commands like 'move forward', 'go to kitchen', 'pick up object'.",
+  "auth": {
+    "type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://agent-ros-bridge.example.com/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://agent-ros-bridge.example.com/logo.png",
+  "contact_email": "support@agentrosbridge.io",
+  "legal_info_url": "https://agent-ros-bridge.example.com/legal"
+}
