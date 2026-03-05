@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-ros-bridge"
-version = "0.5.0"
+version = "0.6.0"
 description = "Universal interface for AI agents to control ROS robots via natural language"
 readme = "README.md"
 license = {text = "MIT"}

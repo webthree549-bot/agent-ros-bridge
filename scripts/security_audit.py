@@ -156,7 +156,15 @@ class SecurityAuditor:
                 match = re.search(r'jwt_secret:\s*["\']?([^"\'\n]+)', content)
                 if match:
                     secret = match.group(1)
-                    if len(secret) < 32:
+                    # Skip if null or empty (will be loaded from env)
+                    if secret in ("null", "", "~"):
+                        self.warnings.append({
+                            "check": "Configuration",
+                            "issue": "JWT secret not set in config",
+                            "recommendation": "Set JWT_SECRET environment variable for production",
+                            "severity": "medium"
+                        })
+                    elif len(secret) < 32:
                         self.issues.append({
                             "check": "Configuration",
                             "issue": "Weak JWT secret",
