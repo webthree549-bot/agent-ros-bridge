@@ -166,7 +166,7 @@ class SceneUnderstanding:
                             {
                                 "type": "text",
                                 "text": """Describe what you see in this robot camera image.
-                            
+
 Provide:
 1. A brief summary of the scene
 2. List of visible objects
@@ -230,7 +230,7 @@ Be concise but informative.""",
         lines = text.strip().split("\n")
 
         # First non-empty line is summary
-        summary = next((l for l in lines if l.strip()), "Scene observed")
+        summary = next((line for line in lines if line.strip()), "Scene observed")
 
         # Look for object mentions
         objects = []

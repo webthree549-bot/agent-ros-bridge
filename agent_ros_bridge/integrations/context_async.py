@@ -111,7 +111,7 @@ class AsyncContextManager:
             conn.row_factory = aiosqlite.Row
 
             async with conn.execute(
-                """SELECT current_location, last_action, last_result, 
+                """SELECT current_location, last_action, last_result,
                           known_locations, pending_task
                    FROM contexts WHERE session_id = ?""",
                 (session_id,),
@@ -144,9 +144,9 @@ class AsyncContextManager:
 
         async with conn.execute(
             """SELECT command, interpretation, result, timestamp
-               FROM history 
-               WHERE session_id = ? 
-               ORDER BY timestamp DESC 
+               FROM history
+               WHERE session_id = ?
+               ORDER BY timestamp DESC
                LIMIT ?""",
             (session_id, limit),
         ) as cursor:
@@ -168,8 +168,8 @@ class AsyncContextManager:
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT OR REPLACE INTO contexts 
-                   (session_id, current_location, last_action, last_result, 
+                """INSERT OR REPLACE INTO contexts
+                   (session_id, current_location, last_action, last_result,
                     known_locations, pending_task, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -192,7 +192,7 @@ class AsyncContextManager:
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT INTO history 
+                """INSERT INTO history
                    (session_id, command, interpretation, result)
                    VALUES (?, ?, ?, ?)""",
                 (session_id, command, json.dumps(interpretation), json.dumps(result)),
@@ -219,7 +219,7 @@ class AsyncContextManager:
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT OR REPLACE INTO locations 
+                """INSERT OR REPLACE INTO locations
                    (session_id, name, coordinates)
                    VALUES (?, ?, ?)""",
                 (session_id, name_lower, json.dumps(coordinates)),

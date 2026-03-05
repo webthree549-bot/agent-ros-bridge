@@ -26,7 +26,7 @@ import logging
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Any
+from typing import Any  # noqa: F401
 
 try:
     from prometheus_client import (

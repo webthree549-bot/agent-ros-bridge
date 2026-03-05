@@ -48,7 +48,7 @@ class GRPCServicer:
 
         # Execute command
         try:
-            result = await self.command_handler(
+            await self.command_handler(
                 {
                     "action": request.action,
                     "parameters": dict(request.parameters),
@@ -136,7 +136,7 @@ class GRPCClient:
         target = f"{self.host}:{self.port}"
 
         # Create channel with authentication
-        credentials = grpc.ssl_channel_credentials()  # For TLS
+        # credentials = grpc.ssl_channel_credentials()  # For TLS
         # Or insecure for development:
         self.channel = aio.insecure_channel(target)
 
@@ -154,7 +154,7 @@ class GRPCClient:
         if not self.channel:
             raise RuntimeError("Not connected to server")
 
-        metadata = [("authorization", f"Bearer {self.token}")]
+        _metadata = [("authorization", f"Bearer {self.token}")]
 
         # request = bridge_pb2.CommandRequest(
         #     action=action,

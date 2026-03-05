@@ -313,7 +313,7 @@ class URController(BaseArmController):
         """Callback for joint state updates."""
         self.current_joints = [
             JointState(position=p, velocity=v, effort=e)
-            for p, v, e in zip(msg.position, msg.velocity, msg.effort)
+            for p, v, e in zip(msg.position, msg.velocity, msg.effort, strict=False)
         ]
 
 

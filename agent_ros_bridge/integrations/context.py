@@ -127,7 +127,7 @@ class ContextManager:
         # Load from database
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute(
-                """SELECT current_location, last_action, last_result, 
+                """SELECT current_location, last_action, last_result,
                           known_locations, pending_task
                    FROM contexts WHERE session_id = ?""",
                 (session_id,),
@@ -155,9 +155,9 @@ class ContextManager:
         """Load recent command history."""
         rows = conn.execute(
             """SELECT command, interpretation, result, timestamp
-               FROM history 
-               WHERE session_id = ? 
-               ORDER BY timestamp DESC 
+               FROM history
+               WHERE session_id = ?
+               ORDER BY timestamp DESC
                LIMIT ?""",
             (session_id, limit),
         ).fetchall()
@@ -180,8 +180,8 @@ class ContextManager:
         """
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO contexts 
-                   (session_id, current_location, last_action, last_result, 
+                """INSERT OR REPLACE INTO contexts
+                   (session_id, current_location, last_action, last_result,
                     known_locations, pending_task, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -206,7 +206,7 @@ class ContextManager:
         """
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT INTO history 
+                """INSERT INTO history
                    (session_id, command, interpretation, result)
                    VALUES (?, ?, ?, ?)""",
                 (session_id, command, json.dumps(interpretation), json.dumps(result)),
@@ -237,7 +237,7 @@ class ContextManager:
 
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO locations 
+                """INSERT OR REPLACE INTO locations
                    (session_id, name, coordinates)
                    VALUES (?, ?, ?)""",
                 (session_id, name_lower, json.dumps(coordinates)),
