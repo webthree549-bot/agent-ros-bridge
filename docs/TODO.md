@@ -11,6 +11,91 @@ Based on the Universal Interface Vision and current project state.
 
 ---
 
+## v0.6.1 Release: ROS Capability Maximization
+
+Based on ROS architecture analysis, these enhancements maximize agent-to-ROS integration:
+
+### ROS2 Lifecycle & Node Management 🟡
+- [ ] **ROS2 Lifecycle Node Support** — Full lifecycle state machine (configure, activate, deactivate, cleanup)
+  - *Agent gain:* Graceful robot state management, coordinated startup/shutdown
+  - *Implementation:* LifecycleNode wrapper in ros2_connector.py
+  
+- [ ] **ROS2 Component Composition** — Multi-node container support for efficiency
+  - *Agent gain:* Lower overhead when controlling multiple robots
+  - *Implementation:* ComponentManager integration
+
+### DDS/QoS Deep Integration 🟡
+- [ ] **Dynamic QoS Negotiation** — Runtime QoS profile selection based on agent priority
+  - *Agent gain:* Reliable command delivery vs. best-effort telemetry
+  - *Implementation:* QoSProfile factory with agent-priority mapping
+  
+- [ ] **DDS Discovery Monitoring** — Track DDS participant discovery events
+  - *Agent gain:* Real-time awareness of robot availability
+  - *Implementation:* DomainParticipantListener callbacks
+
+### ROS Bag Integration 🟢
+- [ ] **Rosbag Record API** — Programmatic recording for agent training data
+  - *Agent gain:* Offline learning from recorded sessions
+  - *Implementation:* rosbag2_py integration with topic filtering
+  
+- [ ] **Rosbag Replay API** — Simulation mode from recorded data
+  - *Agent gain:* Test agents against historical scenarios
+  - *Implementation:* Player API with time scaling
+
+### Action & Service Enhancements 🟡
+- [ ] **ROS2 Action Feedback Streaming** — Real-time progress for long-running tasks
+  - *Agent gain:* Agents can monitor and respond to task progress
+  - *Implementation:* ActionClient with async feedback callbacks
+  
+- [ ] **ROS2 Service Async Patterns** — Non-blocking service calls with timeouts
+  - *Agent gain:* Agents aren't blocked waiting for service responses
+  - *Implementation:* asyncio service call wrappers
+
+### Diagnostics & Monitoring 🟢
+- [ ] **ROS2 Diagnostics Bridge** — /diagnostics topic aggregation
+  - *Agent gain:* Agents monitor robot health and faults
+  - *Implementation:* DiagnosticAggregator integration
+  
+- [ ] **Parameter Server Bridge** — Dynamic parameter get/set
+  - *Agent gain:* Agents tune robot behavior without restarts
+  - *Implementation:* Async parameter client with caching
+
+### Time Synchronization 🔴
+- [ ] **ROS2 Time Support** — Sim time and wall time handling
+  - *Agent gain:* Correct timing in simulation and real-world
+  - *Implementation:* Clock subscription with time source detection
+  
+- [ ] **TF2 Time-Travel Queries** — Query transforms at specific times
+  - *Agent gain:* Agents reason about past/future robot positions
+  - *Implementation:* BufferCore with timeout parameters
+
+### MoveIt Integration 🟢
+- [ ] **MoveIt2 Motion Planning** — High-level manipulation commands
+  - *Agent gain:* "Pick up the red block" without collision planning
+  - *Implementation:* MoveGroupInterface async wrapper
+  
+- [ ] **Motion Sequence Planning** — Multi-step manipulation tasks
+  - *Agent gain:* Complex manipulation without intermediate waypoints
+  - *Implementation:* moveit_msgs/MotionSequenceRequest builder
+
+### Navigation Enhancements 🟡
+- [ ] **Nav2 Behavior Tree Control** — Custom behavior tree injection
+  - *Agent gain:* Agents define custom navigation strategies
+  - *Implementation:* BehaviorTreeEngine integration
+  
+- [ ] **Costmap Layer Control** — Dynamic costmap modification
+  - *Agent gain:* Agents mark temporary obstacles or clear paths
+  - *Implementation:* Costmap2DROS layer API
+
+### v0.6.1 Success Criteria
+- [ ] All new features have TDD tests (Red-Green-Refactor)
+- [ ] Documentation updated with ROS architecture alignment
+- [ ] Example: Agent controls robot lifecycle through natural language
+- [ ] Example: Agent replays rosbag for training scenario
+- [ ] Performance: <50ms added latency for lifecycle operations
+
+---
+
 ## Phase 1: Core Infrastructure (Foundation)
 
 ### 1.1 Natural Language Pillar 🔴
