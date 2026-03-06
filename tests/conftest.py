@@ -41,6 +41,10 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Slow tests (skip with --fast)")
     config.addinivalue_line("markers", "ros: Tests requiring ROS2")
     config.addinivalue_line("markers", "simulation: Tests using simulation framework")
+    config.addinivalue_line("markers", "external_api: Tests requiring external API keys")
+    config.addinivalue_line("markers", "requires_brave: Tests requiring Brave Search API")
+    config.addinivalue_line("markers", "requires_openai: Tests requiring OpenAI API")
+    config.addinivalue_line("markers", "requires_anthropic: Tests requiring Anthropic API")
 
 
 def pytest_addoption(parser):
@@ -87,6 +91,47 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "integration" in item.keywords:
                 item.add_marker(skip_integration)
+
+
+# =============================================================================
+# API Key Management
+# =============================================================================
+
+def has_api_key(service: str) -> bool:
+    """Check if API key is available for a service."""
+    key_mapping = {
+        "brave": "BRAVE_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "anthropic": "ANTHROPIC_API_KEY",
+        "google": "GOOGLE_API_KEY",
+    }
+    env_var = key_mapping.get(service.lower())
+    if env_var:
+        return bool(os.environ.get(env_var))
+    return False
+
+
+def requires_api_key(service: str):
+    """Decorator to skip test if API key is not available."""
+    return pytest.mark.skipif(
+        not has_api_key(service),
+        reason=f"{service.upper()}_API_KEY not set"
+    )
+
+
+# Pre-built skip markers for common services
+requires_brave = pytest.mark.skipif(
+    not has_api_key("brave"),
+    reason="BRAVE_API_KEY not set"
+)
+requires_openai = pytest.mark.skipif(
+    not has_api_key("openai"),
+    reason="OPENAI_API_KEY not set"
+)
+requires_anthropic = pytest.mark.skipif(
+    not has_api_key("anthropic"),
+    reason="ANTHROPIC_API_KEY not set"
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
