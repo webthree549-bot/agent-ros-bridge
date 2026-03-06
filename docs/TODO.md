@@ -376,26 +376,37 @@ AI: [Executes]
   - Dialect/terminology adaptation
   - Error correction ("Did you mean...?")
 
-### 3.4 Extended Shadow Mode (Week 12) 🟡
+### 3.4 Extended Shadow Mode (Weeks 11-12 + v0.7.0 Phase 1) 🟡
 
-**Deliverable:** 1000+ hours of validated operation
+**Deliverable:** 1000+ hours of validated operation (cumulative)
 
-- [ ] **Extended validation:**
-  - 1000+ hours of shadow mode operation
-  - Diverse scenarios: Different robots, environments, tasks
-  - Edge case collection and resolution
+- [ ] **Phase 1 (v0.6.3 - Weeks 11-12):** 200+ hours
+  - 2 robots, 12 hours/day, 7 days/week
+  - Focus: Core functionality validation
+  - Edge case identification
   
-- [ ] **Production readiness review:**
-  - Safety audit by external experts
-  - Performance benchmarking
-  - Documentation completeness
-  - Incident response plan
+- [ ] **Phase 2 (v0.7.0 Months 7-8):** 800+ additional hours
+  - 5 robots, 16 hours/day, 5 days/week
+  - Diverse scenarios: Different robots, environments, tasks
+  - Seasonal variations, peak load testing
+  
+- [ ] **Cumulative target:** 1000+ hours before 50% fleet rollout
 
-**Gate 3 Criteria:**
-- [ ] 1000+ hours shadow mode
+**Why 1000 hours?**
+- Statistical significance: Detect 1-in-1000 failure modes
+- Confidence level: 99.9% reliability for production
+- Industry standard: ISO 13849 requires extensive validation
+
+**Gate 3 Criteria (End of v0.6.3):**
+- [ ] 200+ hours shadow mode (phase 1 complete)
 - [ ] Zero safety incidents
 - [ ] >98% AI-human agreement
+- [ ] All edge cases documented with mitigations
+
+**Gate 4 Criteria (Before 50% rollout in v0.7.0):**
+- [ ] 1000+ hours cumulative shadow mode
 - [ ] External safety audit passed
+- [ ] Regulatory compliance review complete
 
 ---
 
@@ -407,20 +418,25 @@ AI: [Executes]
 
 ### 4.1 Gradual Rollout (Months 7-12)
 
-**Deliverable:** Phased production deployment
+**Deliverable:** Phased production deployment with cumulative shadow mode
 
-- [ ] **Rollout plan:**
-  - Month 7: 1 robot (pilot)
-  - Month 8: 5% of fleet
-  - Month 9: 25% of fleet
-  - Month 10: 50% of fleet
-  - Month 11: 75% of fleet
-  - Month 12: 100% of fleet
+- [ ] **Pre-rollout (Months 7-8): Extended Shadow Mode**
+  - Continue shadow mode to reach 1000+ cumulative hours
+  - 5 robots, 16 hours/day operation
+  - Validate diverse scenarios before any production deployment
+
+- [ ] **Rollout plan (Months 9-12):**
+  - Month 9: 1 robot (pilot) - AFTER 1000+ hours shadow mode
+  - Month 10: 5% of fleet
+  - Month 11: 25% of fleet
+  - Month 12: 50% of fleet (hold for evaluation)
+  - Month 13+: 75% → 100% (if metrics positive)
   
 - [ ] **Monitoring:**
   - Real-time metrics: Success rate, latency, safety events
-  - Automatic rollback: If error rate >threshold
+  - Automatic rollback: If error rate >0.1% or any safety event
   - Human oversight: 24/7 monitoring during rollout
+  - Weekly review: Go/No-Go decision for next phase
 
 ### 4.2 Full Autonomy (Months 13-18)
 
@@ -482,7 +498,7 @@ AI: [Executes]
 | End-to-end latency | <100ms | <100ms | <100ms | <100ms |
 | AI-human agreement | N/A | >95% | >98% | >99% |
 | Task success rate | 90% | 93% | 96% | 99% |
-| Shadow mode hours | N/A | 100 | 1000 | 10000+ |
+| Shadow mode hours | N/A | 100 (v0.6.2) | 200+ (v0.6.3) | 1000+ (before 50% rollout) |
 
 ### Business Metrics
 
