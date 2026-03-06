@@ -199,3 +199,26 @@ node_modules/
 
 # Ignore memory directory (personal notes)
 memory/
+
+# OpenClaw workspace files (local configuration)
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TOOLS.md
+USER.md
+SYSTEM_OPTIMIZATION_PLAN.md
+.openclaw/
+
+# Analysis files (local only)
+clawhub_vs_rosclaw_analysis.md
+rosclaw_comparison.md
+docs/ARCHITECTURE_DIAGRAM_SPEC.md
+docs/CHALLENGE_ANALYSIS_REPORT.md
+docs/CODEBASE_METRICS.md
+docs/CODE_ANALYSIS_DEEP.md
+docs/LOVART_PROMPTS.md
+docs/LOVART_SCRIPT.md
+docs/PROJECT_CONTEXT.md
+docs/VISUALIZATION_GUIDE.md
