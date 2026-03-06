@@ -110,6 +110,18 @@ Based on ROS architecture analysis, these enhancements maximize agent-to-ROS int
 
 **Design Document:** `docs/NL2ROS_SYSTEM.md` (architecture spec, not implementation)
 
+### Testing Infrastructure Improvements 🟡 PLANNED
+- [ ] **API Key Management** — Utilities for handling external API dependencies in tests
+  - *Problem:* Tests fail when API keys (Brave, OpenAI, etc.) are unavailable
+  - *Solution:* `has_api_key()`, `@requires_api_key()` decorators, mock fixtures
+  - *Usage:* `@requires_brave`, `@requires_openai` markers, skip gracefully when keys missing
+  - *CI Integration:* `pytest -m "not external_api"` to skip API-dependent tests
+  
+- [ ] **Mock Service Fixtures** — Pre-built mocks for external services
+  - *Services:* Brave Search, OpenAI, Anthropic, Google
+  - *Usage:* `mock_brave_search`, `mock_openai_client` fixtures
+  - *Benefit:* Tests run without real API calls, deterministic, fast
+
 ### v0.6.1 Success Criteria
 - [ ] All new features have TDD tests (Red-Green-Refactor)
 - [ ] Documentation updated with ROS architecture alignment
