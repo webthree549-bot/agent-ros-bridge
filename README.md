@@ -44,7 +44,7 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 |---------|--------|-------|
 | WebSocket transport | ✅ Working | Full duplex, TLS support |
 | MQTT transport | ✅ Working | paho v2 compatible |
-| gRPC transport | ✅ Working | Bidirectional streaming, TLS/mTLS, JWT auth |
+| gRPC transport | ✅ Working | Full proto definitions, bidirectional streaming, TLS/mTLS |
 | JWT authentication | ✅ Working | Per-transport, RBAC included |
 | Agent memory (SQLite) | ✅ Working | TTL, append, list ops |
 | Agent memory (Redis) | ✅ Working | Same API, Redis backend |
@@ -56,9 +56,14 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 | OpenClaw adapter | ✅ Working | ClawHub skill + extension support |
 | Web dashboard | ✅ Working | HTTP polling, emergency stop button |
 | Simulated robot | ✅ Working | No ROS needed — perfect for testing |
-| ROS2 connector | ✅ Working | Dynamic message types, publish/subscribe, discovery |
-| ROS1 connector | ✅ Working | Full feature parity with ROS2 |
-| Tool auto-discovery | ✅ Working | Real-time topic/service/action introspection |
+| ROS2 connector | ✅ Working | Dynamic message types, publish/subscribe, 50+ message types |
+| ROS1 connector | ✅ Working | Full feature parity with ROS2, real tool discovery |
+| Tool auto-discovery | ✅ Working | Real-time topic/service/action introspection (ROS1 & ROS2) |
+| Natural language | ✅ Working | Parse "move forward 1 meter" to ROS commands |
+| Context awareness | ✅ Working | Spatial memory, location tracking, object persistence |
+| Fleet intelligence | ✅ Working | Multi-robot coordination, task allocation |
+| Scene understanding | ✅ Working | Camera frames, depth processing, object detection |
+| Autonomous behaviors | ✅ Working | Goal-seeking, obstacle avoidance, patrol routes |
 
 ---
 
@@ -334,8 +339,6 @@ JWT_SECRET=$JWT_SECRET docker-compose --profile ros2 --profile sim up
 
 ## Connecting to a Real Robot (ROS2)
 
-> ROS2 publish/subscribe implementation is in progress. The following shows the intended workflow:
-
 ```bash
 # 1. Install with ROS2 support
 pip install "agent-ros-bridge[ros2]"
@@ -409,6 +412,7 @@ agent-ros-bridge --version
 | [`examples/actions/`](examples/actions/) | ROS Actions (nav2, manipulation) | `./run.sh` |
 | [`examples/mqtt_iot/`](examples/mqtt_iot/) | MQTT IoT devices + bridge | `docker-compose up` |
 | [`examples/metrics/`](examples/metrics/) | Prometheus metrics + Grafana | `docker-compose up` |
+| [`examples/tutorials/`](examples/tutorials/) | Interactive tutorials — getting started | `python 01_getting_started.py` |
 | [`examples/v0.5.0_integrations/`](examples/v0.5.0_integrations/) | LangChain, AutoGPT, MCP, OpenClaw, Dashboard | `python <example>.py` |
 
 ---
@@ -427,11 +431,11 @@ agent_ros_bridge/
 │   ├── transports/
 │   │   ├── websocket.py     # WebSocket transport  ✅
 │   │   ├── mqtt_transport.py# MQTT transport        ✅
-│   │   └── grpc_transport.py# gRPC transport        🔧 in progress
+│   │   └── grpc_transport.py# gRPC transport        ✅
 │   │
 │   ├── connectors/
-│   │   ├── ros2_connector.py# ROS2 (rclpy)          🔧 in progress
-│   │   └── ros1_connector.py# ROS1 (rospy)          🔧 in progress
+│   │   ├── ros2_connector.py# ROS2 (rclpy)          ✅
+│   │   └── ros1_connector.py# ROS1 (rospy)          ✅
 │   │
 │   └── plugins/
 │       └── greenhouse_plugin.py  # Example plugin    ✅
@@ -444,13 +448,22 @@ agent_ros_bridge/
 │   ├── autogpt_adapter.py   # AutoGPT command adapter               ✅
 │   ├── openclaw_adapter.py  # OpenClaw/ClawHub integration          ✅
 │   ├── mcp_transport.py     # MCP stdio server                      ✅
-│   └── dashboard_server.py  # aiohttp web dashboard                 ✅
+│   ├── dashboard_server.py  # aiohttp web dashboard                 ✅
+│   ├── nl_interpreter.py    # Natural language → ROS commands       ✅
+│   ├── context.py           # Spatial memory, location tracking     ✅
+│   ├── fleet_intelligence.py# Multi-robot coordination              ✅
+│   ├── scene_understanding.py# Camera, depth, object detection      ✅
+│   └── autonomous_behaviors.py# Goal-seeking, patrol, avoidance     ✅
 │
 ├── fleet/
 │   └── orchestrator.py      # FleetOrchestrator — multi-robot tasks ✅
 │
 ├── plugins/
-│   └── arm_robot.py         # UR / xArm / Franka arm plugin         🔧
+│   └── arm_robot.py         # UR / xArm / Franka arm plugin         ✅
+│
+├── proto/
+│   ├── bridge.proto         # gRPC service definition               ✅
+│   └── bridge_pb2.py        # Generated Python stubs                ✅
 │
 ├── actions/
 │   └── __init__.py          # ROS Action client (ROS2 + simulated)  ✅
@@ -508,21 +521,24 @@ python -m build
 | [docs/MULTI_ROS.md](docs/MULTI_ROS.md) | Multi-robot / multi-ROS-version setup |
 | [docs/DOCKER_VS_NATIVE.md](docs/DOCKER_VS_NATIVE.md) | Deployment trade-offs |
 | [docs/DDS_ARCHITECTURE.md](docs/DDS_ARCHITECTURE.md) | ROS2 DDS / domain isolation |
-| [docs/troubleshooting.md](docs/troubleshooting.md) | Common issues and solutions |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+| [docs/DEPLOYMENT_OPTIONS.md](docs/DEPLOYMENT_OPTIONS.md) | 5 deployment methods (PyPI, Docker, K8s, etc.) |
+| [docs/DEVOPS_DOCUMENTATION.md](docs/DEVOPS_DOCUMENTATION.md) | CI/CD pipeline documentation |
+| [docs/TEST_STRATEGY.md](docs/TEST_STRATEGY.md) | Testing approach (483+ tests) |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
-| [REVIEW.md](REVIEW.md) | Static + functional code review |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Priority areas for contribution:
+See [CONTRIBUTING.md](CONTRIBUTING.md). All core features are complete in v0.6.0. Priority areas for future development:
 
-- **ROS2 Connector** — `ros2_connector.py`: complete `_cmd_publish()`, `subscribe()`, and `_ros_msg_to_dict()` using `rosidl_runtime_py`
-- **gRPC Transport** — extract `proto/bridge.proto`, generate stubs, register service
-- **Safety approval endpoint** — add a WebSocket command (`safety.confirm`) so operators can approve dangerous actions from the agent side
-- **Tool auto-discovery** — implement `_discover_topics/services/actions()` in `integrations/discovery.py`
+- **Additional robot plugins** — Support for more arm types (Kinova, Dobot, etc.)
+- **Advanced autonomy** — SLAM integration, dynamic path planning
+- **Cloud integration** — AWS IoT, Azure IoT Hub connectors
+- **Simulation environments** — Gazebo, Isaac Sim integration
+- **Hardware-in-the-loop testing** — CI with real robot hardware
 
 ---
 
