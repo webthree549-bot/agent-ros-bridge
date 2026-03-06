@@ -270,6 +270,40 @@ Based on deep analysis documents, these architectural enhancements enable advanc
 - [ ] Example: Agent replays rosbag for training scenario
 - [ ] Performance: <50ms added latency for lifecycle operations
 
+### A.5 NL2ROS Prompt Engineering 🔴 CRITICAL
+**Purpose:** Define prompt specifications for safe, reliable NL-to-ROS translation
+**Analysis:** `docs/NL2ROS_PROMPT_REQUIREMENTS.md`
+
+- [ ] **System Prompts** — AI role definition with safety emphasis
+  - Requirements: Expert ROS developer persona, ISO 10218-1/2 compliance mandate
+  - Context injection: topology, skill profile, safety bounds
+  
+- [ ] **Intent Classification Prompts** — Structured NL classification
+  - Input: utterance + context
+  - Output: intent, confidence, entities, constraints, ambiguity
+  - Performance: <50ms latency
+  
+- [ ] **Code Generation Prompts** — Production ROS code generation
+  - Templates for ROS1/ROS2
+  - Safety checklist integration
+  - Type hints and documentation requirements
+  
+- [ ] **Safety Validation Prompts** — Code safety verification
+  - Static analysis rules
+  - Violation detection and reporting
+  - Certification (PASS/FAIL)
+  
+- [ ] **Prompt Testing Framework** — Validation and A/B testing
+  - Unit tests for each prompt type
+  - Performance benchmarks
+  - A/B testing infrastructure
+
+**Performance Targets:**
+- Intent classification: <50ms
+- Code generation: <500ms
+- Total pipeline: <750ms
+- Token limit: <2000 per prompt
+
 ### v0.6.1 Documentation References
 | Document | Purpose | Status |
 |----------|---------|--------|
@@ -277,6 +311,7 @@ Based on deep analysis documents, these architectural enhancements enable advanc
 | `docs/NL2ROS_DEEP_ANALYSIS.md` | Physical execution pipeline | ✅ Complete |
 | `docs/ROS_TOPOLOGY_CONTEXT_ANALYSIS.md` | Topology retrieval for NL | ✅ Complete |
 | `docs/DYNAMIC_SKILL_SYSTEM_ANALYSIS.md` | Dynamic skill architecture | ✅ Complete |
+| `docs/NL2ROS_PROMPT_REQUIREMENTS.md` | Prompt engineering specs | ✅ Complete |
 
 ---
 
