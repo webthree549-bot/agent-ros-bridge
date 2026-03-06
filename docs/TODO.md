@@ -87,27 +87,33 @@ Based on ROS architecture analysis, these enhancements maximize agent-to-ROS int
   - *Agent gain:* Agents mark temporary obstacles or clear paths
   - *Implementation:* Costmap2DROS layer API
 
-### NL2ROS: Natural Language to ROS Code Translation ✅ COMPLETED
-- [x] **7-Stage Translation Pipeline** — Intent classification, entity extraction, context resolution, primitive mapping, code generation, safety validation, output formatting
+### NL2ROS: Natural Language to ROS Code Translation 🟡 PLANNED
+- [ ] **7-Stage Translation Pipeline** — Intent classification, entity extraction, context resolution, primitive mapping, code generation, safety validation, output formatting
   - *Agent gain:* AI agents generate production-ready ROS code from natural language
-  - *Implementation:* `agent_ros_bridge/integrations/nl2ros.py` + `docs/NL2ROS_SYSTEM.md`
+  - *Architecture:* Integrate with existing nl_interpreter.py, extend with code generation layer
+  - *TDD Approach:* Tests first, then minimal implementation
   
-- [x] **Intent Classification** — 7 categories (NAVIGATE, MANIPULATE, SENSE, CONFIGURE, QUERY, MISSION, SAFETY)
-  - *Agent gain:* Commands routed to appropriate ROS primitives
+- [ ] **Intent Classification** — 7 categories (NAVIGATE, MANIPULATE, SENSE, CONFIGURE, QUERY, MISSION, SAFETY)
+  - *Integration:* Extend existing RuleBasedInterpreter in nl_interpreter.py
   
-- [x] **Entity Extraction** — Locations, quantities, speeds, directions with SI unit normalization
-  - *Agent gain:* Precise parameter extraction from vague commands
+- [ ] **Entity Extraction** — Locations, quantities, speeds, directions with SI unit normalization
+  - *Integration:* Leverage existing nl_params.py, add ROS-specific entity types
   
-- [x] **Code Generation** — Templates for navigation (Nav2), manipulation (MoveIt), safety (e-stop)
-  - *Agent gain:* "Go to kitchen" → executable NavigateToPose action client
+- [ ] **ROS Primitive Mapping** — Map intents to topics/services/actions
+  - *Integration:* Use existing discovery.py for runtime primitive detection
   
-- [x] **Safety Validation** — ISO 10218-1/2 compliance checks, critical issue detection
-  - *Agent gain:* Generated code meets industrial safety standards
+- [ ] **Code Generation** — Templates for navigation (Nav2), manipulation (MoveIt), safety (e-stop)
+  - *Architecture:* New code_generator module, templates in config/templates/
+  
+- [ ] **Safety Validation** — ISO 10218-1/2 compliance checks, critical issue detection
+  - *Integration:* Extend existing safety.py with code analysis capabilities
+
+**Design Document:** `docs/NL2ROS_SYSTEM.md` (architecture spec, not implementation)
 
 ### v0.6.1 Success Criteria
 - [ ] All new features have TDD tests (Red-Green-Refactor)
 - [ ] Documentation updated with ROS architecture alignment
-- [x] Example: Agent controls robot through natural language (NL2ROS ✅)
+- [ ] Example: Agent controls robot through natural language
 - [ ] Example: Agent replays rosbag for training scenario
 - [ ] Performance: <50ms added latency for lifecycle operations
 
