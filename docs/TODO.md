@@ -87,10 +87,27 @@ Based on ROS architecture analysis, these enhancements maximize agent-to-ROS int
   - *Agent gain:* Agents mark temporary obstacles or clear paths
   - *Implementation:* Costmap2DROS layer API
 
+### NL2ROS: Natural Language to ROS Code Translation ✅ COMPLETED
+- [x] **7-Stage Translation Pipeline** — Intent classification, entity extraction, context resolution, primitive mapping, code generation, safety validation, output formatting
+  - *Agent gain:* AI agents generate production-ready ROS code from natural language
+  - *Implementation:* `agent_ros_bridge/integrations/nl2ros.py` + `docs/NL2ROS_SYSTEM.md`
+  
+- [x] **Intent Classification** — 7 categories (NAVIGATE, MANIPULATE, SENSE, CONFIGURE, QUERY, MISSION, SAFETY)
+  - *Agent gain:* Commands routed to appropriate ROS primitives
+  
+- [x] **Entity Extraction** — Locations, quantities, speeds, directions with SI unit normalization
+  - *Agent gain:* Precise parameter extraction from vague commands
+  
+- [x] **Code Generation** — Templates for navigation (Nav2), manipulation (MoveIt), safety (e-stop)
+  - *Agent gain:* "Go to kitchen" → executable NavigateToPose action client
+  
+- [x] **Safety Validation** — ISO 10218-1/2 compliance checks, critical issue detection
+  - *Agent gain:* Generated code meets industrial safety standards
+
 ### v0.6.1 Success Criteria
 - [ ] All new features have TDD tests (Red-Green-Refactor)
 - [ ] Documentation updated with ROS architecture alignment
-- [ ] Example: Agent controls robot lifecycle through natural language
+- [x] Example: Agent controls robot through natural language (NL2ROS ✅)
 - [ ] Example: Agent replays rosbag for training scenario
 - [ ] Performance: <50ms added latency for lifecycle operations
 
