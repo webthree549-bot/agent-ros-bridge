@@ -122,12 +122,161 @@ Based on ROS architecture analysis, these enhancements maximize agent-to-ROS int
   - *Usage:* `mock_brave_search`, `mock_openai_client` fixtures
   - *Benefit:* Tests run without real API calls, deterministic, fast
 
+---
+
+## v0.6.1 Architecture Improvements
+
+Based on deep analysis documents, these architectural enhancements enable advanced AI-to-ROS capabilities:
+
+### A.1 NL2ROS: Natural Language to Physical Execution 🔴 CRITICAL
+**Purpose:** Bridge natural language to production-grade ROS code execution
+**Analysis:** `docs/NL2ROS_DEEP_ANALYSIS.md`
+
+- [ ] **5-Stage Translation Pipeline**
+  - Stage 1: Semantic Parsing (intent, entities, context, constraints)
+  - Stage 2: World Model Reasoning (spatial, temporal, physical feasibility)
+  - Stage 3: Motion Planning & Control (Nav2, MoveIt2 integration)
+  - Stage 4: Physical Execution (state estimation, verification)
+  - Stage 5: Monitoring & Recovery (MAPE loop, failure handling)
+  - *Design:* Multi-layer safety, uncertainty quantification at each stage
+  - *TDD:* Tests for each stage with physical execution validation
+
+- [ ] **Physical Safety Architecture**
+  - Physical quantity bounds (speed, force, position)
+  - Multi-layer safety (mission → navigation → control → emergency → hardware)
+  - ISO 10218-1/2 compliance validation
+  - Recovery strategies for each failure mode
+
+- [ ] **Context Resolution System**
+  - Spatial grounding ("kitchen" → (5.2, 3.1, 0.0) in map frame)
+  - Temporal reasoning ("in 5 minutes" → ROS Time)
+  - Anaphora resolution ("it", "there" → specific entities)
+  - Context stack: discourse, task, spatial, temporal, social, physical
+
+**Success Metrics:**
+- Intent accuracy >95%
+- Spatial grounding error <0.3m
+- Execution success rate >90%
+- Zero safety violations
+
+### A.2 ROS Topology Context System 🟡 HIGH
+**Purpose:** Enable NL understanding via ROS system topology awareness
+**Analysis:** `docs/ROS_TOPOLOGY_CONTEXT_ANALYSIS.md`
+
+- [ ] **Multi-Layer Topology Model**
+  - Layer 1: Physical (DDS, TF tree, hardware)
+  - Layer 2: ROS Graph (nodes, topics, services, actions)
+  - Layer 3: Functional (capabilities: navigate, manipulate, sense)
+  - Layer 4: Semantic (NL-meaningful: "camera" = /camera/image_raw)
+
+- [ ] **Topology Retrieval Methods**
+  - ROS2 introspection APIs (primary): `get_topic_names_and_types()`, `get_node_names()`
+  - DDS discovery (network level): Participant discovery, QoS monitoring
+  - Static configuration (fallback): Known-good topology baselines
+
+- [ ] **Topology Change Detection**
+  - Continuous monitoring with 5s interval
+  - Detect: topics added/removed, nodes started/stopped, services available
+  - Notify: AI agents, fleet orchestrator, context manager
+  - Adapt: Update skill availability, replan if dependencies change
+
+- [ ] **Semantic Enrichment**
+  - Pattern matching: `/camera/image_raw` → Camera component
+  - Capability inference: camera + lidar → navigation capability
+  - NL description generation: "Front camera, 640x480, 30fps"
+  - Reference resolution: "the camera" → /front_camera
+
+**Integration Points:**
+- Extend `discovery.py` with semantic layer
+- Integrate with `context.py` for NL reference resolution
+- Use `ros2_connector.py` for raw topology access
+
+### A.3 Dynamic Multi-ROS Skill System 🔴 CRITICAL
+**Purpose:** Auto-discover, AI-modifiable robot capabilities across ROS versions
+**Analysis:** `docs/DYNAMIC_SKILL_SYSTEM_ANALYSIS.md`
+
+- [ ] **RobotSkill Dataclass**
+  - skill_id, name, description, version
+  - required_topics/services/actions/parameters
+  - provided_by, ros_version, status (ACTIVE/DEGRADED/UNAVAILABLE)
+  - AI-modifiable: parameters (within bounds), learned_patterns, success_rate
+
+- [ ] **RobotProfile System**
+  - Complete capability profile per robot
+  - Skill graph: dependencies, compositions, conflicts
+  - Runtime state: health, active_skills
+  - Learning data: execution_history, optimized_parameters
+
+- [ ] **Dynamic Skill Discovery**
+  - Topology scan → pattern matching → skill inference
+  - Validation: dry-run test before advertising
+  - Registration: update profile, broadcast to fleet
+  - AI notification: update tool definitions
+
+- [ ] **Multi-ROS Skill Adapter**
+  - Unified skill interface hides ROS version differences
+  - "navigate" → ROS1: /move_base, ROS2: /navigate_to_pose
+  - Automatic ROS version detection via protocol handshake
+  - Message type conversion between ROS versions
+
+- [ ] **AI Modification Interface (with Safety)**
+  - ✅ Auto-approve: parameter tuning (within bounds), NL pattern addition
+  - ⚠️ Human confirm: new skill composition, safety limit changes
+  - ❌ Prohibited: hardware limits, core infrastructure changes
+  - Audit logging: all modifications tracked
+  - Rollback: revert to known-good configurations
+
+**Governance Model:**
+| Modification | Auto-Approve | Human Confirm | Logged | Rollback |
+|--------------|--------------|---------------|--------|----------|
+| Parameter tune (safe bounds) | ✅ | ❌ | ✅ | ✅ |
+| Add NL pattern | ✅ | ❌ | ✅ | ✅ |
+| New skill composition | ❌ | ✅ | ✅ | ✅ |
+| Change safety limits | ❌ | ✅ Required | ✅ | ✅ |
+
+### A.4 Integration Architecture
+**How components work together:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  NL COMMAND: "Go to the kitchen slowly"                         │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Dynamic Skill System                                        │
+│     - Discovers robot has "navigate" skill                      │
+│     - Checks required topics: /cmd_vel, /odom exist             │
+│     - Verifies ROS version (ROS2 Humble)                        │
+├─────────────────────────────────────────────────────────────────┤
+│  2. ROS Topology Context                                        │
+│     - Resolves "kitchen" → (5.2, 3.1, 0.0) in map frame         │
+│     - Validates /navigate_to_pose action available              │
+│     - Checks current robot pose from /amcl_pose                 │
+├─────────────────────────────────────────────────────────────────┤
+│  3. NL2ROS Pipeline                                             │
+│     - Intent: NAVIGATE, speed: 0.3 m/s (clamped to safe max)    │
+│     - Generates Nav2 behavior tree with speed constraint          │
+│     - Safety validation: path clear, within workspace bounds      │
+├─────────────────────────────────────────────────────────────────┤
+│  4. Execution                                                   │
+│     - Sends NavigateToPose goal via ROS2 connector              │
+│     - Monitors progress, detects anomalies                      │
+│     - Recovers if blocked: replan or ask for help               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### v0.6.1 Success Criteria
 - [ ] All new features have TDD tests (Red-Green-Refactor)
 - [ ] Documentation updated with ROS architecture alignment
 - [ ] Example: Agent controls robot through natural language
 - [ ] Example: Agent replays rosbag for training scenario
 - [ ] Performance: <50ms added latency for lifecycle operations
+
+### v0.6.1 Documentation References
+| Document | Purpose | Status |
+|----------|---------|--------|
+| `docs/NL2ROS_SYSTEM.md` | NL2ROS system design | ✅ Complete |
+| `docs/NL2ROS_DEEP_ANALYSIS.md` | Physical execution pipeline | ✅ Complete |
+| `docs/ROS_TOPOLOGY_CONTEXT_ANALYSIS.md` | Topology retrieval for NL | ✅ Complete |
+| `docs/DYNAMIC_SKILL_SYSTEM_ANALYSIS.md` | Dynamic skill architecture | ✅ Complete |
 
 ---
 
