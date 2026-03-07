@@ -205,20 +205,71 @@ def test_spatial_reference_resolution():
     assert result.target == semantic_map["kitchen"]
 ```
 
-### 1.5 Integration & Validation (Week 4) 🔴
+### 1.5 Simulation Environment Setup (Week 2-3) 🟡
 
-**Deliverable:** Working foundation system
+**Deliverable:** Physics simulation for safe development
 
-- [ ] End-to-end test: "Go forward" → parse → validate safety → execute
+- [ ] **Gazebo + ROS2 environment**
+  - Install and configure Gazebo Ignition/Fortress
+  - Setup ROS2 Humble integration
+  - Configure physics engine (ODE/Bullet)
+  
+- [ ] **Robot models**
+  - TurtleBot3 Waffle (SDF, meshes, plugins)
+  - UR5 arm (SDF, kinematics, controllers)
+  - Sensor plugins (camera, lidar, IMU)
+  
+- [ ] **Test environments**
+  - Warehouse world (aisles, shelves, obstacles)
+  - Office world (rooms, corridors, elevators)
+  - Outdoor world (terrain, lighting variations)
+  
+- [ ] **CI/CD integration**
+  - GitHub Actions workflow for simulation tests
+  - Automated scenario execution
+  - Results reporting and artifact storage
+
+### 1.6 Simulation-Based Testing (Week 3-4) 🟡
+
+**Deliverable:** Comprehensive simulation test suite
+
+- [ ] **Unit tests with mocked ROS (L1)**
+  - Test individual nodes without physics
+  - Fast execution (100x real-time)
+  - >90% code coverage
+  
+- [ ] **Physics simulation tests (L2)**
+  - Navigation: 100+ scenarios (empty, obstacles, dynamic)
+  - Safety: Emergency stop, collision avoidance
+  - Performance: Latency under load
+  
+- [ ] **Parallel simulation**
+  - 1000 scenarios in parallel
+  - 100 worker processes
+  - Complete in <1 hour
+  
+- [ ] **Safety scenario validation**
+  - Human suddenly appears
+  - Sensor failure (lidar stops)
+  - Unsafe velocity command
+  - Network latency spike
+
+### 1.7 Integration & Validation (Week 4) 🔴
+
+**Deliverable:** Working foundation system validated in simulation
+
+- [ ] End-to-end test in simulation: "Go forward" → parse → validate → execute
 - [ ] Latency validation: <100ms total pipeline
 - [ ] Safety validation: All commands pass through /safety/validator
-- [ ] Documentation: Architecture diagrams, API docs
+- [ ] Simulation-to-real correlation: Verify sim matches real robot behavior
+- [ ] Documentation: Architecture diagrams, API docs, simulation guide
 
 **Gate 1 Criteria:**
-- [ ] Zero safety violations
-- [ ] <100ms end-to-end latency
+- [ ] Zero safety violations in simulation
+- [ ] <100ms end-to-end latency in simulation
 - [ ] 100% command validation
-- [ ] All tests passing
+- [ ] All tests passing (unit + simulation)
+- [ ] Simulation environment documented and reproducible
 
 ---
 
@@ -294,12 +345,31 @@ User: [Approve]
 AI: [Executes]
 ```
 
-### 2.4 Shadow Mode (Week 8) 🟡
+### 2.4 Simulation-Based Validation (Weeks 7-8) 🟡
+
+**Deliverable:** Large-scale simulation validation before real-world shadow mode
+
+- [ ] **Scale simulation testing**
+  - 10,000 scenarios in parallel
+  - Coverage: Navigation, manipulation, safety edge cases
+  - Performance: Load testing, stress testing
+  
+- [ ] **AI training in simulation**
+  - RL environment for navigation (NavigationEnv)
+  - Domain randomization (friction, mass, sensor noise)
+  - Train policies: 1M+ episodes in simulation
+  
+- [ ] **Sim-to-real validation**
+  - Validate simulation matches real robot (correlation >90%)
+  - Fine-tune on real robot (minimal data)
+  - Verify transfer success rate >90%
+
+### 2.5 Shadow Mode (Week 8) 🟡
 
 **Deliverable:** Parallel AI-human operation for validation
 
 - [ ] **Shadow mode operation:**
-  - AI proposes action
+  - AI proposes action (based on simulation-validated models)
   - Human executes (manually or via traditional interface)
   - System logs: AI proposal, human action, outcome
   - Compare: AI decision vs human decision
@@ -308,6 +378,7 @@ AI: [Executes]
   - >95% agreement between AI and human
   - Zero safety violations
   - <5% human override rate (indicates AI is reasonable)
+  - Correlation with simulation predictions >95%
 
 **Gate 2 Criteria:**
 - [ ] >95% AI-human agreement
@@ -376,14 +447,36 @@ AI: [Executes]
   - Dialect/terminology adaptation
   - Error correction ("Did you mean...?")
 
-### 3.4 Extended Shadow Mode (Weeks 11-12 + v0.7.0 Phase 1) 🟡
+### 3.4 Simulation-First Extended Validation (Weeks 11-12) 🟡
 
-**Deliverable:** 1000+ hours of validated operation (cumulative)
+**Deliverable:** 10,000+ hours of simulated operation
 
-- [ ] **Phase 1 (v0.6.3 - Weeks 11-12):** 200+ hours
+- [ ] **Large-scale simulation (Weeks 11-12)**
+  - 100,000 scenarios in parallel cloud simulation
+  - 10,000+ hours of simulated robot operation
+  - Fleet simulation: 100 robots simultaneously
+  - Stress testing: Peak load, resource contention
+  
+- [ ] **Digital twin validation**
+  - High-fidelity simulation matching real robots
+  - Real sensor noise profiles
+  - Accurate physics (friction, mass, inertia)
+  - Validate sim-to-real correlation >95%
+  
+- [ ] **Safety certification in simulation**
+  - ISO 10218 scenarios: All passed
+  - ISO/TS 15066 collaborative scenarios: All passed
+  - Fuzz testing: 100,000 random commands
+  - Zero unexpected safety violations
+
+### 3.5 Extended Shadow Mode (v0.7.0 Phase 1) 🟡
+
+**Deliverable:** 1000+ hours of real-world validated operation (cumulative)
+
+- [ ] **Phase 1 (v0.6.3 - Weeks 11-12):** 200+ hours real-world
   - 2 robots, 12 hours/day, 7 days/week
   - Focus: Core functionality validation
-  - Edge case identification
+  - Validate simulation predictions match reality
   
 - [ ] **Phase 2 (v0.7.0 Months 7-8):** 800+ additional hours
   - 5 robots, 16 hours/day, 5 days/week
@@ -392,19 +485,22 @@ AI: [Executes]
   
 - [ ] **Cumulative target:** 1000+ hours before 50% fleet rollout
 
-**Why 1000 hours?**
+**Why 1000 hours real-world after 10,000 hours simulation?**
+- Simulation catches 99% of issues safely and quickly
+- Real-world validates sim-to-real transfer
 - Statistical significance: Detect 1-in-1000 failure modes
-- Confidence level: 99.9% reliability for production
 - Industry standard: ISO 13849 requires extensive validation
 
 **Gate 3 Criteria (End of v0.6.3):**
-- [ ] 200+ hours shadow mode (phase 1 complete)
+- [ ] 200+ hours real-world shadow mode
+- [ ] 10,000+ hours simulation validation
 - [ ] Zero safety incidents
 - [ ] >98% AI-human agreement
+- [ ] >95% sim-to-real correlation
 - [ ] All edge cases documented with mitigations
 
 **Gate 4 Criteria (Before 50% rollout in v0.7.0):**
-- [ ] 1000+ hours cumulative shadow mode
+- [ ] 1000+ hours cumulative real-world shadow mode
 - [ ] External safety audit passed
 - [ ] Regulatory compliance review complete
 
@@ -418,15 +514,22 @@ AI: [Executes]
 
 ### 4.1 Gradual Rollout (Months 7-12)
 
-**Deliverable:** Phased production deployment with cumulative shadow mode
+**Deliverable:** Phased production deployment with simulation-validated foundation
 
-- [ ] **Pre-rollout (Months 7-8): Extended Shadow Mode**
+- [ ] **Pre-rollout simulation validation (Months 7-8)**
+  - Digital twin testing: Exact replica of production environment
+  - 1000+ hours additional simulation (cumulative 11,000+ hours)
+  - Hardware-in-loop testing: Real controllers + simulation
+  - Final safety certification in simulation
+
+- [ ] **Pre-rollout real-world validation (Months 7-8): Extended Shadow Mode**
   - Continue shadow mode to reach 1000+ cumulative hours
   - 5 robots, 16 hours/day operation
   - Validate diverse scenarios before any production deployment
+  - Correlation check: Sim predictions vs real-world behavior
 
 - [ ] **Rollout plan (Months 9-12):**
-  - Month 9: 1 robot (pilot) - AFTER 1000+ hours shadow mode
+  - Month 9: 1 robot (pilot) - AFTER 11,000+ hours simulation + 1000+ hours shadow mode
   - Month 10: 5% of fleet
   - Month 11: 25% of fleet
   - Month 12: 50% of fleet (hold for evaluation)
@@ -434,6 +537,7 @@ AI: [Executes]
   
 - [ ] **Monitoring:**
   - Real-time metrics: Success rate, latency, safety events
+  - Simulation comparison: Real behavior vs predicted
   - Automatic rollback: If error rate >0.1% or any safety event
   - Human oversight: 24/7 monitoring during rollout
   - Weekly review: Go/No-Go decision for next phase
@@ -498,6 +602,7 @@ AI: [Executes]
 | End-to-end latency | <100ms | <100ms | <100ms | <100ms |
 | AI-human agreement | N/A | >95% | >98% | >99% |
 | Task success rate | 90% | 93% | 96% | 99% |
+| Simulation hours | N/A | 1,000 (v0.6.2) | 10,000 (v0.6.3) | 11,000+ (before pilot) |
 | Shadow mode hours | N/A | 100 (v0.6.2) | 200+ (v0.6.3) | 1000+ (before 50% rollout) |
 
 ### Business Metrics
