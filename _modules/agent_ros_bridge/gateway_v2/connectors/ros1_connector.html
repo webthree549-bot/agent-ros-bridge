@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>agent_ros_bridge.gateway_v2.connectors.ros1_connector &#8212; Agent ROS Bridge 0.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../../_static/documentation_options.js?v=1dd76d02"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for agent_ros_bridge.gateway_v2.connectors.ros1_connector</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;ROS1 Connector for OpenClaw Gateway.</span>
+
+<span class="sd">Connects to ROS1 robots (Noetic) and bridges ROS topics/services/actions</span>
+<span class="sd">to the OpenClaw unified message format.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">rospy</span>
+
+    <span class="n">ROS1_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">ROS1_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">rospy</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">agent_ros_bridge.gateway_v2.core</span> <span class="kn">import</span> <span class="n">Command</span><span class="p">,</span> <span class="n">Connector</span><span class="p">,</span> <span class="n">Robot</span><span class="p">,</span> <span class="n">RobotEndpoint</span><span class="p">,</span> <span class="n">Telemetry</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;connector.ros1&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Message type registry for common ROS1 message types</span>
+<span class="n">MESSAGE_TYPE_REGISTRY</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># Standard messages</span>
+    <span class="s2">&quot;std_msgs/String&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;String&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Float64&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Float64&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Float32&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Float32&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Int32&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Int32&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Int64&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Int64&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Bool&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Bool&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Header&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Header&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Empty&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Empty&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/UInt8&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;UInt8&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/UInt16&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;UInt16&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/UInt32&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;UInt32&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/UInt64&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;UInt64&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Int8&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Int8&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Int16&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Int16&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/ColorRGBA&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;ColorRGBA&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Time&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Time&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;std_msgs/Duration&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;std_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Duration&quot;</span><span class="p">),</span>
+    <span class="c1"># Geometry messages</span>
+    <span class="s2">&quot;geometry_msgs/Twist&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Twist&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Pose&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Pose&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/PoseStamped&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;PoseStamped&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Point&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Point&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Quaternion&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Quaternion&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Transform&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Transform&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/TransformStamped&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;TransformStamped&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Vector3&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Vector3&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/Wrench&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Wrench&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/PoseWithCovariance&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;PoseWithCovariance&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;geometry_msgs/TwistWithCovariance&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;geometry_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;TwistWithCovariance&quot;</span><span class="p">),</span>
+    <span class="c1"># Sensor messages</span>
+    <span class="s2">&quot;sensor_msgs/LaserScan&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;LaserScan&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/Image&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Image&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/CompressedImage&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;CompressedImage&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/PointCloud2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;PointCloud2&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/Imu&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Imu&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/NavSatFix&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;NavSatFix&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/BatteryState&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;BatteryState&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/JointState&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;JointState&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/Range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Range&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/PointCloud&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;PointCloud&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;sensor_msgs/ChannelFloat32&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;sensor_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;ChannelFloat32&quot;</span><span class="p">),</span>
+    <span class="c1"># Navigation messages</span>
+    <span class="s2">&quot;nav_msgs/Odometry&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Odometry&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nav_msgs/Path&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;Path&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nav_msgs/OccupancyGrid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;OccupancyGrid&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nav_msgs/MapMetaData&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;MapMetaData&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nav_msgs/GridCells&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;GridCells&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nav_msgs/GetMap&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;nav_msgs.srv&quot;</span><span class="p">,</span> <span class="s2">&quot;GetMap&quot;</span><span class="p">),</span>
+    <span class="c1"># TF messages</span>
+    <span class="s2">&quot;tf2_msgs/TFMessage&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;tf2_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;TFMessage&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;tf/tfMessage&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;tf.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;tfMessage&quot;</span><span class="p">),</span>
+    <span class="c1"># Diagnostic messages</span>
+    <span class="s2">&quot;diagnostic_msgs/DiagnosticArray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;diagnostic_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;DiagnosticArray&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;diagnostic_msgs/DiagnosticStatus&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;diagnostic_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;DiagnosticStatus&quot;</span><span class="p">),</span>
+    <span class="c1"># Trajectory messages</span>
+    <span class="s2">&quot;trajectory_msgs/JointTrajectory&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;trajectory_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;JointTrajectory&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;trajectory_msgs/JointTrajectoryPoint&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;trajectory_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;JointTrajectoryPoint&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;trajectory_msgs/MultiDOFJointTrajectory&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;trajectory_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;MultiDOFJointTrajectory&quot;</span><span class="p">),</span>
+    <span class="c1"># Control messages</span>
+    <span class="s2">&quot;control_msgs/JointTrajectoryControllerState&quot;</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;control_msgs.msg&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;JointTrajectoryControllerState&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">&quot;control_msgs/GripperCommand&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;control_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;GripperCommand&quot;</span><span class="p">),</span>
+    <span class="c1"># Actionlib messages</span>
+    <span class="s2">&quot;actionlib/GoalStatus&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;actionlib_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;GoalStatus&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;actionlib/GoalStatusArray&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;actionlib_msgs.msg&quot;</span><span class="p">,</span> <span class="s2">&quot;GoalStatusArray&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_message_class">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.get_message_class">[docs]</a>
+<span class="k">def</span> <span class="nf">get_message_class</span><span class="p">(</span><span class="n">msg_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dynamically import and return a ROS1 message class.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        msg_type: ROS message type string (e.g., &quot;geometry_msgs/Twist&quot;)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Message class or None if not available</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">msg_type</span> <span class="ow">in</span> <span class="n">MESSAGE_TYPE_REGISTRY</span><span class="p">:</span>
+        <span class="n">module_name</span><span class="p">,</span> <span class="n">class_name</span> <span class="o">=</span> <span class="n">MESSAGE_TYPE_REGISTRY</span><span class="p">[</span><span class="n">msg_type</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">class_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not import </span><span class="si">{</span><span class="n">msg_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Try dynamic import for unknown types</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="n">msg_type</span><span class="p">:</span>
+            <span class="n">pkg</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pkg</span><span class="si">}</span><span class="s2">.msg&quot;</span><span class="p">)</span>
+            <span class="n">result2</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result2</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dynamic import failed for </span><span class="si">{</span><span class="n">msg_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ROS1Topic">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Topic">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ROS1Topic</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ROS1 topic information.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">message_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="ROS1Service">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Service">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ROS1Service</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ROS1 service information.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">service_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="ROS1Action">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Action">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ROS1Action</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ROS1 action information.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">action_type</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="ROS1Robot">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot">[docs]</a>
+<span class="k">class</span> <span class="nc">ROS1Robot</span><span class="p">(</span><span class="n">Robot</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ROS1 robot implementation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ROS1 robot with ID and name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            robot_id: Unique identifier for the robot.</span>
+<span class="sd">            name: Human-readable robot name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">robot_id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ros1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot_type</span> <span class="o">=</span> <span class="s2">&quot;ros1&quot;</span>  <span class="c1"># Compatibility alias</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscribers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service_proxies</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_telemetry_queue</span><span class="p">:</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ROS1Robot.connect">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.connect">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ROS1 node.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ROS1 (rospy) not available&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Generate unique node name</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timestamp</span><span class="p">()))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;agent_ros_bridge_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">robot_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ts</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span><span class="p">,</span> <span class="n">anonymous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">connected</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;publish&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;subscribe&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;services&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;actions&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ROS1 robot </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> connected (node: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to connect to ROS1: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="ROS1Robot.disconnect">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.disconnect">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disconnect from ROS1.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connected</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># Unregister all subscribers and publishers</span>
+        <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscribers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">sub</span><span class="o">.</span><span class="n">unregister</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pub</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">unregister</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscribers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">service_proxies</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ROS1 robot </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> disconnected&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ROS1Robot.execute">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.execute">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">Command</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute command on ROS1 robot.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">action</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">parameters</span>
+
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;publish&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_publish</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;call_service&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_call_service</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;send_action&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_send_action</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;get_topics&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_get_topics</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;get_nodes&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_get_nodes</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;get_services&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_get_services</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;get_params&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_get_params</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;set_param&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cmd_set_param</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown ROS1 command: </span><span class="si">{</span><span class="n">action</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ROS1Robot.subscribe">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.subscribe">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">subscribe</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">Telemetry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Subscribe to ROS1 topic.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            topic: ROS topic name</span>
+<span class="sd">            msg_type: Optional message type (e.g., &quot;geometry_msgs/Twist&quot;).</span>
+<span class="sd">                     If not provided, will try to auto-detect from topic info.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;msg_type&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subscribers</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Already subscribed to </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Still yield from queue for existing subscription</span>
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">telemetry</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_telemetry_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">topic</span> <span class="o">==</span> <span class="n">topic</span><span class="p">:</span>
+                        <span class="k">yield</span> <span class="n">telemetry</span>
+                <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Auto-detect message type if not provided</span>
+        <span class="k">if</span> <span class="n">msg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_topic_message_type</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">msg_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not determine message type for </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="c1"># Get message class</span>
+        <span class="n">msg_class</span> <span class="o">=</span> <span class="n">get_message_class</span><span class="p">(</span><span class="n">msg_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">msg_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not import message type </span><span class="si">{</span><span class="n">msg_type</span><span class="si">}</span><span class="s2"> for </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Create ROS1 subscriber</span>
+        <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+            <span class="n">telemetry</span> <span class="o">=</span> <span class="n">Telemetry</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="n">topic</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ros_msg_to_dict</span><span class="p">(</span><span class="n">msg</span><span class="p">),</span> <span class="n">quality</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_telemetry_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">telemetry</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">subscriber</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg_class</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subscribers</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span> <span class="o">=</span> <span class="n">subscriber</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subscribed to ROS1 topic: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">msg_type</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to subscribe to </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Yield from queue</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">telemetry</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_telemetry_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">telemetry</span><span class="o">.</span><span class="n">topic</span> <span class="o">==</span> <span class="n">topic</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">telemetry</span>
+            <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+                <span class="k">continue</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_topic_message_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the message type for a topic by introspecting ROS.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">topics</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">get_published_topics</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">msg_type</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">topic</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">msg_type</span>
+                    <span class="k">return</span> <span class="n">result</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get topic type for </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_cmd_publish</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Publish message to ROS1 topic.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            params: Dictionary containing:</span>
+<span class="sd">                - topic: ROS topic name</span>
+<span class="sd">                - data: Message data (dict or primitive)</span>
+<span class="sd">                - type: ROS message type (e.g., &quot;geometry_msgs/Twist&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Status dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;topic&quot;</span><span class="p">)</span>
+        <span class="n">message_data</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+        <span class="n">msg_type_str</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topic</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Topic is required&quot;</span><span class="p">}</span>
+
+        <span class="c1"># Auto-detect message type if not provided</span>
+        <span class="k">if</span> <span class="n">msg_type_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg_type_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_topic_message_type</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">msg_type_str</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Could not determine message type for </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get message class</span>
+            <span class="n">msg_class</span> <span class="o">=</span> <span class="n">get_message_class</span><span class="p">(</span><span class="n">msg_type_str</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">msg_class</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Could not import message type </span><span class="si">{</span><span class="n">msg_type_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+
+            <span class="c1"># Create publisher if needed</span>
+            <span class="k">if</span> <span class="n">topic</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Publisher</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg_class</span><span class="p">,</span> <span class="n">queue_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+                <span class="n">rospy</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># Allow publisher to register</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created publisher for topic: </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">msg_type_str</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Create and populate message</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="n">msg_class</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_ros_msg</span><span class="p">(</span><span class="n">message_data</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">publishers</span><span class="p">[</span><span class="n">topic</span><span class="p">]</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Published to </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">message_data</span><span class="p">)[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;published&quot;</span><span class="p">,</span> <span class="s2">&quot;topic&quot;</span><span class="p">:</span> <span class="n">topic</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">msg_type_str</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to publish to </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_cmd_call_service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call ROS1 service.&quot;&quot;&quot;</span>
+        <span class="n">service_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;service&quot;</span><span class="p">)</span>
+        <span class="n">request_data</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;request&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="n">service_name</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+            <span class="c1"># Get service type from system state</span>
+            <span class="k">if</span> <span class="n">service_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Service name is required&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="n">service_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_service_type</span><span class="p">(</span><span class="n">service_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">service_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Could not determine service type for </span><span class="si">{</span><span class="n">service_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+
+            <span class="c1"># Import service class</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pkg</span><span class="p">,</span> <span class="n">srv</span> <span class="o">=</span> <span class="n">service_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                <span class="n">srv_module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pkg</span><span class="si">}</span><span class="s2">.srv&quot;</span><span class="p">)</span>
+                <span class="n">srv_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">srv_module</span><span class="p">,</span> <span class="n">srv</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Could not import service type </span><span class="si">{</span><span class="n">service_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="p">}</span>
+
+            <span class="c1"># Create service proxy</span>
+            <span class="n">proxy</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="n">service_name</span><span class="p">,</span> <span class="n">srv_class</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">service_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">service_proxies</span><span class="p">[</span><span class="n">service_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">proxy</span>
+
+            <span class="c1"># Build request</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">srv_class</span><span class="o">.</span><span class="n">_request_class</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_ros_msg</span><span class="p">(</span><span class="n">request_data</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+
+            <span class="c1"># Call service</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">proxy</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;called&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="n">service_name</span><span class="p">,</span>
+                <span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ros_msg_to_dict</span><span class="p">(</span><span class="n">response</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="k">except</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ROSException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Service timeout: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_get_service_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">service_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get service type from ROS master.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">rosgraph</span>
+
+            <span class="n">master</span> <span class="o">=</span> <span class="n">rosgraph</span><span class="o">.</span><span class="n">Master</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span> <span class="ow">or</span> <span class="s2">&quot;agent_ros_bridge&quot;</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">services</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getSystemState</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">svc</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="n">services</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">svc</span> <span class="o">==</span> <span class="n">service_name</span> <span class="ow">and</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="c1"># Get service type from first provider</span>
+                    <span class="c1"># This is complex in ROS1, often requires parsing node XML-RPC</span>
+                    <span class="c1"># For now, return a common default or None</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get service type for </span><span class="si">{</span><span class="n">service_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_cmd_send_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send ROS1 action goal.&quot;&quot;&quot;</span>
+        <span class="n">action_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+        <span class="n">goal_data</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;goal&quot;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">action_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+
+        <span class="c1"># ROS1 actions use actionlib</span>
+        <span class="c1"># This is a simplified implementation</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">actionlib</span>
+
+            <span class="k">if</span> <span class="n">action_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Action type required for ROS1 actions&quot;</span><span class="p">}</span>
+
+            <span class="c1"># Parse action type</span>
+            <span class="n">pkg</span><span class="p">,</span> <span class="n">action</span> <span class="o">=</span> <span class="n">action_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">action_module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pkg</span><span class="si">}</span><span class="s2">.msg&quot;</span><span class="p">)</span>
+            <span class="n">action_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">action_module</span><span class="p">,</span> <span class="n">action</span> <span class="o">+</span> <span class="s2">&quot;Action&quot;</span><span class="p">)</span>
+            <span class="n">goal_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">action_module</span><span class="p">,</span> <span class="n">action</span> <span class="o">+</span> <span class="s2">&quot;Goal&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Create action client</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">actionlib</span><span class="o">.</span><span class="n">SimpleActionClient</span><span class="p">(</span><span class="n">action_name</span><span class="p">,</span> <span class="n">action_class</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">wait_for_server</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">rospy</span><span class="o">.</span><span class="n">Duration</span><span class="p">(</span><span class="mf">5.0</span><span class="p">))</span>
+
+            <span class="c1"># Create and send goal</span>
+            <span class="n">goal</span> <span class="o">=</span> <span class="n">goal_class</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_ros_msg</span><span class="p">(</span><span class="n">goal_data</span><span class="p">,</span> <span class="n">goal</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">send_goal</span><span class="p">(</span><span class="n">goal</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;goal_sent&quot;</span><span class="p">,</span> <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">action_name</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to send action goal: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_cmd_get_topics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of available topics.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">topics</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">get_published_topics</span><span class="p">()</span>
+            <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">msg_type</span><span class="p">}</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">msg_type</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get topics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_cmd_get_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of ROS1 nodes.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">rosgraph</span>
+
+            <span class="n">master</span> <span class="o">=</span> <span class="n">rosgraph</span><span class="o">.</span><span class="n">Master</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span> <span class="ow">or</span> <span class="s2">&quot;agent_ros_bridge&quot;</span><span class="p">)</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getNodeNames</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodes</span>
+                <span class="k">return</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get nodes: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_cmd_get_services</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of available services.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">rosgraph</span>
+
+            <span class="n">master</span> <span class="o">=</span> <span class="n">rosgraph</span><span class="o">.</span><span class="n">Master</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span> <span class="ow">or</span> <span class="s2">&quot;agent_ros_bridge&quot;</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">services</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getSystemState</span><span class="p">()</span>
+            <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">svc</span><span class="p">,</span> <span class="s2">&quot;providers&quot;</span><span class="p">:</span> <span class="n">nodes</span><span class="p">}</span> <span class="k">for</span> <span class="n">svc</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="n">services</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to get services: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_cmd_get_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get ROS parameters.&quot;&quot;&quot;</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;namespace&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">rosgraph</span>
+
+            <span class="n">master</span> <span class="o">=</span> <span class="n">rosgraph</span><span class="o">.</span><span class="n">Master</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_node_name</span> <span class="ow">or</span> <span class="s2">&quot;agent_ros_bridge&quot;</span><span class="p">)</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">params_list</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getParamNames</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">filtered</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params_list</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">namespace</span><span class="p">)]</span>
+                    <span class="k">if</span> <span class="n">namespace</span>
+                    <span class="k">else</span> <span class="n">params_list</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">filtered</span><span class="p">}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="n">msg</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_cmd_set_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set ROS parameter.&quot;&quot;&quot;</span>
+        <span class="n">param_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="n">param_value</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">set_param</span><span class="p">(</span><span class="n">param_name</span><span class="p">,</span> <span class="n">param_value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;set&quot;</span><span class="p">,</span> <span class="s2">&quot;param&quot;</span><span class="p">:</span> <span class="n">param_name</span><span class="p">}</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_ros_msg_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert ROS message to dictionary.&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;_type&quot;</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">}</span>
+
+        <span class="c1"># ROS1 messages use __slots__</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;__slots__&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">msg</span><span class="o">.</span><span class="vm">__slots__</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">slot</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">slot</span><span class="p">)</span>
+                    <span class="c1"># Handle nested messages</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">&quot;__slots__&quot;</span><span class="p">):</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ros_msg_to_dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_ros_msg_to_dict</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">&quot;__slots__&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
+                            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span>
+                        <span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">result</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not get slot </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Fallback: try __dict__ for regular objects (e.g., MagicMock in tests)</span>
+            <span class="n">msg_dict</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;__dict__&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">msg_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">callable</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="n">result</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_dict_to_ros_msg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert dictionary to ROS message.</span>
+
+<span class="sd">        Handles nested messages and arrays recursively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="c1"># Handle primitive types (e.g., std_msgs/String just has &quot;data&quot; field)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">):</span>
+                <span class="n">msg</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+            <span class="c1"># Handle nested ROS messages</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="s2">&quot;__slots__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_ros_msg</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="c1"># Handle arrays of ROS messages</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">attr</span><span class="p">:</span>
+                <span class="c1"># Check if it&#39;s a list of messages or primitives</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="c1"># Array of nested messages - create each element</span>
+                    <span class="n">msg_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">attr</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">attr</span> <span class="k">else</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">msg_type</span><span class="p">:</span>
+                        <span class="n">new_list</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                            <span class="n">nested_msg</span> <span class="o">=</span> <span class="n">msg_type</span><span class="p">()</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_ros_msg</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">nested_msg</span><span class="p">)</span>
+                            <span class="n">new_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nested_msg</span><span class="p">)</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">new_list</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Array of primitives</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Primitive value</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ROS1Connector">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector">[docs]</a>
+<span class="k">class</span> <span class="nc">ROS1Connector</span><span class="p">(</span><span class="n">Connector</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ROS1 (Noetic) connector.&quot;&quot;&quot;</span>
+
+    <span class="n">connector_type</span> <span class="o">=</span> <span class="s2">&quot;ros1&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_uri</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ROS1 connector with optional master URI.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            master_uri: ROS master URI (e.g., &quot;http://localhost:11311&quot;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master_uri</span> <span class="o">=</span> <span class="n">master_uri</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ROS1Robot</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_ensure_initialized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ensure ROS1 environment is set up.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;ROS1 not available. Install rospy.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master_uri</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">os</span>
+
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ROS_MASTER_URI&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">master_uri</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="ROS1Connector.discover">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.discover">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RobotEndpoint</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discover ROS1 systems on network.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ROS1_AVAILABLE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_initialized</span><span class="p">()</span>
+        <span class="n">endpoints</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get system state</span>
+            <span class="kn">import</span> <span class="nn">rosgraph</span>
+
+            <span class="n">master</span> <span class="o">=</span> <span class="n">rosgraph</span><span class="o">.</span><span class="n">Master</span><span class="p">(</span><span class="s2">&quot;agent_ros_bridge_discovery&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Get published topics</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">topics</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getPublishedTopics</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Group by namespace to find robots</span>
+                <span class="n">namespaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">topic_name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">topics</span><span class="p">:</span>
+                    <span class="n">parts</span> <span class="o">=</span> <span class="n">topic_name</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">parts</span> <span class="ow">and</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">namespaces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">namespaces</span><span class="p">:</span>
+                    <span class="n">topic_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">topics</span> <span class="k">if</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">t</span><span class="p">])</span>
+                    <span class="n">endpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">RobotEndpoint</span><span class="p">(</span>
+                            <span class="n">uri</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ros1:///</span><span class="si">{</span><span class="n">ns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ros1_</span><span class="si">{</span><span class="n">ns</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="n">connector_type</span><span class="o">=</span><span class="s2">&quot;ros1&quot;</span><span class="p">,</span>
+                            <span class="n">capabilities</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;publish&quot;</span><span class="p">,</span> <span class="s2">&quot;subscribe&quot;</span><span class="p">,</span> <span class="s2">&quot;services&quot;</span><span class="p">,</span> <span class="s2">&quot;actions&quot;</span><span class="p">],</span>
+                            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span>
+                                <span class="s2">&quot;namespace&quot;</span><span class="p">:</span> <span class="n">ns</span><span class="p">,</span>
+                                <span class="s2">&quot;topic_count&quot;</span><span class="p">:</span> <span class="n">topic_count</span><span class="p">,</span>
+                                <span class="s2">&quot;ros_version&quot;</span><span class="p">:</span> <span class="s2">&quot;noetic&quot;</span><span class="p">,</span>
+                            <span class="p">},</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+
+            <span class="c1"># Also add individual nodes as endpoints</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">nodes</span> <span class="o">=</span> <span class="n">master</span><span class="o">.</span><span class="n">getNodeNames</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                        <span class="n">node_clean</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">node_clean</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                    <span class="n">endpoints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">RobotEndpoint</span><span class="p">(</span>
+                            <span class="n">uri</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;ros1://</span><span class="si">{</span><span class="n">node_clean</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                            <span class="n">name</span><span class="o">=</span><span class="n">node_clean</span><span class="p">,</span>
+                            <span class="n">connector_type</span><span class="o">=</span><span class="s2">&quot;ros1&quot;</span><span class="p">,</span>
+                            <span class="n">capabilities</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;publish&quot;</span><span class="p">,</span> <span class="s2">&quot;subscribe&quot;</span><span class="p">],</span>
+                            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;node_name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">,</span> <span class="s2">&quot;ros_version&quot;</span><span class="p">:</span> <span class="s2">&quot;noetic&quot;</span><span class="p">},</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ROS1 discovery failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">endpoints</span></div>
+
+
+<div class="viewcode-block" id="ROS1Connector.connect">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.connect">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Robot</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to a ROS1 robot.</span>
+
+<span class="sd">        URI formats:</span>
+<span class="sd">            ros1:///&lt;namespace&gt;         # Connect to namespace</span>
+<span class="sd">            ros1://&lt;node_name&gt;          # Connect to specific node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ensure_initialized</span><span class="p">()</span>
+
+        <span class="c1"># Parse URI</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;ros1://&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">robot_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">path</span> <span class="k">else</span> <span class="s2">&quot;default&quot;</span>
+        <span class="n">robot_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;ROS1_</span><span class="si">{</span><span class="n">robot_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">robot</span> <span class="o">=</span> <span class="n">ROS1Robot</span><span class="p">(</span><span class="n">robot_id</span><span class="p">,</span> <span class="n">robot_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="k">await</span> <span class="n">robot</span><span class="o">.</span><span class="n">connect</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">[</span><span class="n">robot_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">robot</span>
+            <span class="k">return</span> <span class="n">robot</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<span class="c1"># Example usage</span>
+<div class="viewcode-block" id="example">
+<a class="viewcode-back" href="../../../../index.html#agent_ros_bridge.gateway_v2.connectors.ros1_connector.example">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example ROS1 connector usage.&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">agent_ros_bridge.gateway_v2.core</span> <span class="kn">import</span> <span class="n">Bridge</span>
+
+    <span class="c1"># Create gateway</span>
+    <span class="n">gateway</span> <span class="o">=</span> <span class="n">Bridge</span><span class="p">()</span>
+
+    <span class="c1"># Register ROS1 connector</span>
+    <span class="n">ros1_connector</span> <span class="o">=</span> <span class="n">ROS1Connector</span><span class="p">()</span>
+    <span class="n">gateway</span><span class="o">.</span><span class="n">connector_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">ros1_connector</span><span class="p">)</span>
+
+    <span class="c1"># Discover robots</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Discovering ROS1 systems...&quot;</span><span class="p">)</span>
+    <span class="n">endpoints</span> <span class="o">=</span> <span class="k">await</span> <span class="n">gateway</span><span class="o">.</span><span class="n">connector_registry</span><span class="o">.</span><span class="n">discover_all</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="n">endpoints</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Found: </span><span class="si">{</span><span class="n">ep</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">ep</span><span class="o">.</span><span class="n">uri</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Connect to first robot</span>
+    <span class="k">if</span> <span class="n">endpoints</span><span class="p">:</span>
+        <span class="n">robot</span> <span class="o">=</span> <span class="k">await</span> <span class="n">gateway</span><span class="o">.</span><span class="n">connect_robot</span><span class="p">(</span><span class="n">endpoints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">uri</span><span class="p">)</span>
+
+        <span class="c1"># Get topics</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">robot</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">Command</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="s2">&quot;get_topics&quot;</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="p">{}))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Topics: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">asyncio</span>
+
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">example</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">Agent ROS Bridge</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Agent ROS Bridge Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
