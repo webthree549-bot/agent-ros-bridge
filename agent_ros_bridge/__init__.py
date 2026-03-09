@@ -97,3 +97,21 @@ if FLEET_AVAILABLE:
             "FleetMetrics",
         ]
     )
+
+# Standalone Robot API (new in v0.6.1)
+try:
+    from .robot_api import (
+        Robot as StandaloneRobot,
+        NavigationGoal,
+        ManipulationGoal,
+        RobotCommandResult,
+    )
+    _ROBOT_API_AVAILABLE = True
+    __all__.extend([
+        "StandaloneRobot",
+        "NavigationGoal",
+        "ManipulationGoal",
+        "RobotCommandResult",
+    ])
+except ImportError:
+    _ROBOT_API_AVAILABLE = False

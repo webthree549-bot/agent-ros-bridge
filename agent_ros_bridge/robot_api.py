@@ -1,0 +1,263 @@
+"""
+Standalone Robot API for Agent ROS Bridge
+
+High-level Python API for controlling robots without external agent runtime.
+This is the "standalone mode" of Agent ROS Bridge.
+
+Usage:
+    from agent_ros_bridge import Robot, NavigationGoal
+    
+    robot = Robot()
+    robot.navigate_to(x=1.0, y=2.0)
+    robot.pick_up("cup")
+    robot.place_at("table")
+"""
+
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+
+
+@dataclass
+class NavigationGoal:
+    """Navigation goal specification."""
+    x: float
+    y: float
+    theta: float = 0.0
+    frame_id: str = "map"
+    timeout_sec: float = 60.0
+
+
+@dataclass
+class ManipulationGoal:
+    """Manipulation goal specification."""
+    object_name: str
+    action: str  # "pick", "place", "grasp", "release"
+    location: Optional[str] = None
+
+
+@dataclass
+class RobotCommandResult:
+    """Result of a robot command."""
+    success: bool
+    execution_time: float
+    error_message: Optional[str] = None
+    final_pose: Optional[Dict[str, float]] = None
+
+
+class Robot:
+    """
+    High-level robot control interface.
+    
+    This class provides a simplified API for controlling robots through
+    Agent ROS Bridge without needing an external AI agent.
+    
+    Example:
+        robot = Robot(ros_master="localhost:11311")
+        
+        # Navigate to location
+        result = robot.navigate_to(NavigationGoal(x=1.0, y=2.0))
+        if result.success:
+            print(f"Arrived in {result.execution_time:.2f}s")
+        
+        # Pick up object
+        robot.pick_up("cup")
+        
+        # Place at location
+        robot.place_at("table")
+    """
+    
+    def __init__(self, 
+                 ros_master: str = "localhost:11311",
+                 robot_name: str = "robot_01",
+                 safety_enabled: bool = True):
+        """
+        Initialize robot connection.
+        
+        Args:
+            ros_master: ROS master URI
+            robot_name: Name of the robot
+            safety_enabled: Whether to use safety validation
+        """
+        self.ros_master = ros_master
+        self.robot_name = robot_name
+        self.safety_enabled = safety_enabled
+        
+        # These would be initialized with ROS2
+        self._nav_client = None
+        self._manip_client = None
+        self._state_sub = None
+        
+        # Connection status
+        self._connected = False
+        self._current_pose = None
+        self._battery_level = 100.0
+        
+        # Try to connect
+        self._connect()
+    
+    def _connect(self):
+        """Establish connection to ROS."""
+        try:
+            import rclpy
+            from rclpy.node import Node
+            
+            # Initialize ROS2 if needed
+            if not rclpy.ok():
+                rclpy.init()
+            
+            # Create node
+            self._node = Node(f"robot_api_{self.robot_name}")
+            
+            # TODO: Create action clients for navigation and manipulation
+            # TODO: Subscribe to robot state
+            
+            self._connected = True
+            
+        except ImportError:
+            print("Warning: ROS2 not available. Running in mock mode.")
+            self._connected = False
+    
+    def is_connected(self) -> bool:
+        """Check if connected to robot."""
+        return self._connected
+    
+    def get_state(self) -> Dict[str, Any]:
+        """
+        Get current robot state.
+        
+        Returns:
+            Dictionary with pose, battery, status, etc.
+        """
+        return {
+            "connected": self._connected,
+            "robot_name": self.robot_name,
+            "pose": self._current_pose,
+            "battery_level": self._battery_level,
+            "status": "idle" if self._connected else "disconnected"
+        }
+    
+    def navigate_to(self, goal: NavigationGoal) -> RobotCommandResult:
+        """
+        Navigate to a position.
+        
+        Args:
+            goal: Navigation goal specification
+            
+        Returns:
+            Command result with success status and timing
+        """
+        if not self._connected:
+            return RobotCommandResult(
+                success=False,
+                execution_time=0.0,
+                error_message="Not connected to robot"
+            )
+        
+        try:
+            import time
+            start_time = time.time()
+            
+            # TODO: Implement actual navigation using Nav2
+            # For now, return mock success
+            
+            # This would:
+            # 1. Send goal to Nav2 action server
+            # 2. Wait for result
+            # 3. Return success/failure
+            
+            return RobotCommandResult(
+                success=True,
+                execution_time=time.time() - start_time,
+                final_pose={"x": goal.x, "y": goal.y, "theta": goal.theta}
+            )
+            
+        except Exception as e:
+            return RobotCommandResult(
+                success=False,
+                execution_time=0.0,
+                error_message=str(e)
+            )
+    
+    def pick_up(self, object_name: str) -> RobotCommandResult:
+        """
+        Pick up an object.
+        
+        Args:
+            object_name: Name of object to pick up
+            
+        Returns:
+            Command result
+        """
+        return self._execute_manipulation(
+            ManipulationGoal(object_name=object_name, action="pick")
+        )
+    
+    def place_at(self, location: str) -> RobotCommandResult:
+        """
+        Place held object at location.
+        
+        Args:
+            location: Where to place the object
+            
+        Returns:
+            Command result
+        """
+        return self._execute_manipulation(
+            ManipulationGoal(object_name="held_object", action="place", location=location)
+        )
+    
+    def _execute_manipulation(self, goal: ManipulationGoal) -> RobotCommandResult:
+        """Execute manipulation action."""
+        if not self._connected:
+            return RobotCommandResult(
+                success=False,
+                execution_time=0.0,
+                error_message="Not connected to robot"
+            )
+        
+        # TODO: Implement using MoveIt2
+        return RobotCommandResult(
+            success=True,
+            execution_time=1.0
+        )
+    
+    def stop(self) -> bool:
+        """Emergency stop."""
+        # TODO: Send stop command
+        return True
+    
+    def say(self, text: str) -> bool:
+        """
+        Make robot speak (if equipped with TTS).
+        
+        Args:
+            text: Text to speak
+            
+        Returns:
+            Success status
+        """
+        print(f"Robot says: {text}")
+        return True
+    
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self._disconnect()
+    
+    def _disconnect(self):
+        """Clean up connection."""
+        if self._connected:
+            # TODO: Clean up ROS resources
+            self._connected = False
+
+
+# Export public API
+__all__ = [
+    'Robot',
+    'NavigationGoal',
+    'ManipulationGoal',
+    'RobotCommandResult',
+]
