@@ -1,0 +1,41 @@
+name: "Multi-Robot Coordination"
+description: "Two robots navigate without collision"
+world: "empty_warehouse"
+duration: 120
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+    color: "blue"
+  - name: "turtlebot_02"
+    model: "turtlebot3_waffle"
+    pose: {x: 8.0, y: 8.0, z: 0.1, yaw: 3.14159}
+    color: "red"
+
+goals:
+  - robot: "turtlebot_01"
+    pose: {x: 8.0, y: 8.0, yaw: 0.0}
+    tolerance:
+      position: 0.3
+      orientation: 0.1
+  - robot: "turtlebot_02"
+    pose: {x: -8.0, y: -8.0, yaw: 3.14159}
+    tolerance:
+      position: 0.3
+      orientation: 0.1
+
+success_criteria:
+  - "Both robots reach their goals within 100s"
+  - "No robot-to-robot collisions"
+  - "Robots maintain minimum 1.0m separation"
+  - "Robots coordinate to avoid deadlock"
+  - "Both robots use efficient paths"
+
+metrics:
+  - path_lengths
+  - navigation_durations
+  - min_robot_distance
+  - robot_collision_count
+  - deadlock_time
+  - goals_reached

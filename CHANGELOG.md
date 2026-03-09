@@ -25,6 +25,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.0] - 2026-03-08
+
+### Added
+- **AI Layer Architecture** — New ROS2-based AI processing layer
+  - Intent Parser Node — Natural language understanding for robot commands
+  - Context Manager Node — Spatial and contextual reference resolution
+  - Motion Primitives Library — Reusable motion primitives (NavigateToPose, PickObject, PlaceObject, etc.)
+  - Motion Planner Node — Nav2/MoveIt2 integration with safety validation
+  - Execution Monitor Node — Anomaly detection and recovery handling
+- **Dedicated Safety Module** (`agent_ros_bridge/safety/`)
+  - Emergency Stop — Hardware-level emergency stop handling
+  - Safety Limits — Configurable velocity, acceleration, and workspace limits
+  - Safety Validator — Pre-execution motion validation
+  - Watchdog — Timeout monitoring and automatic recovery
+- **Simulation Framework** — Gazebo-based testing infrastructure
+  - Parallel scenario runner for multi-robot testing
+  - Performance benchmarks (latency, throughput, resource usage)
+  - Pre-built robot models (TurtleBot3, UR5)
+  - World configurations for common scenarios
+- **Custom ROS2 Messages** (`agent_ros_bridge_msgs/`)
+  - Intent, Entity, ContextQuery, ContextResponse messages
+  - ParseIntent, ResolveContext, PlanMotion services
+  - SafetyCertificate, Anomaly, RecoveryResult messages
+- **Comprehensive Documentation** — v0.6.1 planning documents
+  - V0.6.0 baseline for engineering team
+  - V0.6.1 sprint plan (8-week roadmap)
+  - Safety architecture and test plans
+  - Simulation-first strategy guide
+
+### Changed
+- **Enhanced CI/CD** — Added simulation tests to CI pipeline
+- **Docker Development** — New Dockerfile.dev for local development
+- **Test Structure** — Reorganized tests with simulation/ and ai/ subdirectories
+
+### Fixed
+- **GitHub Welcome Workflow** — Fixed discussions URL from openclaw-ros-bridge to agent-ros-bridge
+- **Redis Memory Tests** — Fixed test mocks to use correct Redis API
+- **ROS-Dependent Tests** — Added proper skip decorators for tests requiring ROS2
+
+### Deprecated
+- `agent_ros_bridge/integrations/nl2ros.py` — Replaced by new AI layer
+- `agent_ros_bridge/integrations/safety.py` — Functionality moved to dedicated safety module
+
+### Technical Debt
+- Architecture duplication between `integrations/` and new `ai/`/`safety/` modules (to be resolved in v0.6.1)
+
 ## [0.5.1] - 2026-03-03
 
 ### Added

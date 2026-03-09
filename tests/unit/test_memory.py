@@ -175,9 +175,9 @@ class TestAgentMemoryRedis:
 
     def test_redis_backend_init(self):
         """Test Redis backend initialization"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
 
@@ -186,10 +186,10 @@ class TestAgentMemoryRedis:
 
     def test_redis_get(self):
         """Test Redis get operation"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
             mock_client.get.return_value = json.dumps({"test": "value"})
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             result = run_async(memory.get("key1"))
@@ -199,10 +199,10 @@ class TestAgentMemoryRedis:
 
     def test_redis_get_none(self):
         """Test Redis get returns None for missing key"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
             mock_client.get.return_value = None
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             result = run_async(memory.get("missing"))
@@ -211,9 +211,9 @@ class TestAgentMemoryRedis:
 
     def test_redis_set(self):
         """Test Redis set operation"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             run_async(memory.set("key1", {"test": "value"}))
@@ -225,22 +225,24 @@ class TestAgentMemoryRedis:
 
     def test_redis_set_with_ttl(self):
         """Test Redis set with TTL"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             run_async(memory.set("key1", "value", ttl=3600))
 
             # Should be called with ex parameter for expiry
-            mock_client.setex.assert_called_once()
+            mock_client.set.assert_called_once()
+            call_kwargs = mock_client.set.call_args[1]
+            assert call_kwargs.get("ex") == 3600
 
     def test_redis_delete(self):
         """Test Redis delete operation"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
             mock_client.delete.return_value = 1
-            mock_redis_module.from_url.return_value = mock_client
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             run_async(memory.delete("key1"))
@@ -249,10 +251,10 @@ class TestAgentMemoryRedis:
 
     def test_redis_list_keys(self):
         """Test Redis list keys"""
-        with mock.patch("agent_ros_bridge.integrations.memory.redis") as mock_redis_module:
+        with mock.patch("redis.from_url") as mock_from_url:
             mock_client = mock.MagicMock()
-            mock_client.keys.return_value = ["key1", "key2"]
-            mock_redis_module.from_url.return_value = mock_client
+            mock_client.scan_iter.return_value = ["key1", "key2"]
+            mock_from_url.return_value = mock_client
 
             memory = AgentMemory(backend="redis", url="redis://localhost:6379")
             keys = run_async(memory.list_keys())

@@ -1,0 +1,26 @@
+name: "Basic Navigation"
+description: "Navigate from start to goal in empty warehouse"
+world: "empty_warehouse"
+duration: 60
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+
+goal:
+  pose: {x: 5.0, y: 5.0, yaw: 0.0}
+  tolerance:
+    position: 0.3
+    orientation: 0.1
+
+success_criteria:
+  - "Robot reaches goal within 30s"
+  - "No collisions"
+  - "Path efficiency > 80%"
+
+metrics:
+  - path_length
+  - navigation_duration
+  - min_obstacle_distance
+  - goal_reached

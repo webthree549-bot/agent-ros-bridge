@@ -1,0 +1,88 @@
+{
+  "timestamp": "2026-03-07T00:48:37.533598",
+  "iterations_per_benchmark": 100,
+  "benchmarks": [
+    {
+      "name": "intent_parsing",
+      "operation": "parse_intent",
+      "iterations": 100,
+      "total_time": 0.08940597763285041,
+      "min_time": 0.0007089984137564898,
+      "max_time": 0.006583999493159354,
+      "avg_time": 0.0008940597763285041,
+      "median_time": 0.0007920025382190943,
+      "p95_time": 0.0009590003173798323,
+      "p99_time": 0.006583999493159354,
+      "std_dev": 0.0006247673490455332,
+      "timestamp": "2026-03-07T00:48:37.530373",
+      "metadata": {}
+    },
+    {
+      "name": "context_resolution",
+      "operation": "resolve_context",
+      "iterations": 100,
+      "total_time": 0.033782009268179536,
+      "min_time": 0.00024998735170811415,
+      "max_time": 0.001958003849722445,
+      "avg_time": 0.00033782009268179536,
+      "median_time": 0.00033299147617071867,
+      "p95_time": 0.00037500285543501377,
+      "p99_time": 0.001958003849722445,
+      "std_dev": 0.00018697972231650385,
+      "timestamp": "2026-03-07T00:48:37.530561",
+      "metadata": {}
+    },
+    {
+      "name": "safety_validation",
+      "operation": "validate_safety",
+      "iterations": 100,
+      "total_time": 0.4369929520180449,
+      "min_time": 0.004124987754039466,
+      "max_time": 0.014833000022917986,
+      "avg_time": 0.004369929520180449,
+      "median_time": 0.004208501195535064,
+      "p95_time": 0.004624991561286151,
+      "p99_time": 0.014833000022917986,
+      "std_dev": 0.001091541620749687,
+      "timestamp": "2026-03-07T00:48:37.531136",
+      "metadata": {}
+    },
+    {
+      "name": "motion_planning",
+      "operation": "plan_motion",
+      "iterations": 100,
+      "total_time": 1.0481209465069696,
+      "min_time": 0.009958996088244021,
+      "max_time": 0.019499988411553204,
+      "avg_time": 0.010481209465069696,
+      "median_time": 0.010270501661580056,
+      "p95_time": 0.01141701068263501,
+      "p99_time": 0.019499988411553204,
+      "std_dev": 0.0010327988046128968,
+      "timestamp": "2026-03-07T00:48:37.532308",
+      "metadata": {}
+    },
+    {
+      "name": "end_to_end",
+      "operation": "end_to_end",
+      "iterations": 100,
+      "total_time": 1.1279580212431028,
+      "min_time": 0.010957999620586634,
+      "max_time": 0.015291007002815604,
+      "avg_time": 0.011279580212431028,
+      "median_time": 0.011166994227096438,
+      "p95_time": 0.011625001206994057,
+      "p99_time": 0.015291007002815604,
+      "std_dev": 0.0005185218483359677,
+      "timestamp": "2026-03-07T00:48:37.533560",
+      "metadata": {}
+    }
+  ],
+  "summary": {
+    "total_benchmarks": 5,
+    "avg_intent_parsing_ms": 0.0008940597763285041,
+    "avg_safety_validation_ms": 0.004369929520180449,
+    "avg_motion_planning_ms": 0.010481209465069696,
+    "avg_end_to_end_ms": 0.011279580212431028
+  }
+}

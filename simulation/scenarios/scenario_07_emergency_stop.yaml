@@ -1,0 +1,31 @@
+name: "Emergency Stop Test"
+description: "Test emergency stop functionality"
+world: "empty_warehouse"
+duration: 30
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: 0.0, y: 0.0, z: 0.1, yaw: 0.0}
+
+commands:
+  - type: "velocity"
+    linear: {x: 0.5, y: 0.0, z: 0.0}
+    angular: {x: 0.0, y: 0.0, z: 0.0}
+    duration: 5.0
+  - type: "emergency_stop"
+    trigger_time: 3.0
+
+success_criteria:
+  - "Robot moves when commanded"
+  - "Emergency stop triggers within 50ms of command"
+  - "Robot stops completely within 100ms of e-stop"
+  - "Robot remains stopped after e-stop"
+  - "E-stop can be reset manually"
+
+metrics:
+  - e_stop_trigger_latency_ms
+  - stop_time_ms
+  - final_velocity
+  - stopping_distance
+  - success

@@ -1,0 +1,19 @@
+FROM ros:humble-ros-base
+
+# Install Gazebo Ignition
+RUN apt-get update && apt-get install -y \
+    ignition-fortress \
+    ros-humble-gazebo-ros-pkgs \
+    ros-humble-nav2-bringup \
+    ros-humble-moveit2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install pytest pytest-cov colcon-common-extensions
+
+# Setup workspace
+WORKDIR /workspace
+COPY . /workspace/
+RUN colcon build
+
+CMD ["/bin/bash"]

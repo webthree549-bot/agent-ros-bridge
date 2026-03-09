@@ -1,0 +1,9 @@
+# ClearEmergencyStop.srv
+# Service to clear an active emergency stop (requires authorization)
+
+string operator_id             # ID of operator clearing the e-stop
+string authorization_code      # Authorization code for security
+---
+bool success                   # True if e-stop was successfully cleared
+string message                 # Status message
+builtin_interfaces/Time clear_time     # When the e-stop was cleared

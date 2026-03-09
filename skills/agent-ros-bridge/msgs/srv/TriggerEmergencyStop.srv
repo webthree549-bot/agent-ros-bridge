@@ -1,0 +1,8 @@
+# TriggerEmergencyStop.srv
+# Service to trigger an emergency stop
+
+string reason                  # Reason for triggering e-stop
+string source                  # Source: "HUMAN", "WATCHDOG", "VALIDATOR", "AI"
+---
+bool success                   # True if e-stop was successfully triggered
+builtin_interfaces/Time trigger_time   # When the e-stop was triggered

@@ -1,0 +1,46 @@
+# Basic Navigation Scenario
+# Tests simple point-to-point navigation in empty warehouse
+
+scenario:
+  name: "Basic Navigation Test"
+  description: "Robot navigates from start to goal in empty warehouse"
+  world: "empty_warehouse.sdf"
+  duration: 60  # seconds
+  
+  robots:
+    - name: "turtlebot_01"
+      model: "turtlebot3_waffle"
+      spawn_pose:
+        x: -8.0
+        y: -8.0
+        z: 0.1
+        yaw: 0.0
+      
+  goals:
+    - robot: "turtlebot_01"
+      type: "navigate_to_pose"
+      target:
+        x: 8.0
+        y: 8.0
+        yaw: 1.57
+      tolerance:
+        position: 0.3
+        orientation: 0.1
+      
+  success_criteria:
+    - type: "goal_reached"
+      robot: "turtlebot_01"
+      timeout: 45
+      
+    - type: "no_collision"
+      robot: "turtlebot_01"
+      
+    - type: "max_duration"
+      value: 60
+      
+  metrics:
+    - path_length
+    - navigation_duration
+    - min_obstacle_distance
+    - max_velocity
+    - energy_consumption

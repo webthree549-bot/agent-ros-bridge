@@ -1,0 +1,41 @@
+name: "Obstacle Avoidance"
+description: "Navigate around static obstacles"
+world: "empty_warehouse"
+duration: 90
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+
+obstacles:
+  - type: "box"
+    name: "obstacle_1"
+    size: {x: 1.0, y: 1.0, z: 1.0}
+    pose: {x: 2.5, y: 2.5, z: 0.5}
+  - type: "box"
+    name: "obstacle_2"
+    size: {x: 0.8, y: 0.8, z: 1.2}
+    pose: {x: -2.0, y: 3.0, z: 0.6}
+  - type: "cylinder"
+    name: "obstacle_3"
+    size: {radius: 0.5, length: 1.5}
+    pose: {x: 3.0, y: -2.0, z: 0.75}
+
+goal:
+  pose: {x: 8.0, y: 8.0, yaw: 1.57}
+  tolerance:
+    position: 0.3
+    orientation: 0.1
+
+success_criteria:
+  - "Robot reaches goal within 60s"
+  - "No collisions with obstacles"
+  - "Maintains minimum 0.5m clearance from obstacles"
+
+metrics:
+  - path_length
+  - navigation_duration
+  - min_obstacle_distance
+  - collision_count
+  - goal_reached

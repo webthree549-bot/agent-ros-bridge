@@ -1,0 +1,53 @@
+name: "Recovery Behavior"
+description: "Test recovery from stuck/edge cases"
+world: "empty_warehouse"
+duration: 120
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+
+obstacles:
+  # Create a narrow passage that might cause stuck behavior
+  - type: "box"
+    name: "trap_wall_1"
+    size: {x: 3.0, y: 0.1, z: 0.5}
+    pose: {x: 0.0, y: -0.6, z: 0.25}
+  - type: "box"
+    name: "trap_wall_2"
+    size: {x: 3.0, y: 0.1, z: 0.5}
+    pose: {x: 0.0, y: 0.6, z: 0.25}
+  - type: "box"
+    name: "trap_wall_3"
+    size: {x: 0.1, y: 1.3, z: 0.5}
+    pose: {x: -1.5, y: 0.0, z: 0.25}
+
+goal:
+  pose: {x: 8.0, y: 8.0, yaw: 0.0}
+  tolerance:
+    position: 0.3
+    orientation: 0.1
+
+recovery_behaviors:
+  - name: "clear_costmap"
+    trigger: "stuck_for_5s"
+  - name: "rotate_recovery"
+    trigger: "stuck_for_10s"
+  - name: "backup_recovery"
+    trigger: "stuck_for_15s"
+
+success_criteria:
+  - "Robot detects when stuck (no progress for 5s)"
+  - "Recovery behaviors activate automatically"
+  - "Robot escapes from local minima"
+  - "Reaches goal within 100s"
+  - "No excessive recovery attempts (>5)"
+
+metrics:
+  - stuck_detection_time
+  - recovery_attempts
+  - recovery_success_rate
+  - navigation_duration
+  - path_length
+  - goal_reached

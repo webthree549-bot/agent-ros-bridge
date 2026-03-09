@@ -1,0 +1,45 @@
+name: "Multiple Waypoints"
+description: "Navigate through multiple waypoints in sequence"
+world: "empty_warehouse"
+duration: 180
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+
+waypoints:
+  - pose: {x: -5.0, y: 5.0, yaw: 1.57}
+    tolerance:
+      position: 0.5
+      orientation: 0.2
+    wait_time: 2.0
+  - pose: {x: 5.0, y: 5.0, yaw: 3.14}
+    tolerance:
+      position: 0.5
+      orientation: 0.2
+    wait_time: 2.0
+  - pose: {x: 5.0, y: -5.0, yaw: -1.57}
+    tolerance:
+      position: 0.5
+      orientation: 0.2
+    wait_time: 2.0
+
+goal:
+  pose: {x: -8.0, y: -8.0, yaw: 0.0}
+  tolerance:
+    position: 0.3
+    orientation: 0.1
+
+success_criteria:
+  - "Robot visits all 3 waypoints in order"
+  - "Reaches final goal within 150s"
+  - "No collisions"
+  - "Smooth transitions between waypoints"
+
+metrics:
+  - total_path_length
+  - navigation_duration
+  - waypoint_reach_times
+  - min_obstacle_distance
+  - goal_reached

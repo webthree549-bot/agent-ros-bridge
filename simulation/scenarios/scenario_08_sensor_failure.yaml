@@ -1,0 +1,42 @@
+name: "Sensor Failure Simulation"
+description: "Test behavior when sensors fail"
+world: "empty_warehouse"
+duration: 60
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: -8.0, z: 0.1, yaw: 0.0}
+
+sensor_failures:
+  - sensor: "lidar"
+    failure_time: 10.0
+    failure_type: "stop_publishing"
+    recovery_time: 30.0
+
+obstacles:
+  - type: "box"
+    name: "safety_obstacle"
+    size: {x: 1.0, y: 1.0, z: 1.0}
+    pose: {x: 0.0, y: 0.0, z: 0.5}
+
+goal:
+  pose: {x: 8.0, y: 8.0, yaw: 0.0}
+  tolerance:
+    position: 0.5
+    orientation: 0.2
+
+success_criteria:
+  - "Lidar failure detected within 200ms"
+  - "Robot reduces speed to 10% after failure"
+  - "Robot continues using available sensors (camera, odometry)"
+  - "Robot maintains safety margins"
+  - "Normal operation resumes after sensor recovery"
+
+metrics:
+  - failure_detection_time_ms
+  - speed_reduction_time_ms
+  - navigation_duration
+  - min_obstacle_distance
+  - recovery_time_ms
+  - success

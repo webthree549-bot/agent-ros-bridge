@@ -1,0 +1,555 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="ur5_arm">
+    <static>false</static>
+    
+    <!-- Base Link -->
+    <link name="base_link">
+      <pose>0 0 0 0 0 0</pose>
+      <inertial>
+        <mass>4.0</mass>
+        <inertia>
+          <ixx>0.004433</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.004433</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.007200</izz>
+        </inertia>
+      </inertial>
+      <collision name="base_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.060</radius>
+            <length>0.092</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="base_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.060</radius>
+            <length>0.092</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Shoulder Link -->
+    <link name="shoulder_link">
+      <pose>0 0 0.089 0 0 0</pose>
+      <inertial>
+        <mass>3.7</mass>
+        <inertia>
+          <ixx>0.010267</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.010267</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.006660</izz>
+        </inertia>
+      </inertial>
+      <collision name="shoulder_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.060</radius>
+            <length>0.178</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="shoulder_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.060</radius>
+            <length>0.178</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="shoulder_pan_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>shoulder_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-6.283185</lower>
+          <upper>6.283185</upper>
+          <effort>150.0</effort>
+          <velocity>3.15</velocity>
+        </limit>
+        <dynamics>
+          <damping>0.0</damping>
+          <friction>0.0</friction>
+        </dynamics>
+      </axis>
+    </joint>
+
+    <!-- Upper Arm Link -->
+    <link name="upper_arm_link">
+      <pose>0 0.136 0.245 0 0 0</pose>
+      <inertial>
+        <mass>8.393</mass>
+        <inertia>
+          <ixx>0.226890</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.226890</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.015107</izz>
+        </inertia>
+      </inertial>
+      <collision name="upper_arm_collision">
+        <geometry>
+          <box>
+            <size>0.120 0.272 0.120</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="upper_arm_visual">
+        <geometry>
+          <box>
+            <size>0.120 0.272 0.120</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="shoulder_lift_joint" type="revolute">
+      <parent>shoulder_link</parent>
+      <child>upper_arm_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-6.283185</lower>
+          <upper>6.283185</upper>
+          <effort>150.0</effort>
+          <velocity>3.15</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Forearm Link -->
+    <link name="forearm_link">
+      <pose>0 0.793 0.156 0 0 0</pose>
+      <inertial>
+        <mass>2.275</mass>
+        <inertia>
+          <ixx>0.049443</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.049443</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.004095</izz>
+        </inertia>
+      </inertial>
+      <collision name="forearm_collision">
+        <geometry>
+          <box>
+            <size>0.080 0.730 0.080</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="forearm_visual">
+        <geometry>
+          <box>
+            <size>0.080 0.730 0.080</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.3 0.3 0.3 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="elbow_joint" type="revolute">
+      <parent>upper_arm_link</parent>
+      <child>forearm_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-3.14159</lower>
+          <upper>3.14159</upper>
+          <effort>150.0</effort>
+          <velocity>3.15</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Wrist 1 Link -->
+    <link name="wrist_1_link">
+      <pose>0 1.158 0.156 0 0 0</pose>
+      <inertial>
+        <mass>1.219</mass>
+        <inertia>
+          <ixx>0.111070</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.111070</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.219420</izz>
+        </inertia>
+      </inertial>
+      <collision name="wrist_1_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.045</radius>
+            <length>0.086</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="wrist_1_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.045</radius>
+            <length>0.086</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="wrist_1_joint" type="revolute">
+      <parent>forearm_link</parent>
+      <child>wrist_1_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-6.283185</lower>
+          <upper>6.283185</upper>
+          <effort>28.0</effort>
+          <velocity>6.28</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Wrist 2 Link -->
+    <link name="wrist_2_link">
+      <pose>0 1.201 0.112 0 0 0</pose>
+      <inertial>
+        <mass>1.219</mass>
+        <inertia>
+          <ixx>0.111070</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.111070</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.219420</izz>
+        </inertia>
+      </inertial>
+      <collision name="wrist_2_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.045</radius>
+            <length>0.086</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="wrist_2_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.045</radius>
+            <length>0.086</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="wrist_2_joint" type="revolute">
+      <parent>wrist_1_link</parent>
+      <child>wrist_2_link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <lower>-6.283185</lower>
+          <upper>6.283185</upper>
+          <effort>28.0</effort>
+          <velocity>6.28</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Wrist 3 Link -->
+    <link name="wrist_3_link">
+      <pose>0 1.201 0.069 0 0 0</pose>
+      <inertial>
+        <mass>0.1879</mass>
+        <inertia>
+          <ixx>0.017136</ixx>
+          <ixy>0.000000</ixy>
+          <ixz>0.000000</ixz>
+          <iyy>0.017136</iyy>
+          <iyz>0.000000</iyz>
+          <izz>0.033822</izz>
+        </inertia>
+      </inertial>
+      <collision name="wrist_3_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.030</radius>
+            <length>0.058</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="wrist_3_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.030</radius>
+            <length>0.058</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="wrist_3_joint" type="revolute">
+      <parent>wrist_2_link</parent>
+      <child>wrist_3_link</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+        <limit>
+          <lower>-6.283185</lower>
+          <upper>6.283185</upper>
+          <effort>28.0</effort>
+          <velocity>6.28</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Force/Torque Sensor Link -->
+    <link name="ft_sensor_link">
+      <pose>0 1.201 0.055 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <collision name="ft_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.025</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="ft_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.025</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.2 0.8 0.2 1</ambient>
+          <diffuse>0.2 0.8 0.2 1</diffuse>
+        </material>
+      </visual>
+      <!-- Force/Torque Sensor -->
+      <sensor name="ft_sensor" type="force_torque">
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+        <force_torque>
+          <frame>sensor</frame>
+          <measure_direction>child_to_parent</measure_direction>
+        </force_torque>
+        <plugin name="ft_sensor_plugin" filename="libgazebo_ros_ft_sensor.so">
+          <ros>
+            <namespace>/ur5</namespace>
+            <remapping>~/out:=ft_sensor/data</remapping>
+          </ros>
+          <frame_name>ft_sensor_link</frame_name>
+        </plugin>
+      </sensor>
+    </link>
+
+    <joint name="ft_sensor_joint" type="fixed">
+      <parent>wrist_3_link</parent>
+      <child>ft_sensor_link</child>
+    </joint>
+
+    <!-- End Effector / Tool Link -->
+    <link name="tool0">
+      <pose>0 1.201 0.040 0 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia>
+          <ixx>0.0001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0001</iyy>
+          <iyz>0</iyz>
+          <izz>0.0001</izz>
+        </inertia>
+      </inertial>
+      <visual name="tool0_visual">
+        <geometry>
+          <box>
+            <size>0.02 0.02 0.02</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.8 0.2 0.2 1</ambient>
+          <diffuse>0.8 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="tool0_joint" type="fixed">
+      <parent>ft_sensor_link</parent>
+      <child>tool0</child>
+    </joint>
+
+    <!-- Gripper - Left Finger -->
+    <link name="gripper_left">
+      <pose>0 1.201 0.025 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>0.03 0.08 0.015</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>0.03 0.08 0.015</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.5 0.5 0.5 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="gripper_left_joint" type="prismatic">
+      <parent>tool0</parent>
+      <child>gripper_left</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>0.0</lower>
+          <upper>0.04</upper>
+          <effort>10.0</effort>
+          <velocity>0.1</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Gripper - Right Finger -->
+    <link name="gripper_right">
+      <pose>0 1.201 0.025 0 0 0</pose>
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.00001</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00001</iyy>
+          <iyz>0</iyz>
+          <izz>0.00001</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>0.03 0.08 0.015</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <box>
+            <size>0.03 0.08 0.015</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.5 0.5 0.5 1</ambient>
+          <diffuse>0.5 0.5 0.5 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <joint name="gripper_right_joint" type="prismatic">
+      <parent>tool0</parent>
+      <child>gripper_right</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>0.0</lower>
+          <upper>0.04</upper>
+          <effort>10.0</effort>
+          <velocity>0.1</velocity>
+        </limit>
+      </axis>
+    </joint>
+
+    <!-- Joint State Publisher Plugin -->
+    <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
+      <ros>
+        <namespace>/ur5</namespace>
+        <remapping>~/out:=joint_states</remapping>
+      </ros>
+      <update_rate>50</update_rate>
+      <joint_name>shoulder_pan_joint</joint_name>
+      <joint_name>shoulder_lift_joint</joint_name>
+      <joint_name>elbow_joint</joint_name>
+      <joint_name>wrist_1_joint</joint_name>
+      <joint_name>wrist_2_joint</joint_name>
+      <joint_name>wrist_3_joint</joint_name>
+      <joint_name>ft_sensor_joint</joint_name>
+      <joint_name>gripper_left_joint</joint_name>
+      <joint_name>gripper_right_joint</joint_name>
+    </plugin>
+
+    <!-- Joint Trajectory Controller Plugin -->
+    <plugin name="joint_trajectory_controller" filename="libgazebo_ros_joint_pose_trajectory.so">
+      <ros>
+        <namespace>/ur5</namespace>
+      </ros>
+      <update_rate>100</update_rate>
+    </plugin>
+
+  </model>
+</sdf>

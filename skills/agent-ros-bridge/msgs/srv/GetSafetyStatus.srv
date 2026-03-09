@@ -1,0 +1,9 @@
+# GetSafetyStatus.srv
+# Service to get current safety system status
+
+---
+bool emergency_stop_active     # True if emergency stop is currently active
+bool watchdog_alive            # True if watchdog is functioning
+string[] active_validations    # List of currently valid validation IDs
+SafetyLimits current_limits    # Currently active safety limits
+float64 system_load            # Safety system CPU load (0.0-1.0)

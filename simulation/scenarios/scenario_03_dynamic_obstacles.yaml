@@ -1,0 +1,41 @@
+name: "Dynamic Obstacles"
+description: "Navigate with moving person/obstacle"
+world: "empty_warehouse"
+duration: 90
+
+robots:
+  - name: "turtlebot_01"
+    model: "turtlebot3_waffle"
+    pose: {x: -8.0, y: 0.0, z: 0.1, yaw: 0.0}
+
+dynamic_obstacles:
+  - name: "moving_person"
+    type: "human"
+    model: "walker"
+    initial_pose: {x: 8.0, y: 0.0, z: 0.0, yaw: 3.14159}
+    trajectory:
+      - pose: {x: 8.0, y: 0.0, yaw: 3.14159}
+        time: 0
+      - pose: {x: -8.0, y: 0.0, yaw: 3.14159}
+        time: 30
+    speed: 0.5
+
+goal:
+  pose: {x: 8.0, y: 0.0, yaw: 0.0}
+  tolerance:
+    position: 0.3
+    orientation: 0.1
+
+success_criteria:
+  - "Robot reaches goal within 60s"
+  - "Maintains safe distance from moving person (>1.0m)"
+  - "No collisions"
+  - "Robot pauses or re-plans when person crosses path"
+
+metrics:
+  - path_length
+  - navigation_duration
+  - min_human_distance
+  - collision_count
+  - replan_count
+  - goal_reached

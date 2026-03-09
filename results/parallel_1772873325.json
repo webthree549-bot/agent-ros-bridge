@@ -1,0 +1,159 @@
+{
+  "batch_name": "parallel_1772873325",
+  "timestamp": "2026-03-07T00:48:45.175543",
+  "total_scenarios": 10,
+  "successful": 10,
+  "failed": 0,
+  "results": [
+    {
+      "scenario_name": "scenario_01_basic_navigation",
+      "worker_id": 0,
+      "success": true,
+      "duration": 0.5021011829376221,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 0,
+        "scenario_duration": 60,
+        "worker_id": 0,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.003298"
+    },
+    {
+      "scenario_name": "scenario_02_obstacle_avoidance",
+      "worker_id": 1,
+      "success": true,
+      "duration": 0.5032398700714111,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 3,
+        "scenario_duration": 90,
+        "worker_id": 1,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.004449"
+    },
+    {
+      "scenario_name": "scenario_03_dynamic_obstacles",
+      "worker_id": 2,
+      "success": true,
+      "duration": 0.5025129318237305,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 0,
+        "scenario_duration": 90,
+        "worker_id": 2,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.004458"
+    },
+    {
+      "scenario_name": "scenario_04_narrow_corridors",
+      "worker_id": 3,
+      "success": true,
+      "duration": 0.5767691135406494,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 4,
+        "scenario_duration": 120,
+        "worker_id": 3,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.079867"
+    },
+    {
+      "scenario_name": "scenario_05_multiple_waypoints",
+      "worker_id": 0,
+      "success": true,
+      "duration": 0.5400421619415283,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 0,
+        "scenario_duration": 180,
+        "worker_id": 0,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.544022"
+    },
+    {
+      "scenario_name": "scenario_07_emergency_stop",
+      "worker_id": 2,
+      "success": true,
+      "duration": 0.5686957836151123,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 0,
+        "scenario_duration": 30,
+        "worker_id": 2,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.573833"
+    },
+    {
+      "scenario_name": "scenario_06_pick_and_place",
+      "worker_id": 1,
+      "success": true,
+      "duration": 0.5816330909729004,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 0,
+        "scenario_duration": 120,
+        "worker_id": 1,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.586725"
+    },
+    {
+      "scenario_name": "scenario_08_sensor_failure",
+      "worker_id": 3,
+      "success": true,
+      "duration": 0.5789120197296143,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 1,
+        "scenario_duration": 60,
+        "worker_id": 3,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:44.659293"
+    },
+    {
+      "scenario_name": "scenario_09_recovery_behavior",
+      "worker_id": 0,
+      "success": true,
+      "duration": 0.5748147964477539,
+      "metrics": {
+        "robots_spawned": 1,
+        "obstacles_spawned": 3,
+        "scenario_duration": 120,
+        "worker_id": 0,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:45.119306"
+    },
+    {
+      "scenario_name": "scenario_10_multi_robot",
+      "worker_id": 1,
+      "success": true,
+      "duration": 0.5809352397918701,
+      "metrics": {
+        "robots_spawned": 2,
+        "obstacles_spawned": 0,
+        "scenario_duration": 120,
+        "worker_id": 1,
+        "simulated": true
+      },
+      "errors": [],
+      "timestamp": "2026-03-07T00:48:45.155097"
+    }
+  ]
+}

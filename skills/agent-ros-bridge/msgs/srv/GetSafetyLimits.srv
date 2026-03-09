@@ -1,0 +1,8 @@
+# GetSafetyLimits.srv
+# Service to retrieve safety limits for a specific robot
+
+string robot_id                # Unique identifier for the robot
+---
+SafetyLimits limits            # Safety limits for the specified robot
+bool success                   # True if limits were found
+string message                 # Error message if success=False

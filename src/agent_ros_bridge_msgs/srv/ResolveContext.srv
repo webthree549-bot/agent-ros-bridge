@@ -1,0 +1,28 @@
+# ResolveContext.srv
+# Service for resolving contextual references in natural language
+
+# Request
+---
+# Response
+
+# The context query to resolve
+ContextQuery query
+
+---
+
+# The resolved context response
+ContextResponse response
+
+# Whether resolution was successful
+bool success
+
+# Error message if resolution failed
+# e.g., "Unknown reference", "Ambiguous reference"
+string error_message
+
+# Suggestions for disambiguation
+# e.g., ["Did you mean the cup on the table or the cup on the shelf?"]
+string[] suggestions
+
+# Latency of the service call in milliseconds
+float64 latency_ms

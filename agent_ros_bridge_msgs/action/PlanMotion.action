@@ -1,0 +1,17 @@
+# Goal
+MotionPrimitive primitive
+Constraint[] constraints
+SafetyLimits limits
+
+---
+# Result
+MotionPlan plan
+bool success
+string error_message
+string[] violated_constraints
+
+---
+# Feedback
+string stage          # "INTENT_PARSING", "PRIMITIVE_SELECTION", "PLAN_GENERATION", "FORMAL_VERIFICATION", "CERTIFICATE_GENERATION"
+float64 progress_percent
+string message

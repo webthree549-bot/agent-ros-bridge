@@ -1,0 +1,6 @@
+# ValidateTrajectory.srv
+# Service to validate a trajectory for safety compliance
+
+TrajectoryValidationRequest request
+---
+TrajectoryValidationResponse response

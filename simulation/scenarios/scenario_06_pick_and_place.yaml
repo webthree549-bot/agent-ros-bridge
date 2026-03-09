@@ -1,0 +1,55 @@
+name: "Pick and Place"
+description: "UR5 arm picks and places object"
+world: "empty_warehouse"
+duration: 120
+
+robots:
+  - name: "ur5_01"
+    model: "ur5_arm"
+    pose: {x: 0.0, y: 0.0, z: 0.0, yaw: 0.0}
+
+objects:
+  - name: "pick_object"
+    type: "box"
+    size: {x: 0.05, y: 0.05, z: 0.05}
+    pose: {x: 0.4, y: 0.6, z: 0.025}
+    mass: 0.1
+    graspable: true
+
+tasks:
+  - type: "move_to_pose"
+    joint_positions: [0.0, -1.57, 1.57, 0.0, 0.0, 0.0]
+    timeout: 10.0
+  - type: "open_gripper"
+    timeout: 2.0
+  - type: "move_to_pose"
+    joint_positions: [0.5, -1.2, 1.3, 0.0, 0.0, 0.0]
+    timeout: 10.0
+  - type: "close_gripper"
+    force: 5.0
+    timeout: 2.0
+  - type: "move_to_pose"
+    joint_positions: [0.0, -1.57, 1.57, 0.0, 0.0, 0.0]
+    timeout: 10.0
+  - type: "move_to_pose"
+    joint_positions: [-0.5, -1.2, 1.3, 0.0, 0.0, 0.0]
+    timeout: 10.0
+  - type: "open_gripper"
+    timeout: 2.0
+  - type: "move_to_home"
+    timeout: 10.0
+
+success_criteria:
+  - "Robot picks up object from pick location"
+  - "Robot places object at place location"
+  - "Object remains grasped during transport"
+  - "No collisions with environment"
+  - "Completes within 90s"
+
+metrics:
+  - task_completion_time
+  - grasp_success
+  - placement_accuracy
+  - joint_trajectory_smoothness
+  - collision_count
+  - success

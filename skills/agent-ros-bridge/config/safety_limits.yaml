@@ -1,0 +1,120 @@
+# Safety Limits Configuration for Agent ROS Bridge v0.6.1
+# This file defines safety limits for all robots in the system
+# 
+# Format:
+# robots:
+#   <robot_id>:
+#     max_linear_velocity: <m/s>
+#     max_angular_velocity: <rad/s>
+#     max_joint_velocity: <rad/s> (for manipulators)
+#     max_force: <N or N·m>
+#     workspace_bounds: [<point>, <point>, ...] (polygon vertices)
+#     restricted_zones:
+#       - name: <zone_name>
+#         polygon: [<point>, <point>, ...]
+
+robots:
+  # TurtleBot3 Burger Example
+  turtlebot_01:
+    max_linear_velocity: 0.5
+    max_angular_velocity: 1.0
+    max_joint_velocity: 0.0  # No manipulator
+    max_force: 100.0
+    workspace_bounds:
+      - {x: -5.0, y: -5.0}
+      - {x: 5.0, y: -5.0}
+      - {x: 5.0, y: 5.0}
+      - {x: -5.0, y: 5.0}
+    restricted_zones:
+      - name: "stairs"
+        polygon:
+          - {x: 3.0, y: 3.0}
+          - {x: 4.0, y: 3.0}
+          - {x: 4.0, y: 4.0}
+          - {x: 3.0, y: 4.0}
+      - name: "fragile_area"
+        polygon:
+          - {x: -2.0, y: -2.0}
+          - {x: -1.0, y: -2.0}
+          - {x: -1.0, y: -1.0}
+          - {x: -2.0, y: -1.0}
+
+  # TurtleBot3 Waffle with Manipulator
+  turtlebot_02:
+    max_linear_velocity: 0.3
+    max_angular_velocity: 0.8
+    max_joint_velocity: 1.5  # For arm joints
+    max_force: 50.0
+    workspace_bounds:
+      - {x: -10.0, y: -10.0}
+      - {x: 10.0, y: -10.0}
+      - {x: 10.0, y: 10.0}
+      - {x: -10.0, y: 10.0}
+    restricted_zones:
+      - name: "human_workspace"
+        polygon:
+          - {x: 0.0, y: 0.0}
+          - {x: 2.0, y: 0.0}
+          - {x: 2.0, y: 2.0}
+          - {x: 0.0, y: 2.0}
+
+  # Generic AMR (Autonomous Mobile Robot)
+  amr_default:
+    max_linear_velocity: 1.0
+    max_angular_velocity: 1.5
+    max_joint_velocity: 0.0
+    max_force: 200.0
+    workspace_bounds:
+      - {x: -20.0, y: -20.0}
+      - {x: 20.0, y: -20.0}
+      - - {x: 20.0, y: 20.0}
+      - {x: -20.0, y: 20.0}
+    restricted_zones: []
+
+  # UR5e Manipulator
+  ur5e_01:
+    max_linear_velocity: 0.0  # Fixed base
+    max_angular_velocity: 0.0  # Fixed base
+    max_joint_velocity: 3.14  # 180 deg/s
+    max_force: 150.0
+    workspace_bounds:
+      - {x: -1.0, y: -1.0}
+      - {x: 1.0, y: -1.0}
+      - {x: 1.0, y: 1.0}
+      - {x: -1.0, y: 1.0}
+    restricted_zones:
+      - name: "operator_zone"
+        polygon:
+          - {x: -0.5, y: -0.5}
+          - {x: 0.5, y: -0.5}
+          - {x: 0.5, y: 0.5}
+          - {x: -0.5, y: 0.5}
+
+# Global Safety Settings
+global:
+  # Emergency stop settings
+  emergency_stop:
+    hardware_cutoff: true       # Use hardware-level cutoff when available
+    software_cutoff: true       # Always use software cutoff
+    auto_reset_timeout: 0       # 0 = never auto-reset (manual only)
+    require_authorization: true # Require auth to clear e-stop
+  
+  # Watchdog settings
+  watchdog:
+    heartbeat_frequency: 1000   # Hz (1kHz heartbeat)
+    timeout_ms: 50              # Max time between heartbeats
+    auto_trigger_estop: true    # Auto-trigger e-stop on timeout
+  
+  # Validation settings
+  validation:
+    certificate_validity_sec: 30  # Certificate validity window
+    max_validation_time_ms: 10    # Maximum allowed validation time
+    cache_validated_plans: true   # Cache validation results
+    cache_size: 100               # Number of plans to cache
+  
+  # Logging settings
+  logging:
+    log_all_validations: true
+    log_emergency_stops: true
+    log_safety_violations: true
+    retention_days: 30

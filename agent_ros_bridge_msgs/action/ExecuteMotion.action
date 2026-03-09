@@ -1,0 +1,16 @@
+# Goal
+MotionPlan plan
+bool monitor_execution
+
+---
+# Result
+bool success
+ExecutionStatus final_status
+Anomaly[] anomalies_encountered
+string completion_message
+
+---
+# Feedback
+ExecutionStatus status
+string current_stage
+float64 time_remaining

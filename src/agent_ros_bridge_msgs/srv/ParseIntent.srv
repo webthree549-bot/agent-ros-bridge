@@ -1,0 +1,47 @@
+# ParseIntent.srv
+# Service for parsing natural language utterances into structured intents
+
+# Request
+---
+# Response
+
+# The natural language utterance to parse
+# Examples:
+#   "go to the kitchen"
+#   "pick up the red cup slowly"
+#   "scan the room and find all chairs"
+string utterance
+
+# Robot ID for context-specific parsing
+# Different robots may support different capabilities
+string robot_id
+
+# Optional: Current conversation context
+# Helps resolve references like "it", "there", "do that again"
+ContextQuery[] context
+
+# Optional: Session ID for maintaining conversation state
+string session_id
+
+# Optional: Language code (ISO 639-1)
+# e.g., "en", "zh", "es"
+string language "en"
+
+---
+
+# Parsed intent with all extracted information
+Intent intent
+
+# Whether parsing was successful
+bool success
+
+# Error message if parsing failed
+# e.g., "Timeout", "Unsupported language", "Ambiguous command"
+string error_message
+
+# Suggestions for clarification if intent is ambiguous
+# e.g., ["Did you mean 'go to kitchen' or 'go to office'?"]
+string[] suggestions
+
+# Latency of the service call in milliseconds
+float64 latency_ms
