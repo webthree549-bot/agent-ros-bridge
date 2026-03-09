@@ -18,7 +18,7 @@ import logging
 import uuid
 from collections import deque
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Optional, Set
 
@@ -77,7 +77,7 @@ class Task:
     # Runtime fields
     status: TaskStatus = TaskStatus.PENDING
     assigned_robot: Optional[str] = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None
@@ -98,7 +98,7 @@ class FleetRobot:
     ros_endpoint: str = "localhost"  # For multi-ROS
 
     # Runtime
-    last_seen: datetime = field(default_factory=datetime.utcnow)
+    last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     task_history: deque[Any] = field(default_factory=lambda: deque(maxlen=100))
 
 
@@ -232,7 +232,7 @@ class FleetOrchestrator:
         robot = self.robots[robot_id]
         old_status = robot.status
         robot.status = status
-        robot.last_seen = datetime.utcnow()
+        robot.last_seen = datetime.now(timezone.utc)
 
         if location:
             robot.current_location = location
@@ -280,13 +280,13 @@ class FleetOrchestrator:
                     "task_id": task_id,
                     "type": task.type,
                     "success": success,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
         if success:
             task.status = TaskStatus.COMPLETED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(timezone.utc)
             logger.info(f"✅ Task completed: {task_id}")
             if self.on_task_completed and robot:
                 self.on_task_completed(task, robot)
@@ -471,7 +471,7 @@ class FleetOrchestrator:
         """Assign a task to a robot."""
         task.status = TaskStatus.ASSIGNED
         task.assigned_robot = robot.robot_id
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(timezone.utc)
 
         robot.status = RobotStatus.BUSY
         robot.current_task = task.id

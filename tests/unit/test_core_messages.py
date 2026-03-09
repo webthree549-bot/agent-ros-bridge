@@ -5,7 +5,7 @@ Tests Message, Header, Command, Telemetry, Event, Identity, and QoS.
 
 import uuid
 from dataclasses import asdict
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from agent_ros_bridge.gateway_v2.core import (
     Command,
@@ -93,7 +93,7 @@ class TestHeader:
 
         # timestamp should be recent
         assert header.timestamp is not None
-        assert (datetime.utcnow() - header.timestamp) < timedelta(seconds=1)
+        assert (datetime.now(timezone.utc) - header.timestamp) < timedelta(seconds=1)
 
         # Other fields should be empty
         assert header.source == ""
@@ -128,9 +128,9 @@ class TestHeader:
 
     def test_header_timestamp_immutability(self):
         """Test that timestamp is captured at creation time"""
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc)
         header = Header()
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc)
 
         assert before <= header.timestamp <= after
 

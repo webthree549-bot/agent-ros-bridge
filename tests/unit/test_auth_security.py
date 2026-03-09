@@ -6,7 +6,7 @@ Tests token generation, validation, edge cases, and security vulnerabilities.
 import base64
 import json
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 import pytest
 
@@ -33,7 +33,7 @@ class JWTAuthManager:
 
     def generate_token(self, identity: Identity, expires_in: int = 3600) -> str:
         """Generate JWT token for identity"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         payload = {
             "sub": identity.id,
             "name": identity.name,

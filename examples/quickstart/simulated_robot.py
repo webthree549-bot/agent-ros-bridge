@@ -7,7 +7,7 @@ requiring ROS2 to be installed. For production use, run_bridge.py
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from agent_ros_bridge import Bridge, Event, Header, Identity, Message, Plugin, Telemetry
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
@@ -79,7 +79,7 @@ class SimulatedRobotPlugin(Plugin):
                         "position": self.position,
                         "battery": self.battery,
                         "speed": self.speed,
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     },
                 ),
             )
