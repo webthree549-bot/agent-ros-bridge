@@ -1,0 +1,23 @@
+#!/bin/bash
+# Cleanup script for unfinished ROS2 installation
+
+echo "ROS2 Cleanup Script"
+echo "==================="
+echo ""
+echo "This will remove the following directories:"
+echo "  - /Volumes/2nd-HD/ros2_humble (840MB)"
+echo "  - /Volumes/2nd-HD/ros2_humble_docker"
+echo ""
+echo "Run these commands manually:"
+echo ""
+echo "1. Change ownership:"
+echo "   sudo chown -R \$(whoami):staff /Volumes/2nd-HD/ros2_humble /Volumes/2nd-HD/ros2_humble_docker"
+echo ""
+echo "2. Remove directories:"
+echo "   rm -rf /Volumes/2nd-HD/ros2_humble /Volumes/2nd-HD/ros2_humble_docker"
+echo ""
+echo "3. Verify cleanup:"
+echo "   ls -la /Volumes/2nd-HD/ | grep ros2"
+echo ""
+echo "Or run this script with sudo:"
+echo "   sudo bash cleanup_ros2.sh"
