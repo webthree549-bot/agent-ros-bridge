@@ -245,7 +245,7 @@ class SafetyValidatorNode:
     def _check_workspace(self, trajectory: Dict[str, Any], 
                         limits: Dict[str, Any]) -> Dict[str, Any]:
         """Check workspace boundaries"""
-        bounds = limits.get('workspace_bounds', [])
+        bounds = limits.get('workspace_bounds', {})
         if not bounds:
             return {'passed': True}
         
@@ -253,11 +253,11 @@ class SafetyValidatorNode:
         if not waypoints:
             return {'passed': True}
         
-        # Extract 2D polygon bounds
-        min_x = min(b.get('x', float('inf')) for b in bounds) if bounds else float('-inf')
-        max_x = max(b.get('x', float('-inf')) for b in bounds) if bounds else float('inf')
-        min_y = min(b.get('y', float('inf')) for b in bounds) if bounds else float('-inf')
-        max_y = max(b.get('y', float('-inf')) for b in bounds) if bounds else float('inf')
+        # Extract bounds from dict format
+        min_x = bounds.get('x_min', float('-inf'))
+        max_x = bounds.get('x_max', float('inf'))
+        min_y = bounds.get('y_min', float('-inf'))
+        max_y = bounds.get('y_max', float('inf'))
         
         for waypoint in waypoints:
             x = waypoint.get('x', 0.0)
