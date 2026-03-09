@@ -22,13 +22,14 @@ class ConversationContext:
     utterances: List[str] = field(default_factory=list)
     intents: List[str] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
+    max_history: int = 10
     
     def add_turn(self, utterance: str, intent: str):
         """Add a conversation turn."""
         self.utterances.append(utterance)
         self.intents.append(intent)
-        # Keep only last 10 turns
-        if len(self.utterances) > 10:
+        # Keep only last max_history turns
+        if len(self.utterances) > self.max_history:
             self.utterances.pop(0)
             self.intents.pop(0)
 
@@ -77,7 +78,7 @@ class ContextAwareParser:
             max_history: Maximum conversation history to maintain
         """
         self._max_history = max_history
-        self._conversation = ConversationContext()
+        self._conversation = ConversationContext(max_history=max_history)
         self._robot_state = RobotState()
         self._environment = EnvironmentState()
         self._user_prefs = UserPreferences()

@@ -324,8 +324,15 @@ Rules:
             json_str = response[json_start:json_end]
             data = json.loads(json_str)
             
+            # Validate required fields
+            intent_type = data.get('intent_type')
+            if not intent_type or intent_type == 'UNKNOWN':
+                # Empty or unknown intent - treat as parse failure
+                if not data.get('entities') and not data.get('reasoning'):
+                    return None
+            
             return LLMIntentResult(
-                intent_type=data.get('intent_type', 'UNKNOWN'),
+                intent_type=intent_type or 'UNKNOWN',
                 confidence=data.get('confidence', 0.5),
                 entities=data.get('entities', []),
                 raw_response=response,

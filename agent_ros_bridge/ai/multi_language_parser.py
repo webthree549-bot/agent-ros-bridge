@@ -117,7 +117,7 @@ class MultiLanguageParser:
                 ],
                 'SAFETY': [
                     r'^arrête$',
-                    r'arrêt\s+d\\'urgence',
+                    r"arrêt\s+d'urgence",
                 ],
             },
             entity_patterns={

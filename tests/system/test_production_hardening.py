@@ -122,29 +122,19 @@ class TestLLMParserHardening:
             from agent_ros_bridge.ai.llm_parser import LLMIntentParser
             
             parser = LLMIntentParser(api_key="test_key")
+            initial_errors = parser._errors
             
             # Simulate rate limit error
-            call_count = 0
             def rate_limited_call(*args, **kwargs):
-                nonlocal call_count
-                call_count += 1
-                if call_count <= 2:
-                    raise Exception("Rate limit exceeded")
-                # Return valid result on 3rd try
-                from agent_ros_bridge.ai.llm_parser import LLMIntentResult
-                return LLMIntentResult(
-                    intent_type="NAVIGATE",
-                    confidence=0.9,
-                    entities=[],
-                    raw_response='{}',
-                    latency_ms=100.0
-                )
+                raise Exception("Rate limit exceeded")
             
             with patch.object(parser, '_call_openai', side_effect=rate_limited_call):
-                # First calls should fail gracefully
+                # Call should fail gracefully
                 result = parser.parse("go to kitchen")
-                # Parser should handle errors gracefully
-                assert parser._errors > 0
+                # Result should be None on error
+                assert result is None
+                # Error count should increase
+                assert parser._errors > initial_errors
                 
         except ImportError:
             pytest.skip("LLM parser not available")
@@ -257,8 +247,8 @@ class TestMultiLanguageHardening:
             
             for utterance, expected in test_cases:
                 detected = parser.detect_language(utterance)
-                # Should detect non-English characters
-                assert detected != "en" or expected == "en"
+                # Should detect the expected language
+                assert detected == expected, f"Expected {expected}, got {detected} for '{utterance}'"
                 
         except ImportError:
             pytest.skip("Multi-language parser not available")
