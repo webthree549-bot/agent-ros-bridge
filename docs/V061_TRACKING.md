@@ -168,24 +168,27 @@ All Week 2 deliverables have been completed successfully.
 
 ---
 
-## Week 5: Release Preparation (Pending)
+## Week 5: Production Hardening (Current)
 
 ### Planned Tasks
 
-1. **Documentation Review** 📋
-   - Review all API documentation
-   - Update README with v0.6.1 features
-   - Create migration guide from v0.6.0
+1. **Advanced Features Hardening** 🔄
+   - Test LLM fallback edge cases
+   - Validate context-aware parsing
+   - Verify multi-language detection accuracy
+   - Add error handling for API failures
 
-2. **Version Management** 📋
-   - Bump version to 0.6.1
-   - Update CHANGELOG
-   - Create release notes
+2. **Performance Validation** 🔄
+   - Benchmark with new features enabled
+   - Memory usage profiling
+   - Cache effectiveness analysis
+   - Load testing
 
-3. **Final Testing** 📋
-   - Run full test suite
-   - Verify all examples work
-   - Check documentation accuracy
+3. **Security Review** 🔄
+   - API key handling for LLM
+   - Input sanitization
+   - Rate limiting
+   - Audit logging
 
 ---
 
@@ -267,9 +270,41 @@ All Week 2 deliverables have been completed successfully.
 | Week 2 | ✅ Complete | Core implementation (4 engineers) |
 | Week 3 | ✅ Complete | Integration tests, benchmarks, docs |
 | Week 4 | ✅ Complete | System testing, optimization, hardening |
-| Week 5 | 📋 Planned | Release preparation |
+| Week 5 | 🔄 Current | Production hardening (test new features) |
 | Week 6 | ✅ Complete | Advanced features (LLM, context, multi-language) |
-| Week 7-8 | 📋 Planned | Production hardening, final testing |
+| Week 7-8 | 📋 Planned | Release preparation, final testing |
+
+---
+
+## Week 7-8: Release Preparation (Planned)
+
+### Week 7 Tasks
+
+1. **Documentation Finalization** 📋
+   - Review all API documentation
+   - Update README with v0.6.1 features
+   - Create migration guide from v0.6.0
+   - Write release notes
+
+2. **Final Testing** 📋
+   - Run full test suite
+   - Integration testing with real robots
+   - Performance benchmarking
+   - Security audit
+
+### Week 8 Tasks
+
+1. **Release Management** 📋
+   - Bump version to 0.6.1
+   - Update CHANGELOG
+   - Create git tag v0.6.1
+   - Build and push Docker images
+
+2. **Distribution** 📋
+   - Push to PyPI
+   - Create GitHub release
+   - Update ClawHub skill
+   - Announce to community
 
 ---
 
