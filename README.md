@@ -64,6 +64,9 @@ Agent ROS Bridge sits between your AI agent and your robots. It speaks WebSocket
 | Fleet intelligence | ✅ Working | Multi-robot coordination, task allocation |
 | Scene understanding | ✅ Working | Camera frames, depth processing, object detection |
 | Autonomous behaviors | ✅ Working | Goal-seeking, obstacle avoidance, patrol routes |
+| **LLM Fallback** | ✅ v0.6.1 | OpenAI/Anthropic for complex utterances |
+| **Multi-Language** | ✅ v0.6.1 | 6 languages (en, es, fr, de, zh, ja) |
+| **Context-Aware NL** | ✅ v0.6.1 | Pronoun resolution, conversation history |
 
 ---
 
