@@ -55,9 +55,8 @@ class TestAgentROSBridgeE2E:
         print(f"✅ ROS2 nodes: {result.stdout.strip() or 'No nodes yet'}")
     
     def test_agent_intent_parsing(self):
-        """Test Agent can parse natural language to intent (no ROS required)."""
-        # Skip if ROS2 not available locally
-        pytest.importorskip("rclpy", reason="ROS2 not available locally")
+        """Test Agent can parse natural language to intent in Docker.""
+        # Run intent parsing test in Docker container
         
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
         
@@ -113,8 +112,7 @@ class TestAgentROSBridgeE2E:
             4. Bridge sends to ROS
             5. Verify command was sent
         """
-        # Skip if ROS2 not available locally
-        pytest.importorskip("rclpy", reason="ROS2 not available locally")
+        # Run full flow test in Docker container
         
         # Step 1: Parse intent
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
@@ -151,8 +149,7 @@ class TestAgentROSBridgeE2E:
     
     def test_performance_latency(self):
         """Test end-to-end latency is acceptable."""
-        # Skip if ROS2 not available locally
-        pytest.importorskip("rclpy", reason="ROS2 not available locally")
+        # Run performance test in Docker container
         
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
         from agent_ros_bridge_msgs.srv import ParseIntent

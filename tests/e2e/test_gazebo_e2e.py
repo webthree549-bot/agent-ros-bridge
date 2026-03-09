@@ -49,11 +49,16 @@ def is_docker_ros2_available():
 
 DOCKER_ROS2_AVAILABLE = is_docker_ros2_available()
 
-# Skip all tests if ROS2 not available
-pytestmark = pytest.mark.skipif(
-    not ROS2_AVAILABLE and not DOCKER_ROS2_AVAILABLE,
-    reason="ROS2 not available. Run: docker start ros2_humble"
-)
+# Require ROS2 Docker container - no skipping allowed
+@pytest.fixture(scope="session", autouse=True)
+def require_ros2_docker():
+    """Ensure ROS2 Docker container is running before any tests."""
+    if not DOCKER_ROS2_AVAILABLE:
+        pytest.fail(
+            "❌ ROS2 Docker container 'ros2_humble' is not running.\n"
+            "   Start it with: docker start ros2_humble\n"
+            "   No tests will be skipped - all must run in Docker."
+        )
 
 
 class TestGazeboE2E:
