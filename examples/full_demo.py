@@ -48,96 +48,122 @@ def run_in_ros2(cmd, timeout=10):
 
 
 def demo_intent_parsing():
-    """Demonstrate natural language intent parsing."""
-    print_step(1, "Natural Language Understanding")
+    """Demonstrate natural language intent parsing using ROS in Docker."""
+    print_step(1, "Natural Language Understanding (ROS Docker)")
     
-    # Import and use the intent parser
-    try:
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-        from agent_ros_bridge_msgs.srv import ParseIntent
-        
-        parser = IntentParserNode()
-        
-        # Test commands
-        commands = [
-            "go to the kitchen",
-            "pick up the red cup",
-            "what is your battery level",
-            "stop immediately",
-        ]
-        
-        for cmd in commands:
-            request = ParseIntent.Request()
-            request.utterance = cmd
-            
-            response = ParseIntent.Response()
-            result = parser.parse_intent_callback(request, response)
-            
-            print(f"  Input: '{cmd}'")
-            print(f"  → Intent: {result.intent.type}")
-            print(f"  → Confidence: {result.intent.confidence:.2f}")
-            print(f"  → Entities: {[e.value for e in result.intent.entities]}")
-            print()
-            
-    except ImportError as e:
-        print(f"  ⚠️  ROS2 not available locally: {e}")
-        print("  Showing mock results:")
-        print("  'go to the kitchen' → NAVIGATE")
-        print("  'pick up the red cup' → MANIPULATE")
+    # Run intent parsing in Docker container
+    result = run_in_ros2_container("""
+python3 << 'PYEOF'
+import sys
+sys.path.insert(0, '/workspace')
+
+from agent_ros_bridge.ai.intent_parser import IntentParserNode
+from agent_ros_bridge_msgs.srv import ParseIntent
+
+parser = IntentParserNode()
+
+commands = [
+    "go to the kitchen",
+    "pick up the red cup",
+    "what is your battery level",
+    "stop immediately",
+]
+
+for cmd in commands:
+    request = ParseIntent.Request()
+    request.utterance = cmd
+    
+    response = ParseIntent.Response()
+    result = parser.parse_intent_callback(request, response)
+    
+    print(f"Input: '{cmd}'")
+    print(f"→ Intent: {result.intent.type}")
+    print(f"→ Confidence: {result.intent.confidence:.2f}")
+    print(f"→ Entities: {[e.value for e in result.intent.entities]}")
+    print()
+PYEOF
+    """, timeout=30)
+    
+    if result.returncode == 0:
+        print(result.stdout)
+        print("✅ Intent parsing working in ROS Docker")
+    else:
+        print(f"❌ Intent parsing failed: {result.stderr}")
+        raise RuntimeError("Intent parsing demo failed")
 
 
 def demo_context_awareness():
-    """Demonstrate context-aware parsing."""
-    print_step(2, "Context Awareness")
+    """Demonstrate context-aware parsing using ROS in Docker."""
+    print_step(2, "Context Awareness (ROS Docker)")
     
-    try:
-        from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
-        
-        parser = ContextAwareParser()
-        
-        # Set up context
-        parser.add_conversation_turn("pick up the cup", "MANIPULATE")
-        parser.update_robot_state(location="kitchen", battery=85.0)
-        
-        # Resolve pronoun
-        resolved = parser.resolve_context("place it on the table")
-        
-        print(f"  Context: Just picked up 'cup'")
-        print(f"  Input: 'place it on the table'")
-        print(f"  → Resolved: 'place cup on the table'")
-        print(f"  → Robot location: kitchen")
-        print(f"  → Battery: 85%")
-        
-    except ImportError:
-        print("  ⚠️  Context parser not available without ROS2")
+    result = run_in_ros2_container("""
+python3 << 'PYEOF'
+import sys
+sys.path.insert(0, '/workspace')
+
+from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+
+parser = ContextAwareParser()
+
+# Set up context
+parser.add_conversation_turn("pick up the cup", "MANIPULATE")
+parser.update_robot_state(location="kitchen", battery=85.0)
+
+# Resolve pronoun
+resolved = parser.resolve_context("place it on the table")
+
+print(f"Context: Just picked up 'cup'")
+print(f"Input: 'place it on the table'")
+print(f"→ Resolved: '{resolved}'")
+print(f"→ Robot location: {parser._robot_state.location}")
+print(f"→ Battery: {parser._robot_state.battery_level}%")
+PYEOF
+    """, timeout=30)
+    
+    if result.returncode == 0:
+        print(result.stdout)
+        print("✅ Context awareness working in ROS Docker")
+    else:
+        print(f"❌ Context awareness failed: {result.stderr}")
+        raise RuntimeError("Context awareness demo failed")
 
 
 def demo_multi_language():
-    """Demonstrate multi-language support."""
-    print_step(3, "Multi-Language Support")
+    """Demonstrate multi-language support using ROS in Docker."""
+    print_step(3, "Multi-Language Support (ROS Docker)")
     
-    try:
-        from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
-        
-        parser = MultiLanguageParser()
-        
-        phrases = [
-            ("go to kitchen", "en"),
-            ("ve a la cocina", "es"),
-            ("去厨房", "zh"),
-        ]
-        
-        for phrase, expected_lang in phrases:
-            detected = parser.detect_language(phrase)
-            result = parser.parse(phrase)
-            
-            print(f"  '{phrase}' [{detected}]")
-            if result:
-                print(f"    → Intent: {result['intent_type']}")
-            print()
-            
-    except ImportError:
-        print("  ⚠️  Multi-language parser not available without ROS2")
+    result = run_in_ros2_container("""
+python3 << 'PYEOF'
+import sys
+sys.path.insert(0, '/workspace')
+
+from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
+
+parser = MultiLanguageParser()
+
+phrases = [
+    ("go to kitchen", "en"),
+    ("ve a la cocina", "es"),
+    ("去厨房", "zh"),
+]
+
+for phrase, expected_lang in phrases:
+    detected = parser.detect_language(phrase)
+    result = parser.parse(phrase)
+    
+    print(f"'{phrase}' [{detected}]")
+    if result:
+        print(f"  → Intent: {result['intent_type']}")
+    print()
+PYEOF
+    """, timeout=30)
+    
+    if result.returncode == 0:
+        print(result.stdout)
+        print("✅ Multi-language support working in ROS Docker")
+    else:
+        print(f"❌ Multi-language support failed: {result.stderr}")
+        raise RuntimeError("Multi-language demo failed")
 
 
 def demo_ros2_bridge():
@@ -183,44 +209,53 @@ def demo_ros2_bridge():
 
 
 def demo_safety_validation():
-    """Demonstrate safety validation."""
-    print_step(5, "Safety Validation")
+    """Demonstrate safety validation using ROS in Docker."""
+    print_step(5, "Safety Validation (ROS Docker)")
     
-    try:
-        from agent_ros_bridge.safety.validator import SafetyValidatorNode
-        
-        validator = SafetyValidatorNode()
-        
-        # Test safe trajectory (simplified format)
-        safe_traj = {
-            'waypoints': [{'x': 0, 'y': 0, 'z': 0}, {'x': 1, 'y': 0, 'z': 0}],
-            'velocities': [0.5, 0.5],
-            'accelerations': [0.1, 0.1]
-        }
-        
-        limits = {
-            'max_velocity': 1.0,
-            'max_acceleration': 2.0,
-            'workspace_bounds': {
-                'x_min': -5, 'x_max': 5,
-                'y_min': -5, 'y_max': 5,
-                'z_min': 0, 'z_max': 2
-            }
-        }
-        
-        result = validator.validate_trajectory(safe_traj, limits)
-        
-        print(f"  Safe trajectory test:")
-        print(f"    → Approved: {result['approved']}")
-        print(f"    → Validation time: {result.get('validation_time_ms', 0):.2f}ms")
-        
-        if result['approved'] and 'certificate' in result:
-            cert_id = result['certificate'].get('certificate_id', 'unknown')[:8]
-            print(f"    → Certificate issued: {cert_id}...")
-        
-    except Exception as e:
-        print(f"  ⚠️  Safety validator demo: {e}")
-        print("  (This is expected in demo mode without full ROS2)")
+    result = run_in_ros2_container("""
+python3 << 'PYEOF'
+import sys
+sys.path.insert(0, '/workspace')
+
+from agent_ros_bridge.safety.validator import SafetyValidatorNode
+
+validator = SafetyValidatorNode()
+
+# Test safe trajectory
+safe_traj = {
+    'waypoints': [{'x': 0, 'y': 0, 'z': 0}, {'x': 1, 'y': 0, 'z': 0}],
+    'velocities': [0.5, 0.5],
+    'accelerations': [0.1, 0.1]
+}
+
+limits = {
+    'max_velocity': 1.0,
+    'max_acceleration': 2.0,
+    'workspace_bounds': {
+        'x_min': -5, 'x_max': 5,
+        'y_min': -5, 'y_max': 5,
+        'z_min': 0, 'z_max': 2
+    }
+}
+
+result = validator.validate_trajectory(safe_traj, limits)
+
+print(f"Safe trajectory test:")
+print(f"  → Approved: {result['approved']}")
+print(f"  → Validation time: {result.get('validation_time_ms', 0):.2f}ms")
+
+if result['approved'] and 'certificate' in result:
+    cert_id = result['certificate'].get('certificate_id', 'unknown')[:8]
+    print(f"  → Certificate issued: {cert_id}...")
+PYEOF
+    """, timeout=30)
+    
+    if result.returncode == 0:
+        print(result.stdout)
+        print("✅ Safety validation working in ROS Docker")
+    else:
+        print(f"❌ Safety validation failed: {result.stderr}")
+        raise RuntimeError("Safety validation demo failed")
 
 
 def demo_performance():
@@ -277,11 +312,42 @@ def demo_performance():
         print(f"    (Using fallback parser for demo)")
 
 
+def check_ros2_docker():
+    """Check if ROS2 Docker container is running."""
+    result = subprocess.run(
+        ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
+        capture_output=True,
+        text=True
+    )
+    if "Up" not in result.stdout:
+        print("❌ ROS2 Docker container 'ros2_humble' is not running!")
+        print("   Start it with: docker start ros2_humble")
+        print("   This demo requires real ROS2 in Docker - no fallback.")
+        return False
+    return True
+
+
+def run_in_ros2_container(cmd, timeout=30):
+    """Run Python code in the ROS2 Docker container."""
+    result = subprocess.run(
+        ["docker", "exec", "ros2_humble", "bash", "-c",
+         f"source /opt/ros/humble/setup.bash && {cmd}"],
+        capture_output=True,
+        text=True,
+        timeout=timeout
+    )
+    return result
+
+
 def main():
     """Run the full demonstration."""
     print_header("Agent ROS Bridge - Full Demonstration")
     print(f"Time: {datetime.now(timezone.utc).isoformat()}")
     print(f"Version: 0.6.1")
+    
+    # Check ROS2 Docker is running
+    if not check_ros2_docker():
+        return 1
     
     try:
         demo_intent_parsing()
