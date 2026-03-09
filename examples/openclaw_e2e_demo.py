@@ -105,7 +105,7 @@ def demo_standalone_api():
     print("\nScenario: Python script controls robot directly")
     
     code = '''
-from agent_ros_bridge import Robot, NavigationGoal
+from agent_ros_bridge import RobotController, NavigationGoal
 
 # Connect to robot
 robot = Robot(ros_master="localhost:11311")

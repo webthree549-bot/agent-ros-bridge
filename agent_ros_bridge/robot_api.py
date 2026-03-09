@@ -44,9 +44,9 @@ class RobotCommandResult:
     final_pose: Optional[Dict[str, float]] = None
 
 
-class Robot:
+class RobotController:
     """
-    High-level robot control interface.
+    High-level robot control interface for standalone usage.
     
     This class provides a simplified API for controlling robots through
     Agent ROS Bridge without needing an external AI agent.

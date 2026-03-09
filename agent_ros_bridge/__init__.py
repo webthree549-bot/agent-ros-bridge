@@ -101,14 +101,14 @@ if FLEET_AVAILABLE:
 # Standalone Robot API (new in v0.6.1)
 try:
     from .robot_api import (
-        Robot as StandaloneRobot,
+        RobotController,
         NavigationGoal,
         ManipulationGoal,
         RobotCommandResult,
     )
     _ROBOT_API_AVAILABLE = True
     __all__.extend([
-        "StandaloneRobot",
+        "RobotController",
         "NavigationGoal",
         "ManipulationGoal",
         "RobotCommandResult",
