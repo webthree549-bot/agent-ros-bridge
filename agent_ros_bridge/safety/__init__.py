@@ -14,6 +14,7 @@ Usage:
     from agent_ros_bridge.safety import (
         SafetyLimitsNode,
         SafetyValidatorNode,
+        SafetyValidatorROSNode,
         EmergencyStopNode,
         WatchdogNode
     )
@@ -27,12 +28,15 @@ from agent_ros_bridge.integrations.safety import (
     ConfirmationRequest,
 )
 
+# Core validator (ROS-agnostic)
+from .validator import SafetyValidatorNode
+
 # Low-level ROS2 safety nodes (new in v0.6.0)
 try:
     from .limits import SafetyLimitsNode
-    from .validator import SafetyValidatorNode
     from .emergency_stop import EmergencyStopNode
     from .watchdog import WatchdogNode
+    from .validator_node import SafetyValidatorROSNode
     _ROS2_NODES_AVAILABLE = True
 except ImportError:
     # ROS2 not available
@@ -40,6 +44,7 @@ except ImportError:
     SafetyValidatorNode = None
     EmergencyStopNode = None
     WatchdogNode = None
+    SafetyValidatorROSNode = None
     _ROS2_NODES_AVAILABLE = False
 
 __all__ = [
@@ -48,9 +53,11 @@ __all__ = [
     'SafetyLevel',
     'SafetyPolicy',
     'ConfirmationRequest',
+    # Core validator
+    'SafetyValidatorNode',
     # Low-level ROS2 nodes
     'SafetyLimitsNode',
-    'SafetyValidatorNode',
+    'SafetyValidatorROSNode',
     'EmergencyStopNode',
     'WatchdogNode',
 ]
