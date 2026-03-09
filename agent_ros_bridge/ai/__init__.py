@@ -47,6 +47,14 @@ from .motion_planner import (
     create_motion_planner,
 )
 
+# ROS2 action server (new in v0.6.1)
+try:
+    from .motion_planner_node import MotionPlannerROSNode
+    _MOTION_PLANNER_ROS_AVAILABLE = True
+except ImportError:
+    MotionPlannerROSNode = None
+    _MOTION_PLANNER_ROS_AVAILABLE = False
+
 from .execution_monitor import (
     ExecutionMonitorNode,
     ExecuteMotionResult,
@@ -86,6 +94,8 @@ __all__ = [
     'Nav2Integration',
     'MoveIt2Integration',
     'create_motion_planner',
+    # ROS2 action server
+    'MotionPlannerROSNode',
     # Execution monitor
     'ExecutionMonitorNode',
     'ExecuteMotionResult',
