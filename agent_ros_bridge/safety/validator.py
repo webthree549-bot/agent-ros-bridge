@@ -22,6 +22,11 @@ class SafetyValidatorNode:
     Timing Requirements:
     - Validation must complete within <10ms
     - Certificate validity window: 30 seconds
+    
+    Optimization:
+    - Uses LRU cache for identical trajectories
+    - Cache size: 1000 entries
+    - Cache TTL: 60 seconds
     """
     
     # Service name constant
@@ -30,11 +35,98 @@ class SafetyValidatorNode:
     # Certificate validity in seconds
     CERTIFICATE_VALIDITY_SEC = 30.0
     
-    def __init__(self):
-        """Initialize Safety Validator Node"""
+    # Cache settings
+    CACHE_SIZE = 1000
+    CACHE_TTL_SEC = 60.0
+    
+    def __init__(self, enable_cache: bool = True):
+        """Initialize Safety Validator Node
+        
+        Args:
+            enable_cache: Whether to enable result caching
+        """
         self._validation_count = 0
         self._rejection_count = 0
         self._validation_times = []  # For performance monitoring
+        self._cache_hits = 0
+        self._cache_misses = 0
+        
+        # Simple LRU cache: trajectory_hash -> (result, timestamp)
+        self._enable_cache = enable_cache
+        self._cache: Dict[str, tuple] = {}
+        self._cache_order: List[str] = []  # For LRU eviction
+    
+    def _compute_trajectory_hash(self, trajectory: Dict[str, Any], limits: Dict[str, Any]) -> str:
+        """Compute hash for trajectory + limits combination."""
+        import hashlib
+        import json
+        
+        # Create deterministic string representation
+        data = {
+            'trajectory': trajectory,
+            'limits': limits
+        }
+        data_str = json.dumps(data, sort_keys=True)
+        return hashlib.md5(data_str.encode()).hexdigest()
+    
+    def _get_cached_result(self, traj_hash: str) -> Optional[Dict[str, Any]]:
+        """Get cached validation result if available and not expired."""
+        if not self._enable_cache or traj_hash not in self._cache:
+            return None
+        
+        result, timestamp = self._cache[traj_hash]
+        
+        # Check if expired
+        if time.time() - timestamp > self.CACHE_TTL_SEC:
+            # Remove expired entry
+            del self._cache[traj_hash]
+            self._cache_order.remove(traj_hash)
+            return None
+        
+        # Update LRU order
+        self._cache_order.remove(traj_hash)
+        self._cache_order.append(traj_hash)
+        
+        self._cache_hits += 1
+        return result
+    
+    def _cache_result(self, traj_hash: str, result: Dict[str, Any]):
+        """Cache validation result."""
+        if not self._enable_cache:
+            return
+        
+        # Evict oldest if cache is full
+        while len(self._cache) >= self.CACHE_SIZE:
+            oldest = self._cache_order.pop(0)
+            if oldest in self._cache:
+                del self._cache[oldest]
+        
+        # Add new entry
+        self._cache[traj_hash] = (result, time.time())
+        self._cache_order.append(traj_hash)
+        self._cache_misses += 1
+    
+    def get_cache_statistics(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        total = self._cache_hits + self._cache_misses
+        hit_rate = self._cache_hits / total if total > 0 else 0.0
+        
+        return {
+            'cache_enabled': self._enable_cache,
+            'cache_size': len(self._cache),
+            'cache_hits': self._cache_hits,
+            'cache_misses': self._cache_misses,
+            'hit_rate': hit_rate,
+            'max_cache_size': self.CACHE_SIZE,
+            'cache_ttl_sec': self.CACHE_TTL_SEC
+        }
+    
+    def clear_cache(self):
+        """Clear the validation cache."""
+        self._cache.clear()
+        self._cache_order.clear()
+        self._cache_hits = 0
+        self._cache_misses = 0
     
     def validate_trajectory(self, trajectory: Dict[str, Any], 
                            limits: Dict[str, Any]) -> Dict[str, Any]:
@@ -51,41 +143,76 @@ class SafetyValidatorNode:
         start_time = time.time()
         self._validation_count += 1
         
+        # Check cache first
+        traj_hash = self._compute_trajectory_hash(trajectory, limits)
+        cached_result = self._get_cached_result(traj_hash)
+        
+        if cached_result is not None:
+            # Return cached result with updated timing
+            cached_result['validation_time_ms'] = (time.time() - start_time) * 1000
+            cached_result['cached'] = True
+            return cached_result
+        
         # Check velocity limits
         velocity_result = self._check_velocity(trajectory, limits)
         if not velocity_result['passed']:
             self._rejection_count += 1
-            return self._create_rejection_result(velocity_result['reason'])
+            result = self._create_rejection_result(velocity_result['reason'])
+            result['validation_time_ms'] = (time.time() - start_time) * 1000
+            result['cached'] = False
+            self._cache_result(traj_hash, result)
+            return result
         
         # Check workspace bounds
         workspace_result = self._check_workspace(trajectory, limits)
         if not workspace_result['passed']:
             self._rejection_count += 1
-            return self._create_rejection_result(workspace_result['reason'])
+            result = self._create_rejection_result(workspace_result['reason'])
+            result['validation_time_ms'] = (time.time() - start_time) * 1000
+            result['cached'] = False
+            self._cache_result(traj_hash, result)
+            return result
         
         # Check joint limits
         joint_result = self._check_joint_limits(trajectory, limits)
         if not joint_result['passed']:
             self._rejection_count += 1
-            return self._create_rejection_result(joint_result['reason'])
+            result = self._create_rejection_result(joint_result['reason'])
+            result['validation_time_ms'] = (time.time() - start_time) * 1000
+            result['cached'] = False
+            self._cache_result(traj_hash, result)
+            return result
         
         # Check force limits
         force_result = self._check_force_limits(trajectory, limits)
         if not force_result['passed']:
             self._rejection_count += 1
-            return self._create_rejection_result(force_result['reason'])
+            result = self._create_rejection_result(force_result['reason'])
+            result['validation_time_ms'] = (time.time() - start_time) * 1000
+            result['cached'] = False
+            self._cache_result(traj_hash, result)
+            return result
         
         # Check restricted zones
         zone_result = self._check_restricted_zones(trajectory, limits)
         if not zone_result['passed']:
             self._rejection_count += 1
-            return self._create_rejection_result(zone_result['reason'])
+            result = self._create_rejection_result(zone_result['reason'])
+            result['validation_time_ms'] = (time.time() - start_time) * 1000
+            result['cached'] = False
+            self._cache_result(traj_hash, result)
+            return result
         
         # All checks passed - generate certificate
         elapsed = time.time() - start_time
         self._validation_times.append(elapsed)
         
-        return self._create_approval_result(trajectory)
+        result = self._create_approval_result(trajectory)
+        result['validation_time_ms'] = elapsed * 1000
+        result['cached'] = False
+        self._cache_result(traj_hash, result)
+        
+        return result
     
     def _check_velocity(self, trajectory: Dict[str, Any], 
                        limits: Dict[str, Any]) -> Dict[str, Any]:
@@ -254,10 +381,16 @@ class SafetyValidatorNode:
         avg_time = sum(self._validation_times) / len(self._validation_times) if self._validation_times else 0
         max_time = max(self._validation_times) if self._validation_times else 0
         
-        return {
+        stats = {
             'validation_count': self._validation_count,
             'rejection_count': self._rejection_count,
             'approval_count': self._validation_count - self._rejection_count,
             'average_validation_time_ms': avg_time * 1000,
             'max_validation_time_ms': max_time * 1000
         }
+        
+        # Add cache statistics
+        cache_stats = self.get_cache_statistics()
+        stats.update(cache_stats)
+        
+        return stats
