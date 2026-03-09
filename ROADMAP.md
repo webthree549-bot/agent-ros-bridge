@@ -1,10 +1,26 @@
 # Agent ROS Bridge — Roadmap
 
-**Status:** v0.5.0 Complete — All AI integrations working
+**Status:** v0.6.0 Complete — AI Layer and Safety Module Released
 
 ---
 
-## ✅ v0.5.1 — Latest (Released 2026-03-03)
+## ✅ v0.6.0 — Latest (Released 2026-03-08)
+
+**Status:** ✅ **COMPLETE AND RELEASED**
+
+### What's New in v0.6.0
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **AI Layer** | ✅ Complete | ROS2-based intent parsing, context management, motion planning |
+| **Safety Module** | ✅ Complete | Emergency stop, limits, validation, watchdog |
+| **Simulation Framework** | ✅ Complete | Gazebo-based testing with parallel runner |
+| **Custom ROS2 Messages** | ✅ Complete | agent_ros_bridge_msgs package |
+| **Documentation** | ✅ Complete | Comprehensive v0.6.1 planning docs |
+
+---
+
+## ✅ v0.5.1 — Previous (Released 2026-03-03)
 
 **Status:** ✅ **COMPLETE AND RELEASED**
 
@@ -82,15 +98,15 @@ Working examples in `examples/v0.5.0_integrations/`:
 
 ---
 
-## 🚧 v0.6.0 — Advanced Features (In Planning)
+## 🚧 v0.6.1 — Architecture Consolidation (In Progress)
 
-**Goal:** Production-ready for enterprise use.
+**Goal:** Resolve v0.6.0 technical debt and harden for production.
 
 ### Planned Features
-- [ ] **Enhanced Dashboard** — Grafana integration, advanced metrics
-- [ ] **Multi-Agent Orchestration** — Fleet-wide coordination
-- [ ] **Learning from Demonstration** — Record and replay skills
-- [ ] **Cloud Integration** — Managed service option
+- [ ] **Architecture Consolidation** — Merge duplicate safety modules
+- [ ] **AI Layer Hardening** — Production-ready error handling
+- [ ] **Simulation Integration** — CI/CD simulation testing
+- [ ] **Performance Optimization** — Memory and latency improvements
 
 ### Operations
 - [ ] **Helm Chart** — Kubernetes deployment
@@ -98,7 +114,21 @@ Working examples in `examples/v0.5.0_integrations/`:
 - [ ] **Monitoring Stack** — Grafana dashboards, alerting
 - [ ] **Backup/Restore** — Data persistence
 
-**Timeline:** 3 months
+**Timeline:** 8 weeks (see docs/V061_SPRINT_PLAN.md)
+
+---
+
+## 🚧 v0.7.0 — Advanced Features (Future)
+
+**Goal:** Enterprise-ready with advanced AI capabilities.
+
+### Planned Features
+- [ ] **Enhanced Dashboard** — Grafana integration, advanced metrics
+- [ ] **Multi-Agent Orchestration** — Fleet-wide coordination
+- [ ] **Learning from Demonstration** — Record and replay skills
+- [ ] **Cloud Integration** — Managed service option
+
+**Timeline:** 3 months after v0.6.1
 
 ---
 
@@ -121,7 +151,8 @@ Working examples in `examples/v0.5.0_integrations/`:
 
 | Version | Date | Status | Notes |
 |---------|------|--------|-------|
-| **v0.5.1** | 2026-03-03 | ✅ **Current** | gRPC JWT auth, zero linting errors |
+| **v0.6.0** | 2026-03-08 | ✅ **Current** | AI layer, safety module, simulation |
+| v0.5.1 | 2026-03-03 | ✅ Released | gRPC JWT auth, zero linting errors |
 | v0.5.0 | 2026-02-23 | ✅ Released | Complete AI integration |
 | v0.4.1 | 2026-02-23 | ✅ Released | Honest cleanup release |
 | v0.4.0 | 2026-02-23 | ⚠️ Retracted | False claims, premature |
@@ -159,6 +190,6 @@ Working examples in `examples/v0.5.0_integrations/`:
 
 ---
 
-*Last updated: 2026-03-03*  
-*Status: v0.5.1 Complete*  
+*Last updated: 2026-03-08*  
+*Status: v0.6.0 Complete*  
 *Author: webthree549*
