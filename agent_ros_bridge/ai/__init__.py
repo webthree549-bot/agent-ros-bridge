@@ -55,6 +55,31 @@ except ImportError:
     MotionPlannerROSNode = None
     _MOTION_PLANNER_ROS_AVAILABLE = False
 
+# Advanced features (Week 6)
+try:
+    from .llm_parser import LLMIntentParser, LLMIntentResult
+    _LLM_AVAILABLE = True
+except ImportError:
+    LLMIntentParser = None
+    LLMIntentResult = None
+    _LLM_AVAILABLE = False
+
+try:
+    from .context_aware_parser import ContextAwareParser, ConversationContext
+    _CONTEXT_AVAILABLE = True
+except ImportError:
+    ContextAwareParser = None
+    ConversationContext = None
+    _CONTEXT_AVAILABLE = False
+
+try:
+    from .multi_language_parser import MultiLanguageParser, LanguagePatterns
+    _MULTILANG_AVAILABLE = True
+except ImportError:
+    MultiLanguageParser = None
+    LanguagePatterns = None
+    _MULTILANG_AVAILABLE = False
+
 from .execution_monitor import (
     ExecutionMonitorNode,
     ExecuteMotionResult,
@@ -96,6 +121,13 @@ __all__ = [
     'create_motion_planner',
     # ROS2 action server
     'MotionPlannerROSNode',
+    # Advanced features (Week 6)
+    'LLMIntentParser',
+    'LLMIntentResult',
+    'ContextAwareParser',
+    'ConversationContext',
+    'MultiLanguageParser',
+    'LanguagePatterns',
     # Execution monitor
     'ExecutionMonitorNode',
     'ExecuteMotionResult',

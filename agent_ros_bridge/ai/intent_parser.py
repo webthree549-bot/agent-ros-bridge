@@ -223,29 +223,55 @@ class IntentParserNode(Node):
     
     def _llm_fallback_parse(self, utterance: str) -> Intent:
         """
-        LLM fallback for complex utterances (Week 2 stretch).
+        LLM fallback for complex utterances (v0.6.1 Week 6).
         
-        TODO: Implement actual LLM integration
-        For now, returns UNKNOWN with low confidence
+        Uses LLM-based parsing for utterances that rule-based parsing
+        couldn't handle with high confidence.
         
         Args:
             utterance: Utterance that rule-based parsing couldn't handle
             
         Returns:
-            Intent (currently UNKNOWN)
+            Intent from LLM or UNKNOWN if LLM unavailable
         """
         intent = Intent()
-        intent.type = "UNKNOWN"
-        intent.confidence = 0.3
         intent.raw_utterance = utterance
         intent.source = "LLM_ASSISTED"
         
-        # TODO: Implement actual LLM call
-        # This would:
-        # 1. Send utterance to LLM with structured prompt
-        # 2. Parse LLM response into Intent structure
-        # 3. Set appropriate confidence based on LLM certainty
+        # Try LLM parsing
+        try:
+            from .llm_parser import LLMIntentParser
+            
+            # Initialize LLM parser (singleton pattern could be used here)
+            llm_parser = LLMIntentParser()
+            
+            if llm_parser.is_available():
+                result = llm_parser.parse(utterance)
+                
+                if result:
+                    intent.type = result.intent_type
+                    intent.confidence = result.confidence
+                    
+                    # Convert entities
+                    for entity_data in result.entities:
+                        entity = Entity()
+                        entity.type = entity_data.get('type', 'UNKNOWN')
+                        entity.value = entity_data.get('value', '')
+                        entity.confidence = result.confidence
+                        entity.resolved_from = entity.value
+                        intent.entities.append(entity)
+                    
+                    self.get_logger().debug(
+                        f"LLM parse successful: {intent.type} ({intent.confidence:.2f})"
+                    )
+                    return intent
+            
+        except Exception as e:
+            self.get_logger().warn(f"LLM fallback failed: {e}")
         
+        # LLM unavailable or failed - return UNKNOWN
+        intent.type = "UNKNOWN"
+        intent.confidence = 0.3
         return intent
     
     def _map_entity_type(self, group_name: str) -> str:
