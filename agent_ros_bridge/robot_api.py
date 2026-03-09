@@ -100,6 +100,10 @@ class RobotController:
         try:
             import rclpy
             from rclpy.node import Node
+            from rclpy.action import ActionClient
+            from nav2_msgs.action import NavigateToPose
+            from geometry_msgs.msg import Twist
+            from nav_msgs.msg import Odometry
             
             # Initialize ROS2 if needed
             if not rclpy.ok():
@@ -108,14 +112,30 @@ class RobotController:
             # Create node
             self._node = Node(f"robot_api_{self.robot_name}")
             
-            # TODO: Create action clients for navigation and manipulation
-            # TODO: Subscribe to robot state
+            # Create action client for navigation
+            self._nav_client = ActionClient(self._node, NavigateToPose, "/navigate_to_pose")
+            
+            # Create publisher for velocity commands
+            self._cmd_vel_pub = self._node.create_publisher(Twist, "/cmd_vel", 10)
+            
+            # Subscribe to odometry
+            self._odom_sub = self._node.create_subscription(
+                Odometry,
+                "/odom",
+                self._odom_callback,
+                10
+            )
             
             self._connected = True
+            print(f"✅ RobotController connected to ROS")
             
-        except ImportError:
-            print("Warning: ROS2 not available. Running in mock mode.")
+        except ImportError as e:
+            print(f"Warning: ROS2 not available ({e}). Running in mock mode.")
             self._connected = False
+    
+    def _odom_callback(self, msg):
+        """Callback for odometry messages."""
+        self._current_pose = msg.pose.pose
     
     def is_connected(self) -> bool:
         """Check if connected to robot."""
@@ -138,7 +158,7 @@ class RobotController:
     
     def navigate_to(self, goal: NavigationGoal) -> RobotCommandResult:
         """
-        Navigate to a position.
+        Navigate to a position using Nav2.
         
         Args:
             goal: Navigation goal specification
@@ -155,20 +175,63 @@ class RobotController:
         
         try:
             import time
+            from geometry_msgs.msg import PoseStamped
+            from nav2_msgs.action import NavigateToPose
+            
             start_time = time.time()
             
-            # TODO: Implement actual navigation using Nav2
-            # For now, return mock success
+            # Wait for action server
+            if not self._nav_client.wait_for_server(timeout_sec=5.0):
+                return RobotCommandResult(
+                    success=False,
+                    execution_time=0.0,
+                    error_message="Nav2 action server not available"
+                )
             
-            # This would:
-            # 1. Send goal to Nav2 action server
-            # 2. Wait for result
-            # 3. Return success/failure
+            # Create goal
+            goal_msg = NavigateToPose.Goal()
+            goal_msg.pose = PoseStamped()
+            goal_msg.pose.header.frame_id = goal.frame_id
+            goal_msg.pose.header.stamp = self._node.get_clock().now().to_msg()
+            goal_msg.pose.pose.position.x = goal.x
+            goal_msg.pose.pose.position.y = goal.y
+            goal_msg.pose.pose.orientation.w = 1.0
+            
+            # Send goal
+            future = self._nav_client.send_goal_async(goal_msg)
+            import rclpy
+            rclpy.spin_until_future_complete(self._node, future, timeout_sec=5.0)
+            
+            goal_handle = future.result()
+            if not goal_handle or not goal_handle.accepted:
+                return RobotCommandResult(
+                    success=False,
+                    execution_time=time.time() - start_time,
+                    error_message="Goal rejected"
+                )
+            
+            # Wait for result
+            result_future = goal_handle.get_result_async()
+            rclpy.spin_until_future_complete(
+                self._node, 
+                result_future, 
+                timeout_sec=goal.timeout_sec
+            )
+            
+            result = result_future.result()
+            execution_time = time.time() - start_time
+            
+            # Status 4 = SUCCEEDED
+            success = result.status == 4 if result else False
             
             return RobotCommandResult(
-                success=True,
-                execution_time=time.time() - start_time,
-                final_pose={"x": goal.x, "y": goal.y, "theta": goal.theta}
+                success=success,
+                execution_time=execution_time,
+                final_pose={
+                    "x": self._current_pose.position.x if self._current_pose else goal.x,
+                    "y": self._current_pose.position.y if self._current_pose else goal.y,
+                    "theta": goal.theta
+                } if success else None
             )
             
         except Exception as e:
@@ -223,8 +286,12 @@ class RobotController:
     
     def stop(self) -> bool:
         """Emergency stop."""
-        # TODO: Send stop command
-        return True
+        if self._connected and self._cmd_vel_pub:
+            from geometry_msgs.msg import Twist
+            stop_cmd = Twist()
+            self._cmd_vel_pub.publish(stop_cmd)
+            return True
+        return False
     
     def say(self, text: str) -> bool:
         """
@@ -250,7 +317,14 @@ class RobotController:
     def _disconnect(self):
         """Clean up connection."""
         if self._connected:
-            # TODO: Clean up ROS resources
+            if self._nav_client:
+                self._nav_client.destroy()
+            if self._cmd_vel_pub:
+                self._cmd_vel_pub.destroy()
+            if self._odom_sub:
+                self._odom_sub.destroy()
+            if self._node:
+                self._node.destroy_node()
             self._connected = False
 
 
