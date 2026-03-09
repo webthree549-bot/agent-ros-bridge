@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  ros2:
+    image: osrf/ros:humble-desktop-full
+    container_name: ros2_humble
+    privileged: true
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - ROS_DISTRO=humble
+      - TURTLEBOT3_MODEL=burger
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./workspace:/workspace
+      - ./agent_ros_bridge:/workspace/agent_ros_bridge:ro
+    ports:
+      - "11311:11311"
+      - "8765:8765"
+      - "9090:9090"
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        echo 'ROS2 Humble ready!' &&
+        echo 'Run: ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py' &&
+        bash
+      "
+    networks:
+      - ros2_network
+
+  gazebo:
+    image: osrf/ros:humble-desktop-full
+    container_name: ros2_gazebo
+    privileged: true
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - ROS_DISTRO=humble
+      - TURTLEBOT3_MODEL=burger
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    ports:
+      - "11345:11345"
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        apt-get update && apt-get install -y ros-humble-turtlebot3-gazebo || true &&
+        ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+      "
+    networks:
+      - ros2_network
+    profiles:
+      - gazebo
+
+  nav2:
+    image: osrf/ros:humble-desktop-full
+    container_name: ros2_nav2
+    privileged: true
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - ROS_DISTRO=humble
+      - TURTLEBOT3_MODEL=burger
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        ros2 launch nav2_bringup navigation_launch.py
+      "
+    networks:
+      - ros2_network
+    profiles:
+      - nav2
+
+networks:
+  ros2_network:
+    driver: bridge
