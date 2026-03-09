@@ -112,12 +112,19 @@ Add simulation tests to GitHub Actions workflow.
 
 **Location:** `agent_ros_bridge/safety/validator_node.py`
 
-### 3. Motion Planning Actions (ENG-3)
+### 3. Motion Planning Actions (ENG-3) ✅ COMPLETE
 **Priority:** High  
 **Effort:** 3-4 days  
-**Blocked by:** Safety service (for certificate validation)
+**Status:** COMPLETE
 
-Implement ROS action servers for motion planning and execution.
+**Delivered:**
+- ✅ `/ai/plan_motion` action server
+- ✅ `/ai/execute_motion` action server
+- ✅ Safety validator integration
+- ✅ <100ms planning target with timing warnings
+- ✅ Progress feedback during execution
+
+**Location:** `agent_ros_bridge/ai/motion_planner_node.py`
 
 ### 4. Intent Parser Hardening (ENG-1)
 **Priority:** Medium  

@@ -41,6 +41,14 @@ class IntentParserNode(Node):
         - LLM fallback: < 100ms (with timeout)
     """
     
+    # Performance targets
+    TARGET_LATENCY_MS = 10.0  # 95th percentile target
+    TARGET_CONFIDENCE = 0.95  # Minimum confidence for rule-based
+    
+    # Performance tracking
+    _latency_history: List[float] = []
+    _max_history_size = 1000
+    
     # Intent patterns (rule-based)
     # Each pattern uses named groups for entity extraction
     PATTERNS: Dict[str, List[str]] = {
@@ -104,7 +112,11 @@ class IntentParserNode(Node):
             self.parse_intent_callback
         )
         
+        # Performance monitoring timer (log stats every 60 seconds)
+        self._perf_timer = self.create_timer(60.0, self._log_performance_stats)
+        
         self.get_logger().info('Intent Parser Node initialized')
+        self.get_logger().info(f'Performance target: <{self.TARGET_LATENCY_MS}ms latency, >{self.TARGET_CONFIDENCE} confidence')
     
     def _compile_patterns(self):
         """Compile regex patterns for faster matching."""
@@ -162,6 +174,15 @@ class IntentParserNode(Node):
         response.intent = intent
         response.success = True
         response.latency_ms = intent.latency_ms
+        
+        # Track performance
+        self._track_latency(intent.latency_ms)
+        
+        # Warn if latency target exceeded
+        if intent.latency_ms > self.TARGET_LATENCY_MS:
+            self.get_logger().warn(
+                f'Latency target exceeded: {intent.latency_ms:.2f}ms (target: <{self.TARGET_LATENCY_MS}ms)'
+            )
         
         return response
     
@@ -246,6 +267,61 @@ class IntentParserNode(Node):
             "feature": "FEATURE",
         }
         return mapping.get(group_name, group_name.upper())
+    
+    def _track_latency(self, latency_ms: float):
+        """Track latency for performance monitoring."""
+        self._latency_history.append(latency_ms)
+        if len(self._latency_history) > self._max_history_size:
+            self._latency_history.pop(0)
+    
+    def _log_performance_stats(self):
+        """Log performance statistics."""
+        if not self._latency_history:
+            return
+        
+        latencies = sorted(self._latency_history)
+        p50 = latencies[len(latencies) // 2]
+        p95 = latencies[int(len(latencies) * 0.95)]
+        p99 = latencies[int(len(latencies) * 0.99)]
+        avg = sum(latencies) / len(latencies)
+        
+        self.get_logger().info(
+            f'Performance Stats (last {len(latencies)} calls): '
+            f'avg={avg:.2f}ms, p50={p50:.2f}ms, p95={p95:.2f}ms, p99={p99:.2f}ms'
+        )
+        
+        # Check if meeting target
+        if p95 > self.TARGET_LATENCY_MS:
+            self.get_logger().warn(
+                f'p95 latency ({p95:.2f}ms) exceeds target ({self.TARGET_LATENCY_MS}ms)'
+            )
+    
+    def get_performance_stats(self) -> Dict[str, Any]:
+        """
+        Get current performance statistics.
+        
+        Returns:
+            Dictionary with performance metrics
+        """
+        if not self._latency_history:
+            return {
+                'calls': 0,
+                'avg_latency_ms': 0.0,
+                'p50_latency_ms': 0.0,
+                'p95_latency_ms': 0.0,
+                'p99_latency_ms': 0.0,
+                'target_met': True
+            }
+        
+        latencies = sorted(self._latency_history)
+        return {
+            'calls': len(latencies),
+            'avg_latency_ms': sum(latencies) / len(latencies),
+            'p50_latency_ms': latencies[len(latencies) // 2],
+            'p95_latency_ms': latencies[int(len(latencies) * 0.95)],
+            'p99_latency_ms': latencies[int(len(latencies) * 0.99)],
+            'target_met': latencies[int(len(latencies) * 0.95)] <= self.TARGET_LATENCY_MS
+        }
     
     def _create_unknown_intent(self, utterance: str, confidence: float) -> Intent:
         """
