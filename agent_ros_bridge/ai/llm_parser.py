@@ -69,58 +69,87 @@ Rules:
 3. Use UNKNOWN only when truly uncertain
 4. Be concise in reasoning"""
     
-    def __init__(self, 
+    def __init__(self,
                  api_key: Optional[str] = None,
                  model: str = "gpt-3.5-turbo",
                  provider: str = "openai",
                  timeout_sec: float = 5.0,
                  enable_cache: bool = True,
-                 cache_size: int = 500):
+                 cache_size: int = 500,
+                 rate_limit_calls: int = 100,
+                 rate_limit_window: int = 60):
         """
         Initialize LLM intent parser.
-        
+
         Args:
-            api_key: API key for LLM provider
+            api_key: API key for LLM provider (loaded from env if None)
             model: Model name to use
             provider: "openai" or "anthropic"
             timeout_sec: Timeout for LLM calls
             enable_cache: Whether to cache results
             cache_size: Maximum cache entries
+            rate_limit_calls: Max API calls per window
+            rate_limit_window: Rate limit window in seconds
         """
+        # Import security utilities
+        try:
+            from ..security_utils import SecureConfig, RateLimiter, AuditLogger, sanitize_input
+            self._secure_config = SecureConfig
+            self._sanitize = sanitize_input
+            self._use_security = True
+        except ImportError:
+            self._use_security = False
+            self._sanitize = lambda x, **kw: x
+
+        # Load API key securely if not provided
+        if api_key is None and self._use_security:
+            api_key = SecureConfig.get_api_key(provider)
+
         self._api_key = api_key
         self._model = model
         self._provider = provider.lower()
         self._timeout_sec = timeout_sec
         self._enable_cache = enable_cache
         self._cache_size = cache_size
-        
+
+        # Initialize rate limiter
+        if self._use_security:
+            self._rate_limiter = RateLimiter(rate_limit_calls, rate_limit_window)
+        else:
+            self._rate_limiter = None
+
         # Cache: utterance_hash -> (result, timestamp)
         self._cache: Dict[str, tuple] = {}
         self._cache_order: List[str] = []
-        
+
         # Statistics
         self._calls = 0
         self._cache_hits = 0
         self._timeouts = 0
         self._errors = 0
-        
+
         # Try to import LLM libraries
         self._openai_available = False
         self._anthropic_available = False
-        
+
         try:
             import openai
             self._openai = openai
             self._openai_available = True
         except ImportError:
             pass
-        
+
         try:
             import anthropic
             self._anthropic = anthropic
             self._anthropic_available = True
         except ImportError:
             pass
+
+        # Validate API key format
+        if self._api_key and self._use_security:
+            if not SecureConfig.validate_api_key(self._api_key, self._provider):
+                print(f"Warning: API key format doesn't match expected for {self._provider}")
     
     def is_available(self) -> bool:
         """Check if LLM parsing is available."""
@@ -179,20 +208,30 @@ Rules:
     def parse(self, utterance: str, context: Optional[Dict[str, Any]] = None) -> Optional[LLMIntentResult]:
         """
         Parse utterance using LLM.
-        
+
         Args:
             utterance: Natural language input
             context: Optional context (robot state, environment)
-            
+
         Returns:
             Parsed intent or None if unavailable/failed
         """
         if not self.is_available():
             return None
-        
+
+        # Check rate limit
+        if self._rate_limiter and not self._rate_limiter.is_allowed():
+            print(f"Rate limit exceeded. Try again later.")
+            return None
+
+        # Sanitize input
+        utterance = self._sanitize(utterance, max_length=500)
+        if not utterance:
+            return None
+
         start_time = time.time()
         self._calls += 1
-        
+
         # Check cache
         utterance_hash = self._compute_hash(utterance)
         cached = self._get_cached(utterance_hash)
