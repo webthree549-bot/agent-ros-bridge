@@ -28,14 +28,31 @@
 
 ## Task 3: Increase Test Coverage to 90%+
 
-Current: ~85% (estimated)
+Current: 27% (measured)
 Target: 90%+
 
-### Missing Coverage Areas
-- [ ] Error handling paths
-- [ ] Edge cases in validation
-- [ ] Network failure scenarios
-- [ ] LLM fallback paths
+### Coverage Analysis
+
+| Module | Current | Target | Priority |
+|--------|---------|--------|----------|
+| utils/error_handling | 91% | 95% | ✅ Done |
+| safety/validator | 79% | 90% | Medium |
+| safety/watchdog | 86% | 90% | Medium |
+| gateway_v2/core | 43% | 80% | High |
+| gateway_v2/transports/websocket | 47% | 80% | High |
+| integrations/* | 0-39% | 70% | Low |
+| connectors/* | 9-36% | 60% | Low |
+
+### Quick Wins (High Impact, Low Effort)
+- [x] Error handling module (91% coverage)
+- [ ] Add tests for websocket transport edge cases
+- [ ] Add tests for core gateway message handling
+- [ ] Add tests for safety validator edge cases
+
+### Deferred to v0.6.2
+- [ ] ROS1/ROS2 connector tests (requires Docker)
+- [ ] gRPC/MQTT transport tests (requires infrastructure)
+- [ ] Full integration test suite
 
 ## Task 4: Complete Documentation
 

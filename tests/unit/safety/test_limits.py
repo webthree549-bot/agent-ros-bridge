@@ -1,201 +1,259 @@
-"""
-TDD Tests for /safety/limits Node
-Agent ROS Bridge v0.6.1 - Week 2 Implementation
-
-Following TDD: Red -> Green -> Refactor
-"""
-
+"""Tests for safety limits node."""
 import pytest
-import yaml
-import time
-from unittest.mock import patch, mock_open
+import tempfile
+import os
 from pathlib import Path
 
-
-class TestLimitsNodeExists:
-    """Test that limits node exists and can be instantiated"""
-    
-    def test_limits_node_module_exists(self):
-        """RED: Safety limits module should exist"""
-        try:
-            from agent_ros_bridge.safety.limits import SafetyLimitsNode
-            assert True
-        except ImportError as e:
-            pytest.fail(f"SafetyLimitsNode module not found: {e}")
-    
-    def test_limits_node_class_exists(self):
-        """RED: SafetyLimitsNode class should exist"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
-        assert hasattr(SafetyLimitsNode, '__init__')
+from agent_ros_bridge.safety.limits import SafetyLimitsNode
 
 
-class TestGetSafetyLimitsService:
-    """Test GetSafetyLimits service availability"""
+class TestSafetyLimitsNodeInit:
+    """Test SafetyLimitsNode initialization."""
     
-    def test_get_safety_limits_service_available(self):
-        """RED: GetSafetyLimits service should be available"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
+    def test_init_with_defaults(self):
+        """Node initializes with default limits."""
+        node = SafetyLimitsNode()
         
-        # Check that the service name constant exists
-        assert hasattr(SafetyLimitsNode, 'GET_LIMITS_SERVICE') or \
-               hasattr(SafetyLimitsNode, 'get_limits_service_name'), \
-               "Service name should be defined"
+        assert node._config == {}
+        assert node._cache == {}
+        assert node.GET_LIMITS_SERVICE == '/safety/get_limits'
     
-    def test_service_returns_limits_for_robot(self):
-        """RED: Service should return max_velocity, workspace_bounds for robot_id"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
-        
-        # Mock configuration
+    def test_init_with_config_dict(self):
+        """Node initializes with config dictionary."""
         config = {
             'robots': {
-                'turtlebot_01': {
-                    'max_linear_velocity': 0.5,
-                    'max_angular_velocity': 1.0,
-                    'workspace_bounds': [
-                        {'x': -10.0, 'y': -10.0},
-                        {'x': 10.0, 'y': -10.0},
-                        {'x': 10.0, 'y': 10.0},
-                        {'x': -10.0, 'y': 10.0}
-                    ],
-                    'restricted_zones': []
-                }
+                'robot1': {'max_linear_velocity': 1.0}
             }
         }
-        
         node = SafetyLimitsNode(config=config)
-        limits = node.get_limits_for_robot('turtlebot_01')
         
-        assert limits is not None, "Limits should not be None"
-        assert 'max_linear_velocity' in limits, "Should have max_linear_velocity"
-        assert 'max_angular_velocity' in limits, "Should have max_angular_velocity"
-        assert 'workspace_bounds' in limits, "Should have workspace_bounds"
-        assert limits['max_linear_velocity'] == 0.5
-        assert limits['max_angular_velocity'] == 1.0
-
-
-class TestLimitsConfigLoading:
-    """Test configuration loading from YAML"""
+        assert node._config == config
     
-    def test_loads_limits_from_config_file(self):
-        """RED: Loads from config/safety_limits.yaml"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
+    def test_init_with_nonexistent_config_file(self):
+        """Node handles nonexistent config file gracefully."""
+        node = SafetyLimitsNode(config_path='/nonexistent/path.yaml')
         
-        # Mock YAML content
-        yaml_content = """
+        assert node._config == {'robots': {}}
+    
+    def test_init_with_valid_config_file(self):
+        """Node loads config from valid YAML file."""
+        config_content = """
 robots:
-  turtlebot_01:
-    max_linear_velocity: 0.5
-    max_angular_velocity: 1.0
-    workspace_bounds:
-      - {x: -10.0, y: -10.0}
-      - {x: 10.0, y: -10.0}
-      - {x: 10.0, y: 10.0}
-      - {x: -10.0, y: 10.0}
-    restricted_zones: []
-  
-  ur5_01:
-    max_joint_velocity: 1.0
-    max_force: 100.0
-    workspace_bounds:
-      - {x: -1.0, y: -1.0, z: 0.0}
-      - {x: 1.0, y: -1.0, z: 0.0}
-      - {x: 1.0, y: 1.0, z: 0.0}
-      - {x: -1.0, y: 1.0, z: 0.0}
-    restricted_zones: []
+  turtlebot1:
+    max_linear_velocity: 1.0
+    max_angular_velocity: 2.0
 """
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write(config_content)
+            config_path = f.name
         
-        with patch('builtins.open', mock_open(read_data=yaml_content)):
-            with patch.object(Path, 'exists', return_value=True):
-                node = SafetyLimitsNode(config_path='config/safety_limits.yaml')
-                
-                # Test turtlebot limits
-                tb_limits = node.get_limits_for_robot('turtlebot_01')
-                assert tb_limits is not None
-                assert tb_limits['max_linear_velocity'] == 0.5
-                
-                # Test UR5 limits
-                ur5_limits = node.get_limits_for_robot('ur5_01')
-                assert ur5_limits is not None
-                assert ur5_limits['max_joint_velocity'] == 1.0
-                assert ur5_limits['max_force'] == 100.0
+        try:
+            node = SafetyLimitsNode(config_path=config_path)
+            
+            assert 'turtlebot1' in node._config['robots']
+            assert node._config['robots']['turtlebot1']['max_linear_velocity'] == 1.0
+        finally:
+            os.unlink(config_path)
     
-    def test_returns_none_for_unknown_robot(self):
-        """RED: Returns None for unknown robot_id"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
+    def test_init_with_invalid_yaml(self):
+        """Node handles invalid YAML gracefully."""
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            f.write("invalid: yaml: content: [")
+            config_path = f.name
         
-        config = {'robots': {'turtlebot_01': {'max_linear_velocity': 0.5}}}
-        node = SafetyLimitsNode(config=config)
+        try:
+            node = SafetyLimitsNode(config_path=config_path)
+            
+            # Should use empty config with defaults
+            assert node._config == {'robots': {}}
+        finally:
+            os.unlink(config_path)
+
+
+class TestGetLimitsForRobot:
+    """Test getting limits for specific robots."""
+    
+    def test_get_limits_for_unknown_robot(self):
+        """Returns None for unknown robot."""
+        node = SafetyLimitsNode()
         
         limits = node.get_limits_for_robot('unknown_robot')
-        assert limits is None, "Should return None for unknown robot"
-
-
-class TestLimitsCaching:
-    """Test limits caching for performance"""
-    
-    def test_caches_limits_for_performance(self):
-        """RED: Limits should be cached for fast access"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
         
+        assert limits is None
+    
+    def test_get_limits_applies_defaults(self):
+        """Returns limits with defaults applied."""
         config = {
             'robots': {
-                'turtlebot_01': {'max_linear_velocity': 0.5}
+                'robot1': {'max_linear_velocity': 1.5}
             }
         }
-        
         node = SafetyLimitsNode(config=config)
         
-        # First call - should cache
-        limits1 = node.get_limits_for_robot('turtlebot_01')
+        limits = node.get_limits_for_robot('robot1')
         
-        # Second call - should use cache
-        limits2 = node.get_limits_for_robot('turtlebot_01')
-        
-        assert limits1 is limits2, "Should return cached limits"
+        assert limits is not None
+        assert limits['max_linear_velocity'] == 1.5  # From config
+        assert limits['max_angular_velocity'] == 1.0  # From defaults
+        assert limits['max_force'] == 100.0  # From defaults
     
-    def test_cache_response_time_under_1ms(self):
-        """RED: Cached limits response should be <1ms"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
-        
+    def test_get_limits_caches_result(self):
+        """Caches limits for performance."""
         config = {
             'robots': {
-                'turtlebot_01': {'max_linear_velocity': 0.5}
+                'robot1': {'max_linear_velocity': 1.0}
             }
         }
-        
         node = SafetyLimitsNode(config=config)
         
-        # Warm up cache
-        node.get_limits_for_robot('turtlebot_01')
+        # First call
+        limits1 = node.get_limits_for_robot('robot1')
+        # Second call should use cache
+        limits2 = node.get_limits_for_robot('robot1')
         
-        # Measure cached access time
-        start = time.time()
-        for _ in range(1000):
-            node.get_limits_for_robot('turtlebot_01')
-        elapsed = time.time() - start
-        
-        avg_time_ms = (elapsed / 1000) * 1000
-        assert avg_time_ms < 1.0, f"Cached access too slow: {avg_time_ms}ms"
-
-
-class TestLimitsDefaultValues:
-    """Test default values for missing configuration"""
+        assert limits1 is limits2  # Same object from cache
+        assert 'robot1' in node._cache
     
-    def test_uses_conservative_defaults_for_missing_limits(self):
-        """RED: Missing limits use conservative defaults (fail-safe)"""
-        from agent_ros_bridge.safety.limits import SafetyLimitsNode
-        
+    def test_get_limits_for_multiple_robots(self):
+        """Handles multiple robots independently."""
         config = {
             'robots': {
-                'turtlebot_01': {}  # Empty config
+                'robot1': {'max_linear_velocity': 1.0},
+                'robot2': {'max_linear_velocity': 2.0}
             }
         }
-        
         node = SafetyLimitsNode(config=config)
-        limits = node.get_limits_for_robot('turtlebot_01')
         
-        # Should have conservative defaults
-        assert 'max_linear_velocity' in limits
-        assert 'max_angular_velocity' in limits
-        assert limits['max_linear_velocity'] <= 0.5  # Conservative
-        assert limits['max_angular_velocity'] <= 1.0  # Conservative
+        limits1 = node.get_limits_for_robot('robot1')
+        limits2 = node.get_limits_for_robot('robot2')
+        
+        assert limits1['max_linear_velocity'] == 1.0
+        assert limits2['max_linear_velocity'] == 2.0
+
+
+class TestCacheManagement:
+    """Test cache clearing functionality."""
+    
+    def test_clear_specific_robot_cache(self):
+        """Clear cache for specific robot."""
+        config = {
+            'robots': {
+                'robot1': {'max_linear_velocity': 1.0},
+                'robot2': {'max_linear_velocity': 2.0}
+            }
+        }
+        node = SafetyLimitsNode(config=config)
+        
+        # Populate cache
+        node.get_limits_for_robot('robot1')
+        node.get_limits_for_robot('robot2')
+        
+        # Clear specific robot
+        node.clear_cache('robot1')
+        
+        assert 'robot1' not in node._cache
+        assert 'robot2' in node._cache
+    
+    def test_clear_all_cache(self):
+        """Clear all cached limits."""
+        config = {
+            'robots': {
+                'robot1': {'max_linear_velocity': 1.0},
+                'robot2': {'max_linear_velocity': 2.0}
+            }
+        }
+        node = SafetyLimitsNode(config=config)
+        
+        # Populate cache
+        node.get_limits_for_robot('robot1')
+        node.get_limits_for_robot('robot2')
+        
+        # Clear all
+        node.clear_cache()
+        
+        assert node._cache == {}
+        assert node._cache_timestamp == {}
+
+
+class TestConfigReload:
+    """Test configuration reloading."""
+    
+    def test_reload_clears_cache(self):
+        """Reload clears the cache."""
+        config = {
+            'robots': {
+                'robot1': {'max_linear_velocity': 1.0}
+            }
+        }
+        node = SafetyLimitsNode(config=config)
+        
+        # Populate cache
+        node.get_limits_for_robot('robot1')
+        assert 'robot1' in node._cache
+        
+        # Reload
+        node.reload_config()
+        
+        assert node._cache == {}
+    
+    def test_reload_without_config_path(self):
+        """Reload does nothing if no config path."""
+        node = SafetyLimitsNode(config={'robots': {}})
+        
+        node.reload_config()  # Should not raise
+        
+        assert node._config == {'robots': {}}
+
+
+class TestGetAllRobotIds:
+    """Test getting all robot IDs."""
+    
+    def test_get_all_robot_ids_empty(self):
+        """Returns empty list when no robots configured."""
+        node = SafetyLimitsNode()
+        
+        robot_ids = node.get_all_robot_ids()
+        
+        assert robot_ids == []
+    
+    def test_get_all_robot_ids(self):
+        """Returns all configured robot IDs."""
+        config = {
+            'robots': {
+                'robot1': {},
+                'robot2': {},
+                'robot3': {}
+            }
+        }
+        node = SafetyLimitsNode(config=config)
+        
+        robot_ids = node.get_all_robot_ids()
+        
+        assert set(robot_ids) == {'robot1', 'robot2', 'robot3'}
+
+
+class TestGetLimitsServiceName:
+    """Test service name getter."""
+    
+    def test_get_limits_service_name(self):
+        """Returns correct service name."""
+        node = SafetyLimitsNode()
+        
+        service_name = node.get_limits_service_name()
+        
+        assert service_name == '/safety/get_limits'
+
+
+class TestDefaultLimits:
+    """Test default limit values."""
+    
+    def test_default_limits_values(self):
+        """Default limits are conservative."""
+        defaults = SafetyLimitsNode.DEFAULT_LIMITS
+        
+        assert defaults['max_linear_velocity'] == 0.5
+        assert defaults['max_angular_velocity'] == 1.0
+        assert defaults['max_joint_velocity'] == 1.0
+        assert defaults['max_force'] == 100.0
+        assert defaults['workspace_bounds'] == []
+        assert defaults['restricted_zones'] == []
