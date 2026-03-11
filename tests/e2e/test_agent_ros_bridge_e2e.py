@@ -55,10 +55,15 @@ class TestAgentROSBridgeE2E:
         print(f"✅ ROS2 nodes: {result.stdout.strip() or 'No nodes yet'}")
     
     def test_agent_intent_parsing(self):
-        """Test Agent can parse natural language to intent in Docker."""
-        # Run intent parsing test in Docker container
+        """Test Agent can parse natural language to intent (host-based, no rclpy)."""
+        # Skip if rclpy not available (Docker-only)
+        try:
+            import rclpy
+        except ImportError:
+            pytest.skip("rclpy not available on host - run in Docker")
         
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
+        from agent_ros_bridge_msgs.srv import ParseIntent
         
         # Create parser
         parser = IntentParserNode()
@@ -71,11 +76,8 @@ class TestAgentROSBridgeE2E:
         ]
         
         for utterance, expected_type in test_cases:
-            # Create request
-            from agent_ros_bridge_msgs.srv import ParseIntent
             request = ParseIntent.Request()
             request.utterance = utterance
-            
             response = ParseIntent.Response()
             result = parser.parse_intent_callback(request, response)
             
@@ -112,7 +114,11 @@ class TestAgentROSBridgeE2E:
             4. Bridge sends to ROS
             5. Verify command was sent
         """
-        # Run full flow test in Docker container
+        # Skip if rclpy not available
+        try:
+            import rclpy
+        except ImportError:
+            pytest.skip("rclpy not available on host - run in Docker")
         
         # Step 1: Parse intent
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
@@ -140,7 +146,6 @@ class TestAgentROSBridgeE2E:
         print(f"✅ Step 2: Navigation goal created - ({goal.x}, {goal.y})")
         
         # Step 3: Verify ROS2 can receive commands
-        # (In real scenario, this would send to Nav2)
         result = run_in_ros2_container("ros2 topic list")
         assert result.returncode == 0
         print(f"✅ Step 3: ROS2 bridge accessible")
@@ -149,7 +154,11 @@ class TestAgentROSBridgeE2E:
     
     def test_performance_latency(self):
         """Test end-to-end latency is acceptable."""
-        # Run performance test in Docker container
+        # Skip if rclpy not available
+        try:
+            import rclpy
+        except ImportError:
+            pytest.skip("rclpy not available on host - run in Docker")
         
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
         from agent_ros_bridge_msgs.srv import ParseIntent
