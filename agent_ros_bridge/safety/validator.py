@@ -253,11 +253,31 @@ class SafetyValidatorNode:
         if not waypoints:
             return {'passed': True}
         
-        # Extract bounds from dict format
-        min_x = bounds.get('x_min', float('-inf'))
-        max_x = bounds.get('x_max', float('inf'))
-        min_y = bounds.get('y_min', float('-inf'))
-        max_y = bounds.get('y_max', float('inf'))
+        # Handle different bounds formats
+        if isinstance(bounds, list):
+            if len(bounds) == 0:
+                return {'passed': True}
+            
+            # Check if it's a polygon format (list of dicts with x,y)
+            if isinstance(bounds[0], dict) and 'x' in bounds[0] and 'y' in bounds[0]:
+                # Polygon format: [{'x': x1, 'y': y1}, ...]
+                xs = [p['x'] for p in bounds]
+                ys = [p['y'] for p in bounds]
+                min_x, max_x = min(xs), max(xs)
+                min_y, max_y = min(ys), max(ys)
+            elif len(bounds) >= 4 and isinstance(bounds[0], (int, float)):
+                # List format: [x_min, x_max, y_min, y_max]
+                min_x, max_x, min_y, max_y = bounds[0], bounds[1], bounds[2], bounds[3]
+            else:
+                return {'passed': True}
+        elif isinstance(bounds, dict):
+            # Dict format
+            min_x = bounds.get('x_min', float('-inf'))
+            max_x = bounds.get('x_max', float('inf'))
+            min_y = bounds.get('y_min', float('-inf'))
+            max_y = bounds.get('y_max', float('inf'))
+        else:
+            return {'passed': True}
         
         for waypoint in waypoints:
             x = waypoint.get('x', 0.0)
