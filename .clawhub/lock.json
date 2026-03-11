@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "skill-vetter": {
+      "version": "1.0.0",
+      "installedAt": 1773234901167
+    },
+    "agent-browser": {
+      "version": "0.2.0",
+      "installedAt": 1773234963690
+    },
+    "find-skills": {
+      "version": "0.1.0",
+      "installedAt": 1773235030161
+    },
+    "weather": {
+      "version": "1.0.0",
+      "installedAt": 1773235080781
+    },
+    "self-improving-agent": {
+      "version": "3.0.1",
+      "installedAt": 1773235454870
+    }
+  }
+}

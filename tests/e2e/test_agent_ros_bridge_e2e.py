@@ -55,7 +55,7 @@ class TestAgentROSBridgeE2E:
         print(f"✅ ROS2 nodes: {result.stdout.strip() or 'No nodes yet'}")
     
     def test_agent_intent_parsing(self):
-        """Test Agent can parse natural language to intent in Docker.""
+        """Test Agent can parse natural language to intent in Docker."""
         # Run intent parsing test in Docker container
         
         from agent_ros_bridge.ai.intent_parser import IntentParserNode
