@@ -32,6 +32,29 @@ from agent_ros_bridge.gateway_v2.core import (
     TransportManager,
 )
 
+# New: Blueprint and Module patterns (inspired by dimos)
+try:
+    from agent_ros_bridge.gateway_v2.blueprint import (
+        Blueprint,
+        ModuleBlueprint,
+        Connection,
+        StreamDefinition,
+        RPCDefinition,
+        autoconnect,
+        skill,
+        rpc,
+    )
+    from agent_ros_bridge.gateway_v2.module import (
+        Module,
+        CompositeModule,
+        Stream,
+        In,
+        Out,
+    )
+    _BLUEPRINT_AVAILABLE = True
+except ImportError:
+    _BLUEPRINT_AVAILABLE = False
+
 __all__ = [
     "Bridge",
     "Transport",
@@ -56,3 +79,21 @@ __all__ = [
     "PluginConfig",
     "ConfigLoader",
 ]
+
+# Add blueprint exports if available
+if _BLUEPRINT_AVAILABLE:
+    __all__.extend([
+        "Blueprint",
+        "ModuleBlueprint",
+        "Connection",
+        "StreamDefinition",
+        "RPCDefinition",
+        "autoconnect",
+        "skill",
+        "rpc",
+        "Module",
+        "CompositeModule",
+        "Stream",
+        "In",
+        "Out",
+    ])
