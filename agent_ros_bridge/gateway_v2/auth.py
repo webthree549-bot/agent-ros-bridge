@@ -117,6 +117,42 @@ class Authenticator:
         """Extract API key from headers (X-API-Key)."""
         return headers.get("X-API-Key") or headers.get("x-api-key")
 
+    def refresh_token(self, token: str) -> Optional[str]:
+        """Refresh a valid JWT token with a new expiry time.
+        
+        Args:
+            token: The existing JWT token to refresh.
+            
+        Returns:
+            A new JWT token with updated expiry, or None if the original token is invalid.
+        """
+        # Verify the existing token
+        payload = self.verify_token(token)
+        if payload is None:
+            return None
+        
+        # Create a new token with the same claims but fresh expiry
+        user_id = payload.get("sub", "unknown")
+        roles = payload.get("roles", ["user"])
+        metadata = payload.get("metadata", {})
+        
+        # Add a unique jti (JWT ID) to ensure token uniqueness even within same second
+        if not self.config.enabled:
+            raise RuntimeError("Authentication is disabled")
+
+        new_payload = {
+            "sub": user_id,
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=self.config.jwt_expiry_hours),
+            "roles": roles,
+            "metadata": metadata,
+            "jti": secrets.token_urlsafe(16),  # Unique token ID
+            "refresh": True,  # Mark as refreshed token
+        }
+
+        new_token = jwt.encode(new_payload, self.config.jwt_secret, algorithm=self.config.jwt_algorithm)
+        return new_token
+
 
 class RoleBasedAccessControl:
     """Role-based access control for robot commands."""

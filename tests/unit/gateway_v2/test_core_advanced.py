@@ -386,6 +386,180 @@ class TestBridgeAdvanced:
         assert "websocket" in bridge.transport_manager.transports
 
 
+class TestQoS:
+    """Test Quality of Service levels."""
+    
+    def test_qos_best_effort(self):
+        """QoS.BEST_EFFORT exists."""
+        from agent_ros_bridge.gateway_v2.core import QoS
+        assert QoS.BEST_EFFORT is not None
+    
+    def test_qos_at_least_once(self):
+        """QoS.AT_LEAST_ONCE exists."""
+        from agent_ros_bridge.gateway_v2.core import QoS
+        assert QoS.AT_LEAST_ONCE is not None
+    
+    def test_qos_exactly_once(self):
+        """QoS.EXACTLY_ONCE exists."""
+        from agent_ros_bridge.gateway_v2.core import QoS
+        assert QoS.EXACTLY_ONCE is not None
+
+
+class TestIdentity:
+    """Test Identity data class."""
+    
+    def test_identity_creation(self):
+        """Identity can be created."""
+        identity = Identity(id="user1", name="Test User")
+        assert identity.id == "user1"
+        assert identity.name == "Test User"
+        assert identity.roles == []
+        assert identity.metadata == {}
+    
+    def test_identity_with_roles(self):
+        """Identity can have roles."""
+        identity = Identity(id="user1", name="Test User", roles=["admin", "operator"])
+        assert "admin" in identity.roles
+        assert "operator" in identity.roles
+    
+    def test_identity_with_metadata(self):
+        """Identity can have metadata."""
+        identity = Identity(id="user1", name="Test User", metadata={"department": "engineering"})
+        assert identity.metadata["department"] == "engineering"
+
+
+class TestHeader:
+    """Test Header data class."""
+    
+    def test_header_default_values(self):
+        """Header has sensible defaults."""
+        header = Header()
+        assert header.message_id is not None  # Auto-generated UUID
+        assert header.timestamp is not None  # Current time
+        assert header.source == ""
+        assert header.target == ""
+        assert header.correlation_id is None
+    
+    def test_header_custom_values(self):
+        """Header can have custom values."""
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        header = Header(
+            message_id="msg-123",
+            timestamp=now,
+            source="robot1",
+            target="dashboard",
+            correlation_id="corr-456"
+        )
+        assert header.message_id == "msg-123"
+        assert header.timestamp == now
+        assert header.source == "robot1"
+        assert header.target == "dashboard"
+        assert header.correlation_id == "corr-456"
+
+
+class TestCommand:
+    """Test Command data class."""
+    
+    def test_command_creation(self):
+        """Command can be created."""
+        cmd = Command(action="move")
+        assert cmd.action == "move"
+        assert cmd.parameters == {}
+        assert cmd.timeout_ms == 5000
+        assert cmd.priority == 5
+    
+    def test_command_with_parameters(self):
+        """Command can have parameters."""
+        cmd = Command(action="move", parameters={"x": 1.0, "y": 2.0})
+        assert cmd.parameters["x"] == 1.0
+        assert cmd.parameters["y"] == 2.0
+    
+    def test_command_with_timeout(self):
+        """Command can have custom timeout."""
+        cmd = Command(action="move", timeout_ms=10000)
+        assert cmd.timeout_ms == 10000
+    
+    def test_command_with_priority(self):
+        """Command can have custom priority."""
+        cmd = Command(action="move", priority=1)
+        assert cmd.priority == 1
+
+
+class TestRobotState:
+    """Test Robot state management."""
+    
+    def test_robot_initial_state(self):
+        """Robot has correct initial state."""
+        robot = MockRobot("r1", "Test", "mock")
+        assert robot.robot_id == "r1"
+        assert robot.name == "Test"
+        assert robot.connector_type == "mock"
+        assert robot.connected is False
+    
+    def test_robot_endpoint_creation(self):
+        """RobotEndpoint can be created."""
+        from agent_ros_bridge.gateway_v2.core import RobotEndpoint
+        endpoint = RobotEndpoint(
+            uri="mock://robot1",
+            name="Robot 1",
+            connector_type="mock",
+            capabilities=["move", "sense"],
+            metadata={"version": "1.0"}
+        )
+        assert endpoint.uri == "mock://robot1"
+        assert endpoint.name == "Robot 1"
+        assert "move" in endpoint.capabilities
+
+
+class TestConnectorRegistry:
+    """Test ConnectorRegistry."""
+    
+    def test_registry_creation(self):
+        """Registry can be created."""
+        registry = ConnectorRegistry()
+        assert hasattr(registry, 'connectors')
+        assert isinstance(registry.connectors, dict)
+    
+    def test_registry_register_connector(self):
+        """Registry can register connectors."""
+        registry = ConnectorRegistry()
+        connector = MockConnector()
+        registry.register(connector)
+        assert "mock" in registry.connectors
+        assert registry.connectors["mock"] == connector
+    
+    @pytest.mark.asyncio
+    async def test_registry_connect_with_scheme(self):
+        """Registry can connect using URI scheme."""
+        registry = ConnectorRegistry()
+        connector = MockConnector()
+        registry.register(connector)
+        
+        robot = await registry.connect("mock://test")
+        assert robot is not None
+        assert robot.robot_id == "test_id"
+    
+    @pytest.mark.asyncio
+    async def test_registry_connect_unknown_scheme_raises(self):
+        """Registry raises error for unknown scheme."""
+        registry = ConnectorRegistry()
+        
+        with pytest.raises(ValueError, match="No connector for scheme"):
+            await registry.connect("unknown://test")
+    
+    @pytest.mark.asyncio
+    async def test_registry_discover_all(self):
+        """Registry can discover from all connectors."""
+        registry = ConnectorRegistry()
+        connector = MockConnector()
+        registry.register(connector)
+        
+        results = await registry.discover_all()
+        assert len(results) == 1
+        assert results[0].name == "Robot 1"
+
+
 class TestMessageFlow:
     """Test message flow through system."""
     

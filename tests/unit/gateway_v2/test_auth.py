@@ -320,4 +320,105 @@ class TestSecurityFeatures:
         payload = jwt.decode(token, "test_secret_32_chars_long!!", algorithms=["HS256"])
         
         iat = datetime.fromtimestamp(payload["iat"], tz=timezone.utc)
-        assert before <= iat <= after
+        # JWT stores timestamps at second precision, so we need to truncate before/after
+        before_truncated = before.replace(microsecond=0)
+        after_truncated = after.replace(microsecond=0) + timedelta(seconds=1)  # Account for possible second rollover
+        assert before_truncated <= iat <= after_truncated
+
+
+class TestAuthDisabled:
+    """Test authentication disabled mode."""
+    
+    def test_create_token_when_disabled_raises(self):
+        """Creating token when auth disabled raises error."""
+        config = AuthConfig(enabled=False, jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        with pytest.raises(RuntimeError, match="Authentication is disabled"):
+            auth.create_token("user123")
+    
+    def test_verify_token_when_disabled_returns_anonymous(self):
+        """Verifying token when auth disabled returns anonymous admin."""
+        config = AuthConfig(enabled=False, jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        payload = auth.verify_token("any_token")
+        
+        assert payload["sub"] == "anonymous"
+        assert "admin" in payload["roles"]
+    
+    def test_verify_api_key_when_disabled_returns_anonymous(self):
+        """Verifying API key when auth disabled returns anonymous admin."""
+        config = AuthConfig(enabled=False, jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        payload = auth.verify_api_key("any_key")
+        
+        assert payload["sub"] == "anonymous"
+        assert "admin" in payload["roles"]
+    
+    def test_refresh_token_when_disabled_raises(self):
+        """Refreshing token when auth disabled raises error."""
+        config = AuthConfig(enabled=True, jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        # First create a valid token
+        token = auth.create_token("user123")
+        
+        # Now disable auth and try to refresh
+        auth.config.enabled = False
+        
+        with pytest.raises(RuntimeError, match="Authentication is disabled"):
+            auth.refresh_token(token)
+
+
+class TestTokenExtraction:
+    """Test token extraction from query and headers."""
+    
+    def test_extract_token_from_query(self):
+        """Extract token from query string."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        token = auth.extract_token_from_query("token=abc123&other=value")
+        assert token == "abc123"
+    
+    def test_extract_token_from_query_missing(self):
+        """Extract token returns None when missing."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        token = auth.extract_token_from_query("other=value")
+        assert token is None
+    
+    def test_extract_token_from_empty_query(self):
+        """Extract token returns None from empty query."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        token = auth.extract_token_from_query("")
+        assert token is None
+    
+    def test_extract_api_key_from_headers_uppercase(self):
+        """Extract API key from headers (uppercase)."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        key = auth.extract_api_key_from_headers({"X-API-Key": "my-api-key"})
+        assert key == "my-api-key"
+    
+    def test_extract_api_key_from_headers_lowercase(self):
+        """Extract API key from headers (lowercase)."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        key = auth.extract_api_key_from_headers({"x-api-key": "my-api-key"})
+        assert key == "my-api-key"
+    
+    def test_extract_api_key_from_headers_missing(self):
+        """Extract API key returns None when missing."""
+        config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
+        auth = Authenticator(config)
+        
+        key = auth.extract_api_key_from_headers({"Other-Header": "value"})
+        assert key is None
