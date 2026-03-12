@@ -1,0 +1,38 @@
+# Dependency Submission Workflow
+# Submits dependency graph to GitHub for security alerts
+
+name: Dependency Submission
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install component-detection tool
+        run: |
+          # Install Microsoft's component-detection tool
+          wget -q https://github.com/microsoft/component-detection/releases/latest/download/component-detection-linux-x64 -O component-detection
+          chmod +x component-detection
+          sudo mv component-detection /usr/local/bin/
+
+      - name: Submit dependency graph
+        uses: actions/dependency-submission-action@v3
+        with:
+          component-detection-tool: /usr/local/bin/component-detection
+        continue-on-error: true  # Don't fail CI if this step fails
