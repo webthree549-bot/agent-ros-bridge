@@ -435,7 +435,7 @@ class OpenClawAdapter:
             return {"success": False, "error": "ROS2 connector not available"}
 
         try:
-            result = await ros2_connector.publish(topic, message)
+            await ros2_connector.publish(topic, message)
             return {"success": True, "data": {"published": True, "topic": topic}}
         except Exception as e:
             return {"success": False, "error": f"Publish failed: {e}"}

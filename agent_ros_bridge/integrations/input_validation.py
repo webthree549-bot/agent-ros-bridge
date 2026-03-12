@@ -271,7 +271,7 @@ class SafetyValidator:
                     f"This command involves {dangerous} movement. "
                     "Please confirm it's safe to proceed."
                 )
-                result["warnings"].append(f"High-speed movement detected")
+                result["warnings"].append("High-speed movement detected")
 
         # Check for safety-critical commands
         for critical in self.SAFETY_CRITICAL:

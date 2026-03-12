@@ -229,7 +229,7 @@ Rules:
 
         # Check rate limit
         if self._rate_limiter and not self._rate_limiter.is_allowed():
-            print(f"Rate limit exceeded. Try again later.")
+            print("Rate limit exceeded. Try again later.")
             return None
 
         # Sanitize input
@@ -302,8 +302,6 @@ Rules:
         import anthropic
 
         client = anthropic.Anthropic(api_key=self._api_key)
-
-        prompt = f"{self.SYSTEM_PROMPT}\n\nParse this utterance: '{utterance}'"
 
         try:
             response = client.messages.create(

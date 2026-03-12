@@ -153,7 +153,6 @@ class Module(ABC):
                 if hasattr(attr, "_rpc_definition"):
                     self._rpcs[name] = attr._rpc_definition
                 elif hasattr(attr, "_is_rpc") or hasattr(attr, "_is_skill"):
-                    sig = inspect.signature(attr)
                     self._rpcs[name] = RPCDefinition(
                         name=name, func=attr, is_skill=getattr(attr, "_is_skill", False)
                     )

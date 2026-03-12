@@ -129,7 +129,7 @@ class RobotController:
             )
 
             self._connected = True
-            print(f"✅ RobotController connected to ROS")
+            print("✅ RobotController connected to ROS")
 
         except ImportError as e:
             print(f"Warning: ROS2 not available ({e}). Running in mock mode.")

@@ -293,7 +293,7 @@ class FleetIntelligence:
             "robot_name": robot.name,
             "confidence": "high",
             "estimated_time": self._estimate_task_time(robot, task),
-            "reason": f"Selected based on proximity and battery level",
+            "reason": "Selected based on proximity and battery level",
         }
 
     def _estimate_task_time(self, robot: RobotState, task: Dict) -> float:

@@ -218,7 +218,7 @@ class LCMTransport(Transport):
         """Create a subscriber for a channel."""
         return LCMSubscriber(self, channel, callback)
 
-    async def send(self, message: "Message", recipient: str) -> bool:
+    async def send(self, message, recipient: str) -> bool:
         """Send message to specific recipient (channel)."""
         from agent_ros_bridge.gateway_v2.core import Message
 
@@ -252,7 +252,7 @@ class LCMTransport(Transport):
         self._publish_raw(msg)
         return True
 
-    async def broadcast(self, message: "Message") -> list[str]:
+    async def broadcast(self, message) -> list[str]:
         """Broadcast message to all subscribers."""
         await self.send(message, "broadcast")
         return ["broadcast"]

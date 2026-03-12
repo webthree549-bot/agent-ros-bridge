@@ -304,7 +304,7 @@ class ContextManagerNode(Node):
                 pose.pose.orientation = transform.transform.rotation
 
                 self._robot_poses[robot_id] = pose
-            except Exception as e:
+            except Exception:
                 # TF not available, use cached pose
                 pass
 

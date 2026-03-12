@@ -85,7 +85,7 @@ def main():
     skill_parser.add_argument("--validate", type=str, help="Validate skill structure")
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Check bridge status")
+    subparsers.add_parser("status", help="Check bridge status")
 
     args = parser.parse_args()
 
@@ -120,7 +120,7 @@ def main():
 
 async def start_bridge(args):
     """Start the bridge server."""
-    print(f"🚀 Starting Agent ROS Bridge v0.5.0")
+    print("🚀 Starting Agent ROS Bridge v0.5.0")
     print(f"   WebSocket: ws://localhost:{args.websocket_port}")
     print(f"   MQTT: mqtt://localhost:{args.mqtt_port}")
     print(f"   gRPC: grpc://localhost:{args.grpc_port}")
@@ -136,8 +136,8 @@ async def start_bridge(args):
 
         # Start bridge
         async with bridge.run():
-            print(f"\n✅ Bridge is running!")
-            print(f"   Press Ctrl+C to stop\n")
+            print("\n✅ Bridge is running!")
+            print("   Press Ctrl+C to stop\n")
 
             # Keep running
             while True:
@@ -277,7 +277,7 @@ def handle_status(args):
         size = db_path.stat().st_size
         print(f"Database:         🟢 {size / 1024:.1f} KB")
     else:
-        print(f"Database:         ⚪ Not initialized")
+        print("Database:         ⚪ Not initialized")
 
     print("\n💡 Start bridge: agent-ros-bridge start")
 

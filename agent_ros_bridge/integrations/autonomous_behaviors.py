@@ -492,7 +492,7 @@ class AutonomousBehaviorManager:
         while behavior["status"] == BehaviorStatus.EXECUTING and self._running:
             # Plan and execute patrol mission
             mission = self.planner.plan_patrol(route)
-            result = await self.planner.execute_mission(mission)
+            await self.planner.execute_mission(mission)
 
             behavior["iterations"] += 1
 
@@ -588,8 +588,6 @@ def explore_autonomously(
 
     Convenience function for SKILL fulfillment.
     """
-    exploration_area = ExplorationArea(bounds=area, resolution=1.0)
-
     # This would be async in real use
     # For now, return the behavior ID that would be created
     return f"explore_{int(time.time())}"

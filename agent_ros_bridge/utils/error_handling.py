@@ -245,7 +245,7 @@ def with_circuit_breaker(circuit_breaker: CircuitBreaker):
                 result = func(*args, **kwargs)
                 circuit_breaker.record_success()
                 return result
-            except Exception as e:
+            except Exception:
                 circuit_breaker.record_failure()
                 raise
 

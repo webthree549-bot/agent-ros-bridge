@@ -463,7 +463,6 @@ class ExecutionMonitorNode:
         Returns:
             True if execution successful
         """
-        primitive_start = time.time()
         expected_duration = primitive.expected_duration
 
         # Simulate execution (in real implementation, send commands to robot)
