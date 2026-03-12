@@ -1,0 +1,366 @@
+# Agent ROS Bridge - Architecture
+
+## System Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           Agent ROS Bridge v0.6.1                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                         AI Agent Layer                               │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐  │   │
+│  │  │   Claude    │  │   GPT-4     │  │  AutoGPT    │  │  LangChain│  │   │
+│  │  │   Desktop   │  │   API       │  │             │  │           │  │   │
+│  │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └─────┬─────┘  │   │
+│  │         │                │                │               │        │   │
+│  │         └────────────────┴────────────────┴───────────────┘        │   │
+│  │                              │                                      │   │
+│  │                    MCP / LangChain / REST                          │   │
+│  └──────────────────────────────┼──────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                         Gateway Layer                                │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐ │   │
+│  │  │                      Transport Manager                           │ │   │
+│  │  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │ │   │
+│  │  │  │ WebSocket│ │  gRPC    │ │   MQTT   │ │   LCM    │          │ │   │
+│  │  │  │  :8765   │ │  :50051  │ │  :1883   │ │  :7667   │          │ │   │
+│  │  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘          │ │   │
+│  │  └───────┼────────────┼────────────┼────────────┼────────────────┘ │   │
+│  │          └────────────┴────────────┴────────────┘                  │   │
+│  │                              │                                      │   │
+│  │  ┌───────────────────────────▼───────────────────────────────────┐ │   │
+│  │  │                      Blueprint Engine  (NEW)                   │ │   │
+│  │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐   │ │   │
+│  │  │  │   Module    │  │   Module    │  │      Module         │   │ │   │
+│  │  │  │   Camera    │──│  Detector   │──│    Navigation       │   │ │   │
+│  │  │  └─────────────┘  └─────────────┘  └─────────────────────┘   │ │   │
+│  │  │         │                │                │                  │ │   │
+│  │  │         └────────────────┴────────────────┘                  │ │   │
+│  │  │                    Autoconnect Streams                        │ │   │
+│  │  └───────────────────────────────────────────────────────────────┘ │   │
+│  └────────────────────────────────────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                      Safety Layer                                    │   │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌───────────────────────┐   │   │
+│  │  │   Validator   │  │   Watchdog    │  │   Emergency Stop      │   │   │
+│  │  │  <10ms        │  │   Monitor     │  │   Circuit Breaker     │   │   │
+│  │  └───────┬───────┘  └───────┬───────┘  └───────────┬───────────┘   │   │
+│  │          └──────────────────┴──────────────────────┘               │   │
+│  └────────────────────────────────────────────────────────────────────┘   │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                     Connector Layer                                  │   │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │   │
+│  │  │   ROS1          │  │   ROS2          │  │   Custom Protocol   │  │   │
+│  │  │   Connector     │  │   Connector     │  │   Connector         │  │   │
+│  │  │   (legacy)      │  │   (humble)      │  │                     │  │   │
+│  │  └────────┬────────┘  └────────┬────────┘  └──────────┬──────────┘  │   │
+│  └───────────┼────────────────────┼──────────────────────┼─────────────┘   │
+│              └────────────────────┴──────────────────────┘                 │
+│                                 │                                           │
+│  ┌──────────────────────────────▼──────────────────────────────────────┐   │
+│  │                      Robot Hardware                                  │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │   │
+│  │  │ TurtleBot│ │   UR5    │ │ Unitree  │ │   DJI    │ │  Custom  │  │   │
+│  │  │   3      │ │  Arm     │ │   Go2    │ │  Drone   │ │  Robot   │  │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │   │
+│  └────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Component Details
+
+### 1. AI Agent Layer
+
+**Purpose**: Interface with various AI systems
+
+**Components**:
+- **MCP Transport**: Model Context Protocol for Claude Desktop
+- **LangChain Adapter**: Integration with LangChain framework
+- **AutoGPT Adapter**: Autonomous agent support
+- **REST API**: Direct HTTP API access
+
+**Features**:
+- Natural language command parsing
+- Intent recognition
+- Context management
+- Multi-agent coordination
+
+### 2. Gateway Layer
+
+**Purpose**: Central message routing and protocol translation
+
+#### 2.1 Transport Manager
+Manages multiple transport protocols simultaneously:
+
+| Transport | Use Case | Latency | Throughput |
+|-----------|----------|---------|------------|
+| WebSocket | Browser clients | ~10ms | Medium |
+| gRPC | Microservices | ~5ms | High |
+| MQTT | IoT devices | ~20ms | Medium |
+| LCM (NEW) | Internal IPC | ~1ms | Very High |
+
+#### 2.2 Blueprint Engine (NEW in v0.6.1)
+
+**Module System**:
+```
+┌─────────────────────────────────────┐
+│           Module                    │
+│  ┌─────────┐     ┌─────────┐       │
+│  │  In[]   │────▶│ Process │       │
+│  │ Streams │     │  Logic  │       │
+│  └─────────┘     └────┬────┘       │
+│  ┌─────────┐          │            │
+│  │  Out[]  │◀─────────┘            │
+│  │ Streams │                       │
+│  └─────────┘                       │
+│  ┌─────────┐                       │
+│  │  @rpc   │                       │
+│  │  @skill │                       │
+│  └─────────┘                       │
+└─────────────────────────────────────┘
+```
+
+**Stream Types**:
+- `In[T]`: Input stream (subscribe)
+- `Out[T]`: Output stream (publish)
+- Automatic type checking
+- Async/await support
+
+**Connection Patterns**:
+```
+Manual:     moduleA.out ──▶ moduleB.in
+Auto:       autoconnect by (name, type)
+Transform:  moduleA.out ──[map]──▶ moduleB.in
+```
+
+### 3. Safety Layer
+
+**Purpose**: Ensure safe robot operation
+
+```
+┌─────────────────────────────────────────┐
+│           Safety Pipeline               │
+│                                         │
+│  Input ──▶ Validate ──▶ Check ──▶ Out  │
+│            │            │               │
+│            ▼            ▼               │
+│      ┌─────────┐  ┌──────────┐         │
+│      │Workspace│  │ Velocity │         │
+│      │ Bounds  │  │  Limits  │         │
+│      └─────────┘  └──────────┘         │
+│            │            │               │
+│            ▼            ▼               │
+│      ┌─────────┐  ┌──────────┐         │
+│      │Collision│  │ Emergency│         │
+│      │  Check  │  │   Stop   │         │
+│      └─────────┘  └──────────┘         │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+**Performance**:
+- Validation: <10ms
+- Emergency stop: <1ms
+- Circuit breaker: <1ms
+
+### 4. Connector Layer
+
+**Purpose**: Abstract robot hardware differences
+
+**ROS2 Connector**:
+```
+┌─────────────────────────────────────┐
+│         ROS2 Connector              │
+│                                     │
+│  Topics:                            │
+│    /cmd_vel  ──────▶  Robot         │
+│    /odom     ◀──────  Robot         │
+│    /scan     ◀──────  Robot         │
+│                                     │
+│  Actions:                           │
+│    /navigate_to_pose                │
+│    /navigate_through_poses          │
+│                                     │
+│  Services:                          │
+│    /get_plan                        │
+│    /clear_costmap                   │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+## Data Flow
+
+### Command Flow (AI → Robot)
+
+```
+1. AI Agent sends natural language command
+        │
+        ▼
+2. Intent Parser converts to structured command
+        │
+        ▼
+3. Safety Validator checks limits
+        │
+        ▼
+4. Motion Planner generates trajectory
+        │
+        ▼
+5. ROS Connector sends to robot
+        │
+        ▼
+6. Robot executes
+```
+
+### Telemetry Flow (Robot → AI)
+
+```
+1. Robot publishes sensor data
+        │
+        ▼
+2. ROS Connector receives
+        │
+        ▼
+3. Stream Router distributes
+        │
+        ▼
+4. Context Manager updates state
+        │
+        ▼
+5. AI Agent receives updates
+```
+
+## Module Communication
+
+### LCM Transport (NEW)
+
+**Message Format**:
+```
+┌──────────┬──────────┬──────────┬──────────┬──────────┐
+│ Channel  │ Channel  │ Timestamp│ Data     │ Data     │
+│ Length   │ Bytes    │ (8 bytes)│ Length   │ Bytes    │
+│ (4 bytes)│          │          │ (4 bytes)│          │
+└──────────┴──────────┴──────────┴──────────┴──────────┘
+```
+
+**Advantages**:
+- Zero-copy shared memory
+- UDP multicast
+- C-struct compatible
+- <1ms latency
+
+### Stream Matching
+
+```python
+# Autoconnect matches by:
+# 1. Stream name (e.g., "image")
+# 2. Message type (e.g., Image)
+# 3. Direction (out → in)
+
+camera.image (Out[Image]) ──────▶ detector.image (In[Image])
+     │                                    │
+     │         ┌──────────────┐          │
+     └────────▶│  Autoconnect │──────────┘
+               └──────────────┘
+```
+
+## Security Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           Security Layers               │
+│                                         │
+│  Layer 4: Application                   │
+│    - Input validation                   │
+│    - Command authorization              │
+│                                         │
+│  Layer 3: Transport                     │
+│    - TLS encryption                     │
+│    - JWT authentication                 │
+│                                         │
+│  Layer 2: API                           │
+│    - Rate limiting                      │
+│    - Circuit breaker                    │
+│                                         │
+│  Layer 1: Core                          │
+│    - Password hashing (PBKDF2)          │
+│    - Token generation                   │
+│    - Encryption (Fernet)                │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+## Deployment Options
+
+### Single Robot
+
+```
+┌─────────────────────────────────────┐
+│  Laptop / Onboard Computer          │
+│  ┌─────────────────────────────┐   │
+│  │  Agent ROS Bridge           │   │
+│  │  ┌─────────┐ ┌───────────┐ │   │
+│  │  │ WebSocket│ │  ROS2     │ │   │
+│  │  │ Server  │ │ Connector │ │   │
+│  │  └────┬────┘ └─────┬─────┘ │   │
+│  └───────┼────────────┼───────┘   │
+│          │            │            │
+│          ▼            ▼            │
+│     Browser      Robot Hardware    │
+└─────────────────────────────────────┘
+```
+
+### Fleet Management
+
+```
+┌─────────────────────────────────────────────┐
+│              Cloud Server                   │
+│  ┌─────────────────────────────────────┐   │
+│  │  Agent ROS Bridge - Fleet Manager   │   │
+│  │  ┌──────────┐ ┌──────────┐         │   │
+│  │  │  gRPC    │ │  Redis   │         │   │
+│  │  │ Server   │ │ Backend  │         │   │
+│  │  └────┬─────┘ └────┬─────┘         │   │
+│  └───────┼────────────┼───────────────┘   │
+└──────────┼────────────┼───────────────────┘
+           │            │
+     ┌─────┴────┐  ┌───┴────┐
+     ▼          ▼  ▼        ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│ Robot 1│ │ Robot 2│ │ Robot 3│
+└────────┘ └────────┘ └────────┘
+```
+
+## Performance Characteristics
+
+| Component | Latency | Throughput | Scalability |
+|-----------|---------|------------|-------------|
+| Intent Parsing | <10ms | 1000 req/s | Horizontal |
+| Safety Validation | <10ms | 5000 req/s | Vertical |
+| LCM Transport | <1ms | 100K msg/s | Vertical |
+| WebSocket | <10ms | 10K conn | Horizontal |
+| Motion Planning | <100ms | 100 req/s | GPU |
+
+## Version Evolution
+
+### v0.5.x → v0.6.0
+- Added ROS2 support
+- Multi-transport architecture
+- Fleet management
+
+### v0.6.0 → v0.6.1 (Current)
+- **NEW**: LCM transport for high-performance IPC
+- **NEW**: Blueprint pattern for module composition
+- **NEW**: Module system with typed streams
+- **NEW**: Enhanced security utilities
+- **NEW**: Comprehensive error handling
+
+### v0.6.1 → v0.7.0 (Planned)
+- Hardware abstraction layer
+- MuJoCo simulation support
+- Advanced AI integration
+- 95%+ test coverage

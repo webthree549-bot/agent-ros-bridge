@@ -2,146 +2,272 @@
 
 ## Overview
 
-Agent ROS Bridge provides a unified interface for AI agents to control ROS-based robots through multiple transport protocols.
+Agent ROS Bridge provides a universal interface for AI agents to control ROS-based robots through multiple transport protocols.
 
-## Core API
+## Core Concepts
 
-### Bridge Class
+### Bridge
+The central orchestrator that manages transports, connectors, and message routing.
 
 ```python
 from agent_ros_bridge import Bridge
 
-# Create bridge instance
 bridge = Bridge(ros_version=2)
-
-# Register transports
-bridge.transport_manager.register(
-    WebSocketTransport({"port": 8765})
-)
-
-# Start bridge
 await bridge.start()
 ```
 
-### Transport Management
+### Transports
+Communication channels for different protocols:
+- **WebSocket**: Browser-based clients
+- **gRPC**: High-performance microservices
+- **MQTT**: IoT device integration
+- **LCM**: Low-latency internal communication
+
+### Modules (New in v0.6.1)
+Self-contained components with typed input/output streams.
 
 ```python
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
-from agent_ros_bridge.gateway_v2.transports.grpc import GRPCServer
+from agent_ros_bridge.gateway_v2 import Module, In, Out
 
-# WebSocket transport
-ws_transport = WebSocketTransport({
-    "host": "0.0.0.0",
-    "port": 8765,
-    "auth": {"enabled": True, "jwt_secret": "..."}
-})
-
-# gRPC transport
-grpc_transport = GRPCServer({
-    "host": "0.0.0.0",
-    "port": 50051,
-    "auth": {"enabled": True}
-})
+class CameraModule(Module):
+    image: Out[Image]
+    config: In[dict]
+    
+    async def run(self):
+        while self._running:
+            img = await capture_image()
+            await self.image.publish(img)
 ```
 
-### Safety Validation
+### Blueprints (New in v0.6.1)
+Declarative composition of modules and their connections.
 
 ```python
-from agent_ros_bridge.safety.validator import SafetyValidatorNode
+from agent_ros_bridge.gateway_v2 import Blueprint, autoconnect
 
-validator = SafetyValidatorNode()
+blueprint = Blueprint()
+    .add_module("camera", camera_bp)
+    .add_module("detector", detector_bp)
+    .connect("camera", "image", "detector", "input")
 
-# Validate trajectory
-trajectory = {
-    "waypoints": [{"x": 0, "y": 0}, {"x": 1, "y": 1}],
-    "velocities": [0.1, 0.2]
-}
-limits = {
-    "max_linear_velocity": 1.0,
-    "workspace_bounds": {"x_min": -10, "x_max": 10, "y_min": -10, "y_max": 10}
-}
-
-result = validator.validate_trajectory(trajectory, limits)
-# Returns: {"valid": True, "certificate": {...}} or {"valid": False, "reason": "..."}
+await blueprint.start()
 ```
 
-### Error Handling
+## API Reference
 
+### Bridge
+
+#### `Bridge(ros_version: int = 2)`
+Create a new bridge instance.
+
+**Parameters:**
+- `ros_version`: ROS version (1 or 2)
+
+**Methods:**
+- `start() -> bool`: Start the bridge
+- `stop() -> None`: Stop the bridge
+- `register_transport(transport)`: Add a transport
+- `register_connector(connector)`: Add a connector
+
+### Transports
+
+#### `WebSocketTransport(config: dict)`
+WebSocket transport for browser clients.
+
+**Config Options:**
+- `host`: Bind address (default: "0.0.0.0")
+- `port`: Port number (default: 8765)
+- `auth`: Authentication config
+- `tls_cert`: TLS certificate path
+- `tls_key`: TLS key path
+
+#### `LCMTransport(config: dict)` (New in v0.6.1)
+High-performance LCM transport.
+
+**Config Options:**
+- `udp_url`: Multicast URL (default: "udpm://239.255.76.67:7667")
+- `shared_memory`: Enable shared memory (default: True)
+- `queue_size`: Message queue size (default: 1000)
+
+**Example:**
 ```python
-from agent_ros_bridge.utils.error_handling import (
-    AgentError, ErrorCode, InputValidator, with_retry
+from agent_ros_bridge.gateway_v2.transports import LCMTransport
+
+transport = LCMTransport({
+    "udp_url": "udpm://239.255.76.67:7667",
+    "shared_memory": True
+})
+
+# Create publisher
+pub = transport.publisher("robot/commands")
+pub.publish({"cmd": "move", "speed": 0.5})
+
+# Create subscriber
+def on_message(data):
+    print(f"Received: {data}")
+
+sub = transport.subscriber("robot/commands", on_message)
+sub.subscribe()
+```
+
+### Modules (New in v0.6.1)
+
+#### `Module`
+Base class for all modules.
+
+**Type Annotations:**
+- `In[T]`: Input stream of type T
+- `Out[T]`: Output stream of type T
+
+**Methods:**
+- `start()`: Start the module
+- `stop()`: Stop the module
+- `run()`: Main loop (override in subclass)
+
+**Decorators:**
+- `@rpc`: Mark method as RPC callable
+- `@skill`: Mark method as AI-callable skill
+
+**Example:**
+```python
+class NavigationModule(Module):
+    target: In[Pose]
+    cmd_vel: Out[Twist]
+    
+    @rpc
+    def set_max_speed(self, speed: float):
+        self.max_speed = speed
+    
+    @skill
+    def navigate_to(self, x: float, y: float) -> bool:
+        """AI-callable skill to navigate to position."""
+        return True
+    
+    async def run(self):
+        while self._running:
+            target = await self.target.get()
+            cmd = self.compute_velocity(target)
+            await self.cmd_vel.publish(cmd)
+```
+
+### Blueprints (New in v0.6.1)
+
+#### `Blueprint`
+Compose modules into systems.
+
+**Methods:**
+- `add_module(name, blueprint)`: Add a module
+- `connect(src_mod, src_stream, dst_mod, dst_stream)`: Connect streams
+- `autoconnect()`: Auto-connect by matching names/types
+- `build()`: Instantiate all modules
+- `start()`: Start the system
+- `stop()`: Stop the system
+
+#### `autoconnect(*blueprints)`
+Automatically connect modules by matching stream names and types.
+
+**Example:**
+```python
+from agent_ros_bridge.gateway_v2 import autoconnect
+
+blueprint = autoconnect(
+    CameraModule.blueprint(),
+    DetectorModule.blueprint(),
+    NavigationModule.blueprint()
 )
 
-# Validate input
+await blueprint.start()
+```
+
+### Safety
+
+#### `SafetyValidator`
+Validate trajectories and commands.
+
+```python
+from agent_ros_bridge.safety import SafetyValidator
+
+validator = SafetyValidator()
+result = validator.validate_trajectory(
+    trajectory={"waypoints": [...]},
+    limits={"max_velocity": 1.0}
+)
+```
+
+### Error Handling (New in v0.6.1)
+
+#### `AgentError`
+Standardized error with code and context.
+
+```python
+from agent_ros_bridge.utils.error_handling import AgentError, ErrorCode
+
+raise AgentError(
+    code=ErrorCode.VALIDATION_FAILED,
+    message="Trajectory exceeds velocity limits",
+    context={"max_vel": 1.0, "requested": 1.5}
+)
+```
+
+#### `InputValidator`
+Validate inputs across AI services.
+
+```python
+from agent_ros_bridge.utils.error_handling import InputValidator
+
 result = InputValidator.validate_utterance("go to kitchen")
 if not result.valid:
-    raise AgentError(
-        code=result.error_code,
-        message=result.error_message
-    )
+    raise AgentError(result.error_code, result.error_message)
+```
 
-# Retry decorator
-@with_retry(max_retries=3, delay=1.0)
-def call_external_service():
-    # May fail temporarily
+#### `CircuitBreaker`
+Prevent cascade failures.
+
+```python
+from agent_ros_bridge.utils.error_handling import CircuitBreaker
+
+cb = CircuitBreaker(failure_threshold=5, recovery_timeout=30)
+
+@with_circuit_breaker(cb)
+def call_llm(prompt):
+    # May fail
     pass
 ```
 
-## Integration APIs
+### Security (Enhanced in v0.6.1)
 
-### LangChain
-
+#### Password Hashing
 ```python
-# Get LangChain tool
-tool = bridge.get_langchain_tool(["navigate", "move_arm"])
+from agent_ros_bridge.security_utils import hash_password, verify_password
 
-# Use with LangChain agent
-from langchain.agents import initialize_agent
-agent = initialize_agent([tool], llm, agent="zero-shot-react-description")
+hashed = hash_password("my_password")
+is_valid = verify_password("my_password", hashed)
 ```
 
-### MCP (Claude Desktop)
-
+#### Token Generation
 ```python
-# Get MCP server
-mcp_server = bridge.get_mcp_server()
+from agent_ros_bridge.security_utils import generate_token
 
-# Use with Claude Desktop
-# Configure in Claude Desktop settings:
-# {
-#   "mcpServers": {
-#     "ros": {
-#       "command": "python",
-#       "args": ["-m", "agent_ros_bridge.mcp"]
-#     }
-#   }
-# }
+token = generate_token(length=32)
 ```
 
-## ROS2 Interface
+#### API Key Management
+```python
+from agent_ros_bridge.security_utils import generate_api_key, validate_api_key
 
-### Topics
+key_data = generate_api_key("robot_api")
+stored_hash = hash_api_key(key_data["key"])
+is_valid = validate_api_key(key_data["key"], stored_hash)
+```
 
-| Topic | Type | Direction | Description |
-|-------|------|-----------|-------------|
-| `/cmd_vel` | geometry_msgs/Twist | Publish | Velocity commands |
-| `/odom` | nav_msgs/Odometry | Subscribe | Robot odometry |
-| `/scan` | sensor_msgs/LaserScan | Subscribe | Lidar data |
-| `/map` | nav_msgs/OccupancyGrid | Subscribe | SLAM map |
+#### Encryption
+```python
+from agent_ros_bridge.security_utils import encrypt, decrypt
 
-### Actions
-
-| Action | Type | Description |
-|--------|------|-------------|
-| `/navigate_to_pose` | nav2_msgs/NavigateToPose | Navigate to goal |
-| `/navigate_through_poses` | nav2_msgs/NavigateThroughPoses | Waypoint navigation |
-
-### Services
-
-| Service | Type | Description |
-|---------|------|-------------|
-| `/ai/parse_intent` | agent_ros_bridge_msgs/ParseIntent | Parse natural language |
-| `/safety/validate_motion` | agent_ros_bridge_msgs/ValidateMotion | Validate trajectory |
+key = secrets.token_bytes(32)
+encrypted = encrypt("sensitive data", key)
+decrypted = decrypt(encrypted, key)
+```
 
 ## Configuration
 
@@ -153,6 +279,7 @@ mcp_server = bridge.get_mcp_server()
 | `JWT_SECRET` | - | JWT signing secret |
 | `REDIS_URL` | - | Redis connection URL |
 | `LOG_LEVEL` | INFO | Logging level |
+| `LCM_URL` | udpm://239.255.76.67:7667 | LCM multicast URL |
 
 ### Config File
 
@@ -166,16 +293,92 @@ bridge:
       auth:
         enabled: true
         jwt_secret: ${JWT_SECRET}
-    grpc:
-      port: 50051
+    lcm:
+      udp_url: "udpm://239.255.76.67:7667"
+      shared_memory: true
   safety:
     max_linear_velocity: 1.0
     max_angular_velocity: 1.0
-    workspace_bounds:
-      x_min: -10
-      x_max: 10
-      y_min: -10
-      y_max: 10
+```
+
+## Examples
+
+### Basic Robot Control
+
+```python
+import asyncio
+from agent_ros_bridge import Bridge
+from agent_ros_bridge.gateway_v2.transports import WebSocketTransport
+
+async def main():
+    bridge = Bridge(ros_version=2)
+    
+    # Add WebSocket transport
+    bridge.transport_manager.register(
+        WebSocketTransport({"port": 8765})
+    )
+    
+    await bridge.start()
+    print("Bridge running on ws://localhost:8765")
+    
+    # Keep running
+    while True:
+        await asyncio.sleep(1)
+
+asyncio.run(main())
+```
+
+### Module-Based Architecture
+
+```python
+from agent_ros_bridge.gateway_v2 import Module, In, Out, rpc, skill
+
+class RobotModule(Module):
+    cmd_vel: Out[Twist]
+    odometry: In[Odometry]
+    
+    @skill
+    def move_forward(self, distance: float) -> bool:
+        """AI-callable: Move forward by distance."""
+        # Implementation
+        return True
+    
+    async def run(self):
+        while self._running:
+            odom = await self.odometry.get()
+            # Process odometry
+            await asyncio.sleep(0.1)
+
+# Use in blueprint
+from agent_ros_bridge.gateway_v2 import Blueprint
+
+blueprint = Blueprint()
+blueprint.add_module("robot", RobotModule.blueprint())
+await blueprint.start()
+```
+
+### Mixed Transport System
+
+```python
+from agent_ros_bridge import Bridge
+from agent_ros_bridge.gateway_v2.transports import (
+    WebSocketTransport,
+    LCMTransport
+)
+
+bridge = Bridge()
+
+# WebSocket for external AI agents
+bridge.transport_manager.register(
+    WebSocketTransport({"port": 8765})
+)
+
+# LCM for internal high-performance communication
+bridge.transport_manager.register(
+    LCMTransport({"udp_url": "udpm://239.255.76.67:7667"})
+)
+
+await bridge.start()
 ```
 
 ## Error Codes
@@ -191,47 +394,6 @@ bridge:
 | SYS001 | ROS2 unavailable |
 | SYS999 | Unknown error |
 
-## WebSocket Protocol
-
-### Connection
-
-```javascript
-const ws = new WebSocket('ws://localhost:8765', 'foxglove.websocket.v1');
-```
-
-### Message Format
-
-```json
-{
-  "header": {
-    "msg_type": "command",
-    "timestamp": "2024-01-01T00:00:00Z"
-  },
-  "payload": {
-    "command": "navigate",
-    "args": {"x": 1.0, "y": 2.0}
-  }
-}
-```
-
-## Docker Deployment
-
-```bash
-# Run with Docker
-docker run -it \
-  --name ros2_humble \
-  -p 8765:8765 \
-  -p 11311:11311 \
-  -e TURTLEBOT3_MODEL=burger \
-  ros2_humble:latest
-
-# Start navigation stack
-docker exec ros2_humble bash -c "
-  source /opt/ros/humble/setup.bash &&
-  ros2 launch nav2_bringup navigation_launch.py
-"
-```
-
 ## Performance Targets
 
 | Operation | Target | Status |
@@ -239,4 +401,26 @@ docker exec ros2_humble bash -c "
 | Intent parsing | <10ms | ✅ |
 | Safety validation | <10ms | ✅ |
 | Motion planning | <100ms | ✅ |
+| LCM latency | <1ms | ✅ |
 | End-to-end | <100ms | ✅ |
+
+## Version History
+
+### v0.6.1 (Current)
+- LCM transport for high-performance messaging
+- Blueprint pattern for module composition
+- Enhanced security utilities
+- Comprehensive error handling
+- 587+ tests, 32% coverage
+
+### v0.6.0
+- Initial ROS2 support
+- WebSocket/gRPC/MQTT transports
+- Safety validation
+- Fleet management
+
+## Support
+
+- GitHub Issues: https://github.com/agent-ros-bridge/issues
+- Documentation: https://docs.agent-ros-bridge.ai
+- Discord: https://discord.gg/agent-ros-bridge
