@@ -247,6 +247,10 @@ class MockPlugin(Plugin):
         self.shutdown_called = True
 
 
+# Import Message and Identity for tests
+from agent_ros_bridge.gateway_v2.core import Message, Identity
+
+
 class TestPlugin:
     """Test Plugin base class."""
     
