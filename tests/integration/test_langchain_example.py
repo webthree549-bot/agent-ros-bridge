@@ -19,6 +19,7 @@ class TestLangChainExample:
         """Test that langchain_example.py can be imported."""
         try:
             import langchain_example
+
             assert True
         except ImportError as e:
             # langchain may not be installed
@@ -29,35 +30,39 @@ class TestLangChainExample:
     def test_bridge_creation(self):
         """Test that Bridge can be instantiated from example."""
         import os
+
         os.environ["JWT_SECRET"] = "test-secret"
-        
+
         from agent_ros_bridge import Bridge
+
         bridge = Bridge()
         assert bridge is not None
-        
+
     def test_langchain_tool_method_exists(self):
         """Test that get_langchain_tool method exists."""
         import os
+
         os.environ["JWT_SECRET"] = "test-secret"
-        
+
         from agent_ros_bridge import Bridge
+
         bridge = Bridge()
-        
+
         # Method should exist
-        assert hasattr(bridge, 'get_langchain_tool')
-        
+        assert hasattr(bridge, "get_langchain_tool")
+
     def test_example_structure(self):
         """Test that example has required structure."""
         example_file = examples_dir / "langchain_example.py"
         assert example_file.exists()
-        
+
         content = example_file.read_text()
-        
+
         # Should have main function
         assert "async def main()" in content
-        
+
         # Should use Bridge
         assert "from agent_ros_bridge import Bridge" in content
-        
+
         # Should set JWT_SECRET
         assert "JWT_SECRET" in content

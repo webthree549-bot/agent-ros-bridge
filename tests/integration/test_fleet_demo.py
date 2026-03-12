@@ -20,6 +20,7 @@ class TestFleetDemo:
         """Test that fleet_demo.py can be imported."""
         try:
             import fleet_demo
+
             assert True
         except ImportError:
             pytest.skip("fleet_demo dependencies not available")
@@ -33,10 +34,10 @@ class TestFleetDemo:
         """Test that example has required structure."""
         example_file = examples_dir / "fleet_demo.py"
         content = example_file.read_text()
-        
+
         # Should have main function
         assert "async def main()" in content or "def main()" in content
-        
+
         # Should use FleetOrchestrator or Bridge
         assert "FleetOrchestrator" in content or "Bridge" in content
 

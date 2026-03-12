@@ -27,11 +27,17 @@ from typing import Dict, Any
 def run_in_ros2(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
     """Run a command in the ROS2 Docker container."""
     return subprocess.run(
-        ["docker", "exec", "ros2_humble", "bash", "-c",
-         f"source /opt/ros/humble/setup.bash && {cmd}"],
+        [
+            "docker",
+            "exec",
+            "ros2_humble",
+            "bash",
+            "-c",
+            f"source /opt/ros/humble/setup.bash && {cmd}",
+        ],
         capture_output=True,
         text=True,
-        timeout=timeout
+        timeout=timeout,
     )
 
 
@@ -52,7 +58,7 @@ class TestNavigationE2E:
         """Verify Nav2 packages are available."""
         result = run_in_ros2("ros2 pkg list | grep -E 'nav2|navigation' | head -10")
         assert result.returncode == 0
-        packages = result.stdout.strip().split('\n')
+        packages = result.stdout.strip().split("\n")
         assert len(packages) > 0
         print(f"\n✅ Nav2 packages found: {len(packages)}")
         for pkg in packages[:5]:
@@ -67,39 +73,31 @@ class TestNavigationE2E:
 
     def test_navigation_interface_types(self, check_nav2_available):
         """Verify navigation action types exist."""
-        result = run_in_ros2(
-            "ros2 interface list | grep -E 'NavigateToPose|FollowPath' | head -5"
-        )
+        result = run_in_ros2("ros2 interface list | grep -E 'NavigateToPose|FollowPath' | head -5")
         # Should find navigation action types
         print(f"\n✅ Navigation interfaces available")
         if result.stdout:
-            for line in result.stdout.strip().split('\n')[:3]:
+            for line in result.stdout.strip().split("\n")[:3]:
                 print(f"  - {line}")
 
     def test_send_navigation_goal_mock(self, check_nav2_available):
         """Test sending a navigation goal (mock - no running Nav2)."""
         # This test verifies the action interface exists
         # Full integration requires running Nav2 stack
-        result = run_in_ros2(
-            "ros2 interface show nav2_msgs/action/NavigateToPose 2>&1 | head -20"
-        )
+        result = run_in_ros2("ros2 interface show nav2_msgs/action/NavigateToPose 2>&1 | head -20")
         assert result.returncode == 0
         assert "NavigateToPose" in result.stdout or "goal" in result.stdout
         print(f"\n✅ NavigateToPose action interface verified")
 
     def test_costmap_topic_structure(self, check_nav2_available):
         """Verify costmap topic structure exists."""
-        result = run_in_ros2(
-            "ros2 topic list -t 2>&1 | grep -E 'costmap|plan' | head -10"
-        )
+        result = run_in_ros2("ros2 topic list -t 2>&1 | grep -E 'costmap|plan' | head -10")
         # Topics may not exist yet if Nav2 isn't running
         print(f"\n✅ Costmap topic query works")
 
     def test_amcl_pose_topic(self, check_nav2_available):
         """Test AMCL pose topic type."""
-        result = run_in_ros2(
-            "ros2 topic info /amcl_pose 2>&1 || echo 'Topic not available'"
-        )
+        result = run_in_ros2("ros2 topic info /amcl_pose 2>&1 || echo 'Topic not available'")
         assert result.returncode == 0
         print(f"\n✅ AMCL pose topic check works")
 
@@ -115,9 +113,7 @@ class TestNavigationE2E:
 
     def test_odom_subscription(self, check_nav2_available):
         """Test subscribing to odometry."""
-        result = run_in_ros2(
-            "ros2 topic echo /odom --once 2>&1 | head -30"
-        )
+        result = run_in_ros2("ros2 topic echo /odom --once 2>&1 | head -30")
         assert result.returncode == 0
         assert "pose" in result.stdout or "twist" in result.stdout
         print(f"\n✅ Odometry data available")
@@ -135,7 +131,7 @@ class TestNavigationIntegration:
     def test_full_navigation_stack(self):
         """
         Full navigation test with running Nav2.
-        
+
         Requires:
             1. Gazebo running with TurtleBot3
             2. Nav2 navigation launched
@@ -144,8 +140,9 @@ class TestNavigationIntegration:
         # Check that Nav2 action servers are available
         result = run_in_ros2("ros2 action list | grep -E 'navigate'", timeout=10)
         assert result.returncode == 0
-        assert "navigate_to_pose" in result.stdout or "navigate_through_poses" in result.stdout, \
-            f"Nav2 action servers not found. Output: {result.stdout}"
+        assert (
+            "navigate_to_pose" in result.stdout or "navigate_through_poses" in result.stdout
+        ), f"Nav2 action servers not found. Output: {result.stdout}"
         print(f"\n✅ Nav2 action servers: {result.stdout.strip()}")
 
     def test_navigate_to_pose(self):
@@ -153,8 +150,9 @@ class TestNavigationIntegration:
         # Check NavigateToPose action is available
         result = run_in_ros2("ros2 action info /navigate_to_pose", timeout=10)
         assert result.returncode == 0
-        assert "navigate_to_pose" in result.stdout.lower(), \
-            f"NavigateToPose action not available. Output: {result.stdout}"
+        assert (
+            "navigate_to_pose" in result.stdout.lower()
+        ), f"NavigateToPose action not available. Output: {result.stdout}"
         print(f"\n✅ NavigateToPose action available")
 
     def test_waypoint_following(self):
@@ -162,8 +160,9 @@ class TestNavigationIntegration:
         # Check NavigateThroughPoses action is available
         result = run_in_ros2("ros2 action info /navigate_through_poses", timeout=10)
         assert result.returncode == 0
-        assert "navigate_through_poses" in result.stdout.lower(), \
-            f"NavigateThroughPoses action not available. Output: {result.stdout}"
+        assert (
+            "navigate_through_poses" in result.stdout.lower()
+        ), f"NavigateThroughPoses action not available. Output: {result.stdout}"
         print(f"\n✅ NavigateThroughPoses action available")
 
 

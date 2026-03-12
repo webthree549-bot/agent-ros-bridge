@@ -148,7 +148,8 @@ async def main() -> int:
             grpc_config = config.transports["grpc"]
             if grpc_config.port > 0:
                 transport = GRPCTransport(
-                    "grpc", {"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options}
+                    "grpc",
+                    {"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options},
                 )
                 bridge.transport_manager.register(transport)
                 logger.info(f"gRPC transport registered on {grpc_config.host}:{grpc_config.port}")

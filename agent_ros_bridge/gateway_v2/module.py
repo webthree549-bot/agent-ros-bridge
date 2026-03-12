@@ -13,27 +13,26 @@ from collections import defaultdict
 
 from .blueprint import ModuleBlueprint, RPCDefinition, StreamDefinition, skill, rpc
 
-
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Stream(Generic[T]):
     """Type-annotated stream for module communication.
-    
+
     Similar to dimos In[] and Out[] annotations.
-    
+
     Example:
         class CameraModule(Module):
             image: Out[Image]  # Output stream
             config: In[Config]  # Input stream
     """
-    
+
     def __init__(self, msg_type: Type[T], name: Optional[str] = None):
         self.msg_type = msg_type
         self.name = name
         self._queue: asyncio.Queue = asyncio.Queue(maxsize=100)
         self._subscribers: List[Callable[[T], None]] = []
-    
+
     async def publish(self, msg: T) -> None:
         """Publish a message to the stream."""
         # Add to queue
@@ -46,7 +45,7 @@ class Stream(Generic[T]):
                 self._queue.put_nowait(msg)
             except asyncio.QueueEmpty:
                 pass
-        
+
         # Notify subscribers
         for callback in self._subscribers:
             try:
@@ -56,20 +55,20 @@ class Stream(Generic[T]):
                     callback(msg)
             except Exception as e:
                 print(f"Stream callback error: {e}")
-    
+
     def subscribe(self, callback: Callable[[T], None]) -> None:
         """Subscribe to the stream."""
         self._subscribers.append(callback)
-    
+
     def unsubscribe(self, callback: Callable[[T], None]) -> None:
         """Unsubscribe from the stream."""
         if callback in self._subscribers:
             self._subscribers.remove(callback)
-    
+
     async def get(self) -> T:
         """Get next message from the stream (blocking)."""
         return await self._queue.get()
-    
+
     def get_nowait(self) -> Optional[T]:
         """Get next message if available (non-blocking)."""
         try:
@@ -85,30 +84,30 @@ Out = Stream  # Output stream
 
 class Module(ABC):
     """Base class for Agent ROS Bridge modules.
-    
+
     Inspired by dimos Module class.
-    
+
     Modules:
     - Run in parallel (async)
     - Have typed input/output streams
     - Expose RPC methods
     - Can define AI-callable skills
-    
+
     Example:
         class CameraModule(Module):
             image: Out[Image]
-            
+
             @rpc
             def start_capture(self):
                 # Start capturing
                 pass
-            
+
             @skill
             def capture_photo(self) -> Image:
                 # AI-callable skill
                 return self._capture()
     """
-    
+
     def __init__(self, name: Optional[str] = None, **config):
         self.name = name or self.__class__.__name__
         self.config = config
@@ -116,136 +115,132 @@ class Module(ABC):
         self._tasks: List[asyncio.Task] = []
         self._streams: Dict[str, Stream] = {}
         self._rpcs: Dict[str, RPCDefinition] = {}
-        
+
         # Initialize streams from type annotations
         self._init_streams()
-        
+
         # Initialize RPCs from methods
         self._init_rpcs()
-    
+
     def _init_streams(self) -> None:
         """Initialize streams from type annotations."""
         for attr_name, attr_type in self.__class__.__annotations__.items():
             # Check if it's a Stream type
-            origin = getattr(attr_type, '__origin__', None)
+            origin = getattr(attr_type, "__origin__", None)
             if origin is Stream or isinstance(attr_type, Stream):
                 # Create stream instance
                 if isinstance(attr_type, Stream):
                     stream = attr_type
                 else:
                     # Get type parameter
-                    args = getattr(attr_type, '__args__', (Any,))
+                    args = getattr(attr_type, "__args__", (Any,))
                     msg_type = args[0] if args else Any
                     stream = Stream(msg_type, name=attr_name)
-                
+
                 stream.name = attr_name
                 self._streams[attr_name] = stream
                 setattr(self, attr_name, stream)
-    
+
     def _init_rpcs(self) -> None:
         """Initialize RPCs from decorated methods."""
         for name in dir(self):
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
-            
+
             attr = getattr(self, name)
             if callable(attr):
                 # Check for decorators
-                if hasattr(attr, '_rpc_definition'):
+                if hasattr(attr, "_rpc_definition"):
                     self._rpcs[name] = attr._rpc_definition
-                elif hasattr(attr, '_is_rpc') or hasattr(attr, '_is_skill'):
+                elif hasattr(attr, "_is_rpc") or hasattr(attr, "_is_skill"):
                     sig = inspect.signature(attr)
                     self._rpcs[name] = RPCDefinition(
-                        name=name,
-                        func=attr,
-                        is_skill=getattr(attr, '_is_skill', False)
+                        name=name, func=attr, is_skill=getattr(attr, "_is_skill", False)
                     )
-    
+
     @classmethod
     def blueprint(cls, **default_config) -> ModuleBlueprint:
         """Create a blueprint for this module class.
-        
+
         Similar to dimos Module.blueprint() class method.
         """
         # Collect streams from annotations
         streams = []
         for attr_name, attr_type in cls.__annotations__.items():
-            origin = getattr(attr_type, '__origin__', None)
+            origin = getattr(attr_type, "__origin__", None)
             if origin is Stream or isinstance(attr_type, Stream):
                 if isinstance(attr_type, Stream):
                     msg_type = attr_type.msg_type
                 else:
-                    args = getattr(attr_type, '__args__', (Any,))
+                    args = getattr(attr_type, "__args__", (Any,))
                     msg_type = args[0] if args else Any
-                
+
                 # Determine direction from attribute name convention
                 direction = "bidirectional"
-                if attr_name.startswith('in_'):
+                if attr_name.startswith("in_"):
                     direction = "in"
-                elif attr_name.startswith('out_'):
+                elif attr_name.startswith("out_"):
                     direction = "out"
-                
-                streams.append(StreamDefinition(
-                    name=attr_name,
-                    msg_type=msg_type,
-                    direction=direction
-                ))
-        
+
+                streams.append(
+                    StreamDefinition(name=attr_name, msg_type=msg_type, direction=direction)
+                )
+
         # Collect RPCs
         rpcs = []
         for name in dir(cls):
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
             attr = getattr(cls, name)
-            if callable(attr) and hasattr(attr, '_rpc_definition'):
+            if callable(attr) and hasattr(attr, "_rpc_definition"):
                 rpcs.append(attr._rpc_definition)
-        
+
         return ModuleBlueprint(
             name=cls.__name__,
             factory=lambda **config: cls(**{**default_config, **config}),
             streams=streams,
             rpcs=rpcs,
-            config=default_config
+            config=default_config,
         )
-    
+
     async def start(self) -> None:
         """Start the module."""
         if self._running:
             return
-        
+
         self._running = True
-        
+
         # Call user-defined on_start
-        if hasattr(self, 'on_start'):
+        if hasattr(self, "on_start"):
             result = self.on_start()
             if asyncio.iscoroutine(result):
                 await result
-        
+
         # Start background tasks
-        if hasattr(self, 'run'):
+        if hasattr(self, "run"):
             task = asyncio.create_task(self._run_wrapper())
             self._tasks.append(task)
-    
+
     async def stop(self) -> None:
         """Stop the module."""
         if not self._running:
             return
-        
+
         self._running = False
-        
+
         # Cancel tasks
         for task in self._tasks:
             task.cancel()
-        
+
         # Wait for cancellation
         await asyncio.gather(*self._tasks, return_exceptions=True)
-        
+
         # Call user-defined on_stop
-        if hasattr(self, 'on_stop'):
+        if hasattr(self, "on_stop"):
             result = self.on_stop()
             if asyncio.iscoroutine(result):
                 await result
-    
+
     async def _run_wrapper(self) -> None:
         """Wrapper for user-defined run method."""
         try:
@@ -254,27 +249,27 @@ class Module(ABC):
             pass
         except Exception as e:
             print(f"Module {self.name} run error: {e}")
-    
+
     @abstractmethod
     async def run(self) -> None:
         """Main module loop (override in subclass).
-        
+
         This runs continuously while the module is active.
         """
         pass
-    
+
     def call_rpc(self, name: str, *args, **kwargs) -> Any:
         """Call an RPC method on this module."""
         if name not in self._rpcs:
             raise ValueError(f"RPC '{name}' not found")
-        
+
         rpc_def = self._rpcs[name]
         return rpc_def.func(self, *args, **kwargs)
-    
+
     def get_skills(self) -> Dict[str, RPCDefinition]:
         """Get all AI-callable skills."""
         return {name: rpc for name, rpc in self._rpcs.items() if rpc.is_skill}
-    
+
     def get_streams(self) -> Dict[str, Stream]:
         """Get all streams."""
         return self._streams.copy()
@@ -282,33 +277,33 @@ class Module(ABC):
 
 class CompositeModule(Module):
     """Module composed of multiple sub-modules.
-    
+
     Useful for creating higher-level abstractions.
     """
-    
+
     def __init__(self, name: Optional[str] = None, **config):
         super().__init__(name, **config)
         self._submodules: Dict[str, Module] = {}
-    
-    def add_module(self, name: str, module: Module) -> 'CompositeModule':
+
+    def add_module(self, name: str, module: Module) -> "CompositeModule":
         """Add a submodule."""
         self._submodules[name] = module
         return self
-    
+
     async def start(self) -> None:
         """Start composite and all submodules."""
         await super().start()
-        
+
         for module in self._submodules.values():
             await module.start()
-    
+
     async def stop(self) -> None:
         """Stop composite and all submodules."""
         for module in self._submodules.values():
             await module.stop()
-        
+
         await super().stop()
-    
+
     async def run(self) -> None:
         """Composite modules typically don't have their own run loop."""
         # Just keep alive while submodules run

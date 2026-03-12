@@ -56,7 +56,10 @@ class Authenticator:
             )
 
     def create_token(
-        self, user_id: str, roles: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None
+        self,
+        user_id: str,
+        roles: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Create a new JWT token."""
         if not self.config.enabled:
@@ -119,10 +122,10 @@ class Authenticator:
 
     def refresh_token(self, token: str) -> Optional[str]:
         """Refresh a valid JWT token with a new expiry time.
-        
+
         Args:
             token: The existing JWT token to refresh.
-            
+
         Returns:
             A new JWT token with updated expiry, or None if the original token is invalid.
         """
@@ -130,12 +133,12 @@ class Authenticator:
         payload = self.verify_token(token)
         if payload is None:
             return None
-        
+
         # Create a new token with the same claims but fresh expiry
         user_id = payload.get("sub", "unknown")
         roles = payload.get("roles", ["user"])
         metadata = payload.get("metadata", {})
-        
+
         # Add a unique jti (JWT ID) to ensure token uniqueness even within same second
         if not self.config.enabled:
             raise RuntimeError("Authentication is disabled")
@@ -150,7 +153,9 @@ class Authenticator:
             "refresh": True,  # Mark as refreshed token
         }
 
-        new_token = jwt.encode(new_payload, self.config.jwt_secret, algorithm=self.config.jwt_algorithm)
+        new_token = jwt.encode(
+            new_payload, self.config.jwt_secret, algorithm=self.config.jwt_algorithm
+        )
         return new_token
 
 

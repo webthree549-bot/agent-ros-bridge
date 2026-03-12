@@ -29,9 +29,11 @@ try:
     import rclpy
     from rclpy.node import Node
     from rclpy.action import ActionClient
+
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
+
 
 # Check if Docker ROS2 is available
 def is_docker_ros2_available():
@@ -41,13 +43,15 @@ def is_docker_ros2_available():
             ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Names}}"],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=5,
         )
         return "ros2_humble" in result.stdout
     except Exception:
         return False
 
+
 DOCKER_ROS2_AVAILABLE = is_docker_ros2_available()
+
 
 # Require ROS2 Docker container - no skipping allowed
 @pytest.fixture(scope="session", autouse=True)
@@ -63,7 +67,7 @@ def require_ros2_docker():
 
 class TestGazeboE2E:
     """End-to-end tests using real Gazebo simulation."""
-    
+
     def test_ros2_available(self):
         """Verify ROS2 is available (locally or in Docker)."""
         if ROS2_AVAILABLE:
@@ -72,21 +76,27 @@ class TestGazeboE2E:
             print("\n✅ ROS2 available in Docker")
         else:
             pytest.fail("ROS2 not available")
-    
+
     def test_docker_ros2_commands(self):
         """Test running ROS2 commands in Docker container."""
         if not DOCKER_ROS2_AVAILABLE:
             pytest.skip("Docker ROS2 not available")
-        
+
         # Test basic ROS2 command
         result = subprocess.run(
-            ["docker", "exec", "ros2_humble", "bash", "-c", 
-             "source /opt/ros/humble/setup.bash && ros2 --help"],
+            [
+                "docker",
+                "exec",
+                "ros2_humble",
+                "bash",
+                "-c",
+                "source /opt/ros/humble/setup.bash && ros2 --help",
+            ],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
-        
+
         assert result.returncode == 0, f"ROS2 command failed: {result.stderr}"
         assert "ros2 is an extensible command-line tool" in result.stdout
         print("\n✅ Docker ROS2 commands working")

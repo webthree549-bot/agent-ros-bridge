@@ -24,6 +24,7 @@ from dataclasses import dataclass
 @dataclass
 class LLMIntentResult:
     """Result from LLM intent parsing."""
+
     intent_type: str
     confidence: float
     entities: List[Dict[str, Any]]
@@ -35,11 +36,11 @@ class LLMIntentResult:
 class LLMIntentParser:
     """
     LLM-based intent parser for complex utterances.
-    
+
     Uses structured prompting to get reliable JSON output from LLMs.
     Supports OpenAI GPT and Anthropic Claude models.
     """
-    
+
     # System prompt for structured intent parsing
     SYSTEM_PROMPT = """You are a robot intent parsing system. 
 Parse the user's utterance into a structured intent format.
@@ -68,16 +69,18 @@ Rules:
 2. Extract all relevant entities
 3. Use UNKNOWN only when truly uncertain
 4. Be concise in reasoning"""
-    
-    def __init__(self,
-                 api_key: Optional[str] = None,
-                 model: str = "gpt-3.5-turbo",
-                 provider: str = "openai",
-                 timeout_sec: float = 5.0,
-                 enable_cache: bool = True,
-                 cache_size: int = 500,
-                 rate_limit_calls: int = 100,
-                 rate_limit_window: int = 60):
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: str = "gpt-3.5-turbo",
+        provider: str = "openai",
+        timeout_sec: float = 5.0,
+        enable_cache: bool = True,
+        cache_size: int = 500,
+        rate_limit_calls: int = 100,
+        rate_limit_window: int = 60,
+    ):
         """
         Initialize LLM intent parser.
 
@@ -94,6 +97,7 @@ Rules:
         # Import security utilities
         try:
             from ..security_utils import SecureConfig, RateLimiter, AuditLogger, sanitize_input
+
             self._secure_config = SecureConfig
             self._sanitize = sanitize_input
             self._use_security = True
@@ -134,6 +138,7 @@ Rules:
 
         try:
             import openai
+
             self._openai = openai
             self._openai_available = True
         except ImportError:
@@ -141,6 +146,7 @@ Rules:
 
         try:
             import anthropic
+
             self._anthropic = anthropic
             self._anthropic_available = True
         except ImportError:
@@ -150,7 +156,7 @@ Rules:
         if self._api_key and self._use_security:
             if not SecureConfig.validate_api_key(self._api_key, self._provider):
                 print(f"Warning: API key format doesn't match expected for {self._provider}")
-    
+
     def is_available(self) -> bool:
         """Check if LLM parsing is available."""
         if not self._api_key:
@@ -160,27 +166,27 @@ Rules:
         if self._provider == "anthropic" and not self._anthropic_available:
             return False
         return True
-    
+
     def _compute_hash(self, utterance: str) -> str:
         """Compute hash for utterance."""
         return hashlib.md5(utterance.lower().strip().encode()).hexdigest()
-    
+
     def _get_cached(self, utterance_hash: str) -> Optional[LLMIntentResult]:
         """Get cached result if available."""
         if not self._enable_cache or utterance_hash not in self._cache:
             return None
-        
+
         result, timestamp = self._cache[utterance_hash]
         # Cache TTL: 1 hour
         if time.time() - timestamp > 3600:
             del self._cache[utterance_hash]
             self._cache_order.remove(utterance_hash)
             return None
-        
+
         self._cache_order.remove(utterance_hash)
         self._cache_order.append(utterance_hash)
         self._cache_hits += 1
-        
+
         # Return copy with cached flag
         return LLMIntentResult(
             intent_type=result.intent_type,
@@ -188,24 +194,26 @@ Rules:
             entities=result.entities,
             raw_response=result.raw_response,
             latency_ms=0.0,
-            cached=True
+            cached=True,
         )
-    
+
     def _cache_result(self, utterance_hash: str, result: LLMIntentResult):
         """Cache parsing result."""
         if not self._enable_cache:
             return
-        
+
         # Evict oldest if needed
         while len(self._cache) >= self._cache_size:
             oldest = self._cache_order.pop(0)
             if oldest in self._cache:
                 del self._cache[oldest]
-        
+
         self._cache[utterance_hash] = (result, time.time())
         self._cache_order.append(utterance_hash)
-    
-    def parse(self, utterance: str, context: Optional[Dict[str, Any]] = None) -> Optional[LLMIntentResult]:
+
+    def parse(
+        self, utterance: str, context: Optional[Dict[str, Any]] = None
+    ) -> Optional[LLMIntentResult]:
         """
         Parse utterance using LLM.
 
@@ -237,7 +245,7 @@ Rules:
         cached = self._get_cached(utterance_hash)
         if cached:
             return cached
-        
+
         try:
             if self._provider == "openai":
                 result = self._call_openai(utterance, context)
@@ -245,143 +253,143 @@ Rules:
                 result = self._call_anthropic(utterance, context)
             else:
                 return None
-            
+
             if result:
                 result.latency_ms = (time.time() - start_time) * 1000
                 self._cache_result(utterance_hash, result)
-            
+
             return result
-            
+
         except Exception as e:
             self._errors += 1
             print(f"LLM parsing error: {e}")
             return None
-    
-    def _call_openai(self, utterance: str, context: Optional[Dict[str, Any]]) -> Optional[LLMIntentResult]:
+
+    def _call_openai(
+        self, utterance: str, context: Optional[Dict[str, Any]]
+    ) -> Optional[LLMIntentResult]:
         """Call OpenAI API."""
         import openai
-        
+
         client = openai.OpenAI(api_key=self._api_key)
-        
+
         messages = [
             {"role": "system", "content": self.SYSTEM_PROMPT},
-            {"role": "user", "content": f"Parse this utterance: '{utterance}'"}
+            {"role": "user", "content": f"Parse this utterance: '{utterance}'"},
         ]
-        
+
         try:
             response = client.chat.completions.create(
                 model=self._model,
                 messages=messages,
                 temperature=0.0,  # Deterministic
                 max_tokens=200,
-                timeout=self._timeout_sec
+                timeout=self._timeout_sec,
             )
-            
+
             content = response.choices[0].message.content
             return self._parse_llm_response(content)
-            
+
         except Exception as e:
             if "timeout" in str(e).lower():
                 self._timeouts += 1
             raise
-    
-    def _call_anthropic(self, utterance: str, context: Optional[Dict[str, Any]]) -> Optional[LLMIntentResult]:
+
+    def _call_anthropic(
+        self, utterance: str, context: Optional[Dict[str, Any]]
+    ) -> Optional[LLMIntentResult]:
         """Call Anthropic API."""
         import anthropic
-        
+
         client = anthropic.Anthropic(api_key=self._api_key)
-        
+
         prompt = f"{self.SYSTEM_PROMPT}\n\nParse this utterance: '{utterance}'"
-        
+
         try:
             response = client.messages.create(
                 model=self._model,
                 max_tokens=200,
                 temperature=0.0,
                 system=self.SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": utterance}]
+                messages=[{"role": "user", "content": utterance}],
             )
-            
+
             content = response.content[0].text
             return self._parse_llm_response(content)
-            
+
         except Exception as e:
             if "timeout" in str(e).lower():
                 self._timeouts += 1
             raise
-    
+
     def _parse_llm_response(self, response: str) -> Optional[LLMIntentResult]:
         """Parse LLM JSON response."""
         try:
             # Extract JSON from response
             # Handle cases where LLM adds markdown or extra text
-            json_start = response.find('{')
-            json_end = response.rfind('}') + 1
-            
+            json_start = response.find("{")
+            json_end = response.rfind("}") + 1
+
             if json_start == -1 or json_end == 0:
                 return None
-            
+
             json_str = response[json_start:json_end]
             data = json.loads(json_str)
-            
+
             # Validate required fields
-            intent_type = data.get('intent_type')
-            if not intent_type or intent_type == 'UNKNOWN':
+            intent_type = data.get("intent_type")
+            if not intent_type or intent_type == "UNKNOWN":
                 # Empty or unknown intent - treat as parse failure
-                if not data.get('entities') and not data.get('reasoning'):
+                if not data.get("entities") and not data.get("reasoning"):
                     return None
-            
+
             return LLMIntentResult(
-                intent_type=intent_type or 'UNKNOWN',
-                confidence=data.get('confidence', 0.5),
-                entities=data.get('entities', []),
+                intent_type=intent_type or "UNKNOWN",
+                confidence=data.get("confidence", 0.5),
+                entities=data.get("entities", []),
                 raw_response=response,
                 latency_ms=0.0,
-                cached=False
+                cached=False,
             )
-            
+
         except json.JSONDecodeError as e:
             print(f"Failed to parse LLM response: {e}")
             self._errors += 1
             return None
-    
+
     def get_statistics(self) -> Dict[str, Any]:
         """Get parser statistics."""
         return {
-            'calls': self._calls,
-            'cache_hits': self._cache_hits,
-            'cache_size': len(self._cache),
-            'timeouts': self._timeouts,
-            'errors': self._errors,
-            'hit_rate': self._cache_hits / max(self._calls, 1),
-            'available': self.is_available(),
-            'provider': self._provider,
-            'model': self._model
+            "calls": self._calls,
+            "cache_hits": self._cache_hits,
+            "cache_size": len(self._cache),
+            "timeouts": self._timeouts,
+            "errors": self._errors,
+            "hit_rate": self._cache_hits / max(self._calls, 1),
+            "available": self.is_available(),
+            "provider": self._provider,
+            "model": self._model,
         }
 
 
 def main():
     """Test LLM parser."""
     import os
-    
+
     # Get API key from environment
     api_key = os.getenv("OPENAI_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
-    
+
     if not api_key:
         print("Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable")
         return
-    
+
     # Create parser
-    parser = LLMIntentParser(
-        api_key=api_key,
-        provider="openai",
-        model="gpt-3.5-turbo"
-    )
-    
+    parser = LLMIntentParser(api_key=api_key, provider="openai", model="gpt-3.5-turbo")
+
     if not parser.is_available():
         print("LLM parser not available. Install openai or anthropic package.")
         return
-    
+
     # Test utterances
     test_utterances = [
         "I need you to go to the kitchen and grab me a bottle of water",
@@ -389,14 +397,14 @@ def main():
         "Move slowly to the charging station",
         "What is the current battery level and where are you located?",
     ]
-    
+
     print("Testing LLM Intent Parser\n")
-    
+
     for utterance in test_utterances:
         print(f"Utterance: '{utterance}'")
-        
+
         result = parser.parse(utterance)
-        
+
         if result:
             print(f"  Intent: {result.intent_type} (confidence: {result.confidence:.2f})")
             print(f"  Entities: {result.entities}")
@@ -404,9 +412,9 @@ def main():
             print(f"  Cached: {result.cached}")
         else:
             print("  Failed to parse")
-        
+
         print()
-    
+
     # Print statistics
     stats = parser.get_statistics()
     print(f"Statistics: {stats}")

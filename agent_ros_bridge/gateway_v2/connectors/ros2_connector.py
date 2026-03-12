@@ -181,9 +181,7 @@ class ROS2Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS2 command: {action}")
 
-    async def subscribe(
-        self, topic: str, **kwargs: Any
-    ) -> AsyncIterator[Telemetry]:
+    async def subscribe(self, topic: str, **kwargs: Any) -> AsyncIterator[Telemetry]:
         msg_type: Optional[str] = kwargs.get("msg_type")
         """Subscribe to ROS2 topic.
 

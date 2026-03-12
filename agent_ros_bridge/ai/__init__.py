@@ -11,6 +11,7 @@ This module contains ROS2 nodes for natural language understanding and motion pl
 try:
     from .intent_parser import IntentParserNode
     from .context_manager import ContextManagerNode
+
     _HAS_ROS_NODES = True
 except ImportError:
     # ROS2 not available (rclpy not installed)
@@ -50,6 +51,7 @@ from .motion_planner import (
 # ROS2 action server (new in v0.6.1)
 try:
     from .motion_planner_node import MotionPlannerROSNode
+
     _MOTION_PLANNER_ROS_AVAILABLE = True
 except ImportError:
     MotionPlannerROSNode = None
@@ -58,6 +60,7 @@ except ImportError:
 # Advanced features (Week 6)
 try:
     from .llm_parser import LLMIntentParser, LLMIntentResult
+
     _LLM_AVAILABLE = True
 except ImportError:
     LLMIntentParser = None
@@ -66,6 +69,7 @@ except ImportError:
 
 try:
     from .context_aware_parser import ContextAwareParser, ConversationContext
+
     _CONTEXT_AVAILABLE = True
 except ImportError:
     ContextAwareParser = None
@@ -74,6 +78,7 @@ except ImportError:
 
 try:
     from .multi_language_parser import MultiLanguageParser, LanguagePatterns
+
     _MULTILANG_AVAILABLE = True
 except ImportError:
     MultiLanguageParser = None
@@ -93,48 +98,48 @@ from .execution_monitor import (
 
 __all__ = [
     # Existing AI components (may be None if ROS not available)
-    'IntentParserNode',
-    'ContextManagerNode',
+    "IntentParserNode",
+    "ContextManagerNode",
     # Motion primitives
-    'MotionPrimitive',
-    'NavigateToPosePrimitive',
-    'PickObjectPrimitive',
-    'PlaceObjectPrimitive',
-    'GripperControlPrimitive',
-    'RotateInPlacePrimitive',
-    'MoveCartesianPrimitive',
-    'MotionPrimitiveFactory',
-    'navigate_to_pose',
-    'pick_object',
-    'place_object',
-    'gripper_control',
-    'rotate_in_place',
-    'move_cartesian',
+    "MotionPrimitive",
+    "NavigateToPosePrimitive",
+    "PickObjectPrimitive",
+    "PlaceObjectPrimitive",
+    "GripperControlPrimitive",
+    "RotateInPlacePrimitive",
+    "MoveCartesianPrimitive",
+    "MotionPrimitiveFactory",
+    "navigate_to_pose",
+    "pick_object",
+    "place_object",
+    "gripper_control",
+    "rotate_in_place",
+    "move_cartesian",
     # Motion planner
-    'MotionPlannerNode',
-    'MotionPlan',
-    'PlanMotionResult',
-    'SafetyCertificate',
-    'SafetyValidator',
-    'Nav2Integration',
-    'MoveIt2Integration',
-    'create_motion_planner',
+    "MotionPlannerNode",
+    "MotionPlan",
+    "PlanMotionResult",
+    "SafetyCertificate",
+    "SafetyValidator",
+    "Nav2Integration",
+    "MoveIt2Integration",
+    "create_motion_planner",
     # ROS2 action server
-    'MotionPlannerROSNode',
+    "MotionPlannerROSNode",
     # Advanced features (Week 6)
-    'LLMIntentParser',
-    'LLMIntentResult',
-    'ContextAwareParser',
-    'ConversationContext',
-    'MultiLanguageParser',
-    'LanguagePatterns',
+    "LLMIntentParser",
+    "LLMIntentResult",
+    "ContextAwareParser",
+    "ConversationContext",
+    "MultiLanguageParser",
+    "LanguagePatterns",
     # Execution monitor
-    'ExecutionMonitorNode',
-    'ExecuteMotionResult',
-    'Anomaly',
-    'AnomalyType',
-    'RecoveryResult',
-    'RecoveryHandler',
-    'TelemetrySubscriber',
-    'create_execution_monitor',
+    "ExecutionMonitorNode",
+    "ExecuteMotionResult",
+    "Anomaly",
+    "AnomalyType",
+    "RecoveryResult",
+    "RecoveryHandler",
+    "TelemetrySubscriber",
+    "create_execution_monitor",
 ]

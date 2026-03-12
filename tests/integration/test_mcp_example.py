@@ -19,6 +19,7 @@ class TestMCPExample:
         """Test that mcp_example.py can be imported."""
         try:
             import mcp_example
+
             assert True
         except ImportError:
             pytest.skip("mcp_example dependencies not available")
@@ -32,10 +33,10 @@ class TestMCPExample:
         """Test that example has required structure."""
         example_file = examples_dir / "mcp_example.py"
         content = example_file.read_text()
-        
+
         # Should have main function
         assert "async def main()" in content or "def main()" in content
-        
+
         # Should use Bridge
         assert "Bridge" in content
 

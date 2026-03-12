@@ -19,6 +19,7 @@ from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 # gRPC is optional - only import if protobuf is available
 try:
     from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+
     _GRPC_AVAILABLE = True
 except ImportError:
     _GRPC_AVAILABLE = False
@@ -32,6 +33,7 @@ try:
         LCMPublisher,
         LCMSubscriber,
     )
+
     _LCM_AVAILABLE = True
 except ImportError:
     _LCM_AVAILABLE = False
@@ -43,10 +45,12 @@ if _GRPC_AVAILABLE:
     __all__.append("GRPCTransport")
 
 if _LCM_AVAILABLE:
-    __all__.extend([
-        "LCMTransport",
-        "SharedMemoryTransport",
-        "LCMMessage",
-        "LCMPublisher",
-        "LCMSubscriber",
-    ])
+    __all__.extend(
+        [
+            "LCMTransport",
+            "SharedMemoryTransport",
+            "LCMMessage",
+            "LCMPublisher",
+            "LCMSubscriber",
+        ]
+    )

@@ -19,6 +19,7 @@ class TestAutoGPTExample:
         """Test that autogpt_example.py can be imported."""
         try:
             import autogpt_example
+
             assert True
         except ImportError:
             pytest.skip("autogpt_example dependencies not available")
@@ -32,10 +33,10 @@ class TestAutoGPTExample:
         """Test that example has required structure."""
         example_file = examples_dir / "autogpt_example.py"
         content = example_file.read_text()
-        
+
         # Should have main function
         assert "async def main()" in content or "def main()" in content
-        
+
         # Should use Bridge
         assert "Bridge" in content
 

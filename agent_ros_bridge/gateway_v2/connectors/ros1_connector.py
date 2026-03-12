@@ -231,9 +231,7 @@ class ROS1Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS1 command: {action}")
 
-    async def subscribe(
-        self, topic: str, **kwargs: Any
-    ) -> AsyncIterator[Telemetry]:
+    async def subscribe(self, topic: str, **kwargs: Any) -> AsyncIterator[Telemetry]:
         """Subscribe to ROS1 topic.
 
         Args:

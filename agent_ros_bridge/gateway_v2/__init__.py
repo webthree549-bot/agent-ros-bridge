@@ -51,6 +51,7 @@ try:
         In,
         Out,
     )
+
     _BLUEPRINT_AVAILABLE = True
 except ImportError:
     _BLUEPRINT_AVAILABLE = False
@@ -82,18 +83,20 @@ __all__ = [
 
 # Add blueprint exports if available
 if _BLUEPRINT_AVAILABLE:
-    __all__.extend([
-        "Blueprint",
-        "ModuleBlueprint",
-        "Connection",
-        "StreamDefinition",
-        "RPCDefinition",
-        "autoconnect",
-        "skill",
-        "rpc",
-        "Module",
-        "CompositeModule",
-        "Stream",
-        "In",
-        "Out",
-    ])
+    __all__.extend(
+        [
+            "Blueprint",
+            "ModuleBlueprint",
+            "Connection",
+            "StreamDefinition",
+            "RPCDefinition",
+            "autoconnect",
+            "skill",
+            "rpc",
+            "Module",
+            "CompositeModule",
+            "Stream",
+            "In",
+            "Out",
+        ]
+    )

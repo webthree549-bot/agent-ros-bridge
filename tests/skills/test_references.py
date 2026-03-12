@@ -36,30 +36,26 @@ class TestROS1Guide(unittest.TestCase):
         """Test that ROS1 guide covers common topics."""
         if not self.ros1_path.exists():
             self.skipTest("ROS1 guide not found")
-        
+
         content = self.ros1_path.read_text()
-        
+
         # Check for key ROS1 topics
         required_topics = [
             "roscore",
             "rospy",
             "Noetic",
         ]
-        
+
         for topic in required_topics:
-            self.assertIn(
-                topic.lower(),
-                content.lower(),
-                f"ROS1 guide should mention {topic}"
-            )
+            self.assertIn(topic.lower(), content.lower(), f"ROS1 guide should mention {topic}")
 
     def test_ros1_guide_has_examples(self):
         """Test that ROS1 guide has code examples."""
         if not self.ros1_path.exists():
             self.skipTest("ROS1 guide not found")
-        
+
         content = self.ros1_path.read_text()
-        
+
         # Should have code blocks
         self.assertIn("```", content, "ROS1 guide should have code examples")
 
@@ -86,9 +82,9 @@ class TestROS2Guide(unittest.TestCase):
         """Test that ROS2 guide covers common topics."""
         if not self.ros2_path.exists():
             self.skipTest("ROS2 guide not found")
-        
+
         content = self.ros2_path.read_text()
-        
+
         # Check for key ROS2 topics
         required_topics = [
             "rclpy",
@@ -96,24 +92,20 @@ class TestROS2Guide(unittest.TestCase):
             "Humble",
             "colcon",
         ]
-        
-        found_topics = [
-            topic for topic in required_topics
-            if topic.lower() in content.lower()
-        ]
-        
+
+        found_topics = [topic for topic in required_topics if topic.lower() in content.lower()]
+
         self.assertTrue(
-            len(found_topics) >= 2,
-            f"ROS2 guide should cover key topics. Found: {found_topics}"
+            len(found_topics) >= 2, f"ROS2 guide should cover key topics. Found: {found_topics}"
         )
 
     def test_ros2_guide_has_examples(self):
         """Test that ROS2 guide has code examples."""
         if not self.ros2_path.exists():
             self.skipTest("ROS2 guide not found")
-        
+
         content = self.ros2_path.read_text()
-        
+
         self.assertIn("```", content, "ROS2 guide should have code examples")
 
 
@@ -133,27 +125,21 @@ class TestWebSocketAPIReference(unittest.TestCase):
         """Test that WebSocket API documents message format."""
         if not self.ws_path.exists():
             self.skipTest("WebSocket API reference not found")
-        
+
         content = self.ws_path.read_text()
-        
+
         # Should document message structure
-        self.assertIn(
-            "command",
-            content.lower(),
-            "WebSocket API should document command structure"
-        )
+        self.assertIn("command", content.lower(), "WebSocket API should document command structure")
 
     def test_websocket_api_has_authentication(self):
         """Test that WebSocket API documents authentication."""
         if not self.ws_path.exists():
             self.skipTest("WebSocket API reference not found")
-        
+
         content = self.ws_path.read_text()
-        
+
         self.assertIn(
-            "token",
-            content.lower(),
-            "WebSocket API should document token authentication"
+            "token", content.lower(), "WebSocket API should document token authentication"
         )
 
 
@@ -167,9 +153,9 @@ class TestExamples(unittest.TestCase):
         """Test basic movement example exists."""
         if not self.examples_path.exists():
             self.skipTest("Examples directory not found")
-        
+
         movement_file = self.examples_path / "basic-movement.md"
-        
+
         # Optional but recommended
         if not movement_file.exists():
             self.skipTest("Basic movement example is optional")
@@ -178,9 +164,9 @@ class TestExamples(unittest.TestCase):
         """Test sensor reading example exists."""
         if not self.examples_path.exists():
             self.skipTest("Examples directory not found")
-        
+
         sensor_file = self.examples_path / "sensor-reading.md"
-        
+
         if not sensor_file.exists():
             self.skipTest("Sensor reading example is optional")
 
@@ -188,9 +174,9 @@ class TestExamples(unittest.TestCase):
         """Test fleet management example exists."""
         if not self.examples_path.exists():
             self.skipTest("Examples directory not found")
-        
+
         fleet_file = self.examples_path / "fleet-management.md"
-        
+
         if not fleet_file.exists():
             self.skipTest("Fleet management example is optional")
 

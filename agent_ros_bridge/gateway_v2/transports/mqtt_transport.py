@@ -250,7 +250,11 @@ class MQTTTransport(Transport):
     def _mqtt_to_message(self, payload: Dict[str, Any], topic: str) -> Message:
         """Convert MQTT payload to Message."""
         timestamp_str = payload.get("timestamp")
-        timestamp = datetime.fromisoformat(timestamp_str) if isinstance(timestamp_str, str) else datetime.now(timezone.utc)
+        timestamp = (
+            datetime.fromisoformat(timestamp_str)
+            if isinstance(timestamp_str, str)
+            else datetime.now(timezone.utc)
+        )
         header = Header(
             message_id=payload.get("id", ""),
             timestamp=timestamp,

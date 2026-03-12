@@ -106,12 +106,15 @@ try:
         ManipulationGoal,
         RobotCommandResult,
     )
+
     _ROBOT_API_AVAILABLE = True
-    __all__.extend([
-        "RobotController",
-        "NavigationGoal",
-        "ManipulationGoal",
-        "RobotCommandResult",
-    ])
+    __all__.extend(
+        [
+            "RobotController",
+            "NavigationGoal",
+            "ManipulationGoal",
+            "RobotCommandResult",
+        ]
+    )
 except ImportError:
     _ROBOT_API_AVAILABLE = False
