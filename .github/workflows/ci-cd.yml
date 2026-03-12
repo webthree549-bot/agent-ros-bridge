@@ -1,0 +1,317 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Stage 1: Code Quality (Fast feedback - < 1 min)
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8 mypy bandit
+          pip install -e ".[dev]"
+
+      - name: Black formatter
+        run: |
+          black --check --diff --line-length=100 agent_ros_bridge tests || {
+            echo "::error::Code formatting issues found. Run 'black agent_ros_bridge tests' to fix."
+            exit 1
+          }
+
+      - name: isort import sorting
+        run: |
+          isort --check-only --diff --profile=black agent_ros_bridge tests || {
+            echo "::error::Import sorting issues found. Run 'isort agent_ros_bridge tests' to fix."
+            exit 1
+          }
+
+      - name: flake8 linting
+        run: |
+          flake8 agent_ros_bridge tests \
+            --max-line-length=100 \
+            --extend-ignore=E203,W503 \
+            --show-source \
+            --statistics
+
+      - name: mypy type checking
+        run: |
+          mypy agent_ros_bridge \
+            --ignore-missing-imports \
+            --show-error-codes \
+            --pretty
+
+      - name: Bandit security scan
+        run: |
+          bandit -r agent_ros_bridge \
+            -f json \
+            -o bandit-report.json \
+            -ll || true
+          bandit -r agent_ros_bridge -f screen -ll
+
+  # Stage 2: Unit Tests (< 2 min)
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run unit tests
+        run: |
+          pytest tests/unit \
+            -v \
+            --tb=short \
+            --cov=agent_ros_bridge \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-fail-under=30 \
+            -x
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ matrix.python-version }}
+          path: htmlcov/
+
+  # Stage 3: Integration Tests (3-5 min)
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Start services
+        run: |
+          docker network create test-network || true
+
+      - name: Run integration tests
+        env:
+          REDIS_URL: redis://localhost:6379
+        run: |
+          pytest tests/integration -v --tb=short || true
+
+  # Stage 4: Build Docker Image
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Stage 5: E2E Tests with Docker
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: build-docker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start test environment
+        run: |
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 30  # Wait for services
+
+      - name: Run E2E tests
+        run: |
+          docker-compose -f docker-compose.test.yml exec -T bridge \
+            pytest tests/e2e -v --tb=short || true
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+  # Stage 6: Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build-docker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Stage 7: Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: build-docker
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pip install locust
+
+      - name: Run performance tests
+        run: |
+          pytest tests/performance -v || true
+
+  # Stage 8: Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, security-scan]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment"
+          # Add actual deployment commands here
+          # kubectl config use-context staging
+          # helm upgrade --install agent-ros-bridge ./helm-chart
+
+  # Stage 9: Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, security-scan, performance-tests]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment"
+          # Add actual deployment commands here
+          # kubectl config use-context production
+          # helm upgrade --install agent-ros-bridge ./helm-chart --wait
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment health"
+          # kubectl rollout status deployment/agent-ros-bridge

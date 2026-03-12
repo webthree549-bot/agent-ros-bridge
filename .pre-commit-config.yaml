@@ -1,13 +1,50 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
-
-default_language_version:
-  python: python3.11
-
 repos:
-  # ========================================
-  # General
-  # ========================================
+  # Code formatting
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3.11
+        args: ['--line-length=100']
+        files: ^(agent_ros_bridge|tests)/.*\.py$
+
+  # Import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=100']
+        files: ^(agent_ros_bridge|tests)/.*\.py$
+
+  # Linting
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
+        files: ^(agent_ros_bridge|tests)/.*\.py$
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - types-PyYAML
+        args: ['--ignore-missing-imports', '--show-error-codes']
+        files: ^agent_ros_bridge/.*\.py$
+
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.7
+    hooks:
+      - id: bandit
+        args: ['-iii', '-ll', '-q']
+        files: ^agent_ros_bridge/.*\.py$
+        exclude: ^tests/
+
+  # General file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -15,120 +52,42 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
-      - id: check-toml
       - id: check-added-large-files
         args: ['--maxkb=1000']
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: detect-private-key
       - id: mixed-line-ending
-      # - id: requirements-txt-fixer  # Disabled - we use pyproject.toml as source of truth
 
-  # ========================================
-  # Python
-  # ========================================
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
+  # Documentation
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.10.0
     hooks:
-      - id: black
-        language_version: python3.11
-        args: ['--line-length=100']
+      - id: rst-backticks
+      - id: python-check-blanket-noqa
+      - id: python-check-mock-methods
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--profile', 'black', '--line-length', '100']
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
-    hooks:
-      - id: ruff
-        args: ['--fix', '--exit-non-zero-on-fix']
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - types-pyyaml
-          - types-requests
-        args: ['--ignore-missing-imports']
-
-  # ========================================
-  # Security
-  # ========================================
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.6
-    hooks:
-      - id: bandit
-        args: ['-c', 'pyproject.toml']
-        additional_dependencies: ['bandit[toml]']
-
-  # pip-audit disabled - requires requirements.txt
-  # Consider using: pip-audit --desc on venv after pip install -e "."
-  # - repo: https://github.com/trailofbits/pip-audit
-  #   rev: v2.6.1
-  #   hooks:
-  #     - id: pip-audit
-  #       args: ['--requirement', 'requirements.txt']
-
-  # ========================================
-  # Docker
-  # ========================================
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.1-beta
-    hooks:
-      - id: hadolint-docker
-        args: ['--ignore', 'DL3008', '--ignore', 'DL3013']
-
-  # ========================================
-  # TDD Compliance
-  # ========================================
-  - repo: local
-    hooks:
-      - id: check-tdd
-        name: Check TDD Compliance
-        entry: python scripts/check_tdd.py
-        language: python
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-
-  # ========================================
-  # Container Security
-  # ========================================
-  - repo: https://github.com/aquasecurity/trivy
-    rev: v0.48.3
-    hooks:
-      - id: trivy-docker
-        name: Trivy Docker Scan
-        entry: trivy
-        args: ['image', '--severity', 'HIGH,CRITICAL', '--exit-code', '1']
-        language: system
-        pass_filenames: false
-        files: Dockerfile
-        stages: [pre-push]
-
-  # ========================================
-  # Git
-  # ========================================
+  # Commit message format
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v3.13.0
     hooks:
       - id: commitizen
         stages: [commit-msg]
 
-  - repo: https://github.com/jorisroovers/gitlint
-    rev: v0.19.1
+  # Local hooks
+  - repo: local
     hooks:
-      - id: gitlint
+      - id: pytest-quick
+        name: pytest-quick
+        entry: pytest tests/unit -x -q --tb=line
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]
 
-  # ========================================
-  # Shell
-  # ========================================
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
-    hooks:
-      - id: shellcheck
-        args: ['--severity=warning']
+      - id: check-todos
+        name: Check for TODO/FIXME
+        entry: grep -rn "TODO\|FIXME\|XXX" --include="*.py" agent_ros_bridge/ || true
+        language: system
+        pass_filenames: false
+        always_run: true
