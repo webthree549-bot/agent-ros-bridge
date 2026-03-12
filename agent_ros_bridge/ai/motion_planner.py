@@ -222,8 +222,7 @@ class SafetyValidator:
                 return ValidationResult(
                     approved=False,
                     rejection_reason=(
-                        f"Linear velocity {max_vel} exceeds limit "
-                        f"{self.max_linear_velocity}"
+                        f"Linear velocity {max_vel} exceeds limit " f"{self.max_linear_velocity}"
                     ),
                 )
 
@@ -245,9 +244,7 @@ class SafetyValidator:
                 self.rejection_count += 1
                 return ValidationResult(
                     approved=False,
-                    rejection_reason=(
-                        f"Cartesian velocity {linear_vel} exceeds limit"
-                    ),
+                    rejection_reason=(f"Cartesian velocity {linear_vel} exceeds limit"),
                 )
 
         elif primitive.type == "GRIPPER":
@@ -619,9 +616,7 @@ class MotionPlannerNode:
             if not result.success:
                 return PlanMotionResult(
                     success=False,
-                    error_message=(
-                        f"Primitive {i} failed: {result.error_message}"
-                    ),
+                    error_message=(f"Primitive {i} failed: {result.error_message}"),
                 )
 
             # Add primitive to combined plan

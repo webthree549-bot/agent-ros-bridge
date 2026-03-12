@@ -215,8 +215,7 @@ class MotionPlannerROSNode(Node):
                     return ExecuteMotion.Result(
                         success=False,
                         error_message=(
-                            f"Execution failed at {primitive.name}: "
-                            f"{result.get('error')}"
+                            f"Execution failed at {primitive.name}: " f"{result.get('error')}"
                         ),
                     )
 

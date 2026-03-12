@@ -554,8 +554,7 @@ class ExecutionMonitorNode:
             return Anomaly(
                 type=AnomalyType.STUCK,
                 description=(
-                    f"Robot stuck for {time_in_current_state:.1f}s "
-                    f"with progress {progress:.1%}"
+                    f"Robot stuck for {time_in_current_state:.1f}s " f"with progress {progress:.1%}"
                 ),
                 severity="HIGH",
                 data={"time_stuck": time_in_current_state, "progress": progress},
