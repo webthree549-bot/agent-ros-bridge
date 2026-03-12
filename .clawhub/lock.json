@@ -20,6 +20,10 @@
     "self-improving-agent": {
       "version": "3.0.1",
       "installedAt": 1773235454870
+    },
+    "Proactivity": {
+      "version": "1.0.1",
+      "installedAt": 1773294905238
     }
   }
 }
