@@ -21,9 +21,20 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agent_ros_bridge import Bridge, ConfigLoader
-from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
-from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+from agent_ros_bridge import Bridge
+from agent_ros_bridge.gateway_v2.config import ConfigLoader
+
+# Optional imports with fallbacks
+try:
+    from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
+except ImportError:
+    ROS2Connector = None
+
+try:
+    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+except ImportError:
+    GRPCTransport = None
+
 from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
@@ -131,13 +142,16 @@ async def main() -> int:
             logger.info(f"WebSocket transport registered on {ws_config.host}:{ws_config.port}")
 
     if config.transports.get("grpc") and config.transports["grpc"].enabled:
-        grpc_config = config.transports["grpc"]
-        if grpc_config.port > 0:
-            transport = GRPCTransport(
-                "grpc", {"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options}
-            )
-            bridge.transport_manager.register(transport)
-            logger.info(f"gRPC transport registered on {grpc_config.host}:{grpc_config.port}")
+        if GRPCTransport is None:
+            logger.warning("gRPC transport requested but grpc module not installed")
+        else:
+            grpc_config = config.transports["grpc"]
+            if grpc_config.port > 0:
+                transport = GRPCTransport(
+                    "grpc", {"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options}
+                )
+                bridge.transport_manager.register(transport)
+                logger.info(f"gRPC transport registered on {grpc_config.host}:{grpc_config.port}")
 
     if config.transports.get("mqtt") and config.transports["mqtt"].enabled:
         mqtt_config = config.transports["mqtt"]
@@ -150,9 +164,12 @@ async def main() -> int:
 
     # Register ROS2 connector if enabled
     if config.connectors.get("ros2") and config.connectors["ros2"].enabled:
-        connector = ROS2Connector("ros2", config.connectors["ros2"].options)
-        bridge.connector_registry.register(connector)
-        logger.info("ROS2 connector registered")
+        if ROS2Connector is None:
+            logger.warning("ROS2 connector requested but rclpy not installed")
+        else:
+            connector = ROS2Connector("ros2", config.connectors["ros2"].options)
+            bridge.connector_registry.register(connector)
+            logger.info("ROS2 connector registered")
 
     # Setup signal handlers for graceful shutdown
     loop = asyncio.get_event_loop()

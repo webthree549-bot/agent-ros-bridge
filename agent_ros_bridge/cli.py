@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from . import Bridge
-from .gateway_v2.config import Config
+from .gateway_v2.config import BridgeConfig, ConfigLoader
 
 
 def main():
