@@ -175,7 +175,10 @@ class ContextManagerNode(Node):
                 response.resolved_type = "POSE"
                 response.pose = pose
                 response.entity_id = "current_pose"
-                response.description = f"Current robot position at ({pose.pose.position.x:.2f}, {pose.pose.position.y:.2f})"
+                response.description = (
+                    f"Current robot position at ({pose.pose.position.x:.2f}, "
+                    f"{pose.pose.position.y:.2f})"
+                )
                 response.confidence = 0.95
             else:
                 response.found = False

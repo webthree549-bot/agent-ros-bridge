@@ -553,7 +553,10 @@ class ExecutionMonitorNode:
         if time_in_current_state > self.STUCK_TIME_THRESHOLD and progress < 0.9:
             return Anomaly(
                 type=AnomalyType.STUCK,
-                description=f"Robot stuck for {time_in_current_state:.1f}s with progress {progress:.1%}",
+                description=(
+                    f"Robot stuck for {time_in_current_state:.1f}s "
+                    f"with progress {progress:.1%}"
+                ),
                 severity="HIGH",
                 data={"time_stuck": time_in_current_state, "progress": progress},
             )
@@ -582,7 +585,10 @@ class ExecutionMonitorNode:
         if expected_duration > 0 and elapsed_time > expected_duration * self.TIMEOUT_FACTOR:
             return Anomaly(
                 type=AnomalyType.TIMEOUT,
-                description=f"Execution timeout: {elapsed_time:.1f}s exceeded {expected_duration * self.TIMEOUT_FACTOR:.1f}s",
+                description=(
+                    f"Execution timeout: {elapsed_time:.1f}s exceeded "
+                    f"{expected_duration * self.TIMEOUT_FACTOR:.1f}s"
+                ),
                 severity="CRITICAL",
                 data={"elapsed_time": elapsed_time, "expected_duration": expected_duration},
             )

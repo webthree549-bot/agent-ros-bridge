@@ -115,7 +115,8 @@ class IntentParserNode(Node):
 
         self.get_logger().info("Intent Parser Node initialized")
         self.get_logger().info(
-            f"Performance target: <{self.TARGET_LATENCY_MS}ms latency, >{self.TARGET_CONFIDENCE} confidence"
+            f"Performance target: <{self.TARGET_LATENCY_MS}ms latency, "
+            f">{self.TARGET_CONFIDENCE} confidence"
         )
 
     def _compile_patterns(self):
@@ -182,7 +183,8 @@ class IntentParserNode(Node):
         # Warn if latency target exceeded
         if intent.latency_ms > self.TARGET_LATENCY_MS:
             self.get_logger().warn(
-                f"Latency target exceeded: {intent.latency_ms:.2f}ms (target: <{self.TARGET_LATENCY_MS}ms)"
+                f"Latency target exceeded: {intent.latency_ms:.2f}ms "
+                f"(target: <{self.TARGET_LATENCY_MS}ms)"
             )
 
         return response

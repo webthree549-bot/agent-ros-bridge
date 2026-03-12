@@ -214,7 +214,10 @@ class MotionPlannerROSNode(Node):
                     goal_handle.abort()
                     return ExecuteMotion.Result(
                         success=False,
-                        error_message=f"Execution failed at {primitive.name}: {result.get('error')}",
+                        error_message=(
+                            f"Execution failed at {primitive.name}: "
+                            f"{result.get('error')}"
+                        ),
                     )
 
             # Complete
