@@ -11,7 +11,10 @@ import pytest
 pytest.importorskip("grpc")
 
 from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-    GRPCClient, GRPCServicer, GRPCTransport)
+    GRPCClient,
+    GRPCServicer,
+    GRPCTransport,
+)
 
 
 class TestGRPCServicer:

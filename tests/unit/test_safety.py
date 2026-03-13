@@ -8,9 +8,12 @@ import asyncio
 
 import pytest
 
-from agent_ros_bridge.integrations.safety import (ConfirmationRequest,
-                                                  SafetyLevel, SafetyManager,
-                                                  SafetyPolicy)
+from agent_ros_bridge.integrations.safety import (
+    ConfirmationRequest,
+    SafetyLevel,
+    SafetyManager,
+    SafetyPolicy,
+)
 
 
 def run_async(coro):

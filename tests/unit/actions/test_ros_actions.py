@@ -8,8 +8,13 @@ from unittest.mock import Mock
 
 import pytest
 
-from agent_ros_bridge.actions import (ActionFeedback, ActionGoal, ActionResult,
-                                      ActionStatus, BaseActionClient)
+from agent_ros_bridge.actions import (
+    ActionFeedback,
+    ActionGoal,
+    ActionResult,
+    ActionStatus,
+    BaseActionClient,
+)
 
 
 class TestActionStatus:

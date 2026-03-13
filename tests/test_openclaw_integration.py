@@ -46,8 +46,7 @@ def test_package_import():
 
     print("✅ Message classes imported successfully")
 
-    from agent_ros_bridge.gateway_v2.transports.websocket import \
-        WebSocketTransport  # noqa: F401
+    from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport  # noqa: F401
 
     print("✅ WebSocketTransport imported successfully")
 
@@ -56,8 +55,7 @@ def test_fleet_import():
     """Test fleet module import"""
     print("Testing fleet module...")
 
-    from agent_ros_bridge.fleet import (FleetOrchestrator,  # noqa: F401
-                                        FleetRobot)
+    from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot  # noqa: F401
 
     print("✅ Fleet module imported successfully")
 
@@ -75,8 +73,7 @@ def test_metrics_import():
     """Test metrics module import"""
     print("Testing metrics module...")
 
-    from agent_ros_bridge.metrics import (MetricsServer,  # noqa: F401
-                                          get_metrics)
+    from agent_ros_bridge.metrics import MetricsServer, get_metrics  # noqa: F401
 
     print("✅ Metrics module imported successfully")
 

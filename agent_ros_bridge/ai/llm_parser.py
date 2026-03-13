@@ -96,8 +96,7 @@ Rules:
         """
         # Import security utilities
         try:
-            from ..security_utils import (RateLimiter, SecureConfig,
-                                          sanitize_input)
+            from ..security_utils import RateLimiter, SecureConfig, sanitize_input
 
             self._secure_config = SecureConfig
             self._sanitize = sanitize_input

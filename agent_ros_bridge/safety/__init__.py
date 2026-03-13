@@ -21,9 +21,12 @@ Usage:
 """
 
 # High-level safety manager (from integrations)
-from agent_ros_bridge.integrations.safety import (ConfirmationRequest,
-                                                  SafetyLevel, SafetyManager,
-                                                  SafetyPolicy)
+from agent_ros_bridge.integrations.safety import (
+    ConfirmationRequest,
+    SafetyLevel,
+    SafetyManager,
+    SafetyPolicy,
+)
 
 # Core validator (ROS-agnostic)
 from .validator import SafetyValidatorNode

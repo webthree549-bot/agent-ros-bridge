@@ -4,9 +4,15 @@ from unittest.mock import Mock
 
 import pytest
 
-from agent_ros_bridge.gateway_v2.core import (Bridge, Command, Header,
-                                              Identity, Message, Robot,
-                                              RobotFleet)
+from agent_ros_bridge.gateway_v2.core import (
+    Bridge,
+    Command,
+    Header,
+    Identity,
+    Message,
+    Robot,
+    RobotFleet,
+)
 
 
 class TestBridge:

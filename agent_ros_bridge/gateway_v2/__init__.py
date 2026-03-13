@@ -5,26 +5,46 @@ Multi-protocol, multi-robot, cloud-native connectivity platform.
 
 __version__ = "0.3.5"
 
-from agent_ros_bridge.gateway_v2.config import (BridgeConfig, ConfigLoader,
-                                                ConnectorConfig, PluginConfig,
-                                                SecurityConfig,
-                                                TransportConfig)
-from agent_ros_bridge.gateway_v2.core import (Bridge, Command, Connector,
-                                              ConnectorRegistry, Event, Header,
-                                              Identity, Message, Plugin,
-                                              PluginManager, QoS, Robot,
-                                              RobotFleet, Telemetry, Transport,
-                                              TransportManager)
+from agent_ros_bridge.gateway_v2.config import (
+    BridgeConfig,
+    ConfigLoader,
+    ConnectorConfig,
+    PluginConfig,
+    SecurityConfig,
+    TransportConfig,
+)
+from agent_ros_bridge.gateway_v2.core import (
+    Bridge,
+    Command,
+    Connector,
+    ConnectorRegistry,
+    Event,
+    Header,
+    Identity,
+    Message,
+    Plugin,
+    PluginManager,
+    QoS,
+    Robot,
+    RobotFleet,
+    Telemetry,
+    Transport,
+    TransportManager,
+)
 
 # New: Blueprint and Module patterns (inspired by dimos)
 try:
-    from agent_ros_bridge.gateway_v2.blueprint import (Blueprint, Connection,
-                                                       ModuleBlueprint,
-                                                       RPCDefinition,
-                                                       StreamDefinition,
-                                                       autoconnect, rpc, skill)
-    from agent_ros_bridge.gateway_v2.module import (CompositeModule, In,
-                                                    Module, Out, Stream)
+    from agent_ros_bridge.gateway_v2.blueprint import (
+        Blueprint,
+        Connection,
+        ModuleBlueprint,
+        RPCDefinition,
+        StreamDefinition,
+        autoconnect,
+        rpc,
+        skill,
+    )
+    from agent_ros_bridge.gateway_v2.module import CompositeModule, In, Module, Out, Stream
 
     _BLUEPRINT_AVAILABLE = True
 except ImportError:

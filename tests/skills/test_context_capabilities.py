@@ -9,8 +9,7 @@ import tempfile
 
 import pytest
 
-from agent_ros_bridge.integrations.context import (ContextAwareNLInterpreter,
-                                                   ContextManager)
+from agent_ros_bridge.integrations.context import ContextAwareNLInterpreter, ContextManager
 from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
 
 
@@ -157,8 +156,7 @@ class TestSkillFulfillmentContext:
 
     def test_context_awareness_fulfilled(self):
         """Verify SKILL promise: Context across conversations."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         # Check that adapter has context methods
         adapter = OpenClawAdapter(bridge=None)

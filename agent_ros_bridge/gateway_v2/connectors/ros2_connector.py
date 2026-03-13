@@ -28,8 +28,7 @@ except ImportError:
         """Placeholder Node class when rclpy is not available."""
 
 
-from agent_ros_bridge.gateway_v2.core import (Command, Connector, Robot,
-                                              RobotEndpoint, Telemetry)
+from agent_ros_bridge.gateway_v2.core import Command, Connector, Robot, RobotEndpoint, Telemetry
 
 logger = logging.getLogger("connector.ros2")
 

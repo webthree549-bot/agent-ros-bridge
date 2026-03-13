@@ -18,8 +18,15 @@ try:
 except ImportError:
     MQTT_AVAILABLE = False
 
-from agent_ros_bridge.gateway_v2.core import (Command, Event, Header, Identity,
-                                              Message, Telemetry, Transport)
+from agent_ros_bridge.gateway_v2.core import (
+    Command,
+    Event,
+    Header,
+    Identity,
+    Message,
+    Telemetry,
+    Transport,
+)
 
 logger = logging.getLogger("transport.mqtt")
 

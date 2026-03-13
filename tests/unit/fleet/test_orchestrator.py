@@ -8,10 +8,15 @@ from unittest.mock import Mock
 
 import pytest
 
-from agent_ros_bridge.fleet.orchestrator import (FleetMetrics,
-                                                 FleetOrchestrator, FleetRobot,
-                                                 RobotCapability, RobotStatus,
-                                                 Task, TaskStatus)
+from agent_ros_bridge.fleet.orchestrator import (
+    FleetMetrics,
+    FleetOrchestrator,
+    FleetRobot,
+    RobotCapability,
+    RobotStatus,
+    Task,
+    TaskStatus,
+)
 
 
 class TestRobotCapability:

@@ -10,10 +10,15 @@ from dataclasses import dataclass
 
 import pytest
 
-from agent_ros_bridge.gateway_v2.blueprint import (Blueprint, Connection,
-                                                   ModuleBlueprint,
-                                                   StreamDefinition,
-                                                   autoconnect, rpc, skill)
+from agent_ros_bridge.gateway_v2.blueprint import (
+    Blueprint,
+    Connection,
+    ModuleBlueprint,
+    StreamDefinition,
+    autoconnect,
+    rpc,
+    skill,
+)
 from agent_ros_bridge.gateway_v2.module import In, Module, Out
 
 

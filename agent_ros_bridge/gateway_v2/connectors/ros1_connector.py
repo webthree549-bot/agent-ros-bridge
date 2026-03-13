@@ -21,8 +21,7 @@ except ImportError:
     ROS1_AVAILABLE = False
     rospy = None  # type: ignore
 
-from agent_ros_bridge.gateway_v2.core import (Command, Connector, Robot,
-                                              RobotEndpoint, Telemetry)
+from agent_ros_bridge.gateway_v2.core import Command, Connector, Robot, RobotEndpoint, Telemetry
 
 logger = logging.getLogger("connector.ros1")
 

@@ -17,8 +17,7 @@ class TestPlanningToExecutionFlow:
         """Integration: Plan navigation then execute."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         # Create planner and monitor
         planner = MotionPlannerNode()
@@ -70,7 +69,9 @@ class TestPlanningToExecutionFlow:
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            GripperControlPrimitive, NavigateToPosePrimitive)
+            GripperControlPrimitive,
+            NavigateToPosePrimitive,
+        )
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()
@@ -100,8 +101,7 @@ class TestSafetyValidatorIntegration:
         """Integration: Unsafe plan rejected before execution."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()
@@ -124,8 +124,7 @@ class TestSafetyValidatorIntegration:
         """Integration: Safe plan passes validation."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()
@@ -151,8 +150,7 @@ class TestSafetyValidatorIntegration:
         """Integration: Expired safety certificate rejected."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()
@@ -181,8 +179,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_stuck_detection_triggers_recovery(self):
         """Integration: STUCK detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -214,8 +211,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_obstacle_detection_triggers_recovery(self):
         """Integration: OBSTACLE detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -238,8 +234,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_deviation_detection_triggers_recovery(self):
         """Integration: DEVIATION detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -325,7 +320,10 @@ class TestEndToEndScenarios:
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            NavigateToPosePrimitive, PickObjectPrimitive, PlaceObjectPrimitive)
+            NavigateToPosePrimitive,
+            PickObjectPrimitive,
+            PlaceObjectPrimitive,
+        )
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()
@@ -358,8 +356,7 @@ class TestEndToEndScenarios:
         """E2E: Recovery triggered during execution."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
         monitor = ExecutionMonitorNode()

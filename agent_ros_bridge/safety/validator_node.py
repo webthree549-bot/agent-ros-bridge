@@ -24,8 +24,7 @@ from .validator import SafetyValidatorNode
 # Try to import ROS message types
 try:
     from agent_ros_bridge_msgs.msg import SafetyCertificate, SafetyLimits
-    from agent_ros_bridge_msgs.srv import (GetSafetyLimits, GetSafetyStatus,
-                                           ValidateTrajectory)
+    from agent_ros_bridge_msgs.srv import GetSafetyLimits, GetSafetyStatus, ValidateTrajectory
 
     MSGS_AVAILABLE = True
 except ImportError:

@@ -60,10 +60,8 @@ class TestExecuteMotion:
     async def test_execute_navigate_motion(self):
         """RED: Should execute navigation motion."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
-        from agent_ros_bridge.ai.motion_planner import (MotionPlan,
-                                                        SafetyCertificate)
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_planner import MotionPlan, SafetyCertificate
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         node = ExecutionMonitorNode()
 
@@ -82,8 +80,7 @@ class TestExecuteMotion:
     async def test_execute_manipulation_motion(self):
         """RED: Should execute manipulation motion."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
-        from agent_ros_bridge.ai.motion_planner import (MotionPlan,
-                                                        SafetyCertificate)
+        from agent_ros_bridge.ai.motion_planner import MotionPlan, SafetyCertificate
         from agent_ros_bridge.ai.motion_primitives import PickObjectPrimitive
 
         node = ExecutionMonitorNode()
@@ -104,10 +101,8 @@ class TestProgressMonitoring:
     async def test_monitors_progress(self):
         """RED: Reports execution progress (0-100%)."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
-        from agent_ros_bridge.ai.motion_planner import (MotionPlan,
-                                                        SafetyCertificate)
-        from agent_ros_bridge.ai.motion_primitives import \
-            NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_planner import MotionPlan, SafetyCertificate
+        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         node = ExecutionMonitorNode()
 
@@ -132,10 +127,8 @@ class TestProgressMonitoring:
     async def test_reports_completion(self):
         """RED: Reports successful completion."""
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
-        from agent_ros_bridge.ai.motion_planner import (MotionPlan,
-                                                        SafetyCertificate)
-        from agent_ros_bridge.ai.motion_primitives import \
-            GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_planner import MotionPlan, SafetyCertificate
+        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
 
         node = ExecutionMonitorNode()
 
@@ -154,8 +147,7 @@ class TestAnomalyDetection:
 
     def test_detects_stuck_condition(self):
         """RED: Detects STUCK anomaly."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -172,8 +164,7 @@ class TestAnomalyDetection:
 
     def test_detects_deviation(self):
         """RED: Detects DEVIATION from planned path."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -195,8 +186,7 @@ class TestAnomalyDetection:
 
     def test_detects_obstacle(self):
         """RED: Detects OBSTACLE blocking path."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -214,8 +204,7 @@ class TestAnomalyDetection:
 
     def test_detects_timeout(self):
         """RED: Detects TIMEOUT condition."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -238,8 +227,7 @@ class TestRecoveryStrategies:
     @pytest.mark.asyncio
     async def test_triggers_recovery_on_stuck(self):
         """RED: Triggers recovery on STUCK anomaly."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            Anomaly, AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -255,8 +243,7 @@ class TestRecoveryStrategies:
     @pytest.mark.asyncio
     async def test_triggers_recovery_on_deviation(self):
         """RED: Triggers recovery on DEVIATION anomaly."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            Anomaly, AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -271,8 +258,7 @@ class TestRecoveryStrategies:
     @pytest.mark.asyncio
     async def test_triggers_recovery_on_obstacle(self):
         """RED: Triggers recovery on OBSTACLE anomaly."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            Anomaly, AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -287,8 +273,7 @@ class TestRecoveryStrategies:
     @pytest.mark.asyncio
     async def test_triggers_recovery_on_timeout(self):
         """RED: Triggers recovery on TIMEOUT anomaly."""
-        from agent_ros_bridge.ai.execution_monitor import (
-            Anomaly, AnomalyType, ExecutionMonitorNode)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, ExecutionMonitorNode
 
         node = ExecutionMonitorNode()
 
@@ -439,9 +424,7 @@ class TestRecoveryHandler:
     @pytest.mark.asyncio
     async def test_recovery_handler_handles_stuck(self):
         """RED: RecoveryHandler should handle STUCK."""
-        from agent_ros_bridge.ai.execution_monitor import (Anomaly,
-                                                           AnomalyType,
-                                                           RecoveryHandler)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, RecoveryHandler
 
         handler = RecoveryHandler()
 
@@ -454,9 +437,7 @@ class TestRecoveryHandler:
     @pytest.mark.asyncio
     async def test_recovery_handler_handles_deviation(self):
         """RED: RecoveryHandler should handle DEVIATION."""
-        from agent_ros_bridge.ai.execution_monitor import (Anomaly,
-                                                           AnomalyType,
-                                                           RecoveryHandler)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, RecoveryHandler
 
         handler = RecoveryHandler()
 
@@ -471,9 +452,7 @@ class TestRecoveryHandler:
     @pytest.mark.asyncio
     async def test_recovery_handler_handles_obstacle(self):
         """RED: RecoveryHandler should handle OBSTACLE."""
-        from agent_ros_bridge.ai.execution_monitor import (Anomaly,
-                                                           AnomalyType,
-                                                           RecoveryHandler)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, RecoveryHandler
 
         handler = RecoveryHandler()
 
@@ -486,9 +465,7 @@ class TestRecoveryHandler:
     @pytest.mark.asyncio
     async def test_recovery_handler_handles_timeout(self):
         """RED: RecoveryHandler should handle TIMEOUT."""
-        from agent_ros_bridge.ai.execution_monitor import (Anomaly,
-                                                           AnomalyType,
-                                                           RecoveryHandler)
+        from agent_ros_bridge.ai.execution_monitor import Anomaly, AnomalyType, RecoveryHandler
 
         handler = RecoveryHandler()
 

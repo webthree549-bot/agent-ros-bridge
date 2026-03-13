@@ -615,13 +615,11 @@ async def main():
     from agent_ros_bridge.gateway_v2.core import Bridge
 
     if args.ros2:
-        from agent_ros_bridge.gateway_v2.connectors.ros2_connector import \
-            ROS2Connector
+        from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
 
         connector_class = ROS2Connector
     else:
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
-            ROS1Connector
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
 
         connector_class = ROS1Connector
 

@@ -8,10 +8,19 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from agent_ros_bridge.gateway_v2.core import (Bridge, Command, Event, Identity,
-                                              Message, QoS, Robot, RobotFleet,
-                                              Telemetry, Transport,
-                                              TransportManager)
+from agent_ros_bridge.gateway_v2.core import (
+    Bridge,
+    Command,
+    Event,
+    Identity,
+    Message,
+    QoS,
+    Robot,
+    RobotFleet,
+    Telemetry,
+    Transport,
+    TransportManager,
+)
 
 
 class MockRobot(Robot):

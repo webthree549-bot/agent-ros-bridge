@@ -31,8 +31,14 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 try:
-    from prometheus_client import (CollectorRegistry, Counter, Gauge,
-                                   Histogram, Info, start_http_server)
+    from prometheus_client import (
+        CollectorRegistry,
+        Counter,
+        Gauge,
+        Histogram,
+        Info,
+        start_http_server,
+    )
 
     PROMETHEUS_AVAILABLE = True
 except ImportError:

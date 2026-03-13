@@ -243,8 +243,7 @@ class URController(BaseArmController):
             self.state = ArmState.MOVING
 
             if self.config.ros_version == "ros2":
-                from trajectory_msgs.msg import (JointTrajectory,
-                                                 JointTrajectoryPoint)
+                from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
                 msg = JointTrajectory()
                 msg.joint_names = self.joint_names

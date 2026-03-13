@@ -24,8 +24,7 @@ os.environ["MOCK_MODE"] = "true"
 os.environ["SKIP_INTEGRATION_TESTS"] = "1"  # Skip integration tests by default in unit tests
 
 # Import simulation framework
-from tests.simulation import (SimulatedRobot, SimulatedROS2Node,
-                              SimulatedROSEnvironment)
+from tests.simulation import SimulatedRobot, SimulatedROS2Node, SimulatedROSEnvironment
 
 # =============================================================================
 # Pytest Configuration Hooks
@@ -146,8 +145,7 @@ async def bridge():
 async def bridge_with_transport():
     """Create a bridge with WebSocket transport."""
     from agent_ros_bridge import Bridge
-    from agent_ros_bridge.gateway_v2.transports.websocket import \
-        WebSocketTransport
+    from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
     bridge = Bridge()
     transport = WebSocketTransport({"port": 0})  # Random port
@@ -227,8 +225,7 @@ def mock_ros2_modules():
 @pytest.fixture
 def mock_ros2_connector(mock_ros2_modules):
     """Create a mock ROS2 connector."""
-    from agent_ros_bridge.gateway_v2.connectors.ros2_connector import \
-        ROS2Connector
+    from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
 
     connector = ROS2Connector(domain_id=0)
     connector.node = SimulatedROS2Node("mock_ros2_node")
@@ -310,8 +307,7 @@ def sample_command():
 @pytest.fixture
 def sample_message():
     """Return a sample message for testing."""
-    from agent_ros_bridge.gateway_v2.core import (Command, Header, Identity,
-                                                  Message)
+    from agent_ros_bridge.gateway_v2.core import Command, Header, Identity, Message
 
     return Message(
         header=Header(),

@@ -12,8 +12,12 @@ from unittest.mock import Mock
 import pytest
 
 from agent_ros_bridge.gateway_v2.transports.lcm_transport import (
-    LCMMessage, LCMPublisher, LCMSubscriber, LCMTransport,
-    SharedMemoryTransport)
+    LCMMessage,
+    LCMPublisher,
+    LCMSubscriber,
+    LCMTransport,
+    SharedMemoryTransport,
+)
 
 
 class TestLCMMessage:

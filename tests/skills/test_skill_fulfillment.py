@@ -103,8 +103,7 @@ class TestMovementCapabilities(unittest.TestCase):
 
     def test_ros2_publish_capability_exists(self):
         """Verify ros2_publish tool exists for movement."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -117,8 +116,7 @@ class TestMovementCapabilities(unittest.TestCase):
     def test_move_action_exists(self):
         """Verify 'move' action is available in bridge."""
         # This would require a running bridge, so we check the adapter
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -132,8 +130,7 @@ class TestMovementCapabilities(unittest.TestCase):
 
     def test_speed_parameter_handling(self):
         """Verify speed parameters can be handled."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tool = adapter.get_tool("ros2_publish")
@@ -150,8 +147,7 @@ class TestSensorCapabilities(unittest.TestCase):
 
     def test_ros2_subscribe_capability_exists(self):
         """Verify ros2_subscribe_once tool exists for sensors."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -165,8 +161,7 @@ class TestSensorCapabilities(unittest.TestCase):
 
     def test_camera_snapshot_capability_exists(self):
         """Verify camera snapshot tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -180,8 +175,7 @@ class TestSensorCapabilities(unittest.TestCase):
 
     def test_list_topics_capability_exists(self):
         """Verify list_topics tool exists for discovery."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -197,8 +191,7 @@ class TestFleetCapabilities(unittest.TestCase):
 
     def test_list_robots_capability_exists(self):
         """Verify list_robots tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -212,8 +205,7 @@ class TestFleetCapabilities(unittest.TestCase):
 
     def test_fleet_metrics_capability_exists(self):
         """Verify fleet_get_metrics tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -229,8 +221,7 @@ class TestSafetyCapabilities(unittest.TestCase):
 
     def test_emergency_stop_capability_exists(self):
         """Verify emergency stop tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -255,8 +246,7 @@ class TestMemoryCapabilities(unittest.TestCase):
 
     def test_memory_set_capability_exists(self):
         """Verify memory_set tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -266,8 +256,7 @@ class TestMemoryCapabilities(unittest.TestCase):
 
     def test_memory_get_capability_exists(self):
         """Verify memory_get tool exists."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -322,8 +311,7 @@ class TestTransportCapabilities(unittest.TestCase):
     def test_mqtt_transport_exists(self):
         """Verify MQTT transport is available."""
         try:
-            from agent_ros_bridge.gateway_v2.transports.mqtt_transport import \
-                MQTTTransport
+            from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
 
             self.assertTrue(True, "MQTTTransport imported successfully")
         except ImportError:
@@ -335,8 +323,7 @@ class TestRosSupport(unittest.TestCase):
 
     def test_ros1_tools_available(self):
         """Verify ROS1 tools exist when requested."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None, include_ros1=True)
         tools = adapter.get_tools()
@@ -348,8 +335,7 @@ class TestRosSupport(unittest.TestCase):
 
     def test_ros2_tools_available(self):
         """Verify ROS2 tools exist."""
-        from agent_ros_bridge.integrations.openclaw_adapter import \
-            OpenClawAdapter
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         adapter = OpenClawAdapter(bridge=None)
         tools = adapter.get_tools()
@@ -367,8 +353,7 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify natural language interpretation is implemented.
         """
-        from agent_ros_bridge.integrations.nl_interpreter import \
-            RuleBasedInterpreter
+        from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
 
         # NL interpreter exists and works
         interpreter = RuleBasedInterpreter()
@@ -416,8 +401,7 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify scene understanding is implemented.
         """
-        from agent_ros_bridge.integrations.scene_understanding import \
-            SceneUnderstanding
+        from agent_ros_bridge.integrations.scene_understanding import SceneUnderstanding
 
         # Scene understanding exists and has required methods
         scene = SceneUnderstanding()
@@ -434,8 +418,7 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify fleet intelligence is implemented.
         """
-        from agent_ros_bridge.integrations.fleet_intelligence import \
-            FleetIntelligence
+        from agent_ros_bridge.integrations.fleet_intelligence import FleetIntelligence
 
         # Fleet intelligence exists and has required methods
         fleet = FleetIntelligence()
@@ -454,8 +437,7 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify autonomous behaviors are implemented.
         """
-        from agent_ros_bridge.integrations.autonomous_behaviors import \
-            MissionPlanner
+        from agent_ros_bridge.integrations.autonomous_behaviors import MissionPlanner
 
         # Mission planner exists and has required methods
         planner = MissionPlanner()

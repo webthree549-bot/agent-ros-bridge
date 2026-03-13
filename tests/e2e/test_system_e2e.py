@@ -34,8 +34,7 @@ class TestEndToEndSystem:
     async def system(self):
         """Set up complete system."""
         from agent_ros_bridge import Bridge
-        from agent_ros_bridge.gateway_v2 import (Blueprint, In, Module, Out,
-                                                 skill)
+        from agent_ros_bridge.gateway_v2 import Blueprint, In, Module, Out, skill
         from agent_ros_bridge.gateway_v2.transports import WebSocketTransport
 
         state = SystemState()
@@ -159,9 +158,7 @@ class TestEndToEndSystem:
     @pytest.mark.asyncio
     async def test_error_handling(self, system):
         """Test error handling in E2E flow."""
-        from agent_ros_bridge.utils.error_handling import (AgentError,
-                                                           ErrorCode,
-                                                           InputValidator)
+        from agent_ros_bridge.utils.error_handling import AgentError, ErrorCode, InputValidator
 
         # Invalid input
         result = InputValidator.validate_utterance("")
@@ -234,8 +231,7 @@ class TestProductionReadiness:
 
     def test_security_utils_available(self):
         """Security utilities are importable."""
-        from agent_ros_bridge.security_utils import (hash_password,
-                                                     verify_password)
+        from agent_ros_bridge.security_utils import hash_password, verify_password
 
         assert callable(hash_password)
         assert callable(verify_password)
@@ -249,8 +245,7 @@ class TestProductionReadiness:
 
     def test_all_transports_importable(self):
         """All transports can be imported."""
-        from agent_ros_bridge.gateway_v2.transports import (MQTTTransport,
-                                                            WebSocketTransport)
+        from agent_ros_bridge.gateway_v2.transports import MQTTTransport, WebSocketTransport
 
         assert WebSocketTransport is not None
         assert MQTTTransport is not None

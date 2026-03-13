@@ -17,8 +17,7 @@ class TestEmergencyStopNodeExists:
     def test_emergency_stop_node_module_exists(self):
         """RED: Emergency stop module should exist"""
         try:
-            from agent_ros_bridge.safety.emergency_stop import \
-                EmergencyStopNode
+            from agent_ros_bridge.safety.emergency_stop import EmergencyStopNode
 
             assert True
         except ImportError as e:

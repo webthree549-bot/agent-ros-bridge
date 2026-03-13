@@ -7,8 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from agent_ros_bridge.integrations.dashboard_server import (AIOHTTP_AVAILABLE,
-                                                            DashboardServer)
+from agent_ros_bridge.integrations.dashboard_server import AIOHTTP_AVAILABLE, DashboardServer
 
 
 class TestDashboardServerCreation:

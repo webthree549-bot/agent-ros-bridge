@@ -8,10 +8,19 @@ from unittest.mock import Mock
 
 import pytest
 
-from agent_ros_bridge.gateway_v2.core import (Bridge, Command, Connector,
-                                              ConnectorRegistry, Header,
-                                              Identity, Plugin, PluginManager,
-                                              Robot, RobotEndpoint, Telemetry)
+from agent_ros_bridge.gateway_v2.core import (
+    Bridge,
+    Command,
+    Connector,
+    ConnectorRegistry,
+    Header,
+    Identity,
+    Plugin,
+    PluginManager,
+    Robot,
+    RobotEndpoint,
+    Telemetry,
+)
 
 
 # Concrete implementations for testing
@@ -565,8 +574,7 @@ class TestMessageFlow:
     @pytest.mark.asyncio
     async def test_message_routing(self):
         """Messages can be routed through transport manager."""
-        from agent_ros_bridge.gateway_v2.core import (Identity, Message,
-                                                      TransportManager)
+        from agent_ros_bridge.gateway_v2.core import Identity, Message, TransportManager
 
         manager = TransportManager()
 

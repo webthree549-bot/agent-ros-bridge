@@ -7,8 +7,15 @@ import uuid
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
-from agent_ros_bridge.gateway_v2.core import (Command, Event, Header, Identity,
-                                              Message, QoS, Telemetry)
+from agent_ros_bridge.gateway_v2.core import (
+    Command,
+    Event,
+    Header,
+    Identity,
+    Message,
+    QoS,
+    Telemetry,
+)
 
 
 class TestQoSEnum:
