@@ -30,7 +30,6 @@ from .motion_planner import MotionPlan, MotionPlannerNode, SafetyCertificate
 # Try to import ROS message types
 try:
     from agent_ros_bridge_msgs.action import ExecuteMotion, PlanMotion
-
     from agent_ros_bridge_msgs.msg import MotionPlan as MotionPlanMsg
     from agent_ros_bridge_msgs.msg import SafetyLimits
     from agent_ros_bridge_msgs.srv import ValidateTrajectory
