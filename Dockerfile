@@ -80,10 +80,12 @@ CMD ["start"]
 # =============================================================================
 FROM builder AS development
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[dev]"
-
 WORKDIR /app
+
+# Copy full source first (needed for editable install with README.md)
+COPY . .
+
+RUN pip install --no-cache-dir -e ".[dev]"
 
 # Mount source code as volume for hot reload
 VOLUME ["/app"]
@@ -97,11 +99,11 @@ CMD ["python", "-m", "agent_ros_bridge.cli", "start", "--log-level", "DEBUG"]
 # =============================================================================
 FROM builder AS testing
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[dev,test]"
-
 WORKDIR /app
 
+# Copy full source first (needed for editable install with README.md)
 COPY . .
+
+RUN pip install --no-cache-dir -e ".[dev,test]"
 
 CMD ["python", "-m", "pytest", "-v", "--cov=agent_ros_bridge"]
