@@ -25,9 +25,9 @@ from agent_ros_bridge.gateway_v2.config import (
     SecurityConfig,
     TransportConfig,
 )
+from agent_ros_bridge.gateway_v2.core import Command  # noqa: F401
 from agent_ros_bridge.gateway_v2.core import (
     Bridge,
-    Command,  # noqa: F401
     Connector,
     ConnectorRegistry,
     Event,

@@ -3,8 +3,9 @@ This is a simplified implementation - full protoc generation recommended for pro
 """
 
 import grpc
-from google.protobuf import empty_pb2, struct_pb2
+from google.protobuf import empty_pb2
 from google.protobuf import message as _message
+from google.protobuf import struct_pb2
 from google.protobuf import symbol_database as _symbol_database
 
 # Symbol database

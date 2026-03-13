@@ -25,9 +25,9 @@ if not WEBSOCKETS_AVAILABLE:
         },
     ).start()
 
-from agent_ros_bridge.gateway_v2.core import (  # noqa: E402
+from agent_ros_bridge.gateway_v2.core import (
     Command,
-    Header,
+    Header,  # noqa: E402
     Identity,
     Message,
     Telemetry,

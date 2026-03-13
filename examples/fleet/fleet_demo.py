@@ -11,12 +11,7 @@ import asyncio
 import logging
 
 from agent_ros_bridge import Bridge
-from agent_ros_bridge.fleet.orchestrator import (
-    FleetOrchestrator,
-    FleetRobot,
-    RobotCapability,
-    Task,
-)
+from agent_ros_bridge.fleet.orchestrator import FleetOrchestrator, FleetRobot, RobotCapability, Task
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
 logging.basicConfig(level=logging.INFO)

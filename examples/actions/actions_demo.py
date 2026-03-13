@@ -40,15 +40,10 @@ print(f"HTTP thread started: {http_thread.is_alive()}")
 # NOW import asyncio modules (after HTTP thread is running)
 import asyncio  # noqa: E402
 
-from agent_ros_bridge.gateway_v2.connectors.ros2 import (  # noqa: E402
-    ROS2Connector,
-)
-from agent_ros_bridge.gateway_v2.transports.grpc import GRPCServer  # noqa: E402
-
 from agent_ros_bridge import ROSBridge  # noqa: E402
-from agent_ros_bridge.gateway_v2.transports.websocket import (  # noqa: E402
-    WebSocketTransport,
-)
+from agent_ros_bridge.gateway_v2.connectors.ros2 import ROS2Connector  # noqa: E402
+from agent_ros_bridge.gateway_v2.transports.grpc import GRPCServer  # noqa: E402
+from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport  # noqa: E402
 
 
 async def main():
