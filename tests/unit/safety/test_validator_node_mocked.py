@@ -18,7 +18,9 @@ class MockSafetyValidator:
         self._total_validation_time = 0.0
         self._start_time = time.time()
 
-    def validate_trajectory(self, trajectory: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
+    def validate_trajectory(
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """Validate a trajectory against safety limits."""
         start_time = time.time()
         self._validation_count += 1
@@ -383,13 +385,16 @@ class TestSafetyValidatorROSNodeMocked:
     @pytest.fixture
     def mock_ros_node(self):
         """Create a mocked ROS node."""
-        with patch.dict("sys.modules", {
-            "rclpy": Mock(),
-            "rclpy.node": Mock(),
-            "rclpy.callback_groups": Mock(),
-            "agent_ros_bridge_msgs.msg": Mock(),
-            "agent_ros_bridge_msgs.srv": Mock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "rclpy": Mock(),
+                "rclpy.node": Mock(),
+                "rclpy.callback_groups": Mock(),
+                "agent_ros_bridge_msgs.msg": Mock(),
+                "agent_ros_bridge_msgs.srv": Mock(),
+            },
+        ):
             # Create mock classes
             mock_msgs = Mock()
             mock_msgs.SafetyCertificate = Mock
@@ -449,6 +454,7 @@ class TestSafetyValidatorROSNodeMocked:
 
     def test_trajectory_msg_to_dict_conversion(self):
         """Test trajectory message to dict conversion logic."""
+
         # Simulate the conversion logic
         def trajectory_msg_to_dict(msg) -> dict[str, Any]:
             return {
@@ -466,6 +472,7 @@ class TestSafetyValidatorROSNodeMocked:
 
     def test_limits_msg_to_dict_conversion(self):
         """Test limits message to dict conversion logic."""
+
         def limits_msg_to_dict(msg) -> dict[str, Any]:
             return {
                 "max_velocity": msg.max_velocity,
@@ -596,10 +603,7 @@ class TestSafetyValidatorPerformance:
     def test_validation_time_under_10ms(self, validator, default_limits):
         """Validation should complete in under 10ms."""
         trajectory = {
-            "waypoints": [
-                {"x": float(i), "y": float(i), "z": 0.5}
-                for i in range(100)
-            ],
+            "waypoints": [{"x": float(i), "y": float(i), "z": 0.5} for i in range(100)],
             "velocities": [0.5] * 100,
             "accelerations": [1.0] * 100,
         }
@@ -700,7 +704,7 @@ class TestSafetyValidatorEdgeCases:
         trajectory = {
             "waypoints": [
                 {"x": -5.0, "y": -5.0, "z": 0.0},  # Min boundaries
-                {"x": 5.0, "y": 5.0, "z": 2.0},    # Max boundaries
+                {"x": 5.0, "y": 5.0, "z": 2.0},  # Max boundaries
             ],
             "velocities": [1.0],  # Exact velocity limit
             "accelerations": [2.0],  # Exact acceleration limit

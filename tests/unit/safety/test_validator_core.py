@@ -38,8 +38,10 @@ class TestSafetyValidatorNode:
             "max_linear_velocity": 1.0,
             "max_angular_velocity": 1.0,
             "workspace_bounds": {
-                "x_min": -5.0, "x_max": 5.0,
-                "y_min": -5.0, "y_max": 5.0,
+                "x_min": -5.0,
+                "x_max": 5.0,
+                "y_min": -5.0,
+                "y_max": 5.0,
             },
         }
 
@@ -59,8 +61,10 @@ class TestSafetyValidatorNode:
             "max_linear_velocity": 1.0,
             "max_angular_velocity": 1.0,
             "workspace_bounds": {
-                "x_min": -5.0, "x_max": 5.0,
-                "y_min": -5.0, "y_max": 5.0,
+                "x_min": -5.0,
+                "x_max": 5.0,
+                "y_min": -5.0,
+                "y_max": 5.0,
             },
         }
 
@@ -106,8 +110,10 @@ class TestSafetyValidatorNode:
         }
         limits = {
             "workspace_bounds": {
-                "x_min": -5.0, "x_max": 5.0,
-                "y_min": -5.0, "y_max": 5.0,
+                "x_min": -5.0,
+                "x_max": 5.0,
+                "y_min": -5.0,
+                "y_max": 5.0,
             },
         }
 
@@ -188,8 +194,10 @@ class TestSafetyValidatorNode:
         }
         limits = {
             "workspace_bounds": {
-                "x_min": -5.0, "x_max": 5.0,
-                "y_min": -5.0, "y_max": 5.0,
+                "x_min": -5.0,
+                "x_max": 5.0,
+                "y_min": -5.0,
+                "y_max": 5.0,
             },
         }
 
@@ -360,7 +368,7 @@ class TestSafetyValidatorEdgeCases:
 
         # First validation
         validator.validate_trajectory(trajectory, limits)
-        
+
         # Manually expire cache entry
         traj_hash = validator._compute_trajectory_hash(trajectory, limits)
         result, timestamp = validator._cache[traj_hash]

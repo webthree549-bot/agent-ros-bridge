@@ -166,9 +166,7 @@ class TestRobotFleet:
         fleet.add_robot(robot2)
 
         cmd = Command(action="move", parameters={"x": 1.0})
-        results = await fleet.broadcast(
-            cmd, selector=lambda r: "navigation" in r.capabilities
-        )
+        results = await fleet.broadcast(cmd, selector=lambda r: "navigation" in r.capabilities)
 
         assert len(results) == 1
         assert "r1" in results
@@ -432,9 +430,7 @@ class TestBridgeAdvanced:
         robot = await bridge.connect_robot("ros2://192.168.1.1")
 
         assert robot == mock_robot
-        bridge.connector_registry.connect.assert_called_once_with(
-            "ros2://192.168.1.1"
-        )
+        bridge.connector_registry.connect.assert_called_once_with("ros2://192.168.1.1")
 
     @pytest.mark.asyncio
     async def test_bridge_connect_robot_to_fleet(self, bridge):

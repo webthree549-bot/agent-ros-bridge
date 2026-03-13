@@ -15,12 +15,15 @@ class TestIntentParserNoROS:
     @pytest.fixture
     def parser_class(self):
         """Get the IntentParserNode class with mocked ROS."""
-        with patch.dict("sys.modules", {
-            "rclpy": Mock(),
-            "rclpy.node": Mock(),
-            "agent_ros_bridge_msgs.msg": Mock(),
-            "agent_ros_bridge_msgs.srv": Mock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "rclpy": Mock(),
+                "rclpy.node": Mock(),
+                "agent_ros_bridge_msgs.msg": Mock(),
+                "agent_ros_bridge_msgs.srv": Mock(),
+            },
+        ):
             # Create mock for ROS messages
             mock_msgs = Mock()
             mock_msgs.Entity = Mock()
@@ -40,12 +43,14 @@ class TestIntentParserNoROS:
             with patch.dict("sys.modules", sys_modules):
                 # Import the module
                 import sys
+
                 # Remove cached module if exists
                 if "agent_ros_bridge.ai.intent_parser" in sys.modules:
                     del sys.modules["agent_ros_bridge.ai.intent_parser"]
 
                 # Now import with mocked dependencies
                 from agent_ros_bridge.ai.intent_parser import IntentParserNode
+
                 return IntentParserNode
 
     def test_patterns_compiled_correctly(self):

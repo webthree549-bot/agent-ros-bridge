@@ -91,9 +91,7 @@ class ROSBridgeTool(BaseTool):
             loop = asyncio.new_event_loop()
             return loop.run_until_complete(self._arun(query, run_manager))
 
-    async def _arun(
-        self, query: str, _run_manager: CallbackManagerForToolRun | None = None
-    ) -> str:
+    async def _arun(self, query: str, _run_manager: CallbackManagerForToolRun | None = None) -> str:
         """Execute tool (asynchronous)."""
         try:
             # Parse query to determine action

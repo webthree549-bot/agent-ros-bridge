@@ -277,7 +277,7 @@ class TestToolDiscovery:
         """Dangerous tools can be retrieved."""
         # Clear cache first
         discovery._cache.clear()
-        
+
         # Clear cache to avoid interference from default actions
         discovery._cache.clear()
 
@@ -319,13 +319,17 @@ class TestToolDiscoveryROS2:
         robot.name = "test_robot"
         robot.ros_node = Mock()
         # Mock returns list of tuples (topic_name, [types])
-        robot.ros_node.get_topic_names_and_types = Mock(return_value=[
-            ("/cmd_vel", ["geometry_msgs/msg/Twist"]),
-            ("/odom", ["nav_msgs/msg/Odometry"]),
-        ])
-        robot.ros_node.get_service_names_and_types = Mock(return_value=[
-            ("/reset", ["std_srvs/srv/Empty"]),
-        ])
+        robot.ros_node.get_topic_names_and_types = Mock(
+            return_value=[
+                ("/cmd_vel", ["geometry_msgs/msg/Twist"]),
+                ("/odom", ["nav_msgs/msg/Odometry"]),
+            ]
+        )
+        robot.ros_node.get_service_names_and_types = Mock(
+            return_value=[
+                ("/reset", ["std_srvs/srv/Empty"]),
+            ]
+        )
         return robot
 
     @pytest.fixture
@@ -380,13 +384,17 @@ class TestToolDiscoveryROS1:
         robot = Mock()
         robot.connector_type = "ros1"
         robot.name = "test_robot"
-        robot._cmd_get_topics = Mock(return_value=[
-            {"name": "/cmd_vel", "type": "geometry_msgs/Twist"},
-            {"name": "/odom", "type": "nav_msgs/Odometry"},
-        ])
-        robot._cmd_get_services = Mock(return_value=[
-            {"name": "/reset", "providers": ["/node1"]},
-        ])
+        robot._cmd_get_topics = Mock(
+            return_value=[
+                {"name": "/cmd_vel", "type": "geometry_msgs/Twist"},
+                {"name": "/odom", "type": "nav_msgs/Odometry"},
+            ]
+        )
+        robot._cmd_get_services = Mock(
+            return_value=[
+                {"name": "/reset", "providers": ["/node1"]},
+            ]
+        )
         return robot
 
     @pytest.fixture

@@ -121,8 +121,8 @@ class TestAutoGPTAdapter:
         bridge = Mock()
         bridge.get_actions = Mock(return_value=["navigate"])
         # Remove execute_action attribute if it exists
-        if hasattr(bridge, 'execute_action'):
-            delattr(bridge, 'execute_action')
+        if hasattr(bridge, "execute_action"):
+            delattr(bridge, "execute_action")
 
         adapter = AutoGPTAdapter(bridge)
 

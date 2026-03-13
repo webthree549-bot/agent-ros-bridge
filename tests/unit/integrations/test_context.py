@@ -371,11 +371,13 @@ class TestContextAwareNLInterpreter:
     def mock_base_interpreter(self):
         """Create a mock base interpreter."""
         interpreter = Mock()
-        interpreter.interpret = Mock(return_value={
-            "tool": "ros2_action_goal",
-            "action": "navigate",
-            "goal": {"pose": {"position": {}}},
-        })
+        interpreter.interpret = Mock(
+            return_value={
+                "tool": "ros2_action_goal",
+                "action": "navigate",
+                "goal": {"pose": {"position": {}}},
+            }
+        )
         return interpreter
 
     @pytest.fixture

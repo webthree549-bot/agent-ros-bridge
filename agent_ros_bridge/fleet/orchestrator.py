@@ -261,9 +261,7 @@ class FleetOrchestrator:
 
         logger.debug(f"Task {task_id} progress: {progress_percent}%")
 
-    async def complete_task(
-        self, task_id: str, success: bool = True, result: dict | None = None
-    ):
+    async def complete_task(self, task_id: str, success: bool = True, result: dict | None = None):
         """Mark task as completed or failed."""
         if task_id not in self.tasks:
             return

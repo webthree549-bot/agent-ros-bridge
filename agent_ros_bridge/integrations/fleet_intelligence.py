@@ -216,7 +216,12 @@ class FleetIntelligence:
         task_type = task.get("type", "navigate")
         caps = robot.capabilities
 
-        if task_type == "navigate" and caps.can_navigate or task_type == "manipulate" and caps.can_manipulate:
+        if (
+            task_type == "navigate"
+            and caps.can_navigate
+            or task_type == "manipulate"
+            and caps.can_manipulate
+        ):
             return 1.0
         elif task_type == "carry" and caps.can_carry:
             payload = task.get("payload", 0)

@@ -59,7 +59,7 @@ class TestAgentROSBridgeE2E:
         )
         if "Up" not in result.stdout:
             pytest.skip("ROS2 container not running")
-        
+
         # Test ros2 topic list
         result = run_in_ros2_container("ros2 topic list")
         if result.returncode != 0:

@@ -557,6 +557,7 @@ class TestSafetyManager:
 
         # Create request
         import asyncio
+
         asyncio.run(manager.request_confirmation("action", "message"))
 
         assert callback_called is True

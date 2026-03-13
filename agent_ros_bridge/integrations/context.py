@@ -412,9 +412,7 @@ class ContextAwareNLInterpreter:
 
         return command
 
-    def learn_current_location(
-        self, session_id: str, name: str, coordinates: dict | None = None
-    ):
+    def learn_current_location(self, session_id: str, name: str, coordinates: dict | None = None):
         """Learn current robot location.
 
         Args:
