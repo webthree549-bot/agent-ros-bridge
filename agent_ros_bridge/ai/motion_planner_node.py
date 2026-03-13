@@ -16,23 +16,23 @@ Target: <100ms planning response time
 """
 
 import asyncio
-import rclpy
-from rclpy.node import Node
-from rclpy.action import ActionServer, ActionClient
-from rclpy.callback_groups import ReentrantCallbackGroup
 import time
-import hashlib
-import json
-from typing import Dict, List, Optional, Any
+from typing import Any
+
+import rclpy
+from rclpy.action import ActionServer
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.node import Node
 
 # Import core motion planner
-from .motion_planner import MotionPlannerNode, MotionPlan, SafetyCertificate
+from .motion_planner import MotionPlan, MotionPlannerNode, SafetyCertificate
 
 # Try to import ROS message types
 try:
-    from agent_ros_bridge_msgs.action import PlanMotion, ExecuteMotion
+    from agent_ros_bridge_msgs.action import ExecuteMotion, PlanMotion
+    from agent_ros_bridge_msgs.msg import MotionPlan as MotionPlanMsg
+    from agent_ros_bridge_msgs.msg import SafetyLimits
     from agent_ros_bridge_msgs.srv import ValidateTrajectory
-    from agent_ros_bridge_msgs.msg import SafetyLimits, MotionPlan as MotionPlanMsg
 
     MSGS_AVAILABLE = True
 except ImportError:
@@ -235,7 +235,7 @@ class MotionPlannerROSNode(Node):
             goal_handle.abort()
             return ExecuteMotion.Result(success=False, error_message=str(e))
 
-    async def _validate_plan_with_safety(self, plan: MotionPlan) -> Dict[str, Any]:
+    async def _validate_plan_with_safety(self, plan: MotionPlan) -> dict[str, Any]:
         """Validate plan with safety validator service"""
         request = ValidateTrajectory.Request()
 
@@ -256,14 +256,14 @@ class MotionPlannerROSNode(Node):
             ),
         }
 
-    async def _execute_primitive(self, primitive) -> Dict[str, Any]:
+    async def _execute_primitive(self, primitive) -> dict[str, Any]:
         """Execute a single motion primitive"""
         # This would integrate with Nav2/MoveIt2
         # For now, simulate execution
         await asyncio.sleep(0.1)  # Simulate execution time
         return {"success": True}
 
-    def _goal_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _goal_msg_to_dict(self, msg) -> dict[str, Any]:
         """Convert goal ROS message to dictionary"""
         return {
             "target_pose": {
@@ -283,7 +283,7 @@ class MotionPlannerROSNode(Node):
             "object_name": msg.object_name,
         }
 
-    def _context_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _context_msg_to_dict(self, msg) -> dict[str, Any]:
         """Convert context ROS message to dictionary"""
         return {
             "robot_pose": msg.robot_pose if hasattr(msg, "robot_pose") else None,

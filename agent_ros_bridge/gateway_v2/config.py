@@ -9,7 +9,7 @@ import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -23,9 +23,9 @@ class TransportConfig:
     enabled: bool = True
     host: str = "0.0.0.0"
     port: int = 0  # 0 means disabled
-    tls_cert: Optional[str] = None
-    tls_key: Optional[str] = None
-    options: Dict[str, Any] = field(default_factory=dict)
+    tls_cert: str | None = None
+    tls_key: str | None = None
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -36,15 +36,15 @@ class ROSEndpoint:
     ros_type: str = "ros2"  # ros1, ros2
     ros_distro: str = "jazzy"  # noetic, humble, jazzy
     host: str = "localhost"
-    port: Optional[int] = None  # None for default
+    port: int | None = None  # None for default
     domain_id: int = 0
     # Authentication for remote connections
-    username: Optional[str] = None
-    password: Optional[str] = None
-    ssh_key: Optional[str] = None
+    username: str | None = None
+    password: str | None = None
+    ssh_key: str | None = None
     # Discovery options
     auto_discover: bool = True
-    topics: List[str] = field(default_factory=list)
+    topics: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -53,9 +53,9 @@ class ConnectorConfig:
 
     enabled: bool = True
     # Multi-ROS support: list of ROS endpoints
-    endpoints: List[ROSEndpoint] = field(default_factory=list)
+    endpoints: list[ROSEndpoint] = field(default_factory=list)
     # Legacy single-endpoint options (for backward compatibility)
-    options: Dict[str, Any] = field(default_factory=dict)
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -63,13 +63,13 @@ class SecurityConfig:
     """Security configuration."""
 
     enabled: bool = False
-    authentication: List[str] = field(default_factory=lambda: ["jwt"])
-    jwt_secret: Optional[str] = None
+    authentication: list[str] = field(default_factory=lambda: ["jwt"])
+    jwt_secret: str | None = None
     tls_enabled: bool = False
-    tls_cert: Optional[str] = None
-    tls_key: Optional[str] = None
+    tls_cert: str | None = None
+    tls_key: str | None = None
     mtls_enabled: bool = False
-    ca_cert: Optional[str] = None
+    ca_cert: str | None = None
 
 
 @dataclass
@@ -78,8 +78,8 @@ class PluginConfig:
 
     name: str
     enabled: bool = True
-    source: Optional[str] = None  # Path or URL
-    options: Dict[str, Any] = field(default_factory=dict)
+    source: str | None = None  # Path or URL
+    options: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -90,7 +90,7 @@ class BridgeConfig:
     log_level: str = "INFO"
 
     # Transports
-    transports: Dict[str, TransportConfig] = field(
+    transports: dict[str, TransportConfig] = field(
         default_factory=lambda: {
             "websocket": TransportConfig(port=8765),
             "grpc": TransportConfig(port=50051),
@@ -99,7 +99,7 @@ class BridgeConfig:
     )
 
     # Connectors
-    connectors: Dict[str, ConnectorConfig] = field(
+    connectors: dict[str, ConnectorConfig] = field(
         default_factory=lambda: {
             "ros2": ConnectorConfig(),
             "mqtt": ConnectorConfig(),
@@ -110,20 +110,20 @@ class BridgeConfig:
     security: SecurityConfig = field(default_factory=SecurityConfig)
 
     # Plugins
-    plugins: List[PluginConfig] = field(default_factory=list)
+    plugins: list[PluginConfig] = field(default_factory=list)
 
     # Discovery
-    discovery: Dict[str, Any] = field(
+    discovery: dict[str, Any] = field(
         default_factory=lambda: {"enabled": True, "methods": ["mdns", "ros2"], "interval": 30}
     )
 
     # Telemetry
-    telemetry: Dict[str, Any] = field(
+    telemetry: dict[str, Any] = field(
         default_factory=lambda: {"enabled": True, "metrics_port": 9090, "tracing": True}
     )
 
     # Storage
-    storage: Dict[str, Any] = field(
+    storage: dict[str, Any] = field(
         default_factory=lambda: {
             "type": "memory",  # memory, sqlite, postgres
             "connection_string": None,
@@ -175,7 +175,7 @@ class ConfigLoader:
         return config
 
     @classmethod
-    def from_file_or_env(cls, path: Optional[str] = None) -> "BridgeConfig":
+    def from_file_or_env(cls, path: str | None = None) -> "BridgeConfig":
         """Load from file or environment."""
         # Try config file locations
         config_paths = [
@@ -208,7 +208,7 @@ class ConfigLoader:
         return config
 
     @classmethod
-    def _dict_to_config(cls, data: Dict[str, Any]) -> "BridgeConfig":
+    def _dict_to_config(cls, data: dict[str, Any]) -> "BridgeConfig":
         """Convert dictionary to BridgeConfig."""
         # Simplified conversion - full implementation would handle nested structures
         return BridgeConfig(
@@ -224,7 +224,7 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_transports(cls, data: Dict[str, Any]) -> Dict[str, TransportConfig]:
+    def _parse_transports(cls, data: dict[str, Any]) -> dict[str, TransportConfig]:
         """Parse transport configurations."""
         transports = {}
         for name, cfg in data.items():
@@ -239,7 +239,7 @@ class ConfigLoader:
         return transports
 
     @classmethod
-    def _parse_connectors(cls, data: Dict[str, Any]) -> Dict[str, ConnectorConfig]:
+    def _parse_connectors(cls, data: dict[str, Any]) -> dict[str, ConnectorConfig]:
         """Parse connector configurations."""
         connectors = {}
         for name, cfg in data.items():
@@ -249,7 +249,7 @@ class ConfigLoader:
         return connectors
 
     @classmethod
-    def _parse_security(cls, data: Dict[str, Any]) -> SecurityConfig:
+    def _parse_security(cls, data: dict[str, Any]) -> SecurityConfig:
         """Parse security configuration."""
         return SecurityConfig(
             enabled=data.get("enabled", False),
@@ -263,7 +263,7 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_plugins(cls, data: List[Dict[str, Any]]) -> List[PluginConfig]:
+    def _parse_plugins(cls, data: list[dict[str, Any]]) -> list[PluginConfig]:
         """Parse plugin configurations."""
         plugins = []
         for p in data:

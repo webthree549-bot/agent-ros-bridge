@@ -8,9 +8,10 @@ for the AI layer and safety modules.
 import functools
 import logging
 import time
-from typing import Any, Callable, Dict, Optional, TypeVar, Generic
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class AgentError(Exception):
 
     code: ErrorCode
     message: str
-    context: Optional[Dict[str, Any]] = None
+    context: dict[str, Any] | None = None
 
     def __str__(self):
         ctx = f" | Context: {self.context}" if self.context else ""
@@ -61,8 +62,8 @@ class ValidationResult:
     """Result of input validation."""
 
     valid: bool
-    error_code: Optional[ErrorCode] = None
-    error_message: Optional[str] = None
+    error_code: ErrorCode | None = None
+    error_message: str | None = None
     sanitized_value: Any = None
 
 
@@ -153,7 +154,7 @@ class CircuitBreaker:
         self.half_open_max_calls = half_open_max_calls
 
         self.failures = 0
-        self.last_failure_time: Optional[float] = None
+        self.last_failure_time: float | None = None
         self.state = "closed"  # closed, open, half_open
         self.half_open_calls = 0
 
@@ -281,7 +282,7 @@ input_validator = InputValidator()
 llm_client = LLMClient()
 
 
-def handle_error(error: Exception, context: Optional[Dict] = None) -> AgentError:
+def handle_error(error: Exception, context: dict | None = None) -> AgentError:
     """Convert any exception to standardized AgentError."""
     if isinstance(error, AgentError):
         return error

@@ -11,17 +11,16 @@ Enhances intent parsing with contextual awareness:
 """
 
 import time
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
-from collections import deque
+from typing import Any
 
 
 @dataclass
 class ConversationContext:
     """Context from conversation history."""
 
-    utterances: List[str] = field(default_factory=list)
-    intents: List[str] = field(default_factory=list)
+    utterances: list[str] = field(default_factory=list)
+    intents: list[str] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
     max_history: int = 10
 
@@ -50,9 +49,9 @@ class RobotState:
 class EnvironmentState:
     """Current environment state."""
 
-    known_locations: List[str] = field(default_factory=list)
-    detected_objects: List[str] = field(default_factory=list)
-    people_present: List[str] = field(default_factory=list)
+    known_locations: list[str] = field(default_factory=list)
+    detected_objects: list[str] = field(default_factory=list)
+    people_present: list[str] = field(default_factory=list)
     timestamp: float = field(default_factory=time.time)
 
 
@@ -62,7 +61,7 @@ class UserPreferences:
 
     preferred_speed: str = "normal"
     preferred_language: str = "en"
-    common_locations: List[str] = field(default_factory=list)
+    common_locations: list[str] = field(default_factory=list)
     last_updated: float = field(default_factory=time.time)
 
 
@@ -97,10 +96,10 @@ class ContextAwareParser:
 
     def update_robot_state(
         self,
-        location: Optional[str] = None,
-        battery: Optional[float] = None,
-        task: Optional[str] = None,
-        moving: Optional[bool] = None,
+        location: str | None = None,
+        battery: float | None = None,
+        task: str | None = None,
+        moving: bool | None = None,
     ):
         """Update robot state."""
         if location:
@@ -115,9 +114,9 @@ class ContextAwareParser:
 
     def update_environment(
         self,
-        locations: Optional[List[str]] = None,
-        objects: Optional[List[str]] = None,
-        people: Optional[List[str]] = None,
+        locations: list[str] | None = None,
+        objects: list[str] | None = None,
+        people: list[str] | None = None,
     ):
         """Update environment state."""
         if locations:
@@ -153,7 +152,7 @@ class ContextAwareParser:
 
         return resolved
 
-    def _resolve_it(self) -> Optional[str]:
+    def _resolve_it(self) -> str | None:
         """Resolve 'it' to last mentioned object."""
         # Look for objects in recent conversation
         for utterance in reversed(self._conversation.utterances):
@@ -171,7 +170,7 @@ class ContextAwareParser:
 
         return None
 
-    def _resolve_there(self) -> Optional[str]:
+    def _resolve_there(self) -> str | None:
         """Resolve 'there' to a location."""
         # Use last mentioned location or current robot location
         for utterance in reversed(self._conversation.utterances):
@@ -184,7 +183,7 @@ class ContextAwareParser:
 
         return self._robot_state.location if self._robot_state.location != "unknown" else None
 
-    def _resolve_here(self) -> Optional[str]:
+    def _resolve_here(self) -> str | None:
         """Resolve 'here' to current location."""
         return (
             self._robot_state.location
@@ -192,7 +191,7 @@ class ContextAwareParser:
             else "current location"
         )
 
-    def _resolve_that(self) -> Optional[str]:
+    def _resolve_that(self) -> str | None:
         """Resolve 'that' to last mentioned object or location."""
         # Try object first
         obj = self._resolve_it()
@@ -203,8 +202,8 @@ class ContextAwareParser:
         return self._resolve_there()
 
     def enhance_intent(
-        self, intent_type: str, entities: List[Dict[str, Any]], utterance: str
-    ) -> Dict[str, Any]:
+        self, intent_type: str, entities: list[dict[str, Any]], utterance: str
+    ) -> dict[str, Any]:
         """
         Enhance parsed intent with contextual information.
 
@@ -246,7 +245,7 @@ class ContextAwareParser:
 
         return enhanced
 
-    def get_context_summary(self) -> Dict[str, Any]:
+    def get_context_summary(self) -> dict[str, Any]:
         """Get summary of current context."""
         return {
             "conversation_turns": len(self._conversation.utterances),

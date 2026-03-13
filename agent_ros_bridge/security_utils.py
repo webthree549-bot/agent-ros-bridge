@@ -5,12 +5,12 @@ v0.6.1 - Week 5 Production Hardening
 Provides secure handling of sensitive data like API keys.
 """
 
+import hashlib
 import os
 import re
-import hashlib
 import secrets
 import time
-from typing import Optional, Dict
+
 from cryptography.fernet import Fernet
 
 
@@ -32,7 +32,7 @@ class SecureConfig:
     ]
 
     @classmethod
-    def get_api_key(cls, provider: str) -> Optional[str]:
+    def get_api_key(cls, provider: str) -> str | None:
         """
         Securely get API key from environment.
 
@@ -138,7 +138,7 @@ class RateLimiter:
         self.max_calls = max_requests if max_requests is not None else max_calls
         self.window_sec = window if window is not None else window_sec
         self.calls = []
-        self.client_calls: Dict[str, list] = {}
+        self.client_calls: dict[str, list] = {}
 
     def is_allowed(self) -> bool:
         """
@@ -314,7 +314,7 @@ def generate_token(length: int = 32) -> str:
     return base64.urlsafe_b64encode(secrets.token_bytes(num_bytes)).decode()[:length]
 
 
-def generate_api_key(name: str) -> Dict[str, str]:
+def generate_api_key(name: str) -> dict[str, str]:
     """
     Generate an API key with metadata.
 
@@ -411,9 +411,7 @@ def validate_robot_id(robot_id: str) -> bool:
     if not re.match(r"^[a-zA-Z0-9_-]+$", robot_id):
         return False
     # Check for dangerous patterns
-    if "<" in robot_id or ">" in robot_id or '"' in robot_id:
-        return False
-    return True
+    return not ("<" in robot_id or ">" in robot_id or '"' in robot_id)
 
 
 def main():

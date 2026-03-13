@@ -36,20 +36,20 @@ from agent_ros_bridge.gateway_v2.core import (
 try:
     from agent_ros_bridge.gateway_v2.blueprint import (
         Blueprint,
-        ModuleBlueprint,
         Connection,
-        StreamDefinition,
+        ModuleBlueprint,
         RPCDefinition,
+        StreamDefinition,
         autoconnect,
-        skill,
         rpc,
+        skill,
     )
     from agent_ros_bridge.gateway_v2.module import (
-        Module,
         CompositeModule,
-        Stream,
         In,
+        Module,
         Out,
+        Stream,
     )
 
     _BLUEPRINT_AVAILABLE = True

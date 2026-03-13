@@ -5,13 +5,11 @@ Modules are the primary units of deployment, running in parallel with streams an
 """
 
 import asyncio
-import inspect
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar, Union
-from collections import defaultdict
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
-from .blueprint import ModuleBlueprint, RPCDefinition, StreamDefinition, skill, rpc
+from .blueprint import ModuleBlueprint, RPCDefinition, StreamDefinition
 
 T = TypeVar("T")
 
@@ -27,11 +25,11 @@ class Stream(Generic[T]):
             config: In[Config]  # Input stream
     """
 
-    def __init__(self, msg_type: Type[T], name: Optional[str] = None):
+    def __init__(self, msg_type: type[T], name: str | None = None):
         self.msg_type = msg_type
         self.name = name
         self._queue: asyncio.Queue = asyncio.Queue(maxsize=100)
-        self._subscribers: List[Callable[[T], None]] = []
+        self._subscribers: list[Callable[[T], None]] = []
 
     async def publish(self, msg: T) -> None:
         """Publish a message to the stream."""
@@ -69,7 +67,7 @@ class Stream(Generic[T]):
         """Get next message from the stream (blocking)."""
         return await self._queue.get()
 
-    def get_nowait(self) -> Optional[T]:
+    def get_nowait(self) -> T | None:
         """Get next message if available (non-blocking)."""
         try:
             return self._queue.get_nowait()
@@ -108,13 +106,13 @@ class Module(ABC):
                 return self._capture()
     """
 
-    def __init__(self, name: Optional[str] = None, **config):
+    def __init__(self, name: str | None = None, **config):
         self.name = name or self.__class__.__name__
         self.config = config
         self._running = False
-        self._tasks: List[asyncio.Task] = []
-        self._streams: Dict[str, Stream] = {}
-        self._rpcs: Dict[str, RPCDefinition] = {}
+        self._tasks: list[asyncio.Task] = []
+        self._streams: dict[str, Stream] = {}
+        self._rpcs: dict[str, RPCDefinition] = {}
 
         # Initialize streams from type annotations
         self._init_streams()
@@ -265,11 +263,11 @@ class Module(ABC):
         rpc_def = self._rpcs[name]
         return rpc_def.func(self, *args, **kwargs)
 
-    def get_skills(self) -> Dict[str, RPCDefinition]:
+    def get_skills(self) -> dict[str, RPCDefinition]:
         """Get all AI-callable skills."""
         return {name: rpc for name, rpc in self._rpcs.items() if rpc.is_skill}
 
-    def get_streams(self) -> Dict[str, Stream]:
+    def get_streams(self) -> dict[str, Stream]:
         """Get all streams."""
         return self._streams.copy()
 
@@ -280,9 +278,9 @@ class CompositeModule(Module):
     Useful for creating higher-level abstractions.
     """
 
-    def __init__(self, name: Optional[str] = None, **config):
+    def __init__(self, name: str | None = None, **config):
         super().__init__(name, **config)
-        self._submodules: Dict[str, Module] = {}
+        self._submodules: dict[str, Module] = {}
 
     def add_module(self, name: str, module: Module) -> "CompositeModule":
         """Add a submodule."""

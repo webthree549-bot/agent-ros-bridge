@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class ROSAction:
     action_type: str  # "topic", "service", "action"
     ros_type: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     dangerous: bool = False
 
 
@@ -42,10 +42,10 @@ class ToolDiscovery:
             bridge: Gateway bridge instance for robot access.
         """
         self.bridge = bridge
-        self._cache: Dict[str, ROSAction] = {}
+        self._cache: dict[str, ROSAction] = {}
         logger.info("ToolDiscovery initialized")
 
-    def discover_all(self) -> List[ROSAction]:
+    def discover_all(self) -> list[ROSAction]:
         """Discover all available ROS tools."""
         tools = []
 
@@ -64,9 +64,9 @@ class ToolDiscovery:
 
         return tools
 
-    def _get_all_robots(self) -> List[Any]:
+    def _get_all_robots(self) -> list[Any]:
         """Get all robots from all fleets."""
-        robots: List[Any] = []
+        robots: list[Any] = []
         if not self.bridge:
             return robots
 
@@ -75,9 +75,9 @@ class ToolDiscovery:
                 robots.append(robot)
         return robots
 
-    def _discover_topics(self) -> List[ROSAction]:
+    def _discover_topics(self) -> list[ROSAction]:
         """Discover ROS topics from connected robots (ROS1 & ROS2)."""
-        tools: List[ROSAction] = []
+        tools: list[ROSAction] = []
 
         for robot in self._get_all_robots():
             try:
@@ -93,9 +93,9 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_ros2_topics(self, robot) -> List[ROSAction]:
+    def _discover_ros2_topics(self, robot) -> list[ROSAction]:
         """Discover ROS2 topics."""
-        tools: List[ROSAction] = []
+        tools: list[ROSAction] = []
 
         if not hasattr(robot, "ros_node") or not robot.ros_node:
             return tools
@@ -122,7 +122,7 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_ros1_topics(self, robot) -> List[ROSAction]:
+    def _discover_ros1_topics(self, robot) -> list[ROSAction]:
         """Discover ROS1 topics."""
         tools = []
 
@@ -149,7 +149,7 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_services(self) -> List[ROSAction]:
+    def _discover_services(self) -> list[ROSAction]:
         """Discover ROS services from connected robots (ROS1 & ROS2)."""
         tools = []
 
@@ -167,9 +167,9 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_ros2_services(self, robot) -> List[ROSAction]:
+    def _discover_ros2_services(self, robot) -> list[ROSAction]:
         """Discover ROS2 services."""
-        tools: List[ROSAction] = []
+        tools: list[ROSAction] = []
 
         if not hasattr(robot, "ros_node") or not robot.ros_node:
             return tools
@@ -198,7 +198,7 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_ros1_services(self, robot) -> List[ROSAction]:
+    def _discover_ros1_services(self, robot) -> list[ROSAction]:
         """Discover ROS1 services."""
         tools = []
 
@@ -227,7 +227,7 @@ class ToolDiscovery:
 
         return tools
 
-    def _discover_actions(self) -> List[ROSAction]:
+    def _discover_actions(self) -> list[ROSAction]:
         """Discover ROS actions from connected robots (ROS1 & ROS2)."""
         tools = []
 
@@ -310,7 +310,7 @@ class ToolDiscovery:
         # Default: assume it's readable
         return "output"
 
-    def _infer_topic_parameters(self, msg_type: str, direction: str) -> Dict[str, Any]:
+    def _infer_topic_parameters(self, msg_type: str, direction: str) -> dict[str, Any]:
         """Infer parameters from message type."""
         # Common ROS message type mappings
         type_mappings = {
@@ -397,7 +397,7 @@ class ToolDiscovery:
         service_lower = service_name.lower()
         return any(pattern in service_lower for pattern in dangerous_patterns)
 
-    def to_mcp_tools(self, tools: Optional[List[ROSAction]] = None) -> List[Dict]:
+    def to_mcp_tools(self, tools: list[ROSAction] | None = None) -> list[dict]:
         """Convert to MCP (Model Context Protocol) tool format."""
         if tools is None:
             tools = self.discover_all()
@@ -417,7 +417,7 @@ class ToolDiscovery:
 
         return mcp_tools
 
-    def to_openai_functions(self, tools: Optional[List[ROSAction]] = None) -> List[Dict]:
+    def to_openai_functions(self, tools: list[ROSAction] | None = None) -> list[dict]:
         """Convert to OpenAI function calling format."""
         if tools is None:
             tools = self.discover_all()
@@ -440,7 +440,7 @@ class ToolDiscovery:
 
         return functions
 
-    def to_langchain_tools(self, tools: Optional[List[ROSAction]] = None) -> List[Dict]:
+    def to_langchain_tools(self, tools: list[ROSAction] | None = None) -> list[dict]:
         """Convert to LangChain tool format."""
         if tools is None:
             tools = self.discover_all()
@@ -459,12 +459,12 @@ class ToolDiscovery:
 
         return lc_tools
 
-    def get_dangerous_tools(self) -> List[ROSAction]:
+    def get_dangerous_tools(self) -> list[ROSAction]:
         """Get list of dangerous tools requiring confirmation."""
         all_tools = self.discover_all()
         return [t for t in all_tools if t.dangerous]
 
-    def get_tool(self, name: str) -> Optional[ROSAction]:
+    def get_tool(self, name: str) -> ROSAction | None:
         """Get a specific tool by name."""
         return self._cache.get(name)
 

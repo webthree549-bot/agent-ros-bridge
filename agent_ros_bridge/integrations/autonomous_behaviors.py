@@ -14,10 +14,11 @@ This fulfills the final SKILL promise gap:
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Any, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum, auto
-from datetime import datetime, timedelta
+from typing import Any
 
 
 class MissionStatus(Enum):
@@ -47,8 +48,8 @@ class Waypoint:
     x: float
     y: float
     z: float = 0.0
-    name: Optional[str] = None
-    actions: List[Dict] = field(default_factory=list)
+    name: str | None = None
+    actions: list[dict] = field(default_factory=list)
 
 
 @dataclass
@@ -57,8 +58,8 @@ class MissionStep:
 
     step_id: str
     action: str  # navigate, wait, detect, capture, etc.
-    parameters: Dict[str, Any]
-    dependencies: List[str] = field(default_factory=list)
+    parameters: dict[str, Any]
+    dependencies: list[str] = field(default_factory=list)
     estimated_duration: float = 30.0  # seconds
     retry_count: int = 0
     max_retries: int = 3
@@ -71,20 +72,20 @@ class Mission:
     mission_id: str
     name: str
     description: str
-    steps: List[MissionStep]
+    steps: list[MissionStep]
     status: MissionStatus = MissionStatus.PENDING
     created_at: datetime = field(default_factory=datetime.now)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     current_step_index: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class ExplorationArea:
     """Area to be explored."""
 
-    bounds: Dict[str, float]  # min_x, max_x, min_y, max_y
+    bounds: dict[str, float]  # min_x, max_x, min_y, max_y
     resolution: float = 1.0  # meters between waypoints
     priority: str = "normal"  # low, normal, high
 
@@ -94,10 +95,10 @@ class PatrolRoute:
     """A patrol route definition."""
 
     name: str
-    waypoints: List[Waypoint]
+    waypoints: list[Waypoint]
     interval_minutes: int = 30
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
 
 
 class MissionPlanner:
@@ -117,8 +118,8 @@ class MissionPlanner:
             execute_action_callback: Async function to execute robot actions
         """
         self.execute_action = execute_action_callback
-        self.active_missions: Dict[str, Mission] = {}
-        self.mission_history: List[Mission] = []
+        self.active_missions: dict[str, Mission] = {}
+        self.mission_history: list[Mission] = []
         self._running = False
 
     def plan_exploration(self, area: ExplorationArea, strategy: str = "systematic") -> Mission:
@@ -302,7 +303,7 @@ class MissionPlanner:
 
         return mission
 
-    async def execute_mission(self, mission: Mission) -> Dict[str, Any]:
+    async def execute_mission(self, mission: Mission) -> dict[str, Any]:
         """Execute a mission.
 
         Args:
@@ -374,7 +375,7 @@ class MissionPlanner:
 
         return results
 
-    async def _execute_step(self, step: MissionStep) -> Dict[str, Any]:
+    async def _execute_step(self, step: MissionStep) -> dict[str, Any]:
         """Execute a single mission step.
 
         Args:
@@ -408,7 +409,7 @@ class MissionPlanner:
             return True
         return False
 
-    def get_mission_status(self, mission_id: str) -> Optional[Dict[str, Any]]:
+    def get_mission_status(self, mission_id: str) -> dict[str, Any] | None:
         """Get status of a mission.
 
         Args:
@@ -454,8 +455,8 @@ class AutonomousBehaviorManager:
             mission_planner: Mission planner instance
         """
         self.planner = mission_planner
-        self.active_behaviors: Dict[str, Dict] = {}
-        self.scheduled_tasks: List[Dict] = []
+        self.active_behaviors: dict[str, dict] = {}
+        self.scheduled_tasks: list[dict] = []
         self._running = False
 
     async def start_patrol(self, route: PatrolRoute, robot_id: str) -> str:
@@ -555,7 +556,7 @@ class AutonomousBehaviorManager:
             return True
         return False
 
-    def get_behavior_status(self, behavior_id: str) -> Optional[Dict[str, Any]]:
+    def get_behavior_status(self, behavior_id: str) -> dict[str, Any] | None:
         """Get status of a behavior.
 
         Args:
@@ -582,7 +583,7 @@ class AutonomousBehaviorManager:
 
 
 def explore_autonomously(
-    behavior_manager: AutonomousBehaviorManager, area: Dict[str, float], robot_id: str = "default"
+    behavior_manager: AutonomousBehaviorManager, area: dict[str, float], robot_id: str = "default"
 ) -> str:
     """Start autonomous exploration.
 
@@ -595,7 +596,7 @@ def explore_autonomously(
 
 def patrol_route(
     behavior_manager: AutonomousBehaviorManager,
-    waypoints: List[Dict],
+    waypoints: list[dict],
     interval_minutes: int = 30,
     robot_id: str = "default",
 ) -> str:

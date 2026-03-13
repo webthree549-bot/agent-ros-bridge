@@ -11,10 +11,10 @@ This enables the SKILL promise of context-aware conversations like:
 
 import json
 import sqlite3
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -32,14 +32,14 @@ class ConversationContext:
     """
 
     session_id: str
-    current_location: Optional[str] = None
-    last_action: Optional[str] = None
-    last_result: Optional[Dict] = None
-    known_locations: Dict[str, Dict] = field(default_factory=dict)
-    pending_task: Optional[str] = None
-    conversation_history: List[Dict] = field(default_factory=list)
+    current_location: str | None = None
+    last_action: str | None = None
+    last_result: dict | None = None
+    known_locations: dict[str, dict] = field(default_factory=dict)
+    pending_task: str | None = None
+    conversation_history: list[dict] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "session_id": self.session_id,
@@ -70,7 +70,7 @@ class ContextManager:
         """
         self.db_path = Path(db_path)
         self._init_db()
-        self._runtime_contexts: Dict[str, ConversationContext] = {}
+        self._runtime_contexts: dict[str, ConversationContext] = {}
 
     def _init_db(self):
         """Initialize SQLite database tables."""
@@ -127,7 +127,7 @@ class ContextManager:
         # Load from database
         with sqlite3.connect(self.db_path) as conn:
             row = conn.execute(
-                """SELECT current_location, last_action, last_result, 
+                """SELECT current_location, last_action, last_result,
                           known_locations, pending_task
                    FROM contexts WHERE session_id = ?""",
                 (session_id,),
@@ -151,13 +151,13 @@ class ContextManager:
             self._runtime_contexts[session_id] = context
             return context
 
-    def _load_history(self, conn, session_id: str, limit: int = 10) -> List[Dict]:
+    def _load_history(self, conn, session_id: str, limit: int = 10) -> list[dict]:
         """Load recent command history."""
         rows = conn.execute(
             """SELECT command, interpretation, result, timestamp
-               FROM history 
-               WHERE session_id = ? 
-               ORDER BY timestamp DESC 
+               FROM history
+               WHERE session_id = ?
+               ORDER BY timestamp DESC
                LIMIT ?""",
             (session_id, limit),
         ).fetchall()
@@ -180,8 +180,8 @@ class ContextManager:
         """
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO contexts 
-                   (session_id, current_location, last_action, last_result, 
+                """INSERT OR REPLACE INTO contexts
+                   (session_id, current_location, last_action, last_result,
                     known_locations, pending_task, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -195,7 +195,7 @@ class ContextManager:
                 ),
             )
 
-    def log_interaction(self, session_id: str, command: str, interpretation: Dict, result: Dict):
+    def log_interaction(self, session_id: str, command: str, interpretation: dict, result: dict):
         """Log a command interaction to history.
 
         Args:
@@ -206,7 +206,7 @@ class ContextManager:
         """
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT INTO history 
+                """INSERT INTO history
                    (session_id, command, interpretation, result)
                    VALUES (?, ?, ?, ?)""",
                 (session_id, command, json.dumps(interpretation), json.dumps(result)),
@@ -225,7 +225,7 @@ class ContextManager:
         # Keep only last 10
         context.conversation_history = context.conversation_history[-10:]
 
-    def learn_location(self, session_id: str, name: str, coordinates: Dict):
+    def learn_location(self, session_id: str, name: str, coordinates: dict):
         """Learn a named location.
 
         Args:
@@ -237,7 +237,7 @@ class ContextManager:
 
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
-                """INSERT OR REPLACE INTO locations 
+                """INSERT OR REPLACE INTO locations
                    (session_id, name, coordinates)
                    VALUES (?, ?, ?)""",
                 (session_id, name_lower, json.dumps(coordinates)),
@@ -248,7 +248,7 @@ class ContextManager:
         context.known_locations[name_lower] = coordinates
         context.current_location = name_lower  # Assume we're at this location
 
-    def get_location(self, session_id: str, name: str) -> Optional[Dict]:
+    def get_location(self, session_id: str, name: str) -> dict | None:
         """Get coordinates for a learned location.
 
         Args:
@@ -280,7 +280,7 @@ class ContextManager:
 
         return None
 
-    def get_last_n_commands(self, session_id: str, n: int = 5) -> List[Dict]:
+    def get_last_n_commands(self, session_id: str, n: int = 5) -> list[dict]:
         """Get recent command history.
 
         Args:
@@ -293,7 +293,7 @@ class ContextManager:
         context = self.get_context(session_id)
         return context.conversation_history[-n:]
 
-    def get_last_location(self, session_id: str) -> Optional[str]:
+    def get_last_location(self, session_id: str) -> str | None:
         """Get the last location the robot was sent to.
 
         Args:
@@ -320,7 +320,7 @@ class ContextManager:
         if session_id in self._runtime_contexts:
             del self._runtime_contexts[session_id]
 
-    def list_learned_locations(self, session_id: str) -> List[str]:
+    def list_learned_locations(self, session_id: str) -> list[str]:
         """List all learned locations for a session.
 
         Args:
@@ -352,7 +352,7 @@ class ContextAwareNLInterpreter:
         self.base = base_interpreter
         self.context = context_manager
 
-    def interpret(self, nl_command: str, session_id: str = "default") -> Dict[str, Any]:
+    def interpret(self, nl_command: str, session_id: str = "default") -> dict[str, Any]:
         """Interpret command with context awareness.
 
         Args:
@@ -413,7 +413,7 @@ class ContextAwareNLInterpreter:
         return command
 
     def learn_current_location(
-        self, session_id: str, name: str, coordinates: Optional[Dict] = None
+        self, session_id: str, name: str, coordinates: dict | None = None
     ):
         """Learn current robot location.
 

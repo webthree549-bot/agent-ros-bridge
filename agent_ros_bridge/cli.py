@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 
 from . import Bridge
-from .gateway_v2.config import BridgeConfig, ConfigLoader
 
 
 def main():
@@ -168,12 +167,12 @@ transports:
     enabled: true
     port: 8765
     host: "0.0.0.0"
-  
+
   mqtt:
     enabled: true
     port: 1883
     host: "0.0.0.0"
-  
+
   grpc:
     enabled: true
     port: 50051

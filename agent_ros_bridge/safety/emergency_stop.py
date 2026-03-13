@@ -6,9 +6,10 @@ Central emergency stop coordination.
 Target: <50ms response time from trigger to motor cutoff
 """
 
-import time
 import threading
-from typing import Dict, List, Optional, Any, Callable
+import time
+from collections.abc import Callable
+from typing import Any
 
 
 class EmergencyStopNode:
@@ -39,13 +40,13 @@ class EmergencyStopNode:
         """
         self._emergency_stopped = False
         self._auth_code = auth_code
-        self._trigger_history: List[Dict[str, Any]] = []
+        self._trigger_history: list[dict[str, Any]] = []
         self._lock = threading.Lock()
 
         # Callbacks
-        self.status_publisher: Optional[Callable] = None
-        self.motor_cutoff_callback: Optional[Callable] = None
-        self.hardware_estop_callback: Optional[Callable] = None
+        self.status_publisher: Callable | None = None
+        self.motor_cutoff_callback: Callable | None = None
+        self.hardware_estop_callback: Callable | None = None
 
     def trigger_emergency_stop(self, reason: str, source: str) -> bool:
         """
@@ -93,7 +94,7 @@ class EmergencyStopNode:
 
         return True
 
-    def clear_emergency_stop(self, auth_code: Optional[str] = None) -> bool:
+    def clear_emergency_stop(self, auth_code: str | None = None) -> bool:
         """
         Clear emergency stop (requires authorization)
 
@@ -137,7 +138,7 @@ class EmergencyStopNode:
         with self._lock:
             return self._emergency_stopped
 
-    def _get_status(self) -> Dict[str, Any]:
+    def _get_status(self) -> dict[str, Any]:
         """Get current e-stop status (assumes lock is held by caller)"""
         return {
             "emergency_stopped": self._emergency_stopped,
@@ -146,19 +147,19 @@ class EmergencyStopNode:
         }
 
     @property
-    def trigger_history(self) -> List[Dict[str, Any]]:
+    def trigger_history(self) -> list[dict[str, Any]]:
         """Get history of e-stop triggers"""
         with self._lock:
             return self._trigger_history.copy()
 
-    def get_last_trigger(self) -> Optional[Dict[str, Any]]:
+    def get_last_trigger(self) -> dict[str, Any] | None:
         """Get the last trigger event"""
         with self._lock:
             if self._trigger_history:
                 return self._trigger_history[-1]
             return None
 
-    def get_trigger_stats(self) -> Dict[str, Any]:
+    def get_trigger_stats(self) -> dict[str, Any]:
         """Get trigger statistics"""
         with self._lock:
             if not self._trigger_history:

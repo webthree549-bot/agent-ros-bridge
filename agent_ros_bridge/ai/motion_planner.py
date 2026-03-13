@@ -8,18 +8,11 @@ by the safety validator before being returned.
 import asyncio
 import time
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Union
-from enum import Enum
+from typing import Any
 
 # Import motion primitives
 from agent_ros_bridge.ai.motion_primitives import (
     MotionPrimitive,
-    NavigateToPosePrimitive,
-    PickObjectPrimitive,
-    PlaceObjectPrimitive,
-    GripperControlPrimitive,
-    RotateInPlacePrimitive,
-    MoveCartesianPrimitive,
 )
 
 
@@ -40,7 +33,7 @@ class SafetyCertificate:
     valid: bool = True
     issued_at: float = field(default_factory=time.time)
     expires_at: float = field(default_factory=lambda: time.time() + 30.0)
-    constraints: Dict[str, Any] = field(default_factory=dict)
+    constraints: dict[str, Any] = field(default_factory=dict)
     plan_hash: str = ""
 
     def is_expired(self) -> bool:
@@ -51,7 +44,7 @@ class SafetyCertificate:
         """
         return time.time() > self.expires_at
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert certificate to dictionary.
 
         Returns:
@@ -78,7 +71,7 @@ class ValidationResult:
 
     approved: bool
     rejection_reason: str = ""
-    certificate: Optional[SafetyCertificate] = None
+    certificate: SafetyCertificate | None = None
 
 
 @dataclass
@@ -92,8 +85,8 @@ class MotionPlan:
         planning_time: Time taken to generate the plan
     """
 
-    primitives: List[MotionPrimitive] = field(default_factory=list)
-    safety_certificate: Optional[SafetyCertificate] = None
+    primitives: list[MotionPrimitive] = field(default_factory=list)
+    safety_certificate: SafetyCertificate | None = None
     expected_duration: float = 0.0
     planning_time: float = 0.0
 
@@ -128,7 +121,7 @@ class PlanMotionResult:
     """
 
     success: bool = False
-    plan: Optional[MotionPlan] = None
+    plan: MotionPlan | None = None
     error_message: str = ""
 
 
@@ -142,9 +135,9 @@ class Trajectory:
         timestamps: Timestamps for each point
     """
 
-    joint_names: List[str] = field(default_factory=list)
-    points: List[Dict[str, Any]] = field(default_factory=list)
-    timestamps: List[float] = field(default_factory=list)
+    joint_names: list[str] = field(default_factory=list)
+    points: list[dict[str, Any]] = field(default_factory=list)
+    timestamps: list[float] = field(default_factory=list)
 
 
 @dataclass
@@ -157,7 +150,7 @@ class NavigationPlan:
         planning_time: Time taken to plan
     """
 
-    trajectory: Optional[Trajectory] = None
+    trajectory: Trajectory | None = None
     path_length: float = 0.0
     planning_time: float = 0.0
 
@@ -172,7 +165,7 @@ class ManipulationPlan:
         planning_time: Time taken to plan
     """
 
-    trajectory: Optional[Trajectory] = None
+    trajectory: Trajectory | None = None
     planning_group: str = ""
     planning_time: float = 0.0
 
@@ -305,7 +298,7 @@ class SafetyValidator:
 
         return ValidationResult(approved=True, certificate=certificate)
 
-    def _compute_plan_hash(self, obj: Union[MotionPrimitive, MotionPlan]) -> str:
+    def _compute_plan_hash(self, obj: MotionPrimitive | MotionPlan) -> str:
         """Compute a hash for the plan/primitive.
 
         Args:
@@ -592,7 +585,7 @@ class MotionPlannerNode:
 
         return PlanMotionResult(success=True, plan=plan)
 
-    async def plan_motion_sequence(self, primitives: List[MotionPrimitive]) -> PlanMotionResult:
+    async def plan_motion_sequence(self, primitives: list[MotionPrimitive]) -> PlanMotionResult:
         """Plan motion for a sequence of primitives.
 
         Args:

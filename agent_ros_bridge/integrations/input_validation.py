@@ -4,8 +4,8 @@ Provides security and safety validation for user inputs.
 """
 
 import re
-from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -14,8 +14,8 @@ class ValidationResult:
 
     is_valid: bool
     sanitized_input: str
-    errors: List[str]
-    warnings: List[str]
+    errors: list[str]
+    warnings: list[str]
 
 
 class InputValidator:
@@ -71,7 +71,7 @@ class InputValidator:
         """Initialize validator."""
         self.dangerous_regex = re.compile("|".join(self.DANGEROUS_PATTERNS), re.IGNORECASE)
 
-    def validate(self, user_input: str, context: Optional[Dict] = None) -> ValidationResult:
+    def validate(self, user_input: str, context: dict | None = None) -> ValidationResult:
         """Validate and sanitize user input.
 
         Args:
@@ -141,7 +141,7 @@ class InputValidator:
 
         return sanitized.strip()
 
-    def _validate_context(self, sanitized: str, context: Dict) -> Tuple[List[str], List[str]]:
+    def _validate_context(self, sanitized: str, context: dict) -> tuple[list[str], list[str]]:
         """Validate input against context.
 
         Args:
@@ -177,7 +177,7 @@ class InputValidator:
 
         return errors, warnings
 
-    def validate_robot_command(self, command: str, robot_capabilities: Dict) -> ValidationResult:
+    def validate_robot_command(self, command: str, robot_capabilities: dict) -> ValidationResult:
         """Validate command against robot capabilities.
 
         Args:
@@ -243,7 +243,7 @@ class SafetyValidator:
         """Initialize safety validator."""
         pass
 
-    def check_safety(self, command: str, environment: Optional[Dict] = None) -> Dict[str, Any]:
+    def check_safety(self, command: str, environment: dict | None = None) -> dict[str, Any]:
         """Check if command is safe to execute.
 
         Args:
@@ -296,7 +296,7 @@ class SafetyValidator:
 
         return result
 
-    def get_safety_confirmation(self, command: str) -> Optional[str]:
+    def get_safety_confirmation(self, command: str) -> str | None:
         """Get confirmation prompt for dangerous command.
 
         Args:
@@ -316,7 +316,7 @@ class SafetyValidator:
 # Convenience functions
 
 
-def validate_input_safe(user_input: str, context: Optional[Dict] = None) -> ValidationResult:
+def validate_input_safe(user_input: str, context: dict | None = None) -> ValidationResult:
     """Quick validation function.
 
     Convenience function for one-off validation.
@@ -325,7 +325,7 @@ def validate_input_safe(user_input: str, context: Optional[Dict] = None) -> Vali
     return validator.validate(user_input, context)
 
 
-def is_command_safe(command: str, environment: Optional[Dict] = None) -> bool:
+def is_command_safe(command: str, environment: dict | None = None) -> bool:
     """Quick safety check.
 
     Convenience function for safety checking.

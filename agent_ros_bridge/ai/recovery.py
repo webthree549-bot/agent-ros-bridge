@@ -8,10 +8,9 @@ This module provides recovery strategies for different anomaly types:
 """
 
 import asyncio
-import time
 from dataclasses import dataclass, field
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any
 
 
 class RecoveryStrategyType(Enum):
@@ -41,7 +40,7 @@ class RecoveryStrategy:
     description: str
     max_attempts: int = 3
     timeout: float = 30.0
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -56,7 +55,7 @@ class RecoveryAction:
 
     action_type: str
     description: str
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
 
 
 class StuckRecovery:
@@ -73,7 +72,7 @@ class StuckRecovery:
         """
         self.backup_distance = backup_distance
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         """Execute stuck recovery.
 
         Returns:
@@ -135,7 +134,7 @@ class DeviationRecovery:
         """
         self.relocalization_method = relocalization_method
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         """Execute deviation recovery.
 
         Returns:
@@ -190,7 +189,7 @@ class ObstacleRecovery:
         """
         self.wait_timeout = wait_timeout
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         """Execute obstacle recovery.
 
         Returns:
@@ -247,7 +246,7 @@ class TimeoutRecovery:
         """
         self.notify_operator = notify_operator
 
-    async def execute(self) -> Dict[str, Any]:
+    async def execute(self) -> dict[str, Any]:
         """Execute timeout recovery.
 
         Returns:
@@ -324,7 +323,7 @@ class RecoveryStrategyFactory:
 
 
 # Convenience functions
-async def recover_from_stuck(backup_distance: float = 0.5) -> Dict[str, Any]:
+async def recover_from_stuck(backup_distance: float = 0.5) -> dict[str, Any]:
     """Recover from stuck condition.
 
     Args:
@@ -337,7 +336,7 @@ async def recover_from_stuck(backup_distance: float = 0.5) -> Dict[str, Any]:
     return await recovery.execute()
 
 
-async def recover_from_deviation(relocalization_method: str = "amcl") -> Dict[str, Any]:
+async def recover_from_deviation(relocalization_method: str = "amcl") -> dict[str, Any]:
     """Recover from deviation condition.
 
     Args:
@@ -350,7 +349,7 @@ async def recover_from_deviation(relocalization_method: str = "amcl") -> Dict[st
     return await recovery.execute()
 
 
-async def recover_from_obstacle(wait_timeout: float = 10.0) -> Dict[str, Any]:
+async def recover_from_obstacle(wait_timeout: float = 10.0) -> dict[str, Any]:
     """Recover from obstacle condition.
 
     Args:
@@ -363,7 +362,7 @@ async def recover_from_obstacle(wait_timeout: float = 10.0) -> Dict[str, Any]:
     return await recovery.execute()
 
 
-async def recover_from_timeout(notify_operator: bool = True) -> Dict[str, Any]:
+async def recover_from_timeout(notify_operator: bool = True) -> dict[str, Any]:
     """Recover from timeout condition.
 
     Args:

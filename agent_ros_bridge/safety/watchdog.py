@@ -6,9 +6,10 @@ Monitors system health and triggers failsafe actions.
 1kHz heartbeat monitoring with 1ms timeout.
 """
 
-import time
 import threading
-from typing import Dict, List, Optional, Any, Callable, Set
+import time
+from collections.abc import Callable
+from typing import Any
 
 
 class WatchdogNode:
@@ -34,16 +35,16 @@ class WatchdogNode:
 
     def __init__(self):
         """Initialize Watchdog Node"""
-        self._monitored_nodes: Dict[str, Dict[str, Any]] = {}
-        self._heartbeats: Dict[str, Dict[str, Any]] = {}
-        self._timeout_log: List[Dict[str, Any]] = []
+        self._monitored_nodes: dict[str, dict[str, Any]] = {}
+        self._heartbeats: dict[str, dict[str, Any]] = {}
+        self._timeout_log: list[dict[str, Any]] = []
         self._lock = threading.Lock()
         self._seq = 0
 
         # Callbacks
-        self.heartbeat_publisher: Optional[Callable] = None
-        self.status_publisher: Optional[Callable] = None
-        self.emergency_stop_callback: Optional[Callable] = None
+        self.heartbeat_publisher: Callable | None = None
+        self.status_publisher: Callable | None = None
+        self.emergency_stop_callback: Callable | None = None
 
     def register_node(self, node_id: str, critical: bool = True) -> None:
         """
@@ -89,7 +90,7 @@ class WatchdogNode:
                 "received_at": time.time(),
             }
 
-    def check_timeouts(self) -> List[str]:
+    def check_timeouts(self) -> list[str]:
         """
         Check for timed out nodes
 
@@ -127,7 +128,7 @@ class WatchdogNode:
 
         return timed_out
 
-    def create_heartbeat(self) -> Dict[str, Any]:
+    def create_heartbeat(self) -> dict[str, Any]:
         """
         Create a watchdog heartbeat message
 
@@ -148,7 +149,7 @@ class WatchdogNode:
         if self.heartbeat_publisher:
             self.heartbeat_publisher(heartbeat)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get watchdog status
 
@@ -169,24 +170,24 @@ class WatchdogNode:
             self.status_publisher(status)
 
     @property
-    def monitored_nodes(self) -> Set[str]:
+    def monitored_nodes(self) -> set[str]:
         """Get set of monitored node IDs"""
         with self._lock:
             return set(self._monitored_nodes.keys())
 
     @property
-    def heartbeats(self) -> Dict[str, Dict[str, Any]]:
+    def heartbeats(self) -> dict[str, dict[str, Any]]:
         """Get heartbeat data (copy)"""
         with self._lock:
             return self._heartbeats.copy()
 
     @property
-    def timeout_log(self) -> List[Dict[str, Any]]:
+    def timeout_log(self) -> list[dict[str, Any]]:
         """Get timeout log (copy)"""
         with self._lock:
             return self._timeout_log.copy()
 
-    def get_node_health(self, node_id: str) -> Optional[Dict[str, Any]]:
+    def get_node_health(self, node_id: str) -> dict[str, Any] | None:
         """
         Get health status for a specific node
 

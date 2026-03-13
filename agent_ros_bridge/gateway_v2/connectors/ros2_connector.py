@@ -8,9 +8,10 @@ to the OpenClaw unified message format.
 import asyncio
 import importlib
 import logging
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, AsyncIterator, Dict, List, Optional, Type
+from typing import Any
 
 try:
     import rclpy
@@ -86,7 +87,7 @@ MESSAGE_TYPE_REGISTRY = {
 }
 
 
-def get_message_class(msg_type: str) -> Optional[Type]:
+def get_message_class(msg_type: str) -> type | None:
     """Dynamically import and return a ROS2 message class.
 
     Args:
@@ -99,7 +100,7 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         module_name, class_name = MESSAGE_TYPE_REGISTRY[msg_type]
         try:
             module = importlib.import_module(module_name)
-            result: Optional[Type] = getattr(module, class_name)
+            result: type | None = getattr(module, class_name)
             return result
         except (ImportError, AttributeError) as e:
             logger.debug(f"Could not import {msg_type}: {e}")
@@ -110,7 +111,7 @@ def get_message_class(msg_type: str) -> Optional[Type]:
         if "/" in msg_type:
             pkg, msg = msg_type.split("/")
             module = importlib.import_module(f"{pkg}.msg")
-            result2: Optional[Type] = getattr(module, msg)
+            result2: type | None = getattr(module, msg)
             return result2
     except (ImportError, AttributeError) as e:
         logger.debug(f"Dynamic import failed for {msg_type}: {e}")
@@ -141,8 +142,8 @@ class ROS2Robot(Robot):
         super().__init__(robot_id, name, "ros2")
         self.ros_node = ros_node
         self.robot_type = "ros2"  # Compatibility alias for connector_type
-        self.subscriptions: Dict[str, Any] = {}
-        self.publishers: Dict[str, Any] = {}
+        self.subscriptions: dict[str, Any] = {}
+        self.publishers: dict[str, Any] = {}
         self._telemetry_queue: asyncio.Queue = asyncio.Queue()
 
     async def connect(self) -> bool:
@@ -182,7 +183,7 @@ class ROS2Robot(Robot):
             raise ValueError(f"Unknown ROS2 command: {action}")
 
     async def subscribe(self, topic: str, **kwargs: Any) -> AsyncIterator[Telemetry]:
-        msg_type: Optional[str] = kwargs.get("msg_type")
+        msg_type: str | None = kwargs.get("msg_type")
         """Subscribe to ROS2 topic.
 
         Args:
@@ -198,7 +199,7 @@ class ROS2Robot(Robot):
                     telemetry = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
                     if telemetry.topic == topic:
                         yield telemetry
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
             return
 
@@ -235,22 +236,22 @@ class ROS2Robot(Robot):
                 telemetry = await asyncio.wait_for(self._telemetry_queue.get(), timeout=1.0)
                 if telemetry.topic == topic:
                     yield telemetry
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
 
-    def _get_topic_message_type(self, topic: str) -> Optional[str]:
+    def _get_topic_message_type(self, topic: str) -> str | None:
         """Get the message type for a topic by introspecting ROS."""
         try:
             topic_names_and_types = self.ros_node.get_topic_names_and_types()
             for name, types in topic_names_and_types:
                 if name == topic and types:
-                    result: Optional[str] = types[0]  # Return first type
+                    result: str | None = types[0]  # Return first type
                     return result
         except Exception as e:
             logger.debug(f"Could not get topic type for {topic}: {e}")
         return None
 
-    async def _cmd_publish(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_publish(self, params: dict[str, Any]) -> dict[str, Any]:
         """Publish message to ROS2 topic.
 
         Args:
@@ -307,7 +308,7 @@ class ROS2Robot(Robot):
             logger.error(f"Failed to publish to {topic}: {e}")
             return {"status": "error", "message": str(e)}
 
-    async def _cmd_call_service(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_call_service(self, params: dict[str, Any]) -> dict[str, Any]:
         """Call ROS2 service."""
         service_name = params.get("service")
         params.get("request")
@@ -321,7 +322,7 @@ class ROS2Robot(Robot):
 
         return {"status": "called", "service": service_name}
 
-    async def _cmd_send_action(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _cmd_send_action(self, params: dict[str, Any]) -> dict[str, Any]:
         """Send ROS2 action goal."""
         action_name = params.get("action")
         params.get("goal")
@@ -329,21 +330,21 @@ class ROS2Robot(Robot):
         # Action client implementation
         return {"status": "goal_sent", "action": action_name}
 
-    def _cmd_get_topics(self) -> List[Dict[str, Any]]:
+    def _cmd_get_topics(self) -> list[dict[str, Any]]:
         """Get list of available topics."""
         topic_names_and_types = self.ros_node.get_topic_names_and_types()
         return [{"name": name, "types": types} for name, types in topic_names_and_types]
 
-    def _cmd_get_nodes(self) -> List[str]:
+    def _cmd_get_nodes(self) -> list[str]:
         """Get list of ROS2 nodes."""
         if self.ros_node is None:
             return []
-        result: List[str] = self.ros_node.get_node_names()
+        result: list[str] = self.ros_node.get_node_names()
         return result
 
-    def _ros_msg_to_dict(self, msg: Any) -> Dict[str, Any]:
+    def _ros_msg_to_dict(self, msg: Any) -> dict[str, Any]:
         """Convert ROS message to dictionary."""
-        result: Dict[str, Any] = {"_type": type(msg).__name__}
+        result: dict[str, Any] = {"_type": type(msg).__name__}
 
         # Try to extract fields using get_fields_and_field_types() if available
         fields = None
@@ -386,7 +387,7 @@ class ROS2Robot(Robot):
 
         return result
 
-    def _dict_to_ros_msg(self, data: Dict[str, Any], msg):
+    def _dict_to_ros_msg(self, data: dict[str, Any], msg):
         """Convert dictionary to ROS message.
 
         Handles nested messages and arrays recursively.
@@ -439,7 +440,7 @@ class ROS2Connector(Connector):
             domain_id: ROS2 domain ID for node isolation (default: 0).
         """
         self.domain_id = domain_id
-        self.node: Optional[Node] = None
+        self.node: Node | None = None
         self._initialized = False
 
     async def _ensure_initialized(self):
@@ -491,11 +492,11 @@ class ROS2Connector(Connector):
         logger.info(f"Connected to ROS2 domain {domain_id}, namespace '{namespace}'")
         return robot
 
-    async def discover(self) -> List[RobotEndpoint]:
+    async def discover(self) -> list[RobotEndpoint]:
         """Discover ROS2 systems on network."""
         await self._ensure_initialized()
 
-        endpoints: List[RobotEndpoint] = []
+        endpoints: list[RobotEndpoint] = []
 
         # Get all topics
         if self.node is None:

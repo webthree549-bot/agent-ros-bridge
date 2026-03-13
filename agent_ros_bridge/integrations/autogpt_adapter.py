@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +29,10 @@ class AutoGPTAdapter:
             bridge: Gateway bridge instance for robot control.
         """
         self.bridge = bridge
-        self.commands: Dict[str, Dict] = {}
+        self.commands: dict[str, dict] = {}
         logger.info("AutoGPTAdapter initialized")
 
-    def discover_commands(self) -> Dict[str, Dict]:
+    def discover_commands(self) -> dict[str, dict]:
         """Discover all available commands from bridge."""
         commands = {}
 
@@ -50,7 +49,7 @@ class AutoGPTAdapter:
         self.commands = commands
         return commands
 
-    def get_commands(self) -> List[Dict]:
+    def get_commands(self) -> list[dict]:
         """Get commands in AutoGPT format."""
         if not self.commands:
             self.discover_commands()
@@ -88,7 +87,7 @@ class AutoGPTAdapter:
             logger.error(f"Command execution error: {e}")
             return json.dumps({"error": str(e)})
 
-    def to_autogpt_plugin_format(self) -> Dict:
+    def to_autogpt_plugin_format(self) -> dict:
         """Export as AutoGPT plugin manifest."""
         return {
             "name": "agent_ros_bridge",

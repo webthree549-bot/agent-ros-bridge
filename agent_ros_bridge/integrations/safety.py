@@ -2,10 +2,10 @@
 
 import asyncio
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +57,11 @@ class SafetyManager:
 
     def __init__(self):
         """Initialize safety manager with empty policies and audit log."""
-        self.policies: Dict[str, SafetyPolicy] = {}
-        self.pending: Dict[str, ConfirmationRequest] = {}
-        self.audit_log: List[Dict] = []
+        self.policies: dict[str, SafetyPolicy] = {}
+        self.pending: dict[str, ConfirmationRequest] = {}
+        self.audit_log: list[dict] = []
         self.emergency_stop = False
-        self._callbacks: List[Callable] = []
+        self._callbacks: list[Callable] = []
         logger.info("SafetyManager initialized")
 
     def register_policy(
@@ -168,7 +168,7 @@ class SafetyManager:
         logger.info(f"Confirmation rejected: {request_id}")
         return True
 
-    async def wait_for_confirmation(self, request_id: str, timeout: Optional[float] = None) -> bool:
+    async def wait_for_confirmation(self, request_id: str, timeout: float | None = None) -> bool:
         """Wait for confirmation with timeout."""
         request = self.pending.get(request_id)
         if request is None:
@@ -203,7 +203,7 @@ class SafetyManager:
         )
         logger.info("Emergency stop cleared")
 
-    def get_audit_log(self) -> List[Dict]:
+    def get_audit_log(self) -> list[dict]:
         """Get full audit log."""
         return self.audit_log.copy()
 

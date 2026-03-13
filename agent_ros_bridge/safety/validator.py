@@ -9,7 +9,7 @@ Target: <10ms validation response time
 
 import time
 import uuid
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any
 
 
 class SafetyValidatorNode:
@@ -53,10 +53,10 @@ class SafetyValidatorNode:
 
         # Simple LRU cache: trajectory_hash -> (result, timestamp)
         self._enable_cache = enable_cache
-        self._cache: Dict[str, tuple] = {}
-        self._cache_order: List[str] = []  # For LRU eviction
+        self._cache: dict[str, tuple] = {}
+        self._cache_order: list[str] = []  # For LRU eviction
 
-    def _compute_trajectory_hash(self, trajectory: Dict[str, Any], limits: Dict[str, Any]) -> str:
+    def _compute_trajectory_hash(self, trajectory: dict[str, Any], limits: dict[str, Any]) -> str:
         """Compute hash for trajectory + limits combination."""
         import hashlib
         import json
@@ -66,7 +66,7 @@ class SafetyValidatorNode:
         data_str = json.dumps(data, sort_keys=True)
         return hashlib.md5(data_str.encode()).hexdigest()
 
-    def _get_cached_result(self, traj_hash: str) -> Optional[Dict[str, Any]]:
+    def _get_cached_result(self, traj_hash: str) -> dict[str, Any] | None:
         """Get cached validation result if available and not expired."""
         if not self._enable_cache or traj_hash not in self._cache:
             return None
@@ -87,7 +87,7 @@ class SafetyValidatorNode:
         self._cache_hits += 1
         return result
 
-    def _cache_result(self, traj_hash: str, result: Dict[str, Any]):
+    def _cache_result(self, traj_hash: str, result: dict[str, Any]):
         """Cache validation result."""
         if not self._enable_cache:
             return
@@ -103,7 +103,7 @@ class SafetyValidatorNode:
         self._cache_order.append(traj_hash)
         self._cache_misses += 1
 
-    def get_cache_statistics(self) -> Dict[str, Any]:
+    def get_cache_statistics(self) -> dict[str, Any]:
         """Get cache statistics."""
         total = self._cache_hits + self._cache_misses
         hit_rate = self._cache_hits / total if total > 0 else 0.0
@@ -126,8 +126,8 @@ class SafetyValidatorNode:
         self._cache_misses = 0
 
     def validate_trajectory(
-        self, trajectory: Dict[str, Any], limits: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Validate a trajectory against safety limits
 
@@ -212,7 +212,7 @@ class SafetyValidatorNode:
 
         return result
 
-    def _check_velocity(self, trajectory: Dict[str, Any], limits: Dict[str, Any]) -> Dict[str, Any]:
+    def _check_velocity(self, trajectory: dict[str, Any], limits: dict[str, Any]) -> dict[str, Any]:
         """Check velocity constraints"""
         max_linear = limits.get("max_linear_velocity")
         max_angular = limits.get("max_angular_velocity")
@@ -240,8 +240,8 @@ class SafetyValidatorNode:
         return {"passed": True}
 
     def _check_workspace(
-        self, trajectory: Dict[str, Any], limits: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """Check workspace boundaries"""
         bounds = limits.get("workspace_bounds", {})
         if not bounds:
@@ -287,8 +287,8 @@ class SafetyValidatorNode:
         return {"passed": True}
 
     def _check_joint_limits(
-        self, trajectory: Dict[str, Any], limits: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """Check joint velocity limits"""
         max_joint_velocity = limits.get("max_joint_velocity")
 
@@ -304,8 +304,8 @@ class SafetyValidatorNode:
         return {"passed": True}
 
     def _check_force_limits(
-        self, trajectory: Dict[str, Any], limits: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """Check force limits"""
         max_force = limits.get("max_force")
 
@@ -321,8 +321,8 @@ class SafetyValidatorNode:
         return {"passed": True}
 
     def _check_restricted_zones(
-        self, trajectory: Dict[str, Any], limits: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
         """Check restricted zones"""
         zones = limits.get("restricted_zones", [])
         if not zones:
@@ -357,11 +357,11 @@ class SafetyValidatorNode:
 
         return {"passed": True}
 
-    def _create_rejection_result(self, reason: str) -> Dict[str, Any]:
+    def _create_rejection_result(self, reason: str) -> dict[str, Any]:
         """Create a rejection result"""
         return {"approved": False, "rejection_reason": reason, "certificate": None}
 
-    def _create_approval_result(self, trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_approval_result(self, trajectory: dict[str, Any]) -> dict[str, Any]:
         """Create an approval result with certificate"""
         issued_at = time.time()
         expires_at = issued_at + self.CERTIFICATE_VALIDITY_SEC
@@ -375,7 +375,7 @@ class SafetyValidatorNode:
 
         return {"approved": True, "rejection_reason": None, "certificate": certificate}
 
-    def _hash_trajectory(self, trajectory: Dict[str, Any]) -> str:
+    def _hash_trajectory(self, trajectory: dict[str, Any]) -> str:
         """Generate a simple hash for the trajectory"""
         # Simple hash based on waypoints count and first/last waypoint
         waypoints = trajectory.get("waypoints", [])
@@ -386,7 +386,7 @@ class SafetyValidatorNode:
         last = waypoints[-1]
         return f"{len(waypoints)}_{first.get('x', 0)}_{first.get('y', 0)}_{last.get('x', 0)}_{last.get('y', 0)}"
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get validation statistics"""
         avg_time = (
             sum(self._validation_times) / len(self._validation_times)

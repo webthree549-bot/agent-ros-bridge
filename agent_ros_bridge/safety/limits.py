@@ -6,10 +6,11 @@ Provides safety limits for robots.
 Loads from config/safety_limits.yaml and caches for performance.
 """
 
-import yaml
 import time
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any
+
+import yaml
 
 
 class SafetyLimitsNode:
@@ -33,7 +34,7 @@ class SafetyLimitsNode:
         "restricted_zones": [],
     }
 
-    def __init__(self, config_path: Optional[str] = None, config: Optional[Dict] = None):
+    def __init__(self, config_path: str | None = None, config: dict | None = None):
         """
         Initialize Safety Limits Node
 
@@ -43,8 +44,8 @@ class SafetyLimitsNode:
         """
         self._config_path = config_path
         self._config = config or {}
-        self._cache: Dict[str, Dict[str, Any]] = {}
-        self._cache_timestamp: Dict[str, float] = {}
+        self._cache: dict[str, dict[str, Any]] = {}
+        self._cache_timestamp: dict[str, float] = {}
 
         # Load configuration
         if config_path and not config:
@@ -60,14 +61,14 @@ class SafetyLimitsNode:
             return
 
         try:
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 self._config = yaml.safe_load(f) or {"robots": {}}
         except Exception as e:
             # Fail-safe: use empty config with conservative defaults
             print(f"Error loading config: {e}. Using conservative defaults.")
             self._config = {"robots": {}}
 
-    def get_limits_for_robot(self, robot_id: str) -> Optional[Dict[str, Any]]:
+    def get_limits_for_robot(self, robot_id: str) -> dict[str, Any] | None:
         """
         Get safety limits for a specific robot
 
@@ -96,7 +97,7 @@ class SafetyLimitsNode:
 
         return limits
 
-    def _apply_defaults(self, robot_config: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_defaults(self, robot_config: dict[str, Any]) -> dict[str, Any]:
         """
         Apply default values for missing limits (fail-safe)
 
@@ -110,7 +111,7 @@ class SafetyLimitsNode:
         limits.update(robot_config)
         return limits
 
-    def clear_cache(self, robot_id: Optional[str] = None) -> None:
+    def clear_cache(self, robot_id: str | None = None) -> None:
         """
         Clear the limits cache
 

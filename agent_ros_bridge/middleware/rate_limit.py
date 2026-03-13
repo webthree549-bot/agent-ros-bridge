@@ -3,11 +3,11 @@
 Protects against abuse and ensures fair resource usage.
 """
 
-import time
 import logging
-from typing import Dict, Optional, Callable
-from functools import wraps
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
+from functools import wraps
 
 import redis.asyncio as redis
 
@@ -33,12 +33,12 @@ class RateLimiter:
     - Sliding window algorithm
     """
 
-    def __init__(self, redis_client: Optional[redis.Redis] = None):
+    def __init__(self, redis_client: redis.Redis | None = None):
         self.redis = redis_client
-        self.local_buckets: Dict[str, Dict] = {}
+        self.local_buckets: dict[str, dict] = {}
         self.config = RateLimitConfig()
 
-    async def is_allowed(self, key: str, config: Optional[RateLimitConfig] = None) -> bool:
+    async def is_allowed(self, key: str, config: RateLimitConfig | None = None) -> bool:
         """Check if request is allowed under rate limit.
 
         Args:
@@ -118,7 +118,7 @@ class RateLimiter:
 
         return allowed
 
-    async def get_remaining(self, key: str) -> Dict[str, float]:
+    async def get_remaining(self, key: str) -> dict[str, float]:
         """Get remaining rate limit info.
 
         Args:
@@ -156,7 +156,7 @@ class RateLimiter:
 
 
 def rate_limit(
-    requests_per_minute: int = 60, burst_size: int = 10, key_func: Optional[Callable] = None
+    requests_per_minute: int = 60, burst_size: int = 10, key_func: Callable | None = None
 ):
     """Decorator for rate limiting functions.
 
@@ -173,10 +173,7 @@ def rate_limit(
         @wraps(func)
         async def wrapper(*args, **kwargs):
             # Extract key
-            if key_func:
-                key = key_func(*args, **kwargs)
-            else:
-                key = "default"
+            key = key_func(*args, **kwargs) if key_func else "default"
 
             # Check rate limit
             allowed = await limiter.is_allowed(key, config)
@@ -202,11 +199,11 @@ class RateLimitExceeded(Exception):
 class RateLimitMiddleware:
     """Middleware for rate limiting HTTP/WebSocket requests."""
 
-    def __init__(self, limiter: RateLimiter, config: Optional[RateLimitConfig] = None):
+    def __init__(self, limiter: RateLimiter, config: RateLimitConfig | None = None):
         self.limiter = limiter
         self.config = config or RateLimitConfig()
 
-    async def process_request(self, request) -> Optional[Dict]:
+    async def process_request(self, request) -> dict | None:
         """Process incoming request.
 
         Args:

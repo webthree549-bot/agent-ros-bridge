@@ -20,7 +20,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agent_ros_bridge.gateway_v2.core import Identity, Message, Plugin
 
@@ -67,7 +67,7 @@ class CartesianPose:
     qz: float = 0.0
     qw: float = 1.0
 
-    def to_list(self) -> List[float]:
+    def to_list(self) -> list[float]:
         """Convert pose to list format [x, y, z, qx, qy, qz, qw]."""
         return [self.x, self.y, self.z, self.qx, self.qy, self.qz, self.qw]
 
@@ -79,7 +79,7 @@ class ArmConfig:
     arm_type: ArmType
     ros_version: str = "ros2"  # ros1, ros2
     namespace: str = ""
-    joint_names: Optional[List[str]] = None
+    joint_names: list[str] | None = None
     base_frame: str = "base_link"
     end_effector_frame: str = "tool0"
     max_joint_velocity: float = 3.0  # rad/s
@@ -99,8 +99,8 @@ class BaseArmController(ABC):
         """
         self.config = config
         self.state = ArmState.IDLE
-        self.current_joints: List[JointState] = []
-        self.current_pose: Optional[CartesianPose] = None
+        self.current_joints: list[JointState] = []
+        self.current_pose: CartesianPose | None = None
         self.is_connected = False
 
     @abstractmethod
@@ -115,23 +115,23 @@ class BaseArmController(ABC):
 
     @abstractmethod
     async def move_joints(
-        self, joint_positions: List[float], velocity: Optional[float] = None
+        self, joint_positions: list[float], velocity: float | None = None
     ) -> bool:
         """Move to joint positions."""
         pass
 
     @abstractmethod
-    async def move_cartesian(self, pose: CartesianPose, velocity: Optional[float] = None) -> bool:
+    async def move_cartesian(self, pose: CartesianPose, velocity: float | None = None) -> bool:
         """Move to cartesian pose."""
         pass
 
     @abstractmethod
-    async def get_joint_states(self) -> List[JointState]:
+    async def get_joint_states(self) -> list[JointState]:
         """Get current joint states."""
         pass
 
     @abstractmethod
-    async def get_cartesian_pose(self) -> Optional[CartesianPose]:
+    async def get_cartesian_pose(self) -> CartesianPose | None:
         """Get current end-effector pose."""
         pass
 
@@ -146,7 +146,7 @@ class BaseArmController(ABC):
         pass
 
     async def move_joint_trajectory(
-        self, waypoints: List[List[float]], durations: List[float]
+        self, waypoints: list[list[float]], durations: list[float]
     ) -> bool:
         """Execute joint trajectory."""
         for i, joints in enumerate(waypoints):
@@ -228,7 +228,7 @@ class URController(BaseArmController):
             self._node.destroy_node()
 
     async def move_joints(
-        self, joint_positions: List[float], _velocity: Optional[float] = None
+        self, joint_positions: list[float], _velocity: float | None = None
     ) -> bool:
         """Move UR to joint positions.
 
@@ -271,7 +271,7 @@ class URController(BaseArmController):
             self.state = ArmState.ERROR
             return False
 
-    async def move_cartesian(self, pose: CartesianPose, _velocity: Optional[float] = None) -> bool:
+    async def move_cartesian(self, pose: CartesianPose, _velocity: float | None = None) -> bool:
         """UR cartesian move (requires IK).
 
         Args:
@@ -283,11 +283,11 @@ class URController(BaseArmController):
         # For now, return False to indicate not implemented
         return False
 
-    async def get_joint_states(self) -> List[JointState]:
+    async def get_joint_states(self) -> list[JointState]:
         """Get current joint states."""
         return self.current_joints
 
-    async def get_cartesian_pose(self) -> Optional[CartesianPose]:
+    async def get_cartesian_pose(self) -> CartesianPose | None:
         """Get current pose."""
         return self.current_pose
 
@@ -313,7 +313,7 @@ class URController(BaseArmController):
         """Callback for joint state updates."""
         self.current_joints = [
             JointState(position=p, velocity=v, effort=e)
-            for p, v, e in zip(msg.position, msg.velocity, msg.effort)
+            for p, v, e in zip(msg.position, msg.velocity, msg.effort, strict=False)
         ]
 
 
@@ -348,7 +348,7 @@ class XArmController(BaseArmController):
         self.is_connected = False
 
     async def move_joints(
-        self, joint_positions: List[float], _velocity: Optional[float] = None
+        self, joint_positions: list[float], _velocity: float | None = None
     ) -> bool:
         """Move joints to specified positions.
 
@@ -360,7 +360,7 @@ class XArmController(BaseArmController):
         await asyncio.sleep(2)
         return True
 
-    async def move_cartesian(self, pose: CartesianPose, _velocity: Optional[float] = None) -> bool:
+    async def move_cartesian(self, pose: CartesianPose, _velocity: float | None = None) -> bool:
         """Move to cartesian pose.
 
         Args:
@@ -373,11 +373,11 @@ class XArmController(BaseArmController):
         logger.info(f"xArm cartesian: ({pose.x:.3f}, {pose.y:.3f}, {pose.z:.3f})")
         return True
 
-    async def get_joint_states(self) -> List[JointState]:
+    async def get_joint_states(self) -> list[JointState]:
         """Get current joint states."""
         return []
 
-    async def get_cartesian_pose(self) -> Optional[CartesianPose]:
+    async def get_cartesian_pose(self) -> CartesianPose | None:
         """Get current cartesian pose."""
         return None
 
@@ -417,7 +417,7 @@ class ArmRobotPlugin(Plugin):
         self.config = ArmConfig(
             arm_type=self.arm_type, ros_version=ros_version, namespace=namespace
         )
-        self.controller: Optional[BaseArmController] = None
+        self.controller: BaseArmController | None = None
         self._init_controller()
 
     def _init_controller(self):
@@ -447,7 +447,7 @@ class ArmRobotPlugin(Plugin):
         if self.controller:
             await self.controller.disconnect()
 
-    async def handle_message(self, message: Message, _identity: Identity) -> Optional[Message]:
+    async def handle_message(self, message: Message, _identity: Identity) -> Message | None:
         """Route arm.* commands from the bridge message bus.
 
         Args:
@@ -467,7 +467,7 @@ class ArmRobotPlugin(Plugin):
             telemetry=Telemetry(topic="/arm/result", data=result),
         )
 
-    async def handle_command(self, command: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_command(self, command: str, params: dict[str, Any]) -> dict[str, Any]:
         """Handle arm-specific commands."""
         if not self.controller:
             return {"error": "Controller not initialized"}
@@ -489,7 +489,7 @@ class ArmRobotPlugin(Plugin):
                 if self.controller is None:
                     return {"error": "Controller not initialized"}
                 joints = await self.controller.get_joint_states()
-                current_pose: Optional[CartesianPose] = await self.controller.get_cartesian_pose()
+                current_pose: CartesianPose | None = await self.controller.get_cartesian_pose()
                 return {
                     "state": self.controller.state.value,
                     "joints": [{"pos": j.position} for j in joints],

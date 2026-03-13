@@ -11,20 +11,20 @@ Exposes safety validation as ROS2 services:
 Target: <10ms validation response time
 """
 
-import rclpy
-from rclpy.node import Node
-from rclpy.callback_groups import ReentrantCallbackGroup
 import time
-import uuid
-from typing import Dict, List, Optional, Any
+from typing import Any
+
+import rclpy
+from rclpy.callback_groups import ReentrantCallbackGroup
+from rclpy.node import Node
 
 # Import safety validator core
 from .validator import SafetyValidatorNode
 
 # Try to import ROS message types
 try:
-    from agent_ros_bridge_msgs.srv import ValidateTrajectory, GetSafetyLimits, GetSafetyStatus
     from agent_ros_bridge_msgs.msg import SafetyCertificate, SafetyLimits
+    from agent_ros_bridge_msgs.srv import GetSafetyLimits, GetSafetyStatus, ValidateTrajectory
 
     MSGS_AVAILABLE = True
 except ImportError:
@@ -147,12 +147,12 @@ class SafetyValidatorROSNode(Node):
         response.uptime_seconds = stats.get("uptime_seconds", 0.0)
         return response
 
-    def _trajectory_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _trajectory_msg_to_dict(self, msg) -> dict[str, Any]:
         """Convert trajectory ROS message to dictionary"""
         # Placeholder - implement based on actual message definition
         return {"waypoints": [], "velocities": [], "accelerations": []}
 
-    def _limits_msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _limits_msg_to_dict(self, msg) -> dict[str, Any]:
         """Convert limits ROS message to dictionary"""
         return {
             "max_velocity": msg.max_velocity,
@@ -168,7 +168,7 @@ class SafetyValidatorROSNode(Node):
             },
         }
 
-    def _limits_dict_to_msg(self, limits: Dict[str, Any]):
+    def _limits_dict_to_msg(self, limits: dict[str, Any]):
         """Convert limits dictionary to ROS message"""
         msg = SafetyLimits()
         msg.max_velocity = limits.get("max_velocity", 1.0)
@@ -183,7 +183,7 @@ class SafetyValidatorROSNode(Node):
         msg.workspace_z_max = bounds.get("z_max", 2.0)
         return msg
 
-    def _certificate_dict_to_msg(self, cert: Optional[Dict[str, Any]]):
+    def _certificate_dict_to_msg(self, cert: dict[str, Any] | None):
         """Convert certificate dictionary to ROS message"""
         if cert is None:
             return SafetyCertificate()

@@ -8,9 +8,10 @@ import asyncio
 import json
 import struct
 import time
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
 from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
 
 try:
     import lcm
@@ -18,6 +19,8 @@ try:
     LCM_AVAILABLE = True
 except ImportError:
     LCM_AVAILABLE = False
+
+import contextlib
 
 from agent_ros_bridge.gateway_v2.core import Transport
 
@@ -77,7 +80,7 @@ class LCMPublisher:
         self.transport = transport
         self.channel = channel
 
-    def publish(self, data: Union[bytes, dict, str]) -> None:
+    def publish(self, data: bytes | dict | str) -> None:
         """Publish data to the channel."""
         if isinstance(data, dict):
             data = json.dumps(data).encode("utf-8")
@@ -120,7 +123,7 @@ class LCMTransport(Transport):
     Inspired by dimensionalOS/dimos LCM implementation.
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         super().__init__("lcm", config or {})
         import logging
 
@@ -130,10 +133,10 @@ class LCMTransport(Transport):
         self.shared_memory = self.config.get("shared_memory", True)
         self.queue_size = self.config.get("queue_size", 1000)
 
-        self._lcm: Optional[Any] = None
-        self._subscriptions: Dict[str, List[Callable]] = defaultdict(list)
+        self._lcm: Any | None = None
+        self._subscriptions: dict[str, list[Callable]] = defaultdict(list)
         self._running = False
-        self._handle_task: Optional[asyncio.Task] = None
+        self._handle_task: asyncio.Task | None = None
 
         # Local message queue for shared memory mode
         self._local_queue: asyncio.Queue = asyncio.Queue(maxsize=self.queue_size)
@@ -161,10 +164,8 @@ class LCMTransport(Transport):
         self._running = False
         if self._handle_task:
             self._handle_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._handle_task
-            except asyncio.CancelledError:
-                pass
         self.logger.info("LCM transport stopped")
 
     async def _handle_loop(self) -> None:
@@ -270,11 +271,11 @@ class SharedMemoryTransport(LCMTransport):
     Falls back to LCM for cross-machine communication.
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         super().__init__(config or {})
         self.name = "shm"  # Override name
         self.shared_memory = True
-        self._shared_buffers: Dict[str, Any] = {}
+        self._shared_buffers: dict[str, Any] = {}
 
     def _publish_raw(self, msg: LCMMessage) -> None:
         """Publish using shared memory when possible."""

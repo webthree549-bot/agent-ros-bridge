@@ -5,14 +5,16 @@ and recovery strategies for robot motion execution.
 """
 
 import asyncio
-import time
+import contextlib
 import math
+import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any, Callable, Union
 from enum import Enum
+from typing import Any
 
 # Import motion planning components
-from agent_ros_bridge.ai.motion_planner import MotionPlan, SafetyCertificate
+from agent_ros_bridge.ai.motion_planner import MotionPlan
 from agent_ros_bridge.ai.motion_primitives import MotionPrimitive
 
 
@@ -43,7 +45,7 @@ class Anomaly:
     description: str
     severity: str = "MEDIUM"
     timestamp: float = field(default_factory=time.time)
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -58,7 +60,7 @@ class RecoveryResult:
 
     success: bool = False
     action_taken: str = ""
-    new_plan: Optional[MotionPlan] = None
+    new_plan: MotionPlan | None = None
 
 
 @dataclass
@@ -97,12 +99,12 @@ class ExecutionState:
         target_pose: Target pose for current primitive
     """
 
-    plan: Optional[MotionPlan] = None
+    plan: MotionPlan | None = None
     current_primitive_index: int = 0
     progress: float = 0.0
     start_time: float = 0.0
-    current_pose: Optional[Any] = None
-    target_pose: Optional[Any] = None
+    current_pose: Any | None = None
+    target_pose: Any | None = None
     last_progress_update: float = 0.0
     time_in_current_state: float = 0.0
 
@@ -167,10 +169,8 @@ class TelemetrySubscriber:
         """
         for et, callback in self._callbacks:
             if et == event_type:
-                try:
+                with contextlib.suppress(Exception):
                     callback(data)
-                except Exception:
-                    pass
 
 
 class RecoveryHandler:
@@ -356,7 +356,7 @@ class ExecutionMonitorNode:
         self.execute_motion_server.register_goal_callback = MagicMock()
 
     async def execute_motion(
-        self, plan: MotionPlan, progress_callback: Optional[Callable[[float], None]] = None
+        self, plan: MotionPlan, progress_callback: Callable[[float], None] | None = None
     ) -> ExecuteMotionResult:
         """Execute a motion plan with monitoring.
 
@@ -452,7 +452,7 @@ class ExecutionMonitorNode:
             self._is_executing = False
 
     async def _execute_primitive(
-        self, primitive: MotionPrimitive, progress_callback: Optional[Callable[[float], None]]
+        self, primitive: MotionPrimitive, progress_callback: Callable[[float], None] | None
     ) -> bool:
         """Execute a single primitive with monitoring.
 
@@ -516,9 +516,9 @@ class ExecutionMonitorNode:
 
     def detect_anomaly(
         self,
-        current_pose: Optional[Any] = None,
-        target_pose: Optional[Any] = None,
-        planned_pose: Optional[Any] = None,
+        current_pose: Any | None = None,
+        target_pose: Any | None = None,
+        planned_pose: Any | None = None,
         progress: float = 0.0,
         time_in_current_state: float = 0.0,
         elapsed_time: float = 0.0,
@@ -526,7 +526,7 @@ class ExecutionMonitorNode:
         expected_time_remaining: float = 0.0,
         obstacle_detected: bool = False,
         obstacle_distance: float = float("inf"),
-    ) -> Optional[Anomaly]:
+    ) -> Anomaly | None:
         """Detect execution anomalies.
 
         Args:

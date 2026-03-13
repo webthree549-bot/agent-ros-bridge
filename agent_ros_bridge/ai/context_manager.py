@@ -16,26 +16,25 @@ Architecture:
     Location DB / Robot Pose / Conversation History
 """
 
-import rclpy
-from rclpy.node import Node
-from rclpy.duration import Duration
 import time
-from typing import Dict, Optional, Any
 from dataclasses import dataclass, field
 
-from agent_ros_bridge_msgs.srv import ResolveContext
-from agent_ros_bridge_msgs.msg import ContextQuery, ContextResponse, Intent
-from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
+import rclpy
+from geometry_msgs.msg import PoseStamped
+from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
+
+from agent_ros_bridge_msgs.msg import ContextQuery, ContextResponse, Intent
+from agent_ros_bridge_msgs.srv import ResolveContext
 
 
 @dataclass
 class ConversationContext:
     """Context for a conversation session."""
 
-    last_object: Optional[str] = None
-    last_location: Optional[str] = None
-    last_intent: Optional[Intent] = None
+    last_object: str | None = None
+    last_location: str | None = None
+    last_intent: Intent | None = None
     mentioned_objects: list = field(default_factory=list)
     visited_locations: list = field(default_factory=list)
 
@@ -58,7 +57,7 @@ class ContextManagerNode(Node):
     """
 
     # Location database: name → (x, y, z, frame_id)
-    LOCATION_DATABASE: Dict[str, tuple] = {
+    LOCATION_DATABASE: dict[str, tuple] = {
         "kitchen": (5.0, 3.0, 0.0, "map"),
         "office": (10.0, 5.0, 0.0, "map"),
         "bedroom": (2.0, 8.0, 0.0, "map"),
@@ -84,13 +83,13 @@ class ContextManagerNode(Node):
         self._tf_listener = TransformListener(self._tf_buffer, self)
 
         # Robot pose cache: robot_id → PoseStamped
-        self._robot_poses: Dict[str, PoseStamped] = {}
+        self._robot_poses: dict[str, PoseStamped] = {}
 
         # Conversation context: robot_id → ConversationContext
-        self._conversation_context: Dict[str, ConversationContext] = {}
+        self._conversation_context: dict[str, ConversationContext] = {}
 
         # Session context: session_id → ConversationContext
-        self._session_context: Dict[str, ConversationContext] = {}
+        self._session_context: dict[str, ConversationContext] = {}
 
         # Timer for updating robot poses from TF
         self._pose_update_timer = self.create_timer(0.1, self._update_robot_poses)  # 10Hz
@@ -141,7 +140,7 @@ class ContextManagerNode(Node):
         return response
 
     def _get_conversation_context(
-        self, robot_id: str, session_id: Optional[str]
+        self, robot_id: str, session_id: str | None
     ) -> ConversationContext:
         """Get or create conversation context for robot/session."""
         if session_id and session_id in self._session_context:
@@ -311,7 +310,7 @@ class ContextManagerNode(Node):
                 # TF not available, use cached pose
                 pass
 
-    def update_context(self, robot_id: str, session_id: Optional[str], intent: Intent) -> None:
+    def update_context(self, robot_id: str, session_id: str | None, intent: Intent) -> None:
         """
         Update conversation context with parsed intent.
 

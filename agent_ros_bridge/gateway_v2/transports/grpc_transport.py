@@ -3,16 +3,16 @@
 Provides high-performance, type-safe communication for robot control.
 """
 
-import asyncio
 import logging
-from typing import Dict, Any, Optional, Callable
+from collections.abc import Callable
 from concurrent import futures
+from typing import Any
 
 import grpc
 from grpc import aio
 
-from .base import BaseTransport
 from ..auth.jwt import JWTAuthenticator
+from .base import BaseTransport
 
 # Generated protobuf imports (would be generated from .proto files)
 # from . import bridge_pb2
@@ -72,12 +72,12 @@ class GRPCTransport(BaseTransport):
 
     transport_type = "grpc"
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__(config)
         self.host = config.get("host", "0.0.0.0")
         self.port = config.get("port", 50051)
         self.max_workers = config.get("max_workers", 10)
-        self.server: Optional[aio.Server] = None
+        self.server: aio.Server | None = None
         self.authenticator = JWTAuthenticator(config.get("jwt_secret"))
 
     async def start(self) -> None:
@@ -114,7 +114,7 @@ class GRPCTransport(BaseTransport):
             await self.server.stop(grace_period=5)
             logger.info("gRPC server stopped")
 
-    async def handle_command(self, command: Dict[str, Any]) -> Dict[str, Any]:
+    async def handle_command(self, command: dict[str, Any]) -> dict[str, Any]:
         """Handle incoming command."""
         # This would be connected to the bridge's command processor
         logger.debug(f"Received gRPC command: {command}")
@@ -128,7 +128,7 @@ class GRPCClient:
         self.host = host
         self.port = port
         self.token = token
-        self.channel: Optional[aio.Channel] = None
+        self.channel: aio.Channel | None = None
         # self.stub: Optional[bridge_pb2_grpc.BridgeStub] = None
 
     async def connect(self) -> None:
@@ -147,7 +147,7 @@ class GRPCClient:
             await self.channel.close()
             logger.info("Disconnected from gRPC server")
 
-    async def execute_command(self, action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_command(self, action: str, parameters: dict[str, Any]) -> dict[str, Any]:
         """Execute command via gRPC."""
         if not self.channel:
             raise RuntimeError("Not connected to server")

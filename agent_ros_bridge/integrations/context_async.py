@@ -4,11 +4,12 @@ Async version of context.py using aiosqlite for non-blocking DB operations.
 """
 
 import json
-import aiosqlite
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any
+
+import aiosqlite
 
 
 @dataclass
@@ -16,12 +17,12 @@ class ConversationContext:
     """Runtime context for a conversation session."""
 
     session_id: str
-    current_location: Optional[str] = None
-    last_action: Optional[str] = None
-    last_result: Optional[Dict] = None
-    known_locations: Dict[str, Dict] = None
-    pending_task: Optional[str] = None
-    conversation_history: List[Dict] = None
+    current_location: str | None = None
+    last_action: str | None = None
+    last_result: dict | None = None
+    known_locations: dict[str, dict] = None
+    pending_task: str | None = None
+    conversation_history: list[dict] = None
 
     def __post_init__(self):
         if self.known_locations is None:
@@ -29,7 +30,7 @@ class ConversationContext:
         if self.conversation_history is None:
             self.conversation_history = []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "session_id": self.session_id,
@@ -51,7 +52,7 @@ class AsyncContextManager:
 
     def __init__(self, db_path: str = ".agent_ros_context.db"):
         self.db_path = Path(db_path)
-        self._runtime_contexts: Dict[str, ConversationContext] = {}
+        self._runtime_contexts: dict[str, ConversationContext] = {}
         self._initialized = False
 
     async def _init_db(self):
@@ -110,7 +111,7 @@ class AsyncContextManager:
             conn.row_factory = aiosqlite.Row
 
             async with conn.execute(
-                """SELECT current_location, last_action, last_result, 
+                """SELECT current_location, last_action, last_result,
                           known_locations, pending_task
                    FROM contexts WHERE session_id = ?""",
                 (session_id,),
@@ -137,15 +138,15 @@ class AsyncContextManager:
             self._runtime_contexts[session_id] = context
             return context
 
-    async def _load_history(self, conn, session_id: str, limit: int = 10) -> List[Dict]:
+    async def _load_history(self, conn, session_id: str, limit: int = 10) -> list[dict]:
         """Load recent command history asynchronously."""
         history = []
 
         async with conn.execute(
             """SELECT command, interpretation, result, timestamp
-               FROM history 
-               WHERE session_id = ? 
-               ORDER BY timestamp DESC 
+               FROM history
+               WHERE session_id = ?
+               ORDER BY timestamp DESC
                LIMIT ?""",
             (session_id, limit),
         ) as cursor:
@@ -167,8 +168,8 @@ class AsyncContextManager:
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT OR REPLACE INTO contexts 
-                   (session_id, current_location, last_action, last_result, 
+                """INSERT OR REPLACE INTO contexts
+                   (session_id, current_location, last_action, last_result,
                     known_locations, pending_task, updated_at)
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
@@ -184,14 +185,14 @@ class AsyncContextManager:
             await conn.commit()
 
     async def log_interaction(
-        self, session_id: str, command: str, interpretation: Dict, result: Dict
+        self, session_id: str, command: str, interpretation: dict, result: dict
     ):
         """Log a command interaction to history asynchronously."""
         await self._init_db()
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT INTO history 
+                """INSERT INTO history
                    (session_id, command, interpretation, result)
                    VALUES (?, ?, ?, ?)""",
                 (session_id, command, json.dumps(interpretation), json.dumps(result)),
@@ -210,7 +211,7 @@ class AsyncContextManager:
         )
         context.conversation_history = context.conversation_history[-10:]
 
-    async def learn_location(self, session_id: str, name: str, coordinates: Dict):
+    async def learn_location(self, session_id: str, name: str, coordinates: dict):
         """Learn a named location asynchronously."""
         await self._init_db()
 
@@ -218,7 +219,7 @@ class AsyncContextManager:
 
         async with aiosqlite.connect(self.db_path) as conn:
             await conn.execute(
-                """INSERT OR REPLACE INTO locations 
+                """INSERT OR REPLACE INTO locations
                    (session_id, name, coordinates)
                    VALUES (?, ?, ?)""",
                 (session_id, name_lower, json.dumps(coordinates)),
@@ -230,7 +231,7 @@ class AsyncContextManager:
         context.known_locations[name_lower] = coordinates
         context.current_location = name_lower
 
-    async def get_location(self, session_id: str, name: str) -> Optional[Dict]:
+    async def get_location(self, session_id: str, name: str) -> dict | None:
         """Get coordinates for a learned location asynchronously."""
         await self._init_db()
 
@@ -259,7 +260,7 @@ class AsyncContextManager:
 
         return None
 
-    async def get_last_n_commands(self, session_id: str, n: int = 5) -> List[Dict]:
+    async def get_last_n_commands(self, session_id: str, n: int = 5) -> list[dict]:
         """Get recent command history asynchronously."""
         context = await self.get_context(session_id)
         return context.conversation_history[-n:]

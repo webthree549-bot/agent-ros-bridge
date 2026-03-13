@@ -16,14 +16,15 @@ Architecture:
                    LLM Fallback Parser → Return Intent
 """
 
-import rclpy
-from rclpy.node import Node
 import re
 import time
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Any
 
+import rclpy
+from rclpy.node import Node
+
+from agent_ros_bridge_msgs.msg import Entity, Intent
 from agent_ros_bridge_msgs.srv import ParseIntent
-from agent_ros_bridge_msgs.msg import Intent, Entity, Constraint
 
 
 class IntentParserNode(Node):
@@ -46,12 +47,12 @@ class IntentParserNode(Node):
     TARGET_CONFIDENCE = 0.95  # Minimum confidence for rule-based
 
     # Performance tracking
-    _latency_history: List[float] = []
+    _latency_history: list[float] = []
     _max_history_size = 1000
 
     # Intent patterns (rule-based)
     # Each pattern uses named groups for entity extraction
-    PATTERNS: Dict[str, List[str]] = {
+    PATTERNS: dict[str, list[str]] = {
         "NAVIGATE": [
             r"go\s+to\s+(?:the\s+)?(?P<location>\w+)",
             r"navigate\s+to\s+(?:the\s+)?(?P<location>\w+)",
@@ -97,7 +98,7 @@ class IntentParserNode(Node):
     }
 
     # Compiled patterns (initialized in __init__)
-    _compiled_patterns: Dict[str, List[re.Pattern]] = {}
+    _compiled_patterns: dict[str, list[re.Pattern]] = {}
 
     def __init__(self):
         super().__init__("intent_parser")
@@ -325,7 +326,7 @@ class IntentParserNode(Node):
                 f"p95 latency ({p95:.2f}ms) exceeds target ({self.TARGET_LATENCY_MS}ms)"
             )
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """
         Get current performance statistics.
 

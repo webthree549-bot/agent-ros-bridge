@@ -27,11 +27,11 @@ except ImportError:
 # LCM is optional - only import if lcm is available
 try:
     from agent_ros_bridge.gateway_v2.transports.lcm_transport import (
-        LCMTransport,
-        SharedMemoryTransport,
         LCMMessage,
         LCMPublisher,
         LCMSubscriber,
+        LCMTransport,
+        SharedMemoryTransport,
     )
 
     _LCM_AVAILABLE = True

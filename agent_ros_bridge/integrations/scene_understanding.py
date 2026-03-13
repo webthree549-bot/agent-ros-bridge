@@ -10,9 +10,9 @@ Fulfills SKILL promises like:
 """
 
 import base64
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class PerceptionBackend(Enum):
@@ -30,8 +30,8 @@ class DetectedObject:
 
     label: str
     confidence: float
-    bounding_box: Optional[Dict[str, int]] = None  # x, y, width, height
-    distance_estimate: Optional[float] = None  # meters
+    bounding_box: dict[str, int] | None = None  # x, y, width, height
+    distance_estimate: float | None = None  # meters
 
 
 @dataclass
@@ -39,9 +39,9 @@ class SceneDescription:
     """Description of a scene."""
 
     summary: str
-    objects: List[DetectedObject]
+    objects: list[DetectedObject]
     spatial_layout: str
-    hazards: List[str]
+    hazards: list[str]
     confidence: float
 
 
@@ -58,7 +58,7 @@ class SceneUnderstanding:
     """
 
     def __init__(
-        self, backend: PerceptionBackend = PerceptionBackend.NONE, api_key: Optional[str] = None
+        self, backend: PerceptionBackend = PerceptionBackend.NONE, api_key: str | None = None
     ):
         """Initialize scene understanding.
 
@@ -99,7 +99,7 @@ class SceneUnderstanding:
                 )
                 self.backend = PerceptionBackend.NONE
 
-    async def describe_scene(self, image_data: bytes, camera_info: Dict = None) -> SceneDescription:
+    async def describe_scene(self, image_data: bytes, camera_info: dict = None) -> SceneDescription:
         """Generate description of scene from camera image.
 
         Args:
@@ -120,7 +120,7 @@ class SceneUnderstanding:
 
         return self._describe_basic(camera_info)
 
-    def _describe_basic(self, camera_info: Dict = None) -> SceneDescription:
+    def _describe_basic(self, camera_info: dict = None) -> SceneDescription:
         """Generate basic description without vision API.
 
         This provides metadata only when no vision API is available.
@@ -139,7 +139,7 @@ class SceneUnderstanding:
             confidence=0.0,
         )
 
-    async def _describe_with_claude(self, image_data: bytes, camera_info: Dict) -> SceneDescription:
+    async def _describe_with_claude(self, image_data: bytes, camera_info: dict) -> SceneDescription:
         """Generate description using Claude vision API."""
         try:
             # Encode image to base64
@@ -166,7 +166,7 @@ class SceneUnderstanding:
                             {
                                 "type": "text",
                                 "text": """Describe what you see in this robot camera image.
-                            
+
 Provide:
 1. A brief summary of the scene
 2. List of visible objects
@@ -189,10 +189,9 @@ Be concise but informative.""",
             print(f"Vision API error: {e}")
             return self._describe_basic(camera_info)
 
-    async def _describe_with_openai(self, image_data: bytes, camera_info: Dict) -> SceneDescription:
+    async def _describe_with_openai(self, image_data: bytes, camera_info: dict) -> SceneDescription:
         """Generate description using GPT-4V API."""
         try:
-            import openai
 
             image_b64 = base64.b64encode(image_data).decode("utf-8")
 
@@ -261,7 +260,7 @@ Be concise but informative.""",
         )
 
     async def answer_query(
-        self, query: str, image_data: bytes = None, camera_info: Dict = None
+        self, query: str, image_data: bytes = None, camera_info: dict = None
     ) -> str:
         """Answer a specific query about the scene.
 
@@ -305,7 +304,7 @@ Be concise but informative.""",
             "a vision API. Basic camera operations are functional."
         )
 
-    def get_perception_status(self) -> Dict[str, Any]:
+    def get_perception_status(self) -> dict[str, Any]:
         """Get status of perception system.
 
         Returns:
@@ -352,7 +351,7 @@ async def describe_the_room(scene: SceneUnderstanding, image_data: bytes = None)
         return "Room description requires camera image capture."
 
 
-def is_path_clear(lidar_data: List[float], threshold: float = 0.5) -> bool:
+def is_path_clear(lidar_data: list[float], threshold: float = 0.5) -> bool:
     """Check if path is clear based on LiDAR data.
 
     Args:

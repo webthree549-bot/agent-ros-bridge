@@ -5,10 +5,7 @@ All primitives include parameter validation and safety constraints.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, Union
-from enum import Enum
-import time
-import math
+from typing import Any
 
 # Mock PoseStamped for when ROS2 is not available
 try:
@@ -63,8 +60,8 @@ class MotionPrimitive:
 
     type: str  # "NAVIGATE", "MANIPULATE", "GRIPPER"
     primitive_id: str
-    target_pose: Optional[Any] = None
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    target_pose: Any | None = None
+    parameters: dict[str, Any] = field(default_factory=dict)
     expected_duration: float = 0.0
 
     def validate(self) -> bool:
@@ -77,7 +74,7 @@ class MotionPrimitive:
         """
         raise NotImplementedError("Subclasses must implement validate()")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert primitive to dictionary representation.
 
         Returns:
@@ -91,7 +88,7 @@ class MotionPrimitive:
             "target_pose": self._pose_to_dict(self.target_pose) if self.target_pose else None,
         }
 
-    def _pose_to_dict(self, pose) -> Dict[str, Any]:
+    def _pose_to_dict(self, pose) -> dict[str, Any]:
         """Convert pose to dictionary.
 
         Args:
@@ -138,7 +135,7 @@ class NavigateToPosePrimitive(MotionPrimitive):
         True
     """
 
-    def __init__(self, target_pose: Optional[Any], max_velocity: float = 0.5):
+    def __init__(self, target_pose: Any | None, max_velocity: float = 0.5):
         """Initialize navigate to pose primitive.
 
         Args:
@@ -168,9 +165,7 @@ class NavigateToPosePrimitive(MotionPrimitive):
         """
         if self.target_pose is None:
             return False
-        if self.parameters.get("max_velocity", 0) <= 0:
-            return False
-        return True
+        return not self.parameters.get("max_velocity", 0) <= 0
 
     @staticmethod
     def _estimate_duration_static(max_velocity: float) -> float:
@@ -252,9 +247,7 @@ class PickObjectPrimitive(MotionPrimitive):
         object_id = self.parameters.get("object_id")
         if not object_id:
             return False
-        if self.parameters.get("gripper_force", 0) <= 0:
-            return False
-        return True
+        return not self.parameters.get("gripper_force", 0) <= 0
 
 
 class PlaceObjectPrimitive(MotionPrimitive):
@@ -294,9 +287,7 @@ class PlaceObjectPrimitive(MotionPrimitive):
         object_id = self.parameters.get("object_id")
         if not object_id:
             return False
-        if self.target_pose is None:
-            return False
-        return True
+        return self.target_pose is not None
 
 
 class GripperControlPrimitive(MotionPrimitive):
@@ -313,7 +304,7 @@ class GripperControlPrimitive(MotionPrimitive):
 
     VALID_ACTIONS = ["open", "close"]
 
-    def __init__(self, action: str, force: float = 5.0, position: Optional[float] = None):
+    def __init__(self, action: str, force: float = 5.0, position: float | None = None):
         """Initialize gripper control primitive.
 
         Args:
@@ -402,9 +393,7 @@ class RotateInPlacePrimitive(MotionPrimitive):
         Returns:
             True if parameters are valid
         """
-        if self.parameters.get("angular_velocity", 0) <= 0:
-            return False
-        return True
+        return not self.parameters.get("angular_velocity", 0) <= 0
 
     def _estimate_duration(self) -> float:
         """Estimate rotation duration.
@@ -451,9 +440,7 @@ class MoveCartesianPrimitive(MotionPrimitive):
         """
         if self.target_pose is None:
             return False
-        if self.parameters.get("linear_velocity", 0) <= 0:
-            return False
-        return True
+        return not self.parameters.get("linear_velocity", 0) <= 0
 
 
 class MotionPrimitiveFactory:
@@ -528,7 +515,7 @@ class MotionPrimitiveFactory:
         )
 
     def create_gripper_control(
-        self, action: str, force: float = 5.0, position: Optional[float] = None
+        self, action: str, force: float = 5.0, position: float | None = None
     ) -> GripperControlPrimitive:
         """Create a gripper control primitive.
 
@@ -570,7 +557,7 @@ class MotionPrimitiveFactory:
         """
         return MoveCartesianPrimitive(target_pose=target_pose, linear_velocity=linear_velocity)
 
-    def create_from_dict(self, config: Dict[str, Any]) -> Optional[MotionPrimitive]:
+    def create_from_dict(self, config: dict[str, Any]) -> MotionPrimitive | None:
         """Create a primitive from a configuration dictionary.
 
         Args:
@@ -644,7 +631,7 @@ class MotionPrimitiveFactory:
 
         return None
 
-    def _dict_to_pose(self, pose_dict: Optional[Dict[str, Any]]) -> Optional[Any]:
+    def _dict_to_pose(self, pose_dict: dict[str, Any] | None) -> Any | None:
         """Convert dictionary to PoseStamped.
 
         Args:
@@ -737,7 +724,7 @@ def place_object(
 
 
 def gripper_control(
-    action: str, force: float = 5.0, position: Optional[float] = None
+    action: str, force: float = 5.0, position: float | None = None
 ) -> GripperControlPrimitive:
     """Create a gripper control primitive.
 

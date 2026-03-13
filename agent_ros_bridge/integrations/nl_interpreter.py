@@ -5,10 +5,10 @@ Works without LLM as a fallback.
 """
 
 import re
-from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass
+from typing import Any
 
-from .nl_params import infer_speed, infer_distance, infer_angle
+from .nl_params import infer_angle, infer_speed
 
 
 @dataclass
@@ -16,7 +16,7 @@ class InterpretationResult:
     """Result of NL interpretation."""
 
     tool: str
-    params: Dict[str, Any]
+    params: dict[str, Any]
     confidence: float = 1.0
     explanation: str = ""
 
@@ -36,7 +36,7 @@ class RuleBasedInterpreter:
     def __init__(self):
         self.patterns = self._compile_patterns()
 
-    def _compile_patterns(self) -> List[Tuple[re.Pattern, callable]]:
+    def _compile_patterns(self) -> list[tuple[re.Pattern, callable]]:
         """Compile regex patterns for common commands."""
         return [
             # Movement patterns
@@ -89,7 +89,7 @@ class RuleBasedInterpreter:
             (re.compile(r"halt\s+(?:all\s+)?(?:operations?)?", re.I), self._handle_estop),
         ]
 
-    def interpret(self, nl_command: str, context: Optional[Dict] = None) -> Dict[str, Any]:
+    def interpret(self, nl_command: str, context: dict | None = None) -> dict[str, Any]:
         """Interpret natural language command.
 
         Args:

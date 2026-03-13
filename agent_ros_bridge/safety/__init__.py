@@ -22,10 +22,10 @@ Usage:
 
 # High-level safety manager (from integrations)
 from agent_ros_bridge.integrations.safety import (
-    SafetyManager,
-    SafetyLevel,
-    SafetyPolicy,
     ConfirmationRequest,
+    SafetyLevel,
+    SafetyManager,
+    SafetyPolicy,
 )
 
 # Core validator (ROS-agnostic)
@@ -33,10 +33,10 @@ from .validator import SafetyValidatorNode
 
 # Low-level ROS2 safety nodes (new in v0.6.0)
 try:
-    from .limits import SafetyLimitsNode
     from .emergency_stop import EmergencyStopNode
-    from .watchdog import WatchdogNode
+    from .limits import SafetyLimitsNode
     from .validator_node import SafetyValidatorROSNode
+    from .watchdog import WatchdogNode
 
     _ROS2_NODES_AVAILABLE = True
 except ImportError:

@@ -101,10 +101,10 @@ if FLEET_AVAILABLE:
 # Standalone Robot API (new in v0.6.1)
 try:
     from .robot_api import (
-        RobotController,
-        NavigationGoal,
         ManipulationGoal,
+        NavigationGoal,
         RobotCommandResult,
+        RobotController,
     )
 
     _ROBOT_API_AVAILABLE = True

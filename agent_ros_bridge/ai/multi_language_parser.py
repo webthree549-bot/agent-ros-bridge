@@ -15,8 +15,8 @@ Uses translation + pattern matching or native patterns.
 """
 
 import re
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -25,8 +25,8 @@ class LanguagePatterns:
 
     language_code: str
     language_name: str
-    patterns: Dict[str, List[str]]
-    entity_patterns: Dict[str, List[str]]
+    patterns: dict[str, list[str]]
+    entity_patterns: dict[str, list[str]]
 
 
 class MultiLanguageParser:
@@ -218,7 +218,7 @@ class MultiLanguageParser:
             default_language: Default language code (e.g., 'en', 'es')
         """
         self._default_language = default_language
-        self._compiled_patterns: Dict[str, Dict[str, List[re.Pattern]]] = {}
+        self._compiled_patterns: dict[str, dict[str, list[re.Pattern]]] = {}
 
         # Compile patterns for all languages
         self._compile_all_patterns()
@@ -279,7 +279,7 @@ class MultiLanguageParser:
         # Default to English
         return "en"
 
-    def parse(self, utterance: str, language: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def parse(self, utterance: str, language: str | None = None) -> dict[str, Any] | None:
         """
         Parse utterance in specified or detected language.
 
@@ -331,7 +331,7 @@ class MultiLanguageParser:
         }
         return mapping.get(group_name, group_name.upper())
 
-    def get_supported_languages(self) -> List[Dict[str, str]]:
+    def get_supported_languages(self) -> list[dict[str, str]]:
         """Get list of supported languages."""
         return [
             {"code": code, "name": data.language_name}

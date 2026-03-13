@@ -5,8 +5,8 @@ Provides distributed, high-performance context storage.
 
 import json
 import logging
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -25,7 +25,7 @@ class RedisContextBackend:
 
     def __init__(self, redis_url: str = "redis://localhost:6379/0"):
         self.redis_url = redis_url
-        self.client: Optional[redis.Redis] = None
+        self.client: redis.Redis | None = None
         self._connected = False
 
     async def connect(self) -> None:
@@ -48,7 +48,7 @@ class RedisContextBackend:
             self._connected = False
             logger.info("Disconnected from Redis")
 
-    async def get_context(self, session_id: str) -> Optional[Dict[str, Any]]:
+    async def get_context(self, session_id: str) -> dict[str, Any] | None:
         """Get context for session.
 
         Args:
@@ -67,7 +67,7 @@ class RedisContextBackend:
             return json.loads(data)
         return None
 
-    async def save_context(self, session_id: str, context: Dict[str, Any], ttl: int = 3600) -> None:
+    async def save_context(self, session_id: str, context: dict[str, Any], ttl: int = 3600) -> None:
         """Save context for session.
 
         Args:
@@ -98,7 +98,7 @@ class RedisContextBackend:
         logger.debug(f"Deleted context for session {session_id}")
 
     async def log_interaction(
-        self, session_id: str, command: str, interpretation: Dict, result: Dict, ttl: int = 86400
+        self, session_id: str, command: str, interpretation: dict, result: dict, ttl: int = 86400
     ) -> None:
         """Log interaction to history.
 
@@ -127,7 +127,7 @@ class RedisContextBackend:
 
         logger.debug(f"Logged interaction for session {session_id}")
 
-    async def get_history(self, session_id: str, n: int = 10) -> List[Dict]:
+    async def get_history(self, session_id: str, n: int = 10) -> list[dict]:
         """Get recent interaction history.
 
         Args:
@@ -150,7 +150,7 @@ class RedisContextBackend:
         return history
 
     async def learn_location(
-        self, session_id: str, name: str, coordinates: Dict[str, float]
+        self, session_id: str, name: str, coordinates: dict[str, float]
     ) -> None:
         """Learn a named location.
 
@@ -166,7 +166,7 @@ class RedisContextBackend:
         await self.client.hset(key, name, json.dumps(coordinates))
         logger.debug(f"Learned location '{name}' for session {session_id}")
 
-    async def get_location(self, session_id: str, name: str) -> Optional[Dict]:
+    async def get_location(self, session_id: str, name: str) -> dict | None:
         """Get coordinates for a learned location.
 
         Args:
@@ -186,7 +186,7 @@ class RedisContextBackend:
             return json.loads(data)
         return None
 
-    async def get_all_locations(self, session_id: str) -> Dict[str, Dict]:
+    async def get_all_locations(self, session_id: str) -> dict[str, dict]:
         """Get all learned locations for session.
 
         Args:
@@ -203,7 +203,7 @@ class RedisContextBackend:
 
         return {name: json.loads(coords) for name, coords in locations.items()}
 
-    async def publish_update(self, channel: str, message: Dict) -> None:
+    async def publish_update(self, channel: str, message: dict) -> None:
         """Publish update to channel.
 
         Args:
@@ -252,7 +252,7 @@ class RedisContextBackend:
         except Exception:
             return False
 
-    async def get_stats(self) -> Dict[str, Any]:
+    async def get_stats(self) -> dict[str, Any]:
         """Get Redis statistics.
 
         Returns:

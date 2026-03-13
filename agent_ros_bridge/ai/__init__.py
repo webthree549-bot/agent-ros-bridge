@@ -9,8 +9,8 @@ This module contains ROS2 nodes for natural language understanding and motion pl
 
 # Existing AI components (may have ROS dependencies)
 try:
-    from .intent_parser import IntentParserNode
     from .context_manager import ContextManagerNode
+    from .intent_parser import IntentParserNode
 
     _HAS_ROS_NODES = True
 except ImportError:
@@ -20,32 +20,31 @@ except ImportError:
     _HAS_ROS_NODES = False
 
 # Motion planning components (ROS-agnostic core)
-from .motion_primitives import (
-    MotionPrimitive,
-    NavigateToPosePrimitive,
-    PickObjectPrimitive,
-    PlaceObjectPrimitive,
-    GripperControlPrimitive,
-    RotateInPlacePrimitive,
-    MoveCartesianPrimitive,
-    MotionPrimitiveFactory,
-    navigate_to_pose,
-    pick_object,
-    place_object,
-    gripper_control,
-    rotate_in_place,
-    move_cartesian,
-)
-
 from .motion_planner import (
-    MotionPlannerNode,
     MotionPlan,
+    MotionPlannerNode,
+    MoveIt2Integration,
+    Nav2Integration,
     PlanMotionResult,
     SafetyCertificate,
     SafetyValidator,
-    Nav2Integration,
-    MoveIt2Integration,
     create_motion_planner,
+)
+from .motion_primitives import (
+    GripperControlPrimitive,
+    MotionPrimitive,
+    MotionPrimitiveFactory,
+    MoveCartesianPrimitive,
+    NavigateToPosePrimitive,
+    PickObjectPrimitive,
+    PlaceObjectPrimitive,
+    RotateInPlacePrimitive,
+    gripper_control,
+    move_cartesian,
+    navigate_to_pose,
+    pick_object,
+    place_object,
+    rotate_in_place,
 )
 
 # ROS2 action server (new in v0.6.1)
@@ -77,7 +76,7 @@ except ImportError:
     _CONTEXT_AVAILABLE = False
 
 try:
-    from .multi_language_parser import MultiLanguageParser, LanguagePatterns
+    from .multi_language_parser import LanguagePatterns, MultiLanguageParser
 
     _MULTILANG_AVAILABLE = True
 except ImportError:
@@ -86,12 +85,12 @@ except ImportError:
     _MULTILANG_AVAILABLE = False
 
 from .execution_monitor import (
-    ExecutionMonitorNode,
-    ExecuteMotionResult,
     Anomaly,
     AnomalyType,
-    RecoveryResult,
+    ExecuteMotionResult,
+    ExecutionMonitorNode,
     RecoveryHandler,
+    RecoveryResult,
     TelemetrySubscriber,
     create_execution_monitor,
 )

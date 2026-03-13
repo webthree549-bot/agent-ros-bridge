@@ -10,9 +10,9 @@ This fulfills SKILL promises like:
 """
 
 import math
-from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 
 class RobotStatus(Enum):
@@ -43,11 +43,11 @@ class RobotState:
     robot_id: str
     name: str
     status: RobotStatus
-    position: Dict[str, float]  # x, y, z
+    position: dict[str, float]  # x, y, z
     battery_percent: float
     capabilities: RobotCapabilities
-    current_task: Optional[str] = None
-    estimated_completion: Optional[float] = None  # seconds
+    current_task: str | None = None
+    estimated_completion: float | None = None  # seconds
 
 
 class FleetIntelligence:
@@ -62,8 +62,8 @@ class FleetIntelligence:
 
     def __init__(self):
         """Initialize fleet intelligence."""
-        self.robot_states: Dict[str, RobotState] = {}
-        self.known_locations: Dict[str, Dict[str, float]] = {}
+        self.robot_states: dict[str, RobotState] = {}
+        self.known_locations: dict[str, dict[str, float]] = {}
 
     def update_robot_state(self, state: RobotState):
         """Update state for a robot.
@@ -73,7 +73,7 @@ class FleetIntelligence:
         """
         self.robot_states[state.robot_id] = state
 
-    def learn_location(self, name: str, coordinates: Dict[str, float]):
+    def learn_location(self, name: str, coordinates: dict[str, float]):
         """Learn a named location for spatial reasoning.
 
         Args:
@@ -82,7 +82,7 @@ class FleetIntelligence:
         """
         self.known_locations[name.lower()] = coordinates
 
-    def calculate_distance(self, pos1: Dict[str, float], pos2: Dict[str, float]) -> float:
+    def calculate_distance(self, pos1: dict[str, float], pos2: dict[str, float]) -> float:
         """Calculate Euclidean distance between two positions.
 
         Args:
@@ -96,7 +96,7 @@ class FleetIntelligence:
         x2, y2 = pos2.get("x", 0), pos2.get("y", 0)
         return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
-    def get_distance_to_location(self, robot_id: str, location_name: str) -> Optional[float]:
+    def get_distance_to_location(self, robot_id: str, location_name: str) -> float | None:
         """Get distance from robot to a named location.
 
         Args:
@@ -117,7 +117,7 @@ class FleetIntelligence:
 
         return self.calculate_distance(robot_pos, location_pos)
 
-    def select_best_robot(self, task: Dict[str, Any], criteria: List[str] = None) -> Optional[str]:
+    def select_best_robot(self, task: dict[str, Any], criteria: list[str] = None) -> str | None:
         """Select the best robot for a task.
 
         Args:
@@ -165,7 +165,7 @@ class FleetIntelligence:
             return max(scores, key=scores.get)
         return None
 
-    def _score_distance(self, robot: RobotState, task: Dict) -> float:
+    def _score_distance(self, robot: RobotState, task: dict) -> float:
         """Score based on distance to task location.
 
         Returns higher score for closer robots.
@@ -208,7 +208,7 @@ class FleetIntelligence:
         else:
             return 0.0
 
-    def _score_capability(self, robot: RobotState, task: Dict) -> float:
+    def _score_capability(self, robot: RobotState, task: dict) -> float:
         """Score based on task capability match.
 
         Returns higher score if robot can perform the task.
@@ -216,9 +216,7 @@ class FleetIntelligence:
         task_type = task.get("type", "navigate")
         caps = robot.capabilities
 
-        if task_type == "navigate" and caps.can_navigate:
-            return 1.0
-        elif task_type == "manipulate" and caps.can_manipulate:
+        if task_type == "navigate" and caps.can_navigate or task_type == "manipulate" and caps.can_manipulate:
             return 1.0
         elif task_type == "carry" and caps.can_carry:
             payload = task.get("payload", 0)
@@ -229,7 +227,7 @@ class FleetIntelligence:
 
         return 0.0
 
-    def find_closest_robot(self, location: str) -> Optional[Tuple[str, float]]:
+    def find_closest_robot(self, location: str) -> tuple[str, float] | None:
         """Find the closest robot to a location.
 
         Args:
@@ -256,7 +254,7 @@ class FleetIntelligence:
         closest = min(distances, key=distances.get)
         return (closest, distances[closest])
 
-    def get_robot_with_most_battery(self) -> Optional[str]:
+    def get_robot_with_most_battery(self) -> str | None:
         """Find robot with highest battery.
 
         Returns:
@@ -267,7 +265,7 @@ class FleetIntelligence:
 
         return max(self.robot_states.values(), key=lambda r: r.battery_percent).robot_id
 
-    def allocate_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
+    def allocate_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Allocate a task to the best robot.
 
         Args:
@@ -296,7 +294,7 @@ class FleetIntelligence:
             "reason": "Selected based on proximity and battery level",
         }
 
-    def _estimate_task_time(self, robot: RobotState, task: Dict) -> float:
+    def _estimate_task_time(self, robot: RobotState, task: dict) -> float:
         """Estimate time to complete task.
 
         Args:
@@ -324,7 +322,7 @@ class FleetIntelligence:
 
         return time_estimate
 
-    def plan_coordination(self, task_type: str, robots: List[str] = None) -> Dict[str, Any]:
+    def plan_coordination(self, task_type: str, robots: list[str] = None) -> dict[str, Any]:
         """Plan multi-robot coordination.
 
         Args:
@@ -348,7 +346,7 @@ class FleetIntelligence:
         else:
             return {"error": f"Unknown coordination type: {task_type}"}
 
-    def _plan_search(self, robots: List[str]) -> Dict[str, Any]:
+    def _plan_search(self, robots: list[str]) -> dict[str, Any]:
         """Plan parallel search pattern."""
         # Divide area among robots
         n = len(robots)
@@ -365,7 +363,7 @@ class FleetIntelligence:
             "sectors": sectors,
         }
 
-    def _plan_convoy(self, robots: List[str]) -> Dict[str, Any]:
+    def _plan_convoy(self, robots: list[str]) -> dict[str, Any]:
         """Plan convoy formation."""
         if len(robots) < 2:
             return {"error": "Convoy requires at least 2 robots"}
@@ -378,7 +376,7 @@ class FleetIntelligence:
             "spacing_meters": 2.0,
         }
 
-    def _plan_patrol(self, robots: List[str]) -> Dict[str, Any]:
+    def _plan_patrol(self, robots: list[str]) -> dict[str, Any]:
         """Plan patrol rotation."""
         return {
             "type": "patrol",
@@ -387,7 +385,7 @@ class FleetIntelligence:
             "shift_duration_minutes": 30,
         }
 
-    def get_fleet_summary(self) -> Dict[str, Any]:
+    def get_fleet_summary(self) -> dict[str, Any]:
         """Get summary of fleet status.
 
         Returns:
@@ -416,7 +414,7 @@ class FleetIntelligence:
 # Convenience functions for common queries
 
 
-def find_closest_robot_to_location(fleet: FleetIntelligence, location: str) -> Optional[str]:
+def find_closest_robot_to_location(fleet: FleetIntelligence, location: str) -> str | None:
     """Find closest robot to a location.
 
     Convenience function for SKILL fulfillment.
@@ -425,7 +423,7 @@ def find_closest_robot_to_location(fleet: FleetIntelligence, location: str) -> O
     return result[0] if result else None
 
 
-def find_robot_with_most_battery(fleet: FleetIntelligence) -> Optional[str]:
+def find_robot_with_most_battery(fleet: FleetIntelligence) -> str | None:
     """Find robot with highest battery.
 
     Convenience function for SKILL fulfillment.
@@ -433,7 +431,7 @@ def find_robot_with_most_battery(fleet: FleetIntelligence) -> Optional[str]:
     return fleet.get_robot_with_most_battery()
 
 
-def send_best_robot(fleet: FleetIntelligence, task: Dict) -> Dict[str, Any]:
+def send_best_robot(fleet: FleetIntelligence, task: dict) -> dict[str, Any]:
     """Send the best robot for a task.
 
     Convenience function for SKILL fulfillment.

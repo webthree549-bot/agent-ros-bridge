@@ -7,8 +7,8 @@ Supports JWT tokens and API keys for securing WebSocket connections.
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import jwt
 
@@ -20,11 +20,11 @@ class AuthConfig:
     """Authentication configuration - SECURITY: Always enabled, JWT_SECRET required."""
 
     enabled: bool = True  # Always enabled, no disable option
-    jwt_secret: Optional[str] = None
+    jwt_secret: str | None = None
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
-    api_keys: Optional[Dict[str, Dict[str, Any]]] = None
-    allowed_origins: Optional[List[str]] = None
+    api_keys: dict[str, dict[str, Any]] | None = None
+    allowed_origins: list[str] | None = None
 
     def __post_init__(self):
         """Initialize default values for mutable fields."""
@@ -58,8 +58,8 @@ class Authenticator:
     def create_token(
         self,
         user_id: str,
-        roles: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        roles: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Create a new JWT token."""
         if not self.config.enabled:
@@ -67,8 +67,8 @@ class Authenticator:
 
         payload = {
             "sub": user_id,
-            "iat": datetime.now(timezone.utc),
-            "exp": datetime.now(timezone.utc) + timedelta(hours=self.config.jwt_expiry_hours),
+            "iat": datetime.now(UTC),
+            "exp": datetime.now(UTC) + timedelta(hours=self.config.jwt_expiry_hours),
             "roles": roles or ["user"],
             "metadata": metadata or {},
         }
@@ -76,7 +76,7 @@ class Authenticator:
         token = jwt.encode(payload, self.config.jwt_secret, algorithm=self.config.jwt_algorithm)
         return token
 
-    def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def verify_token(self, token: str) -> dict[str, Any] | None:
         """Verify a JWT token and return payload."""
         if not self.config.enabled:
             return {"sub": "anonymous", "roles": ["admin"]}  # Allow all if disabled
@@ -93,7 +93,7 @@ class Authenticator:
             logger.warning(f"Invalid JWT token: {e}")
             return None
 
-    def verify_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    def verify_api_key(self, api_key: str) -> dict[str, Any] | None:
         """Verify an API key."""
         if not self.config.enabled:
             return {"sub": "anonymous", "roles": ["admin"]}
@@ -107,7 +107,7 @@ class Authenticator:
             }
         return None
 
-    def extract_token_from_query(self, query_string: str) -> Optional[str]:
+    def extract_token_from_query(self, query_string: str) -> str | None:
         """Extract JWT token from query string (token=xxx)."""
         import urllib.parse
 
@@ -116,11 +116,11 @@ class Authenticator:
             return params["token"][0]
         return None
 
-    def extract_api_key_from_headers(self, headers: Dict[str, str]) -> Optional[str]:
+    def extract_api_key_from_headers(self, headers: dict[str, str]) -> str | None:
         """Extract API key from headers (X-API-Key)."""
         return headers.get("X-API-Key") or headers.get("x-api-key")
 
-    def refresh_token(self, token: str) -> Optional[str]:
+    def refresh_token(self, token: str) -> str | None:
         """Refresh a valid JWT token with a new expiry time.
 
         Args:
@@ -145,8 +145,8 @@ class Authenticator:
 
         new_payload = {
             "sub": user_id,
-            "iat": datetime.now(timezone.utc),
-            "exp": datetime.now(timezone.utc) + timedelta(hours=self.config.jwt_expiry_hours),
+            "iat": datetime.now(UTC),
+            "exp": datetime.now(UTC) + timedelta(hours=self.config.jwt_expiry_hours),
             "roles": roles,
             "metadata": metadata,
             "jti": secrets.token_urlsafe(16),  # Unique token ID
@@ -180,7 +180,7 @@ class RoleBasedAccessControl:
             "anonymous": ["list_robots"],  # Minimal info only
         }
 
-    def can_execute(self, roles: List[str], action: str) -> bool:
+    def can_execute(self, roles: list[str], action: str) -> bool:
         """Check if any role allows the action."""
         for role in roles:
             allowed = self.permissions.get(role, [])
@@ -188,7 +188,7 @@ class RoleBasedAccessControl:
                 return True
         return False
 
-    def filter_response(self, roles: List[str], response: Dict[str, Any]) -> Dict[str, Any]:
+    def filter_response(self, roles: list[str], response: dict[str, Any]) -> dict[str, Any]:
         """Filter response based on role (e.g., hide sensitive data)."""
         if "admin" not in roles and "operator" not in roles and "robots" in response:
             for robot in response["robots"]:

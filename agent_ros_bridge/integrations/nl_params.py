@@ -4,7 +4,6 @@ Converts natural language descriptions to numeric parameters.
 """
 
 import re
-from typing import Optional
 
 # Natural language to numeric mappings
 NL_PARAM_MAPPINGS = {
@@ -63,7 +62,7 @@ NL_PARAM_MAPPINGS = {
 }
 
 
-def infer_parameter(param_type: str, nl_value: str) -> Optional[float]:
+def infer_parameter(param_type: str, nl_value: str) -> float | None:
     """Convert natural language to numeric parameter.
 
     Args:
@@ -104,7 +103,7 @@ def infer_parameter(param_type: str, nl_value: str) -> Optional[float]:
     return None
 
 
-def parse_numeric(value: str) -> Optional[float]:
+def parse_numeric(value: str) -> float | None:
     """Extract number from string.
 
     Handles:

@@ -5,7 +5,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -17,8 +17,8 @@ class MemoryEntry:
     key: str
     value: Any
     created_at: datetime
-    expires_at: Optional[datetime] = None
-    metadata: Optional[Dict[str, Any]] = None
+    expires_at: datetime | None = None
+    metadata: dict[str, Any] | None = None
 
     def is_expired(self) -> bool:
         """Check if the memory entry has expired."""
@@ -82,13 +82,13 @@ class AgentMemory:
         except ImportError as e:
             raise ImportError("redis package required for Redis backend") from e
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value by key."""
         if self.backend == "sqlite":
             return await self._get_sqlite(key)
         return await self._get_redis(key)
 
-    async def _get_sqlite(self, key: str) -> Optional[Any]:
+    async def _get_sqlite(self, key: str) -> Any | None:
         cursor = self.conn.cursor()
         cursor.execute("SELECT value, expires_at FROM memories WHERE key = ?", (key,))
         row = cursor.fetchone()
@@ -107,20 +107,20 @@ class AgentMemory:
 
         return json.loads(value)
 
-    async def _get_redis(self, key: str) -> Optional[Any]:
+    async def _get_redis(self, key: str) -> Any | None:
         value = self.redis.get(key)
         if value is None:
             return None
         return json.loads(value)
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    async def set(self, key: str, value: Any, ttl: int | None = None):
         """Set value with optional TTL (seconds)."""
         if self.backend == "sqlite":
             await self._set_sqlite(key, value, ttl)
         else:
             await self._set_redis(key, value, ttl)
 
-    async def _set_sqlite(self, key: str, value: Any, ttl: Optional[int]):
+    async def _set_sqlite(self, key: str, value: Any, ttl: int | None):
         expires_at = None
         if ttl:
             expires_at = datetime.now() + timedelta(seconds=ttl)
@@ -139,7 +139,7 @@ class AgentMemory:
         )
         self.conn.commit()
 
-    async def _set_redis(self, key: str, value: Any, ttl: Optional[int]):
+    async def _set_redis(self, key: str, value: Any, ttl: int | None):
         self.redis.set(key, json.dumps(value), ex=ttl)
 
     async def delete(self, key: str):
@@ -161,7 +161,7 @@ class AgentMemory:
         existing.append(value)
         await self.set(key, existing)
 
-    async def get_list(self, key: str) -> List[Any]:
+    async def get_list(self, key: str) -> list[Any]:
         """Get value as list."""
         value = await self.get(key)
         if value is None:
@@ -170,13 +170,13 @@ class AgentMemory:
             return value
         return [value]
 
-    async def list_keys(self) -> List[str]:
+    async def list_keys(self) -> list[str]:
         """List all keys in memory."""
         if self.backend == "sqlite":
             return await self._list_keys_sqlite()
         return await self._list_keys_redis()
 
-    async def _list_keys_sqlite(self) -> List[str]:
+    async def _list_keys_sqlite(self) -> list[str]:
         """List all keys from SQLite."""
         cursor = self.conn.cursor()
         cursor.execute("SELECT key, expires_at FROM memories")
@@ -192,6 +192,6 @@ class AgentMemory:
             keys.append(key)
         return keys
 
-    async def _list_keys_redis(self) -> List[str]:
+    async def _list_keys_redis(self) -> list[str]:
         """List all keys from Redis."""
         return list(self.redis.scan_iter())

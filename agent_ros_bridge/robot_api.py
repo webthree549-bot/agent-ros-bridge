@@ -13,8 +13,8 @@ Usage:
     robot.place_at("table")
 """
 
-from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -34,7 +34,7 @@ class ManipulationGoal:
 
     object_name: str
     action: str  # "pick", "place", "grasp", "release"
-    location: Optional[str] = None
+    location: str | None = None
 
 
 @dataclass
@@ -43,8 +43,8 @@ class RobotCommandResult:
 
     success: bool
     execution_time: float
-    error_message: Optional[str] = None
-    final_pose: Optional[Dict[str, float]] = None
+    error_message: str | None = None
+    final_pose: dict[str, float] | None = None
 
 
 class RobotController:
@@ -104,11 +104,11 @@ class RobotController:
         """Establish connection to ROS."""
         try:
             import rclpy
-            from rclpy.node import Node
-            from rclpy.action import ActionClient
-            from nav2_msgs.action import NavigateToPose
             from geometry_msgs.msg import Twist
+            from nav2_msgs.action import NavigateToPose
             from nav_msgs.msg import Odometry
+            from rclpy.action import ActionClient
+            from rclpy.node import Node
 
             # Initialize ROS2 if needed
             if not rclpy.ok():
@@ -143,7 +143,7 @@ class RobotController:
         """Check if connected to robot."""
         return self._connected
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """
         Get current robot state.
 
@@ -175,6 +175,7 @@ class RobotController:
 
         try:
             import time
+
             from geometry_msgs.msg import PoseStamped
             from nav2_msgs.action import NavigateToPose
 

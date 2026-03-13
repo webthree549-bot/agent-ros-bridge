@@ -14,11 +14,11 @@ Features:
 - Caching for common complex queries
 """
 
+import hashlib
 import json
 import time
-import hashlib
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -27,7 +27,7 @@ class LLMIntentResult:
 
     intent_type: str
     confidence: float
-    entities: List[Dict[str, Any]]
+    entities: list[dict[str, Any]]
     raw_response: str
     latency_ms: float
     cached: bool = False
@@ -42,7 +42,7 @@ class LLMIntentParser:
     """
 
     # System prompt for structured intent parsing
-    SYSTEM_PROMPT = """You are a robot intent parsing system. 
+    SYSTEM_PROMPT = """You are a robot intent parsing system.
 Parse the user's utterance into a structured intent format.
 
 Available intent types:
@@ -72,7 +72,7 @@ Rules:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "gpt-3.5-turbo",
         provider: str = "openai",
         timeout_sec: float = 5.0,
@@ -96,7 +96,7 @@ Rules:
         """
         # Import security utilities
         try:
-            from ..security_utils import SecureConfig, RateLimiter, AuditLogger, sanitize_input
+            from ..security_utils import AuditLogger, RateLimiter, SecureConfig, sanitize_input
 
             self._secure_config = SecureConfig
             self._sanitize = sanitize_input
@@ -123,8 +123,8 @@ Rules:
             self._rate_limiter = None
 
         # Cache: utterance_hash -> (result, timestamp)
-        self._cache: Dict[str, tuple] = {}
-        self._cache_order: List[str] = []
+        self._cache: dict[str, tuple] = {}
+        self._cache_order: list[str] = []
 
         # Statistics
         self._calls = 0
@@ -163,15 +163,13 @@ Rules:
             return False
         if self._provider == "openai" and not self._openai_available:
             return False
-        if self._provider == "anthropic" and not self._anthropic_available:
-            return False
-        return True
+        return not (self._provider == "anthropic" and not self._anthropic_available)
 
     def _compute_hash(self, utterance: str) -> str:
         """Compute hash for utterance."""
         return hashlib.md5(utterance.lower().strip().encode()).hexdigest()
 
-    def _get_cached(self, utterance_hash: str) -> Optional[LLMIntentResult]:
+    def _get_cached(self, utterance_hash: str) -> LLMIntentResult | None:
         """Get cached result if available."""
         if not self._enable_cache or utterance_hash not in self._cache:
             return None
@@ -212,8 +210,8 @@ Rules:
         self._cache_order.append(utterance_hash)
 
     def parse(
-        self, utterance: str, context: Optional[Dict[str, Any]] = None
-    ) -> Optional[LLMIntentResult]:
+        self, utterance: str, context: dict[str, Any] | None = None
+    ) -> LLMIntentResult | None:
         """
         Parse utterance using LLM.
 
@@ -266,8 +264,8 @@ Rules:
             return None
 
     def _call_openai(
-        self, utterance: str, context: Optional[Dict[str, Any]]
-    ) -> Optional[LLMIntentResult]:
+        self, utterance: str, context: dict[str, Any] | None
+    ) -> LLMIntentResult | None:
         """Call OpenAI API."""
         import openai
 
@@ -296,8 +294,8 @@ Rules:
             raise
 
     def _call_anthropic(
-        self, utterance: str, context: Optional[Dict[str, Any]]
-    ) -> Optional[LLMIntentResult]:
+        self, utterance: str, context: dict[str, Any] | None
+    ) -> LLMIntentResult | None:
         """Call Anthropic API."""
         import anthropic
 
@@ -320,7 +318,7 @@ Rules:
                 self._timeouts += 1
             raise
 
-    def _parse_llm_response(self, response: str) -> Optional[LLMIntentResult]:
+    def _parse_llm_response(self, response: str) -> LLMIntentResult | None:
         """Parse LLM JSON response."""
         try:
             # Extract JSON from response
@@ -355,7 +353,7 @@ Rules:
             self._errors += 1
             return None
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get parser statistics."""
         return {
             "calls": self._calls,

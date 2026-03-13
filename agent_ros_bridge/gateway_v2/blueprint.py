@@ -4,11 +4,11 @@ Inspired by dimensionalOS/dimos blueprints, adapted for ROS compatibility.
 Blueprints provide a declarative way to compose modules and define their connections.
 """
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Union
-from collections import defaultdict
 import asyncio
-import inspect
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -19,7 +19,7 @@ class StreamDefinition:
     """
 
     name: str
-    msg_type: Type
+    msg_type: type
     direction: str = "bidirectional"  # "in", "out", "bidirectional"
     transport: str = "lcm"  # "lcm", "ros", "websocket", "shm"
     qos: int = 10  # Quality of Service (queue depth)
@@ -35,8 +35,8 @@ class RPCDefinition:
 
     name: str
     func: Callable
-    input_type: Optional[Type] = None
-    output_type: Optional[Type] = None
+    input_type: type | None = None
+    output_type: type | None = None
     is_skill: bool = False  # Can be called by AI agents
 
 
@@ -53,10 +53,10 @@ class ModuleBlueprint:
 
     name: str
     factory: Callable
-    streams: List[StreamDefinition] = field(default_factory=list)
-    rpcs: List[RPCDefinition] = field(default_factory=list)
-    config: Dict[str, Any] = field(default_factory=dict)
-    dependencies: List[str] = field(default_factory=list)
+    streams: list[StreamDefinition] = field(default_factory=list)
+    rpcs: list[RPCDefinition] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
 
     def with_stream(self, stream: StreamDefinition) -> "ModuleBlueprint":
         """Add a stream to the blueprint."""
@@ -87,7 +87,7 @@ class Connection:
     source_stream: str
     target_module: str
     target_stream: str
-    transform: Optional[Callable] = None
+    transform: Callable | None = None
 
 
 class Blueprint:
@@ -104,10 +104,10 @@ class Blueprint:
     """
 
     def __init__(self):
-        self.modules: Dict[str, ModuleBlueprint] = {}
-        self.connections: List[Connection] = []
-        self.transports: Dict[Tuple[str, Type], Any] = {}
-        self._instances: Dict[str, Any] = {}
+        self.modules: dict[str, ModuleBlueprint] = {}
+        self.connections: list[Connection] = []
+        self.transports: dict[tuple[str, type], Any] = {}
+        self._instances: dict[str, Any] = {}
         self._running = False
 
     def add_module(self, name: str, blueprint: ModuleBlueprint) -> "Blueprint":
@@ -121,7 +121,7 @@ class Blueprint:
         source_stream: str,
         target_module: str,
         target_stream: str,
-        transform: Optional[Callable] = None,
+        transform: Callable | None = None,
     ) -> "Blueprint":
         """Connect two module streams."""
         conn = Connection(
@@ -134,7 +134,7 @@ class Blueprint:
         self.connections.append(conn)
         return self
 
-    def transports(self, transport_map: Dict[Tuple[str, Type], Any]) -> "Blueprint":
+    def transports(self, transport_map: dict[tuple[str, type], Any]) -> "Blueprint":
         """Override transports for specific streams."""
         self.transports.update(transport_map)
         return self
@@ -145,7 +145,7 @@ class Blueprint:
         Inspired by dimos autoconnect() function.
         """
         # Build stream registry
-        stream_registry: Dict[Tuple[str, Type], List[Tuple[str, str, str]]] = defaultdict(list)
+        stream_registry: dict[tuple[str, type], list[tuple[str, str, str]]] = defaultdict(list)
 
         for module_name, blueprint in self.modules.items():
             for stream in blueprint.streams:
@@ -153,7 +153,7 @@ class Blueprint:
                 stream_registry[key].append((module_name, stream.name, stream.direction))
 
         # Auto-connect matching streams
-        for (stream_name, msg_type), endpoints in stream_registry.items():
+        for (_stream_name, _msg_type), endpoints in stream_registry.items():
             outputs = [(m, s) for m, s, d in endpoints if d in ("out", "bidirectional")]
             inputs = [(m, s) for m, s, d in endpoints if d in ("in", "bidirectional")]
 
@@ -164,7 +164,7 @@ class Blueprint:
 
         return self
 
-    def build(self) -> Dict[str, Any]:
+    def build(self) -> dict[str, Any]:
         """Build all modules and return instances."""
         for name, blueprint in self.modules.items():
             self._instances[name] = blueprint.build()
@@ -180,7 +180,7 @@ class Blueprint:
         self.build()
 
         # Start modules
-        for name, instance in self._instances.items():
+        for _name, instance in self._instances.items():
             if hasattr(instance, "start"):
                 if asyncio.iscoroutinefunction(instance.start):
                     await instance.start()
@@ -198,7 +198,7 @@ class Blueprint:
         if not self._running:
             return self
 
-        for name, instance in self._instances.items():
+        for _name, instance in self._instances.items():
             if hasattr(instance, "stop"):
                 if asyncio.iscoroutinefunction(instance.stop):
                     await instance.stop()

@@ -21,11 +21,11 @@ Example:
     result = await adapter.execute_tool("ros2_publish", {...})
 """
 
-import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +39,11 @@ class OpenClawTool:
 
     name: str
     description: str
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    handler: Optional[Callable[..., Any]] = None
+    parameters: dict[str, Any] = field(default_factory=dict)
+    handler: Callable[..., Any] | None = None
     dangerous: bool = False
 
-    def to_openclaw_format(self) -> Dict[str, Any]:
+    def to_openclaw_format(self) -> dict[str, Any]:
         """Convert to OpenClaw tool format."""
         return {
             "name": self.name,
@@ -276,7 +276,7 @@ class OpenClawAdapter:
         """
         self.bridge = bridge
         self.include_ros1 = include_ros1
-        self._tools: Dict[str, OpenClawTool] = {}
+        self._tools: dict[str, OpenClawTool] = {}
         self._register_default_tools()
 
         # Find skill path
@@ -284,7 +284,7 @@ class OpenClawAdapter:
 
         logger.info("OpenClawAdapter initialized")
 
-    def _find_skill_path(self) -> Optional[Path]:
+    def _find_skill_path(self) -> Path | None:
         """Find the ClawHub skill directory."""
         # Look in common locations
         possible_paths = [
@@ -354,7 +354,7 @@ class OpenClawAdapter:
             )
             self._tools[tool.name] = tool
 
-    def get_skill_path(self) -> Optional[Path]:
+    def get_skill_path(self) -> Path | None:
         """Get the path to the ClawHub skill directory.
 
         Returns:
@@ -362,7 +362,7 @@ class OpenClawAdapter:
         """
         return self._skill_path
 
-    def get_tools(self) -> List[Dict[str, Any]]:
+    def get_tools(self) -> list[dict[str, Any]]:
         """Get all tools in OpenClaw format.
 
         Returns:
@@ -370,7 +370,7 @@ class OpenClawAdapter:
         """
         return [tool.to_openclaw_format() for tool in self._tools.values()]
 
-    def get_tool(self, name: str) -> Optional[OpenClawTool]:
+    def get_tool(self, name: str) -> OpenClawTool | None:
         """Get a specific tool by name.
 
         Args:
@@ -381,7 +381,7 @@ class OpenClawAdapter:
         """
         return self._tools.get(name)
 
-    async def execute_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """Execute a tool with the given arguments.
 
         This is the main entry point for OpenClaw to invoke robot actions.
@@ -421,7 +421,7 @@ class OpenClawAdapter:
     # Tool Handlers
     # ===================================================================
 
-    async def _handle_ros2_publish(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ros2_publish(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle ros2_publish tool."""
         topic = args.get("topic")
         message = args.get("message")
@@ -440,7 +440,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"Publish failed: {e}"}
 
-    async def _handle_ros2_subscribe_once(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ros2_subscribe_once(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle ros2_subscribe_once tool."""
         topic = args.get("topic")
         timeout = args.get("timeout", 5.0)
@@ -458,7 +458,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"Subscribe failed: {e}"}
 
-    async def _handle_ros2_list_topics(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ros2_list_topics(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle ros2_list_topics tool."""
         filter_pattern = args.get("filter", "")
 
@@ -474,7 +474,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"List topics failed: {e}"}
 
-    async def _handle_bridge_list_robots(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_bridge_list_robots(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle bridge_list_robots tool."""
         if not hasattr(self.bridge, "fleets"):
             return {"success": False, "error": "Bridge doesn't support fleet management"}
@@ -497,7 +497,7 @@ class OpenClawAdapter:
 
         return {"success": True, "data": {"robots": robots}}
 
-    async def _handle_fleet_get_metrics(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_fleet_get_metrics(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle fleet_get_metrics tool."""
         if not hasattr(self.bridge, "orchestrator") or not self.bridge.orchestrator:
             return {"success": False, "error": "Fleet orchestrator not available"}
@@ -508,7 +508,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"Failed to get metrics: {e}"}
 
-    async def _handle_safety_trigger_estop(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_safety_trigger_estop(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle safety_trigger_estop tool."""
         robot_id = args.get("robot_id")
         reason = args.get("reason", "Emergency stop triggered via OpenClaw")
@@ -525,7 +525,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"E-stop failed: {e}"}
 
-    async def _handle_memory_set(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_memory_set(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle memory_set tool."""
         key = args.get("key")
         value = args.get("value")
@@ -543,7 +543,7 @@ class OpenClawAdapter:
         except Exception as e:
             return {"success": False, "error": f"Memory set failed: {e}"}
 
-    async def _handle_memory_get(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_memory_get(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle memory_get tool."""
         key = args.get("key")
 
@@ -629,7 +629,7 @@ class OpenClawAdapter:
     # RosClaw Compatibility
     # ===================================================================
 
-    def to_rosclaw_compatible_format(self) -> List[Dict[str, Any]]:
+    def to_rosclaw_compatible_format(self) -> list[dict[str, Any]]:
         """Export tools in RosClaw-compatible format.
 
         This allows Agent ROS Bridge to be used as a drop-in replacement
@@ -668,8 +668,8 @@ class OpenClawAdapter:
         This adds NL support to fulfill SKILL promises about
         natural language commands.
         """
+        from .context import ContextAwareNLInterpreter, ContextManager
         from .nl_interpreter import RuleBasedInterpreter
-        from .context import ContextManager, ContextAwareNLInterpreter
 
         self.nl_interpreter = RuleBasedInterpreter()
         self.context_manager = ContextManager()
@@ -678,7 +678,7 @@ class OpenClawAdapter:
         )
         logger.info("Natural language support enabled with context awareness")
 
-    async def execute_nl(self, nl_command: str, session_id: str = "default") -> Dict[str, Any]:
+    async def execute_nl(self, nl_command: str, session_id: str = "default") -> dict[str, Any]:
         """Execute natural language command with context awareness.
 
         This method fulfills the SKILL promise of natural language control.
@@ -753,7 +753,7 @@ class OpenClawAdapter:
             "result": result,
         }
 
-    def learn_location(self, session_id: str, name: str, coordinates: Dict[str, float]):
+    def learn_location(self, session_id: str, name: str, coordinates: dict[str, float]):
         """Teach the robot a named location.
 
         This enables commands like "Go to kitchen" after learning.
@@ -773,7 +773,7 @@ class OpenClawAdapter:
         self.context_manager.learn_location(session_id, name, coordinates)
         logger.info(f"Learned location '{name}' for session {session_id}")
 
-    def get_conversation_history(self, session_id: str, n: int = 5) -> List[Dict]:
+    def get_conversation_history(self, session_id: str, n: int = 5) -> list[dict]:
         """Get recent conversation history.
 
         Args:

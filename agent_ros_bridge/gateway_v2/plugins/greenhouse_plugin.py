@@ -9,7 +9,6 @@ import asyncio
 import contextlib
 import logging
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 from agent_ros_bridge.gateway_v2.core import (
     Bridge,
@@ -46,9 +45,9 @@ class GreenhousePlugin(Plugin):
 
     def __init__(self):
         """Initialize greenhouse plugin with empty state."""
-        self.greenhouses: Dict[str, GreenhouseState] = {}
-        self.gateway: Optional[Bridge] = None
-        self._control_task: Optional[asyncio.Task] = None
+        self.greenhouses: dict[str, GreenhouseState] = {}
+        self.gateway: Bridge | None = None
+        self._control_task: asyncio.Task | None = None
 
     async def initialize(self, gateway: Bridge) -> None:
         """Initialize plugin."""
@@ -71,7 +70,7 @@ class GreenhousePlugin(Plugin):
 
         logger.info("Greenhouse plugin shutdown")
 
-    async def handle_message(self, message: Message, _identity: Identity) -> Optional[Message]:
+    async def handle_message(self, message: Message, _identity: Identity) -> Message | None:
         """Handle greenhouse-specific commands."""
         if not message.command:
             return None
