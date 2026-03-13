@@ -136,26 +136,34 @@ class TestToolDiscoveryWithBridge:
     def test_discover_topics_called(self, discovery_with_bridge, mock_bridge):
         """Test _discover_topics is called during discover_all"""
         with mock.patch.object(discovery_with_bridge, "_discover_topics") as mock_discover:
-            mock_discover.return_value = []
-            discovery_with_bridge.discover_all()
+            with mock.patch.object(discovery_with_bridge, "_discover_services", return_value=[]):
+                with mock.patch.object(discovery_with_bridge, "_discover_actions", return_value=[]):
+                    mock_discover.return_value = []
+                    discovery_with_bridge.discover_all()
 
-            mock_discover.assert_called_once()
+                    mock_discover.assert_called_once()
 
     def test_discover_services_called(self, discovery_with_bridge, mock_bridge):
         """Test _discover_services is called during discover_all"""
         with mock.patch.object(discovery_with_bridge, "_discover_services") as mock_discover:
-            mock_discover.return_value = []
-            discovery_with_bridge.discover_all()
+            with mock.patch.object(discovery_with_bridge, "_discover_topics", return_value=[]):
+                with mock.patch.object(discovery_with_bridge, "_discover_actions", return_value=[]):
+                    mock_discover.return_value = []
+                    discovery_with_bridge.discover_all()
 
-            mock_discover.assert_called_once()
+                    mock_discover.assert_called_once()
 
     def test_discover_actions_called(self, discovery_with_bridge, mock_bridge):
         """Test _discover_actions is called during discover_all"""
         with mock.patch.object(discovery_with_bridge, "_discover_actions") as mock_discover:
-            mock_discover.return_value = []
-            discovery_with_bridge.discover_all()
+            with mock.patch.object(discovery_with_bridge, "_discover_topics", return_value=[]):
+                with mock.patch.object(
+                    discovery_with_bridge, "_discover_services", return_value=[]
+                ):
+                    mock_discover.return_value = []
+                    discovery_with_bridge.discover_all()
 
-            mock_discover.assert_called_once()
+                    mock_discover.assert_called_once()
 
     def test_cache_updated_after_discover(self, discovery_with_bridge):
         """Test cache is updated after discovery"""

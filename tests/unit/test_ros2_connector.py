@@ -173,8 +173,8 @@ class TestCommandExecution:
     @pytest.mark.asyncio
     async def test_execute_get_topics(self, robot):
         """Test get_topics command"""
-        # Mock topic list - patch the method on the instance
-        with mock.patch.object(robot, "_cmd_get_topics", return_value=["/topic1", "/topic2"]):
+        # Mock topic list - patch the method on the class
+        with mock.patch.object(ROS2Robot, "_cmd_get_topics", return_value=["/topic1", "/topic2"]):
             command = Command(action="get_topics", parameters={})
             result = await robot.execute(command)
 
@@ -183,7 +183,7 @@ class TestCommandExecution:
     @pytest.mark.asyncio
     async def test_execute_get_nodes(self, robot):
         """Test get_nodes command"""
-        with mock.patch.object(robot, "_cmd_get_nodes", return_value=["node1", "node2"]):
+        with mock.patch.object(ROS2Robot, "_cmd_get_nodes", return_value=["node1", "node2"]):
             command = Command(action="get_nodes", parameters={})
             result = await robot.execute(command)
 

@@ -3,6 +3,7 @@
 Tests the tool discovery system without external dependencies.
 """
 
+from unittest import mock
 from unittest.mock import Mock
 
 import pytest
