@@ -278,9 +278,11 @@ class TestToolDiscovery:
         """Dangerous tools can be retrieved."""
         # Clear cache completely and mock discover_all to not add anything
         discovery._cache.clear()
-        
+
         # Mock discover_all to return only our test data
-        with mock.patch.object(discovery, 'discover_all', return_value=list(discovery._cache.values())):
+        with mock.patch.object(
+            discovery, "discover_all", return_value=list(discovery._cache.values())
+        ):
             # Pre-populate cache with dangerous and safe actions
             safe_action = ROSAction(
                 name="safe_action",
