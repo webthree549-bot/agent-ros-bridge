@@ -116,6 +116,7 @@ jobs:
           pip3 install --break-system-packages -e "." || pip3 install -e "."
 
       - name: Source ROS2 and validate
+        shell: bash
         run: |
           source /opt/ros/${{ matrix.ros-distro }}/setup.bash || true
           python3 -c "import rclpy; print(f'rclpy version: {rclpy.__version__}')" || echo "rclpy not available (expected in container)"
@@ -143,6 +144,7 @@ jobs:
           pip3 install --break-system-packages -e ".[dev,test]" || pip3 install -e ".[dev,test]"
 
       - name: Build workspace
+        shell: bash
         run: |
           source /opt/ros/humble/setup.bash
           mkdir -p ws/src
@@ -153,6 +155,7 @@ jobs:
           colcon build --packages-select simulation agent_ros_bridge_msgs 2>/dev/null || colcon build --packages-select simulation || true
 
       - name: Run simulation tests
+        shell: bash
         run: |
           source /opt/ros/humble/setup.bash
           cd ws && source install/setup.bash 2>/dev/null || true
@@ -160,6 +163,7 @@ jobs:
           python3 -m pytest tests/simulation/ -v --tb=short || echo "Simulation tests completed with warnings"
 
       - name: Run scenario validation
+        shell: bash
         run: |
           source /opt/ros/humble/setup.bash
           cd ws && source install/setup.bash 2>/dev/null || true
