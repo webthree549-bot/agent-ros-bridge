@@ -4,7 +4,7 @@
 # =============================================================================
 # Stage 1: Builder
 # =============================================================================
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -18,14 +18,14 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies
-COPY requirements.txt requirements-dev.txt ./
+COPY requirements.txt pyproject.toml ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # =============================================================================
 # Stage 2: Production
 # =============================================================================
-FROM python:3.11-slim as production
+FROM python:3.11-slim AS production
 
 LABEL maintainer="Agent ROS Bridge Team <team@agentrosbridge.io>"
 LABEL description="Universal interface for AI agents to control ROS robots"
@@ -78,9 +78,10 @@ CMD ["start"]
 # =============================================================================
 # Stage 3: Development
 # =============================================================================
-FROM builder as development
+FROM builder AS development
 
-RUN pip install --no-cache-dir -r requirements-dev.txt
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir -e ".[dev]"
 
 WORKDIR /app
 
@@ -94,9 +95,10 @@ CMD ["python", "-m", "agent_ros_bridge.cli", "start", "--log-level", "DEBUG"]
 # =============================================================================
 # Stage 4: Testing
 # =============================================================================
-FROM builder as testing
+FROM builder AS testing
 
-RUN pip install --no-cache-dir -r requirements-dev.txt
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir -e ".[dev,test]"
 
 WORKDIR /app
 
