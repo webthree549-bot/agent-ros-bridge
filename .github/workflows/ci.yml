@@ -74,7 +74,7 @@ jobs:
           image: ros:humble-ros-base
           options: -v ${{ github.workspace }}:/workspace -w /workspace -e ROS_DISTRO=humble
           run: |
-            apt-get update && apt-get install -y python3-pip python3-pytest
+            apt-get update && apt-get install -y python3-pip python3-pytest ros-humble-nav2-bringup
             pip3 install --break-system-packages -e ".[test]" || pip3 install -e ".[test]"
             source /opt/ros/humble/setup.bash
             pytest tests/e2e -v || echo "Some E2E tests may fail due to missing ROS2 dependencies"
