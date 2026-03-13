@@ -215,8 +215,8 @@ class TestSafetyValidatorNode:
 
         assert stats["validation_count"] == 1
         assert stats["rejection_count"] == 0
-        assert "average_validation_time" in stats
-        assert "max_validation_time" in stats
+        assert "average_validation_time_ms" in stats
+        assert "max_validation_time_ms" in stats
 
     def test_certificate_structure(self, validator):
         """Certificate has correct structure."""

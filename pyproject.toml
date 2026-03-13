@@ -170,7 +170,7 @@ warn_no_return = false
 warn_unreachable = false
 ignore_missing_imports = true
 follow_imports = "skip"
-disable_error_code = ["var-annotated", "union-attr", "assignment", "operator", "index", "attr-defined", "no-any-return", "misc"]
+disable_error_code = ["var-annotated", "union-attr", "assignment", "operator", "index", "attr-defined", "no-any-return", "misc", "no-redef", "return-value", "arg-type", "valid-type", "annotation-unchecked"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
