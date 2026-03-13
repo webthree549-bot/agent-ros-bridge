@@ -70,7 +70,8 @@ class TestPlanNavigation:
     async def test_plan_navigate_to_pose(self):
         """RED: Should plan navigation to target pose."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         node = MotionPlannerNode()
 
@@ -89,7 +90,8 @@ class TestPlanNavigation:
     async def test_plan_navigate_includes_safety_certificate(self):
         """RED: All plans must include safety certificate."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         node = MotionPlannerNode()
 
@@ -106,7 +108,8 @@ class TestPlanNavigation:
     async def test_plan_rejects_invalid_primitive(self):
         """RED: Should reject invalid primitive."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         node = MotionPlannerNode()
 
@@ -165,7 +168,8 @@ class TestSafetyValidation:
     async def test_rejects_unsafe_plan(self):
         """RED: Plan fails safety validation → rejected."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         node = MotionPlannerNode()
 
@@ -186,7 +190,8 @@ class TestSafetyValidation:
     async def test_generates_safety_certificate_for_safe_plan(self):
         """RED: Safe plans get safety certificate."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         node = MotionPlannerNode()
 
@@ -209,9 +214,7 @@ class TestPlanMultiplePrimitives:
         """RED: Should plan sequence of primitives."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            NavigateToPosePrimitive,
-            PickObjectPrimitive,
-        )
+            NavigateToPosePrimitive, PickObjectPrimitive)
 
         node = MotionPlannerNode()
 
@@ -235,9 +238,7 @@ class TestPlanMultiplePrimitives:
         """RED: Sequence plans include safety certificate."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            GripperControlPrimitive,
-            NavigateToPosePrimitive,
-        )
+            GripperControlPrimitive, NavigateToPosePrimitive)
 
         node = MotionPlannerNode()
 
@@ -422,7 +423,8 @@ class TestSafetyValidator:
     def test_safety_validator_validates_plan(self):
         """RED: SafetyValidator should validate motion plans."""
         from agent_ros_bridge.ai.motion_planner import SafetyValidator
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         validator = SafetyValidator()
 
@@ -436,7 +438,8 @@ class TestSafetyValidator:
     def test_safety_validator_rejects_invalid_velocity(self):
         """RED: SafetyValidator should reject excessive velocity."""
         from agent_ros_bridge.ai.motion_planner import SafetyValidator
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         validator = SafetyValidator()
         validator.max_linear_velocity = 1.0  # Set limit

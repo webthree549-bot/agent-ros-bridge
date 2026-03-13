@@ -5,7 +5,6 @@ Uses synchronous wrappers for async methods.
 """
 
 import asyncio
-
 # Check optional dependencies
 import importlib.util
 import json

@@ -10,15 +10,8 @@ import contextlib
 import logging
 from dataclasses import dataclass
 
-from agent_ros_bridge.gateway_v2.core import (
-    Bridge,
-    Event,
-    Header,
-    Identity,
-    Message,
-    Plugin,
-    Telemetry,
-)
+from agent_ros_bridge.gateway_v2.core import (Bridge, Event, Header, Identity,
+                                              Message, Plugin, Telemetry)
 
 logger = logging.getLogger("plugin.greenhouse")
 
@@ -207,7 +200,8 @@ class GreenhousePlugin(Plugin):
 async def example():
     """Example greenhouse plugin usage."""
     from agent_ros_bridge.gateway_v2.core import Bridge
-    from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
+    from agent_ros_bridge.gateway_v2.transports.websocket import \
+        WebSocketTransport
 
     # Create gateway
     gateway = Bridge()

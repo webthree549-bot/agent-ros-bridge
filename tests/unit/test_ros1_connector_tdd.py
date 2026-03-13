@@ -23,14 +23,16 @@ class TestROS1MessageRegistry:
 
     def test_message_registry_exists(self):
         """Red: Message registry should be importable."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import MESSAGE_TYPE_REGISTRY
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            MESSAGE_TYPE_REGISTRY
 
         assert MESSAGE_TYPE_REGISTRY is not None
         assert isinstance(MESSAGE_TYPE_REGISTRY, dict)
 
     def test_common_types_registered(self):
         """Red: Common ROS1 types should be pre-registered."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import MESSAGE_TYPE_REGISTRY
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            MESSAGE_TYPE_REGISTRY
 
         common_types = [
             "std_msgs/String",
@@ -44,7 +46,8 @@ class TestROS1MessageRegistry:
 
     def test_registry_has_module_and_class(self):
         """Red: Each entry should have (module, class) tuple."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import MESSAGE_TYPE_REGISTRY
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            MESSAGE_TYPE_REGISTRY
 
         for msg_type, (module, class_name) in MESSAGE_TYPE_REGISTRY.items():
             assert isinstance(module, str), f"{msg_type}: module should be string"
@@ -57,7 +60,8 @@ class TestGetMessageClass:
 
     def test_get_registered_message_class(self):
         """Red: Should return class for registered types."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import get_message_class
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            get_message_class
 
         msg_class = get_message_class("std_msgs/String")
         assert msg_class is not None
@@ -65,7 +69,8 @@ class TestGetMessageClass:
 
     def test_get_unknown_message_class_dynamically(self):
         """Red: Should attempt dynamic import for unknown types."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import get_message_class
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            get_message_class
 
         # This might succeed or fail depending on ROS installation
         # but should not raise an exception
@@ -75,7 +80,8 @@ class TestGetMessageClass:
 
     def test_get_message_class_invalid_format(self):
         """Red: Should handle invalid message type format."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import get_message_class
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            get_message_class
 
         result = get_message_class("invalid_format_no_slash")
         assert result is None
@@ -94,7 +100,8 @@ class TestROS1RobotConnection:
     @pytest.mark.asyncio
     async def test_robot_initialization(self):
         """Red: Robot should initialize with correct properties."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         robot = ROS1Robot("test_id", "test_robot")
 
@@ -107,7 +114,8 @@ class TestROS1RobotConnection:
     @pytest.mark.asyncio
     async def test_robot_connect_success(self, mock_rospy):
         """Red: Robot should connect and set capabilities."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         robot = ROS1Robot("test_id", "test_robot")
 
@@ -124,7 +132,8 @@ class TestROS1RobotConnection:
     @pytest.mark.asyncio
     async def test_robot_connect_failure(self, mock_rospy):
         """Red: Robot should handle connection failure gracefully."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         mock_rospy.init_node.side_effect = Exception("ROS init failed")
 
@@ -137,7 +146,8 @@ class TestROS1RobotConnection:
     @pytest.mark.asyncio
     async def test_robot_disconnect_cleanup(self, mock_rospy):
         """Red: Disconnect should clean up resources."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         robot = ROS1Robot("test_id", "test_robot")
         await robot.connect()
@@ -163,7 +173,8 @@ class TestROS1RobotCommands:
         """Create a connected robot with mocked rospy."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+                    ROS1Robot
 
                 robot = ROS1Robot("test_id", "test_robot")
                 asyncio.run(robot.connect())
@@ -178,7 +189,8 @@ class TestROS1RobotCommands:
         """Red: Should return list of topics."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import Command, ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
+                    Command, ROS1Robot)
 
                 mock_ros.get_published_topics.return_value = [
                     ("/topic1", "std_msgs/String"),
@@ -199,7 +211,8 @@ class TestROS1RobotCommands:
         """Red: Publish should auto-detect message type if not provided."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import Command, ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
+                    Command, ROS1Robot)
 
                 # Mock topic introspection
                 mock_ros.get_published_topics.return_value = [
@@ -230,7 +243,8 @@ class TestROS1RobotCommands:
         """Red: Subscribe should return async generator."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+                    ROS1Robot
 
                 robot = ROS1Robot("test_id", "test_robot")
                 await robot.connect()
@@ -248,7 +262,8 @@ class TestROS1ConnectorDiscovery:
     @pytest.mark.asyncio
     async def test_connector_initialization(self):
         """Red: Connector should initialize with proper config."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Connector
 
         connector = ROS1Connector(master_uri="http://localhost:11311")
 
@@ -260,7 +275,8 @@ class TestROS1ConnectorDiscovery:
         """Red: Discover should return list of RobotEndpoints."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+                    ROS1Connector
 
                 # Mock system state
                 mock_master = Mock()
@@ -288,9 +304,7 @@ class TestROS1ConnectorDiscovery:
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
                 from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
-                    ROS1Connector,
-                    ROS1Robot,
-                )
+                    ROS1Connector, ROS1Robot)
 
                 connector = ROS1Connector()
                 robot = await connector.connect("ros1:///test_namespace")
@@ -304,7 +318,8 @@ class TestROS1MessageConversion:
 
     def test_ros_msg_to_dict_with_slots(self):
         """Red: Should convert ROS __slots__ messages to dict."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         # Create a mock ROS message with __slots__
         class MockMsg:
@@ -325,7 +340,8 @@ class TestROS1MessageConversion:
 
     def test_dict_to_ros_msg_simple(self):
         """Red: Should convert dict to simple ROS message."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         # Create a mock ROS message
         class MockMsg:
@@ -341,7 +357,8 @@ class TestROS1MessageConversion:
 
     def test_dict_to_ros_msg_nested(self):
         """Red: Should handle nested message structures."""
-        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+        from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+            ROS1Robot
 
         class InnerMsg:
             def __init__(self):
@@ -372,7 +389,8 @@ class TestROS1ToolDiscoveryIntegration:
         """Red: Should introspect ROS to get topic type."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+                    ROS1Robot
 
                 mock_ros.get_published_topics.return_value = [
                     ("/cmd_vel", "geometry_msgs/Twist"),
@@ -390,7 +408,8 @@ class TestROS1ToolDiscoveryIntegration:
         """Red: _cmd_get_topics should return formatted topic list."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy") as mock_ros:
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import \
+                    ROS1Robot
 
                 mock_ros.get_published_topics.return_value = [
                     ("/topic1", "std_msgs/String"),
@@ -414,7 +433,8 @@ class TestROS1ErrorHandling:
         """Red: Publish should fail gracefully with missing topic."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import Command, ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
+                    Command, ROS1Robot)
 
                 robot = ROS1Robot("test", "test")
                 await robot.connect()
@@ -431,7 +451,8 @@ class TestROS1ErrorHandling:
         """Red: Publish should handle unknown message types."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import Command, ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
+                    Command, ROS1Robot)
 
                 robot = ROS1Robot("test", "test")
                 await robot.connect()
@@ -450,7 +471,8 @@ class TestROS1ErrorHandling:
         """Red: Execute should raise on unknown commands."""
         with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1_AVAILABLE", True):
             with patch("agent_ros_bridge.gateway_v2.connectors.ros1_connector.rospy"):
-                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import Command, ROS1Robot
+                from agent_ros_bridge.gateway_v2.connectors.ros1_connector import (
+                    Command, ROS1Robot)
 
                 robot = ROS1Robot("test", "test")
                 await robot.connect()

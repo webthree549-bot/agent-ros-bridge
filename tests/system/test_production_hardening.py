@@ -98,7 +98,8 @@ class TestLLMParserHardening:
     def test_llm_cache_effectiveness(self):
         """Test LLM result caching."""
         try:
-            from agent_ros_bridge.ai.llm_parser import LLMIntentParser, LLMIntentResult
+            from agent_ros_bridge.ai.llm_parser import (LLMIntentParser,
+                                                        LLMIntentResult)
 
             parser = LLMIntentParser(api_key="test_key", enable_cache=True)
 
@@ -167,7 +168,8 @@ class TestContextAwareHardening:
     def test_pronoun_resolution_edge_cases(self):
         """Test pronoun resolution with ambiguous contexts."""
         try:
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+            from agent_ros_bridge.ai.context_aware_parser import \
+                ContextAwareParser
 
             parser = ContextAwareParser()
 
@@ -187,7 +189,8 @@ class TestContextAwareHardening:
     def test_empty_context_handling(self):
         """Test behavior with no context available."""
         try:
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+            from agent_ros_bridge.ai.context_aware_parser import \
+                ContextAwareParser
 
             parser = ContextAwareParser()
 
@@ -203,7 +206,8 @@ class TestContextAwareHardening:
     def test_context_memory_limits(self):
         """Test that conversation history doesn't grow unbounded."""
         try:
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+            from agent_ros_bridge.ai.context_aware_parser import \
+                ContextAwareParser
 
             parser = ContextAwareParser(max_history=5)
 
@@ -223,7 +227,8 @@ class TestContextAwareHardening:
         try:
             import threading
 
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+            from agent_ros_bridge.ai.context_aware_parser import \
+                ContextAwareParser
 
             parser = ContextAwareParser()
             errors = []
@@ -256,7 +261,8 @@ class TestMultiLanguageHardening:
     def test_language_detection_mixed_input(self):
         """Test detection with mixed-language input."""
         try:
-            from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
+            from agent_ros_bridge.ai.multi_language_parser import \
+                MultiLanguageParser
 
             parser = MultiLanguageParser()
 
@@ -280,7 +286,8 @@ class TestMultiLanguageHardening:
     def test_unsupported_language_fallback(self):
         """Test fallback for unsupported languages."""
         try:
-            from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
+            from agent_ros_bridge.ai.multi_language_parser import \
+                MultiLanguageParser
 
             parser = MultiLanguageParser(default_language="en")
 
@@ -296,7 +303,8 @@ class TestMultiLanguageHardening:
     def test_malformed_unicode_handling(self):
         """Test handling of malformed Unicode input."""
         try:
-            from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
+            from agent_ros_bridge.ai.multi_language_parser import \
+                MultiLanguageParser
 
             parser = MultiLanguageParser()
 
@@ -320,7 +328,8 @@ class TestMultiLanguageHardening:
     def test_language_pattern_coverage(self):
         """Test that all languages have required patterns."""
         try:
-            from agent_ros_bridge.ai.multi_language_parser import MultiLanguageParser
+            from agent_ros_bridge.ai.multi_language_parser import \
+                MultiLanguageParser
 
             parser = MultiLanguageParser()
 
@@ -438,7 +447,8 @@ class TestPerformanceHardening:
     def test_cache_eviction_behavior(self):
         """Test cache eviction works correctly."""
         try:
-            from agent_ros_bridge.ai.llm_parser import LLMIntentParser, LLMIntentResult
+            from agent_ros_bridge.ai.llm_parser import (LLMIntentParser,
+                                                        LLMIntentResult)
 
             # Small cache for testing
             parser = LLMIntentParser(api_key="test_key", cache_size=10)

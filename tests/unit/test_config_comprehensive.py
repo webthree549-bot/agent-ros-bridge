@@ -13,14 +13,10 @@ from unittest import mock
 import pytest
 import yaml
 
-from agent_ros_bridge.gateway_v2.config import (
-    BridgeConfig,
-    ConfigLoader,
-    PluginConfig,
-    ROSEndpoint,
-    SecurityConfig,
-    TransportConfig,
-)
+from agent_ros_bridge.gateway_v2.config import (BridgeConfig, ConfigLoader,
+                                                PluginConfig, ROSEndpoint,
+                                                SecurityConfig,
+                                                TransportConfig)
 
 
 class TestBridgeConfigDefaults:

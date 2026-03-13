@@ -6,21 +6,12 @@ Verifies Phase 3 capabilities are implemented correctly.
 import pytest
 
 from agent_ros_bridge.integrations.fleet_intelligence import (
-    FleetIntelligence,
-    RobotCapabilities,
-    RobotState,
-    RobotStatus,
-    find_closest_robot_to_location,
-    find_robot_with_most_battery,
-    send_best_robot,
-)
+    FleetIntelligence, RobotCapabilities, RobotState, RobotStatus,
+    find_closest_robot_to_location, find_robot_with_most_battery,
+    send_best_robot)
 from agent_ros_bridge.integrations.scene_understanding import (
-    PerceptionBackend,
-    SceneUnderstanding,
-    describe_the_room,
-    is_path_clear,
-    what_do_you_see,
-)
+    PerceptionBackend, SceneUnderstanding, describe_the_room, is_path_clear,
+    what_do_you_see)
 
 
 class TestFleetIntelligence:

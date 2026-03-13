@@ -20,12 +20,7 @@ from dataclasses import dataclass
 from typing import Any
 
 try:
-    from prometheus_client import (
-        Counter,
-        Gauge,
-        Histogram,
-        Info,
-    )
+    from prometheus_client import Counter, Gauge, Histogram, Info
 
     PROMETHEUS_AVAILABLE = True
 except ImportError:

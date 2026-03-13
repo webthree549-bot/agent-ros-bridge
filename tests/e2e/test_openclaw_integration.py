@@ -209,7 +209,8 @@ class TestOpenClawE2E:
         - Location mappings
         """
         try:
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
+            from agent_ros_bridge.ai.context_aware_parser import \
+                ContextAwareParser
         except ImportError:
             pytest.skip("Context parser not available")
 
@@ -265,9 +266,7 @@ class TestOpenClawStandaloneE2E:
         """
         try:
             from agent_ros_bridge.ai.motion_primitives import (
-                MotionPrimitiveFactory,
-                navigate_to_pose,
-            )
+                MotionPrimitiveFactory, navigate_to_pose)
         except ImportError:
             pytest.skip("Motion primitives not available")
 

@@ -11,9 +11,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 # Import motion primitives
-from agent_ros_bridge.ai.motion_primitives import (
-    MotionPrimitive,
-)
+from agent_ros_bridge.ai.motion_primitives import MotionPrimitive
 
 
 @dataclass

@@ -4,12 +4,8 @@ from collections import deque
 
 import pytest
 
-from agent_ros_bridge.metrics import (
-    MetricsCollector,
-    MetricsServer,
-    MetricsSnapshot,
-    get_metrics,
-)
+from agent_ros_bridge.metrics import (MetricsCollector, MetricsServer,
+                                      MetricsSnapshot, get_metrics)
 
 
 class TestMetricsSnapshot:

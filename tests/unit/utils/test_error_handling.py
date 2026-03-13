@@ -5,15 +5,10 @@ from unittest.mock import patch
 
 import pytest
 
-from agent_ros_bridge.utils.error_handling import (
-    AgentError,
-    CircuitBreaker,
-    ErrorCode,
-    InputValidator,
-    handle_error,
-    llm_client,
-    with_retry,
-)
+from agent_ros_bridge.utils.error_handling import (AgentError, CircuitBreaker,
+                                                   ErrorCode, InputValidator,
+                                                   handle_error, llm_client,
+                                                   with_retry)
 
 
 class TestErrorCode:

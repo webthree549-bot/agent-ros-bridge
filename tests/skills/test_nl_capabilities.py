@@ -6,12 +6,10 @@ Verifies that the NL interpreter fulfills SKILL promises.
 import pytest
 
 from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
-from agent_ros_bridge.integrations.nl_params import (
-    infer_angle,
-    infer_distance,
-    infer_speed,
-    parse_numeric,
-)
+from agent_ros_bridge.integrations.nl_params import (infer_angle,
+                                                     infer_distance,
+                                                     infer_speed,
+                                                     parse_numeric)
 
 
 class TestParameterInference:

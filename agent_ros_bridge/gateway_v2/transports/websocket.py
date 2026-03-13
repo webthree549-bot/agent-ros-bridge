@@ -13,24 +13,19 @@ from typing import Any
 
 try:
     import websockets
-    from websockets.server import WebSocketServerProtocol  # type: ignore[attr-defined]
+    from websockets.server import \
+        WebSocketServerProtocol  # type: ignore[attr-defined]
 
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
 
-from agent_ros_bridge.gateway_v2.core import (
-    Command,
-    Event,
-    Header,
-    Identity,
-    Message,
-    Telemetry,
-    Transport,
-)
+from agent_ros_bridge.gateway_v2.core import (Command, Event, Header, Identity,
+                                              Message, Telemetry, Transport)
 
 try:
-    from agent_ros_bridge.gateway_v2.auth import AuthConfig, Authenticator, RoleBasedAccessControl
+    from agent_ros_bridge.gateway_v2.auth import (AuthConfig, Authenticator,
+                                                  RoleBasedAccessControl)
 
     AUTH_AVAILABLE = True
 except ImportError:

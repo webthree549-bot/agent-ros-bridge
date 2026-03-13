@@ -8,10 +8,7 @@ from datetime import UTC, datetime, timedelta
 import jwt
 import pytest
 
-from agent_ros_bridge.gateway_v2.auth import (
-    AuthConfig,
-    Authenticator,
-)
+from agent_ros_bridge.gateway_v2.auth import AuthConfig, Authenticator
 
 
 class TestAuthConfig:

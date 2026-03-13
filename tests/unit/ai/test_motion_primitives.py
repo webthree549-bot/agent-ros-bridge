@@ -51,13 +51,15 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_primitive_exists(self):
         """RED: NavigateToPosePrimitive should exist."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         assert NavigateToPosePrimitive is not None
 
     def test_navigate_to_pose_creates_navigate_primitive(self):
         """RED: Creates NAVIGATE primitive with target pose."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         target_pose.pose.position.x = 1.0
@@ -71,7 +73,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_has_default_max_velocity(self):
         """RED: Should have default max_velocity of 0.5."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose)
@@ -80,7 +83,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_accepts_custom_max_velocity(self):
         """RED: Should accept custom max_velocity parameter."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose, max_velocity=1.0)
@@ -89,7 +93,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_validates_with_valid_pose(self):
         """RED: Should validate successfully with valid pose."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose)
@@ -98,7 +103,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_rejects_none_pose(self):
         """RED: Should reject None target_pose."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         primitive = NavigateToPosePrimitive(target_pose=None)
 
@@ -106,7 +112,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_rejects_invalid_velocity(self):
         """RED: Should reject max_velocity <= 0."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose, max_velocity=0.0)
@@ -115,7 +122,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_rejects_negative_velocity(self):
         """RED: Should reject negative max_velocity."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose, max_velocity=-1.0)
@@ -124,7 +132,8 @@ class TestNavigateToPosePrimitive:
 
     def test_navigate_to_pose_has_expected_duration(self):
         """RED: Should have expected_duration > 0."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose)
@@ -237,13 +246,15 @@ class TestGripperControlPrimitive:
 
     def test_gripper_control_primitive_exists(self):
         """RED: GripperControlPrimitive should exist."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         assert GripperControlPrimitive is not None
 
     def test_gripper_open_creates_gripper_primitive(self):
         """RED: Creates GRIPPER primitive for open action."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         primitive = GripperControlPrimitive(action="open")
 
@@ -253,7 +264,8 @@ class TestGripperControlPrimitive:
 
     def test_gripper_close_creates_gripper_primitive(self):
         """RED: Creates GRIPPER primitive for close action."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         primitive = GripperControlPrimitive(action="close", force=5.0)
 
@@ -263,7 +275,8 @@ class TestGripperControlPrimitive:
 
     def test_gripper_validates_open_action(self):
         """RED: Should validate open action."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         primitive = GripperControlPrimitive(action="open")
 
@@ -271,7 +284,8 @@ class TestGripperControlPrimitive:
 
     def test_gripper_validates_close_action(self):
         """RED: Should validate close action."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         primitive = GripperControlPrimitive(action="close")
 
@@ -279,7 +293,8 @@ class TestGripperControlPrimitive:
 
     def test_gripper_rejects_invalid_action(self):
         """RED: Should reject invalid action."""
-        from agent_ros_bridge.ai.motion_primitives import GripperControlPrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            GripperControlPrimitive
 
         primitive = GripperControlPrimitive(action="invalid")
 
@@ -291,13 +306,15 @@ class TestRotateInPlacePrimitive:
 
     def test_rotate_in_place_primitive_exists(self):
         """RED: RotateInPlacePrimitive should exist."""
-        from agent_ros_bridge.ai.motion_primitives import RotateInPlacePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            RotateInPlacePrimitive
 
         assert RotateInPlacePrimitive is not None
 
     def test_rotate_creates_navigate_primitive(self):
         """RED: Creates NAVIGATE primitive for rotation."""
-        from agent_ros_bridge.ai.motion_primitives import RotateInPlacePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            RotateInPlacePrimitive
 
         primitive = RotateInPlacePrimitive(angle=1.57)
 
@@ -307,7 +324,8 @@ class TestRotateInPlacePrimitive:
 
     def test_rotate_has_default_angular_velocity(self):
         """RED: Should have default angular_velocity."""
-        from agent_ros_bridge.ai.motion_primitives import RotateInPlacePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            RotateInPlacePrimitive
 
         primitive = RotateInPlacePrimitive(angle=1.57)
 
@@ -315,7 +333,8 @@ class TestRotateInPlacePrimitive:
 
     def test_rotate_validates_positive_angle(self):
         """RED: Should validate positive angle."""
-        from agent_ros_bridge.ai.motion_primitives import RotateInPlacePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            RotateInPlacePrimitive
 
         primitive = RotateInPlacePrimitive(angle=1.57)
 
@@ -323,7 +342,8 @@ class TestRotateInPlacePrimitive:
 
     def test_rotate_validates_negative_angle(self):
         """RED: Should validate negative angle (rotate other direction)."""
-        from agent_ros_bridge.ai.motion_primitives import RotateInPlacePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            RotateInPlacePrimitive
 
         primitive = RotateInPlacePrimitive(angle=-1.57)
 
@@ -335,7 +355,8 @@ class TestPrimitiveParameterValidation:
 
     def test_primitive_parameters_is_dict(self):
         """RED: parameters should be stored as dict."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose, max_velocity=0.8)
@@ -345,7 +366,8 @@ class TestPrimitiveParameterValidation:
 
     def test_primitive_expected_duration_is_float(self):
         """RED: expected_duration should be a float."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose)
@@ -354,7 +376,8 @@ class TestPrimitiveParameterValidation:
 
     def test_primitive_type_is_string(self):
         """RED: type should be a string."""
-        from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
+        from agent_ros_bridge.ai.motion_primitives import \
+            NavigateToPosePrimitive
 
         target_pose = MagicMock()
         primitive = NavigateToPosePrimitive(target_pose=target_pose)
@@ -368,16 +391,15 @@ class TestMotionPrimitiveFactory:
 
     def test_primitive_factory_exists(self):
         """RED: MotionPrimitiveFactory should exist."""
-        from agent_ros_bridge.ai.motion_primitives import MotionPrimitiveFactory
+        from agent_ros_bridge.ai.motion_primitives import \
+            MotionPrimitiveFactory
 
         assert MotionPrimitiveFactory is not None
 
     def test_factory_creates_navigate_primitive(self):
         """RED: Factory should create NavigateToPosePrimitive."""
         from agent_ros_bridge.ai.motion_primitives import (
-            MotionPrimitiveFactory,
-            NavigateToPosePrimitive,
-        )
+            MotionPrimitiveFactory, NavigateToPosePrimitive)
 
         factory = MotionPrimitiveFactory()
         target_pose = MagicMock()
@@ -389,9 +411,7 @@ class TestMotionPrimitiveFactory:
     def test_factory_creates_pick_primitive(self):
         """RED: Factory should create PickObjectPrimitive."""
         from agent_ros_bridge.ai.motion_primitives import (
-            MotionPrimitiveFactory,
-            PickObjectPrimitive,
-        )
+            MotionPrimitiveFactory, PickObjectPrimitive)
 
         factory = MotionPrimitiveFactory()
         grasp_pose = MagicMock()
@@ -402,7 +422,8 @@ class TestMotionPrimitiveFactory:
 
     def test_factory_creates_from_dict(self):
         """RED: Factory should create primitive from dict config."""
-        from agent_ros_bridge.ai.motion_primitives import MotionPrimitiveFactory
+        from agent_ros_bridge.ai.motion_primitives import \
+            MotionPrimitiveFactory
 
         factory = MotionPrimitiveFactory()
         config = {

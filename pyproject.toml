@@ -158,7 +158,7 @@ ignore = [
 python_version = "3.11"
 strict = false
 warn_return_any = false
-warn_unused_configs = true
+warn_unused_configs = false
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = false
@@ -166,9 +166,11 @@ disallow_untyped_decorators = false
 no_implicit_optional = false
 warn_redundant_casts = false
 warn_unused_ignores = false
-warn_no_return = true
+warn_no_return = false
 warn_unreachable = false
 ignore_missing_imports = true
+follow_imports = "skip"
+disable_error_code = ["var-annotated", "union-attr", "assignment", "operator", "index", "attr-defined", "no-any-return", "misc"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"

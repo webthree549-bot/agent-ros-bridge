@@ -6,11 +6,7 @@ Verifies security and safety validation.
 import pytest
 
 from agent_ros_bridge.integrations.input_validation import (
-    InputValidator,
-    SafetyValidator,
-    is_command_safe,
-    validate_input_safe,
-)
+    InputValidator, SafetyValidator, is_command_safe, validate_input_safe)
 
 
 class TestInputValidator:
@@ -189,7 +185,8 @@ class TestIntegrationWithNL:
 
     def test_malicious_input_blocked_before_nl(self):
         """Test that malicious input is blocked before NL processing."""
-        from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
+        from agent_ros_bridge.integrations.nl_interpreter import \
+            RuleBasedInterpreter
 
         validator = InputValidator()
         interpreter = RuleBasedInterpreter()
@@ -206,7 +203,8 @@ class TestIntegrationWithNL:
 
     def test_safe_input_reaches_interpreter(self):
         """Test that safe input reaches interpreter."""
-        from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
+        from agent_ros_bridge.integrations.nl_interpreter import \
+            RuleBasedInterpreter
 
         validator = InputValidator()
         interpreter = RuleBasedInterpreter()

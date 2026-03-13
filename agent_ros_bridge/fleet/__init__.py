@@ -3,15 +3,8 @@
 Multi-robot orchestration, task allocation, and fleet coordination.
 """
 
-from .orchestrator import (
-    FleetMetrics,
-    FleetOrchestrator,
-    FleetRobot,
-    RobotCapability,
-    RobotStatus,
-    Task,
-    TaskStatus,
-)
+from .orchestrator import (FleetMetrics, FleetOrchestrator, FleetRobot,
+                           RobotCapability, RobotStatus, Task, TaskStatus)
 
 __all__ = [
     "FleetOrchestrator",

@@ -76,11 +76,7 @@ class TestIntegrationFleetScenario:
         2. Send best robot to location
         """
         from agent_ros_bridge.integrations.fleet_intelligence import (
-            FleetIntelligence,
-            RobotCapabilities,
-            RobotState,
-            RobotStatus,
-        )
+            FleetIntelligence, RobotCapabilities, RobotState, RobotStatus)
 
         fleet = FleetIntelligence()
 

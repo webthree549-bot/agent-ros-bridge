@@ -25,10 +25,7 @@ _mock_modules = {
 }
 with mock.patch.dict("sys.modules", _mock_modules):
     from agent_ros_bridge.gateway_v2.connectors.ros2_connector import (
-        MESSAGE_TYPE_REGISTRY,
-        ROS2Robot,
-        get_message_class,
-    )
+        MESSAGE_TYPE_REGISTRY, ROS2Robot, get_message_class)
     from agent_ros_bridge.gateway_v2.core import Command
 
 

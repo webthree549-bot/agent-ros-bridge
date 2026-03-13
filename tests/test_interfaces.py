@@ -17,7 +17,8 @@ try:
     import rclpy
     from rclpy.node import Node
 
-    from agent_ros_bridge_msgs.msg import Constraint, ContextQuery, ContextResponse, Entity, Intent
+    from agent_ros_bridge_msgs.msg import (Constraint, ContextQuery,
+                                           ContextResponse, Entity, Intent)
     from agent_ros_bridge_msgs.srv import ParseIntent, ResolveContext
 
     ROS2_AVAILABLE = True

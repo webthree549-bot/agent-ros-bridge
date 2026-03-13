@@ -25,7 +25,8 @@ class TestEndToEndCoreSystem:
     async def test_full_system_lifecycle(self):
         """Test complete system lifecycle."""
         from agent_ros_bridge import Bridge
-        from agent_ros_bridge.gateway_v2 import Blueprint, In, Module, Out, skill
+        from agent_ros_bridge.gateway_v2 import (Blueprint, In, Module, Out,
+                                                 skill)
         from agent_ros_bridge.gateway_v2.transports import WebSocketTransport
 
         # Track state
@@ -173,12 +174,10 @@ class TestEndToEndCoreSystem:
 
     def test_security_end_to_end(self):
         """Test security utilities."""
-        from agent_ros_bridge.security_utils import (
-            RateLimiter,
-            generate_token,
-            hash_password,
-            verify_password,
-        )
+        from agent_ros_bridge.security_utils import (RateLimiter,
+                                                     generate_token,
+                                                     hash_password,
+                                                     verify_password)
 
         # Password hashing
         password = "test_password"
@@ -204,12 +203,10 @@ class TestEndToEndCoreSystem:
 
     def test_error_handling_flow(self):
         """Test error handling."""
-        from agent_ros_bridge.utils.error_handling import (
-            AgentError,
-            ErrorCode,
-            InputValidator,
-            handle_error,
-        )
+        from agent_ros_bridge.utils.error_handling import (AgentError,
+                                                           ErrorCode,
+                                                           InputValidator,
+                                                           handle_error)
 
         # Input validation
         result = InputValidator.validate_utterance("go to kitchen")

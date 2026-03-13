@@ -12,11 +12,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from agent_ros_bridge.integrations.context import (
-    ContextAwareNLInterpreter,
-    ContextManager,
-    ConversationContext,
-)
+from agent_ros_bridge.integrations.context import (ContextAwareNLInterpreter,
+                                                   ContextManager,
+                                                   ConversationContext)
 
 
 class TestConversationContext:

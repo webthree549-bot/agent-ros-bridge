@@ -16,10 +16,7 @@ _mock_modules = {
 }
 with mock.patch.dict("sys.modules", _mock_modules):
     from agent_ros_bridge.gateway_v2.connectors.ros2_connector import (
-        ROS2Connector,
-        ROS2Robot,
-        ROS2Topic,
-    )
+        ROS2Connector, ROS2Robot, ROS2Topic)
     from agent_ros_bridge.gateway_v2.core import Command, Telemetry
 
 

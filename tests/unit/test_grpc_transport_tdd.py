@@ -20,7 +20,8 @@ class TestGRPCTransportInitialization:
 
     def test_transport_initialization_defaults(self):
         """Red: Should initialize with default values."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         transport = GRPCTransport({})
 
@@ -34,7 +35,8 @@ class TestGRPCTransportInitialization:
 
     def test_transport_initialization_custom_config(self):
         """Red: Should accept custom configuration."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         config = {
             "host": "127.0.0.1",
@@ -65,7 +67,8 @@ class TestGRPCServerLifecycle:
     async def test_start_creates_server(self):
         """Red: Start should create and start gRPC server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -82,7 +85,8 @@ class TestGRPCServerLifecycle:
     async def test_stop_gracefully_shutdowns(self):
         """Red: Stop should gracefully shutdown server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -98,7 +102,8 @@ class TestGRPCServerLifecycle:
     async def test_start_without_grpc_returns_false(self):
         """Red: Should return False if gRPC not available."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPC_AVAILABLE", False):
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             transport = GRPCTransport({})
             result = await transport.start()
@@ -113,7 +118,8 @@ class TestGRPCTLSConfiguration:
     async def test_tls_enabled_with_cert_and_key(self):
         """Red: Should enable TLS when cert and key provided."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -134,7 +140,8 @@ class TestGRPCTLSConfiguration:
     async def test_mtls_enabled_with_ca_cert(self):
         """Red: Should enable mTLS when CA cert provided."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -157,7 +164,8 @@ class TestGRPCTLSConfiguration:
     async def test_insecure_fallback_on_tls_error(self):
         """Red: Should fall back to insecure if TLS fails."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -192,7 +200,8 @@ class TestGRPCServiceRegistration:
             with patch(
                 "agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"
             ) as mock_pb2:
-                from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+                from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                    GRPCTransport
 
                 mock_server = AsyncMock()
                 mock_grpc.aio.server.return_value = mock_server
@@ -207,7 +216,8 @@ class TestGRPCServiceRegistration:
         """Red: Reflection should be enabled when configured."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             with patch("grpc_reflection.v1alpha.reflection") as mock_reflection:
-                from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+                from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                    GRPCTransport
 
                 mock_server = AsyncMock()
                 mock_grpc.aio.server.return_value = mock_server
@@ -224,7 +234,8 @@ class TestGRPCClientManagement:
     @pytest.mark.asyncio
     async def test_get_connected_clients_empty(self):
         """Red: Should return empty list when no clients."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         transport = GRPCTransport({})
         clients = transport.get_connected_clients()
@@ -235,7 +246,8 @@ class TestGRPCClientManagement:
     async def test_get_stats_returns_current_state(self):
         """Red: Should return transport statistics."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -262,7 +274,8 @@ class TestGRPCMessageConversion:
 
     def test_proto_to_message_command(self):
         """Red: Should convert protobuf to Command."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -285,7 +298,8 @@ class TestGRPCMessageConversion:
     def test_message_to_proto_response(self):
         """Red: Should convert Message to CommandResponse protobuf."""
         from agent_ros_bridge.gateway_v2.core import Event, Message, Telemetry
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -303,7 +317,8 @@ class TestGRPCMessageConversion:
         """Red: Should convert protobuf Struct to dict."""
         from google.protobuf import struct_pb2
 
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -324,7 +339,8 @@ class TestGRPCIdentityExtraction:
 
     def test_extract_identity_from_metadata(self):
         """Red: Should extract user identity from request metadata."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -347,7 +363,8 @@ class TestGRPCIdentityExtraction:
 
     def test_extract_anonymous_identity_no_auth(self):
         """Red: Should create anonymous identity without auth."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -369,7 +386,8 @@ class TestGRPCServicerRPCs:
     async def test_send_command_rpc(self):
         """Red: Should handle SendCommand RPC."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                BridgeServiceServicer
 
             mock_transport = Mock()
             mock_transport.message_handler = AsyncMock(
@@ -395,7 +413,8 @@ class TestGRPCServicerRPCs:
     @pytest.mark.asyncio
     async def test_health_check_rpc(self):
         """Red: Should handle HealthCheck RPC."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         servicer = BridgeServiceServicer(Mock())
 
@@ -409,7 +428,8 @@ class TestGRPCServicerRPCs:
     @pytest.mark.asyncio
     async def test_subscribe_telemetry_stream(self):
         """Red: Should stream telemetry via SubscribeTelemetry."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            BridgeServiceServicer
 
         mock_transport = Mock()
         servicer = BridgeServiceServicer(mock_transport)
@@ -436,7 +456,8 @@ class TestGRPCClientHelper:
     async def test_client_connect(self):
         """Red: GRPCClient should connect to server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCClient
 
             mock_channel = AsyncMock()
             mock_grpc.aio.insecure_channel.return_value = mock_channel
@@ -453,7 +474,8 @@ class TestGRPCClientHelper:
         """Red: GRPCClient should send commands."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc"):
             with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
-                from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
+                from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                    GRPCClient
 
                 mock_stub = AsyncMock()
                 mock_response = Mock()
@@ -475,7 +497,8 @@ class TestGRPCClientHelper:
         """Red: GRPCClient should check health."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc"):
             with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
-                from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCClient
+                from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                    GRPCClient
 
                 mock_stub = AsyncMock()
                 mock_response = Mock()
@@ -500,7 +523,8 @@ class TestGRPCBroadcast:
         """Red: Should broadcast message to all connected clients."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
             from agent_ros_bridge.gateway_v2.core import Message, Telemetry
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                GRPCTransport
 
             mock_server = AsyncMock()
             mock_grpc.aio.server.return_value = mock_server
@@ -528,7 +552,8 @@ class TestGRPCErrorHandling:
     async def test_send_to_disconnected_client(self):
         """Red: Should handle send to disconnected client."""
         from agent_ros_bridge.gateway_v2.core import Message
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         transport = GRPCTransport({})
         transport.service = None  # No service = no clients
@@ -541,7 +566,8 @@ class TestGRPCErrorHandling:
     async def test_send_command_with_no_handler(self):
         """Red: Should return error when no message handler registered."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.bridge_pb2"):
-            from agent_ros_bridge.gateway_v2.transports.grpc_transport import BridgeServiceServicer
+            from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+                BridgeServiceServicer
 
             mock_transport = Mock()
             mock_transport.message_handler = None
@@ -567,7 +593,8 @@ class TestGRPCJWTAuthentication:
 
     def test_transport_auth_config_defaults(self):
         """Red: Should have auth disabled by default."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         transport = GRPCTransport({})
 
@@ -576,7 +603,8 @@ class TestGRPCJWTAuthentication:
 
     def test_transport_auth_config_enabled(self):
         """Red: Should accept auth configuration."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         config = {
             "auth": {
@@ -595,9 +623,7 @@ class TestGRPCJWTAuthentication:
         """Red: Should extract identity from valid JWT token."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.AUTH_AVAILABLE", True):
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-                BridgeServiceServicer,
-                GRPCTransport,
-            )
+                BridgeServiceServicer, GRPCTransport)
 
             # Create transport with auth enabled
             transport = GRPCTransport(
@@ -639,9 +665,7 @@ class TestGRPCJWTAuthentication:
             from grpc import StatusCode
 
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-                BridgeServiceServicer,
-                GRPCTransport,
-            )
+                BridgeServiceServicer, GRPCTransport)
 
             # Create transport with auth enabled
             transport = GRPCTransport(
@@ -683,9 +707,7 @@ class TestGRPCJWTAuthentication:
             from grpc import StatusCode
 
             from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-                BridgeServiceServicer,
-                GRPCTransport,
-            )
+                BridgeServiceServicer, GRPCTransport)
 
             # Create transport with auth enabled
             transport = GRPCTransport(
@@ -713,9 +735,7 @@ class TestGRPCJWTAuthentication:
     async def test_extract_identity_anonymous_when_auth_disabled(self):
         """Red: Should allow anonymous access when auth is disabled."""
         from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-            BridgeServiceServicer,
-            GRPCTransport,
-        )
+            BridgeServiceServicer, GRPCTransport)
 
         # Create transport without auth
         transport = GRPCTransport({})
@@ -733,7 +753,8 @@ class TestGRPCJWTAuthentication:
 
     def test_get_stats_includes_auth_status(self):
         """Red: Should include auth status in stats."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+            GRPCTransport
 
         transport = GRPCTransport({"auth": {"enabled": True, "jwt_secret": "secret"}})
 

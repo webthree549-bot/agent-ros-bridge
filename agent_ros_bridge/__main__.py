@@ -26,12 +26,14 @@ from agent_ros_bridge.gateway_v2.config import ConfigLoader
 
 # Optional imports with fallbacks
 try:
-    from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
+    from agent_ros_bridge.gateway_v2.connectors.ros2_connector import \
+        ROS2Connector
 except ImportError:
     ROS2Connector = None
 
 try:
-    from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
+    from agent_ros_bridge.gateway_v2.transports.grpc_transport import \
+        GRPCTransport
 except ImportError:
     GRPCTransport = None
 

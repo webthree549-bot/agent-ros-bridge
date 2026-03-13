@@ -6,15 +6,8 @@ Verifies final gap closure for 100% SKILL fulfillment.
 import pytest
 
 from agent_ros_bridge.integrations.autonomous_behaviors import (
-    AutonomousBehaviorManager,
-    ExplorationArea,
-    MissionPlanner,
-    MissionStatus,
-    PatrolRoute,
-    Waypoint,
-    explore_autonomously,
-    patrol_route,
-)
+    AutonomousBehaviorManager, ExplorationArea, MissionPlanner, MissionStatus,
+    PatrolRoute, Waypoint, explore_autonomously, patrol_route)
 
 
 class TestMissionPlanner:
@@ -136,9 +129,7 @@ class TestSkillFulfillmentPhase4:
     def test_explore_autonomously_fulfilled(self):
         """Verify SKILL: 'Explore this room autonomously'"""
         from agent_ros_bridge.integrations.autonomous_behaviors import (
-            AutonomousBehaviorManager,
-            MissionPlanner,
-        )
+            AutonomousBehaviorManager, MissionPlanner)
 
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
@@ -153,9 +144,7 @@ class TestSkillFulfillmentPhase4:
     def test_patrol_route_fulfilled(self):
         """Verify SKILL: 'Patrol the perimeter every 30 minutes'"""
         from agent_ros_bridge.integrations.autonomous_behaviors import (
-            AutonomousBehaviorManager,
-            MissionPlanner,
-        )
+            AutonomousBehaviorManager, MissionPlanner)
 
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
@@ -173,7 +162,8 @@ class TestSkillFulfillmentPhase4:
 
     def test_mission_planning_fulfilled(self):
         """Verify SKILL: High-level mission planning exists."""
-        from agent_ros_bridge.integrations.autonomous_behaviors import MissionPlanner
+        from agent_ros_bridge.integrations.autonomous_behaviors import \
+            MissionPlanner
 
         planner = MissionPlanner()
 
@@ -191,10 +181,14 @@ class TestGapClosureFinal:
 
     def test_all_gaps_now_implemented(self):
         """Verify all 6 gaps are now implemented."""
-        from agent_ros_bridge.integrations.autonomous_behaviors import MissionPlanner
-        from agent_ros_bridge.integrations.fleet_intelligence import FleetIntelligence
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
-        from agent_ros_bridge.integrations.scene_understanding import SceneUnderstanding
+        from agent_ros_bridge.integrations.autonomous_behaviors import \
+            MissionPlanner
+        from agent_ros_bridge.integrations.fleet_intelligence import \
+            FleetIntelligence
+        from agent_ros_bridge.integrations.openclaw_adapter import \
+            OpenClawAdapter
+        from agent_ros_bridge.integrations.scene_understanding import \
+            SceneUnderstanding
 
         # 1. Natural Language Interpretation
         adapter = OpenClawAdapter(bridge=None)
