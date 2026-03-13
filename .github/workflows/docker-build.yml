@@ -20,7 +20,7 @@ jobs:
       - name: Smoke test CLI
         run: |
           export JWT_SECRET=test-secret-for-ci
-          docker run --rm -e JWT_SECRET agent-ros-bridge:ci --version
+          docker run --rm -e JWT_SECRET agent-ros-bridge:ci python -m agent_ros_bridge.cli --version
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

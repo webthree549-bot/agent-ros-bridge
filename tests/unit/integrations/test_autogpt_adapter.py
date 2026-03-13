@@ -3,9 +3,10 @@
 Tests the AutoGPT adapter without external dependencies.
 """
 
-import pytest
 import json
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from agent_ros_bridge.integrations.autogpt_adapter import AutoGPTAdapter
 

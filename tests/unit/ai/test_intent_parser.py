@@ -18,7 +18,6 @@ try:
 except ImportError:
     ROS2_AVAILABLE = False
 
-from unittest.mock import Mock, patch
 import time
 
 # Skip entire module if ROS2 not available
@@ -26,8 +25,8 @@ pytestmark = pytest.mark.skipif(not ROS2_AVAILABLE, reason="ROS2 not available")
 
 # Import messages and services - skip if not available
 try:
+    from agent_ros_bridge_msgs.msg import Entity, Intent
     from agent_ros_bridge_msgs.srv import ParseIntent
-    from agent_ros_bridge_msgs.msg import Intent, Entity
 
     MSGS_AVAILABLE = True
 except ImportError:
@@ -303,10 +302,10 @@ class TestIntentParserPatterns:
 
     def test_navigate_patterns_compiled(self):
         """RED: Navigate patterns should be valid regex."""
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-
         # Check that patterns are valid regex
         import re
+
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         for pattern in IntentParserNode.PATTERNS["NAVIGATE"]:
             # Should compile without error
@@ -315,9 +314,9 @@ class TestIntentParserPatterns:
 
     def test_manipulate_patterns_compiled(self):
         """RED: Manipulate patterns should be valid regex."""
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-
         import re
+
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         for pattern in IntentParserNode.PATTERNS["MANIPULATE"]:
             compiled = re.compile(pattern, re.IGNORECASE)
@@ -325,9 +324,9 @@ class TestIntentParserPatterns:
 
     def test_sense_patterns_compiled(self):
         """RED: Sense patterns should be valid regex."""
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-
         import re
+
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         for pattern in IntentParserNode.PATTERNS["SENSE"]:
             compiled = re.compile(pattern, re.IGNORECASE)
@@ -335,9 +334,9 @@ class TestIntentParserPatterns:
 
     def test_query_patterns_compiled(self):
         """RED: Query patterns should be valid regex."""
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-
         import re
+
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         for pattern in IntentParserNode.PATTERNS["QUERY"]:
             compiled = re.compile(pattern, re.IGNORECASE)
@@ -345,9 +344,9 @@ class TestIntentParserPatterns:
 
     def test_safety_patterns_compiled(self):
         """RED: Safety patterns should be valid regex."""
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
-
         import re
+
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         for pattern in IntentParserNode.PATTERNS["SAFETY"]:
             compiled = re.compile(pattern, re.IGNORECASE)

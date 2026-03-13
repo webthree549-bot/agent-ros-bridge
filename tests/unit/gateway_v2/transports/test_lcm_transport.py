@@ -6,10 +6,10 @@ Following TDD principles:
 3. Refactor
 """
 
-import pytest
-import asyncio
-from unittest.mock import Mock, patch, MagicMock
 import struct
+from unittest.mock import Mock
+
+import pytest
 
 from agent_ros_bridge.gateway_v2.transports.lcm_transport import (
     LCMMessage,
@@ -266,7 +266,7 @@ class TestLCMTransportSend:
     @pytest.mark.asyncio
     async def test_send_dict(self):
         """Can send dict message."""
-        from agent_ros_bridge.gateway_v2.core import Message, Header, Command
+        from agent_ros_bridge.gateway_v2.core import Command, Header, Message
 
         transport = LCMTransport({})
         await transport.start()
@@ -285,7 +285,7 @@ class TestLCMTransportSend:
     @pytest.mark.asyncio
     async def test_broadcast(self):
         """Can broadcast message."""
-        from agent_ros_bridge.gateway_v2.core import Message, Header, Command
+        from agent_ros_bridge.gateway_v2.core import Command, Header, Message
 
         transport = LCMTransport({})
         await transport.start()

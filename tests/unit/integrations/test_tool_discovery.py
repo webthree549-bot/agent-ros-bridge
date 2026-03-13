@@ -3,10 +3,11 @@
 Tests the tool discovery system without external dependencies.
 """
 
-import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
+from unittest.mock import Mock
 
-from agent_ros_bridge.integrations.discovery import ToolDiscovery, ROSAction
+import pytest
+
+from agent_ros_bridge.integrations.discovery import ROSAction, ToolDiscovery
 
 
 class TestROSAction:

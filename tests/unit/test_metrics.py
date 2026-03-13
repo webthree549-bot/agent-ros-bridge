@@ -1,14 +1,13 @@
 """Tests for metrics module."""
 
-import pytest
-import asyncio
-from unittest.mock import Mock, patch, MagicMock
 from collections import deque
 
+import pytest
+
 from agent_ros_bridge.metrics import (
-    MetricsSnapshot,
     MetricsCollector,
     MetricsServer,
+    MetricsSnapshot,
     get_metrics,
 )
 

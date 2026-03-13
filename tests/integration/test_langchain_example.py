@@ -3,9 +3,10 @@
 TDD: Tests for examples/v0.5.0_integrations/langchain_example.py
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add examples to path
 examples_dir = Path(__file__).parent.parent.parent / "examples" / "v0.5.0_integrations"

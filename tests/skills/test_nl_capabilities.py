@@ -4,14 +4,14 @@ Verifies that the NL interpreter fulfills SKILL promises.
 """
 
 import pytest
+
+from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
 from agent_ros_bridge.integrations.nl_params import (
-    infer_parameter,
-    infer_speed,
-    infer_distance,
     infer_angle,
+    infer_distance,
+    infer_speed,
     parse_numeric,
 )
-from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
 
 
 class TestParameterInference:
@@ -154,7 +154,6 @@ class TestNLWithAdapter:
     async def test_adapter_execute_nl(self):
         """Test that adapter can execute NL commands."""
         from agent_ros_bridge import Bridge
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
         bridge = Bridge()
         adapter = bridge.get_openclaw_adapter()

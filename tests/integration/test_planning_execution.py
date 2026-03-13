@@ -4,9 +4,9 @@ Tests the flow from motion planner → execution monitor with safety validation
 and anomaly detection/recovery.
 """
 
-import pytest
 from unittest.mock import MagicMock
-import asyncio
+
+import pytest
 
 
 class TestPlanningToExecutionFlow:
@@ -15,8 +15,8 @@ class TestPlanningToExecutionFlow:
     @pytest.mark.asyncio
     async def test_plan_then_execute_navigation(self):
         """Integration: Plan navigation then execute."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode, SafetyCertificate
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         # Create planner and monitor
@@ -43,8 +43,8 @@ class TestPlanningToExecutionFlow:
     @pytest.mark.asyncio
     async def test_plan_then_execute_manipulation(self):
         """Integration: Plan manipulation then execute."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import PickObjectPrimitive
 
         planner = MotionPlannerNode()
@@ -66,11 +66,11 @@ class TestPlanningToExecutionFlow:
     @pytest.mark.asyncio
     async def test_plan_sequence_then_execute(self):
         """Integration: Plan sequence then execute all."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            NavigateToPosePrimitive,
             GripperControlPrimitive,
+            NavigateToPosePrimitive,
         )
 
         planner = MotionPlannerNode()
@@ -99,8 +99,8 @@ class TestSafetyValidatorIntegration:
     @pytest.mark.asyncio
     async def test_unsafe_plan_rejected_before_execution(self):
         """Integration: Unsafe plan rejected before execution."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
@@ -122,8 +122,8 @@ class TestSafetyValidatorIntegration:
     @pytest.mark.asyncio
     async def test_safe_plan_passes_validation(self):
         """Integration: Safe plan passes validation."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
@@ -148,8 +148,8 @@ class TestSafetyValidatorIntegration:
     @pytest.mark.asyncio
     async def test_safety_certificate_expires(self):
         """Integration: Expired safety certificate rejected."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode, SafetyCertificate
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()
@@ -179,7 +179,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_stuck_detection_triggers_recovery(self):
         """Integration: STUCK detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode, AnomalyType, Anomaly
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -211,7 +211,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_obstacle_detection_triggers_recovery(self):
         """Integration: OBSTACLE detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode, AnomalyType
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -234,7 +234,7 @@ class TestAnomalyDetectionAndRecovery:
     @pytest.mark.asyncio
     async def test_deviation_detection_triggers_recovery(self):
         """Integration: DEVIATION detection triggers recovery."""
-        from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode, AnomalyType
+        from agent_ros_bridge.ai.execution_monitor import AnomalyType, ExecutionMonitorNode
 
         monitor = ExecutionMonitorNode()
 
@@ -317,8 +317,8 @@ class TestEndToEndScenarios:
     @pytest.mark.asyncio
     async def test_navigate_pick_place_sequence(self):
         """E2E: Navigate → Pick → Place sequence."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
             NavigateToPosePrimitive,
             PickObjectPrimitive,
@@ -354,8 +354,8 @@ class TestEndToEndScenarios:
     @pytest.mark.asyncio
     async def test_recovery_during_execution(self):
         """E2E: Recovery triggered during execution."""
-        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.execution_monitor import ExecutionMonitorNode
+        from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import NavigateToPosePrimitive
 
         planner = MotionPlannerNode()

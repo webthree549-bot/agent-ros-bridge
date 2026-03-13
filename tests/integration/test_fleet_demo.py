@@ -3,10 +3,10 @@
 TDD: Tests for examples/fleet/fleet_demo.py
 """
 
-import pytest
-import asyncio
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pytest
 
 # Add examples to path
 examples_dir = Path(__file__).parent.parent.parent / "examples" / "fleet"

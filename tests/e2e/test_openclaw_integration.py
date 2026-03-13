@@ -14,12 +14,12 @@ Requirements:
     - Agent ROS Bridge installed
 """
 
-import pytest
-import time
-import subprocess
-import signal
 import os
-from pathlib import Path
+import signal
+import subprocess
+import time
+
+import pytest
 
 # Skip all tests if ROS2 not available
 pytestmark = [
@@ -87,10 +87,10 @@ class TestOpenClawE2E:
         """
         try:
             import rclpy
-            from rclpy.node import Node
             from geometry_msgs.msg import PoseWithCovarianceStamped
             from nav2_msgs.action import NavigateToPose
             from rclpy.action import ActionClient
+            from rclpy.node import Node
         except ImportError:
             pytest.skip("ROS2 Python bindings not available")
 

@@ -3,17 +3,17 @@
 TDD approach: Test first, then implement.
 """
 
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-import asyncio
-from unittest.mock import Mock, AsyncMock
 
 # Skip if grpc not installed
 pytest.importorskip("grpc")
 
 from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
-    GRPCTransport,
     GRPCClient,
     GRPCServicer,
+    GRPCTransport,
 )
 
 

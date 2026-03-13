@@ -12,10 +12,10 @@ Full end-to-end test demonstrating:
 This test uses Docker-based ROS2.
 """
 
-import pytest
-import time
 import subprocess
-import json
+import time
+
+import pytest
 
 
 def run_in_ros2_container(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -159,7 +159,7 @@ class TestAgentROSBridgeE2E:
         # Step 3: Verify ROS2 can receive commands
         result = run_in_ros2_container("ros2 topic list")
         assert result.returncode == 0
-        print(f"✅ Step 3: ROS2 bridge accessible")
+        print("✅ Step 3: ROS2 bridge accessible")
 
         print("\n✅ Full flow test passed")
 

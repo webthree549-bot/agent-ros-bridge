@@ -15,7 +15,6 @@ try:
 except ImportError:
     ROS2_AVAILABLE = False
 
-from unittest.mock import Mock, patch
 import time
 
 # Skip entire module if ROS2 not available
@@ -23,8 +22,8 @@ pytestmark = pytest.mark.skipif(not ROS2_AVAILABLE, reason="ROS2 not available")
 
 # Import messages and services - skip if not available
 try:
+    from agent_ros_bridge_msgs.msg import ContextQuery, Entity, Intent
     from agent_ros_bridge_msgs.srv import ParseIntent, ResolveContext
-    from agent_ros_bridge_msgs.msg import Intent, Entity, ContextQuery
 
     MSGS_AVAILABLE = True
 except ImportError:
@@ -47,8 +46,8 @@ class TestIntentToContextIntegration:
         if not rclpy.ok():
             rclpy.init()
 
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
         from agent_ros_bridge.ai.context_manager import ContextManagerNode
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         intent_parser = IntentParserNode()
         context_manager = ContextManagerNode()
@@ -253,8 +252,8 @@ class TestIntentContextErrorHandling:
         if not rclpy.ok():
             rclpy.init()
 
-        from agent_ros_bridge.ai.intent_parser import IntentParserNode
         from agent_ros_bridge.ai.context_manager import ContextManagerNode
+        from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
         intent_parser = IntentParserNode()
         context_manager = ContextManagerNode()

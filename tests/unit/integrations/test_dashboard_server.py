@@ -3,12 +3,13 @@
 TDD tests for DashboardServer.
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
 
 from agent_ros_bridge.integrations.dashboard_server import (
-    DashboardServer,
     AIOHTTP_AVAILABLE,
+    DashboardServer,
 )
 
 

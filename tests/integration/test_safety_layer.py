@@ -8,9 +8,7 @@ Tests integration between:
 - End-to-end safety flow
 """
 
-import pytest
 import time
-from unittest.mock import Mock
 
 
 class TestValidatorLimitsIntegration:
@@ -71,8 +69,8 @@ class TestWatchdogEmergencyStopIntegration:
 
     def test_watchdog_triggers_e_stop_on_timeout(self):
         """Watchdog should trigger e-stop when critical node times out"""
-        from agent_ros_bridge.safety.watchdog import WatchdogNode
         from agent_ros_bridge.safety.emergency_stop import EmergencyStopNode
+        from agent_ros_bridge.safety.watchdog import WatchdogNode
 
         watchdog = WatchdogNode()
         e_stop = EmergencyStopNode()
@@ -97,8 +95,8 @@ class TestWatchdogEmergencyStopIntegration:
 
     def test_watchdog_logs_timeout_before_e_stop(self):
         """Watchdog should log timeout event before triggering e-stop"""
-        from agent_ros_bridge.safety.watchdog import WatchdogNode
         from agent_ros_bridge.safety.emergency_stop import EmergencyStopNode
+        from agent_ros_bridge.safety.watchdog import WatchdogNode
 
         watchdog = WatchdogNode()
         e_stop = EmergencyStopNode()

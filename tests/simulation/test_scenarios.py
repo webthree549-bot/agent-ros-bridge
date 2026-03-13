@@ -3,17 +3,18 @@ Test scenarios in simulation - TDD approach
 Week 2 Deliverable: Simulation Tests
 """
 
+import json
+import sys
+from pathlib import Path
+
 import pytest
 import yaml
-import json
-from pathlib import Path
-import sys
 
 # Add simulation directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "simulation"))
 
-from scenario_runner import ScenarioRunner, ScenarioResult
 from parallel_runner import ParallelRunner, ParallelScenarioResult
+from scenario_runner import ScenarioResult, ScenarioRunner
 
 
 class TestScenarioFiles:
@@ -37,7 +38,7 @@ class TestScenarioFiles:
         scenario_files = list(scenarios_dir.glob("scenario_*.yaml"))
 
         for scenario_file in scenario_files:
-            with open(scenario_file, "r") as f:
+            with open(scenario_file) as f:
                 content = yaml.safe_load(f)
 
             assert content is not None, f"{scenario_file.name} is empty or invalid"
@@ -49,7 +50,7 @@ class TestScenarioFiles:
         required_fields = ["name", "description", "world", "duration"]
 
         for scenario_file in scenario_files:
-            with open(scenario_file, "r") as f:
+            with open(scenario_file) as f:
                 scenario = yaml.safe_load(f)
 
             for field in required_fields:
@@ -60,7 +61,7 @@ class TestScenarioFiles:
         scenario_files = list(scenarios_dir.glob("scenario_*.yaml"))
 
         for scenario_file in scenario_files:
-            with open(scenario_file, "r") as f:
+            with open(scenario_file) as f:
                 scenario = yaml.safe_load(f)
 
             assert "robots" in scenario, f"{scenario_file.name}: missing 'robots'"
@@ -71,7 +72,7 @@ class TestScenarioFiles:
         scenario_files = list(scenarios_dir.glob("scenario_*.yaml"))
 
         for scenario_file in scenario_files:
-            with open(scenario_file, "r") as f:
+            with open(scenario_file) as f:
                 scenario = yaml.safe_load(f)
 
             assert (
@@ -84,7 +85,7 @@ class TestScenarioFiles:
         scenario_files = list(scenarios_dir.glob("scenario_*.yaml"))
 
         for scenario_file in scenario_files:
-            with open(scenario_file, "r") as f:
+            with open(scenario_file) as f:
                 scenario = yaml.safe_load(f)
 
             for robot in scenario.get("robots", []):
@@ -221,7 +222,7 @@ class TestParallelRunner:
 
         assert result_file.exists()
 
-        with open(result_file, "r") as f:
+        with open(result_file) as f:
             saved = json.load(f)
 
         assert saved["batch_name"] == "test_batch"
@@ -239,7 +240,7 @@ class TestParallelRunner:
 
         assert report_file.exists()
 
-        with open(report_file, "r") as f:
+        with open(report_file) as f:
             saved = json.load(f)
 
         assert "summary" in saved
@@ -285,7 +286,7 @@ def test_scenario_valid(scenario):
     """RED: All scenarios should be valid YAML with required fields"""
     scenario_file = Path(f"simulation/scenarios/{scenario}.yaml")
 
-    with open(scenario_file, "r") as f:
+    with open(scenario_file) as f:
         content = yaml.safe_load(f)
 
     assert content is not None

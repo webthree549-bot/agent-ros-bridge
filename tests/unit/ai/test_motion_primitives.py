@@ -3,9 +3,6 @@
 TDD Approach: Write failing tests first, then implement to pass.
 """
 
-import pytest
-from unittest.mock import MagicMock, patch
-
 # Mock ROS2 modules before importing our code
 import sys
 from unittest.mock import MagicMock
@@ -34,10 +31,10 @@ class TestMotionPrimitive:
 
     def test_motion_primitive_has_required_fields(self):
         """RED: MotionPrimitive should have type, primitive_id, target_pose, parameters, expected_duration."""
-        from agent_ros_bridge.ai.motion_primitives import MotionPrimitive
-
         # Check dataclass fields exist
         import inspect
+
+        from agent_ros_bridge.ai.motion_primitives import MotionPrimitive
 
         sig = inspect.signature(MotionPrimitive.__init__)
         params = list(sig.parameters.keys())

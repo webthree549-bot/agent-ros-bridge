@@ -1,19 +1,18 @@
 """Tests for error handling and validation utilities."""
 
-import pytest
 import time
 from unittest.mock import patch
 
+import pytest
+
 from agent_ros_bridge.utils.error_handling import (
-    ErrorCode,
     AgentError,
-    ValidationResult,
-    InputValidator,
     CircuitBreaker,
-    with_retry,
-    with_circuit_breaker,
+    ErrorCode,
+    InputValidator,
     handle_error,
     llm_client,
+    with_retry,
 )
 
 

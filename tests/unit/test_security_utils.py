@@ -6,10 +6,9 @@ This module currently has 0% coverage. Following TDD:
 3. Refactor
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-import hashlib
 import secrets
+
+import pytest
 
 from agent_ros_bridge import security_utils
 

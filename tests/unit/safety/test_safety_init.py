@@ -1,6 +1,5 @@
 """Tests for safety module initialization and exports."""
 
-import pytest
 
 from agent_ros_bridge import safety
 

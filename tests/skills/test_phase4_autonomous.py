@@ -3,16 +3,16 @@
 Verifies final gap closure for 100% SKILL fulfillment.
 """
 
+
 import pytest
-import asyncio
+
 from agent_ros_bridge.integrations.autonomous_behaviors import (
-    MissionPlanner,
     AutonomousBehaviorManager,
     ExplorationArea,
+    MissionPlanner,
+    MissionStatus,
     PatrolRoute,
     Waypoint,
-    MissionStatus,
-    BehaviorStatus,
     explore_autonomously,
     patrol_route,
 )
@@ -192,12 +192,10 @@ class TestGapClosureFinal:
 
     def test_all_gaps_now_implemented(self):
         """Verify all 6 gaps are now implemented."""
-        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
-        from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
-        from agent_ros_bridge.integrations.context import ContextManager
-        from agent_ros_bridge.integrations.fleet_intelligence import FleetIntelligence
-        from agent_ros_bridge.integrations.scene_understanding import SceneUnderstanding
         from agent_ros_bridge.integrations.autonomous_behaviors import MissionPlanner
+        from agent_ros_bridge.integrations.fleet_intelligence import FleetIntelligence
+        from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
+        from agent_ros_bridge.integrations.scene_understanding import SceneUnderstanding
 
         # 1. Natural Language Interpretation
         adapter = OpenClawAdapter(bridge=None)

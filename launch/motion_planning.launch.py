@@ -4,48 +4,49 @@ This launch file starts the motion_planner and execution_monitor nodes
 with configuration for Nav2 and MoveIt2 integration.
 """
 
-from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+from launch import LaunchDescription
 
 
 def generate_launch_description():
     """Generate launch description for motion planning nodes."""
-    
+
     # Declare launch arguments
     declare_use_sim_time = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation time'
     )
-    
+
     declare_nav2_enabled = DeclareLaunchArgument(
         'nav2_enabled',
         default_value='true',
         description='Enable Nav2 integration'
     )
-    
+
     declare_moveit_enabled = DeclareLaunchArgument(
         'moveit_enabled',
         default_value='true',
         description='Enable MoveIt2 integration'
     )
-    
+
     declare_safety_validation = DeclareLaunchArgument(
         'safety_validation',
         default_value='true',
         description='Enable safety validation'
     )
-    
+
     # Get launch configurations
     use_sim_time = LaunchConfiguration('use_sim_time')
     nav2_enabled = LaunchConfiguration('nav2_enabled')
     moveit_enabled = LaunchConfiguration('moveit_enabled')
     safety_validation = LaunchConfiguration('safety_validation')
-    
+
     # Motion Planner Node
     motion_planner_node = Node(
         package='agent_ros_bridge',
@@ -66,7 +67,7 @@ def generate_launch_description():
             ('/motion_plan', '/ai/motion_plan'),
         ]
     )
-    
+
     # Execution Monitor Node
     execution_monitor_node = Node(
         package='agent_ros_bridge',
@@ -88,7 +89,7 @@ def generate_launch_description():
             ('/telemetry', '/robot/telemetry'),
         ]
     )
-    
+
     # Include Nav2 launch if enabled
     nav2_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -103,7 +104,7 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
         }.items()
     )
-    
+
     # Include MoveIt2 launch if enabled
     moveit_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -118,24 +119,24 @@ def generate_launch_description():
             'use_sim_time': use_sim_time,
         }.items()
     )
-    
+
     # Create launch description
     ld = LaunchDescription()
-    
+
     # Add launch arguments
     ld.add_action(declare_use_sim_time)
     ld.add_action(declare_nav2_enabled)
     ld.add_action(declare_moveit_enabled)
     ld.add_action(declare_safety_validation)
-    
+
     # Add nodes
     ld.add_action(motion_planner_node)
     ld.add_action(execution_monitor_node)
-    
+
     # Add optional integrations
     # ld.add_action(nav2_launch)  # Uncomment when Nav2 is available
     # ld.add_action(moveit_launch)  # Uncomment when MoveIt2 is available
-    
+
     return ld
 
 

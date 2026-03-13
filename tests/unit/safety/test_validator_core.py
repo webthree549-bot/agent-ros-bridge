@@ -3,10 +3,8 @@
 Tests the safety validator core logic.
 """
 
+
 import pytest
-import time
-from unittest.mock import Mock, patch
-from typing import Any
 
 from agent_ros_bridge.safety.validator import SafetyValidatorNode
 

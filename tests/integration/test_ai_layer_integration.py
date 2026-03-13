@@ -7,10 +7,9 @@ Tests the complete pipeline:
     User Utterance → Intent Parser → Context Manager → Motion Planner → Safety Validator → Execution
 """
 
-import pytest
-import asyncio
 import time
-from unittest.mock import Mock, patch, MagicMock
+
+import pytest
 
 # Check ROS2 availability
 try:
@@ -26,10 +25,10 @@ pytestmark = pytest.mark.skipif(not ROS2_AVAILABLE, reason="ROS2 not available")
 
 # Try to import our components
 try:
+    from agent_ros_bridge.ai.context_manager import ContextManagerNode
     from agent_ros_bridge.ai.intent_parser import IntentParserNode
     from agent_ros_bridge.ai.motion_planner_node import MotionPlannerROSNode
     from agent_ros_bridge.safety.validator_node import SafetyValidatorROSNode
-    from agent_ros_bridge.ai.context_manager import ContextManagerNode
 
     COMPONENTS_AVAILABLE = True
 except ImportError as e:

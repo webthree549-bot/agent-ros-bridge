@@ -21,7 +21,7 @@ async def tutorial_1_basic_commands():
     print("Tutorial 1: Getting Started with Agent ROS Bridge")
     print("=" * 60)
     print()
-    
+
     # Initialize bridge
     print("Step 1: Initialize the bridge")
     print("-" * 40)
@@ -32,18 +32,18 @@ async def tutorial_1_basic_commands():
     await bridge.start()
     print("✅ Bridge started on port 8765")
     print()
-    
+
     # Example 1: Simple movement
     print("Step 2: Execute natural language commands")
     print("-" * 40)
-    
+
     commands = [
         "move forward 1 meter",
         "turn left 90 degrees",
         "move to position x=2, y=3",
         "stop",
     ]
-    
+
     for cmd in commands:
         print(f"\n📝 Command: '{cmd}'")
         try:
@@ -51,12 +51,12 @@ async def tutorial_1_basic_commands():
             print(f"✅ Result: {result}")
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     print()
     print("=" * 60)
     print("Tutorial 1 Complete!")
     print("=" * 60)
-    
+
     await bridge.stop()
 
 
@@ -67,26 +67,26 @@ async def tutorial_2_context_awareness():
     print("Tutorial 2: Context-Aware Conversations")
     print("=" * 60)
     print()
-    
+
     bridge = AgentROSBridge({
         "websocket_port": 8766,
         "jwt_secret": "demo-secret"
     })
     await bridge.start()
-    
+
     # Simulate conversation with context
     session_id = "tutorial-session-001"
-    
+
     conversation = [
         ("go to the kitchen", None),
         ("now go to the living room", None),  # Should understand "now"
         ("go back", None),  # Should remember "kitchen"
         ("what was my first command?", None),  # Should recall history
     ]
-    
+
     print("Simulating context-aware conversation:")
     print("-" * 40)
-    
+
     for cmd, robot_id in conversation:
         print(f"\n📝 User: '{cmd}'")
         try:
@@ -94,12 +94,12 @@ async def tutorial_2_context_awareness():
             print(f"🤖 Robot: {result}")
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     print()
     print("=" * 60)
     print("Tutorial 2 Complete!")
     print("=" * 60)
-    
+
     await bridge.stop()
 
 
@@ -110,37 +110,37 @@ async def tutorial_3_fleet_management():
     print("Tutorial 3: Fleet Management")
     print("=" * 60)
     print()
-    
+
     bridge = AgentROSBridge({
         "websocket_port": 8767,
         "jwt_secret": "demo-secret"
     })
     await bridge.start()
-    
+
     # Register mock robots
     print("Registering robots in fleet:")
     print("-" * 40)
-    
+
     robots = [
         {"id": "robot-001", "name": "TurtleBot-1", "type": "turtlebot4", "battery": 85},
         {"id": "robot-002", "name": "TurtleBot-2", "type": "turtlebot4", "battery": 92},
         {"id": "robot-003", "name": "ArmBot-1", "type": "universal_robots", "battery": 78},
     ]
-    
+
     for robot in robots:
         print(f"  ✅ Registered {robot['name']} ({robot['id']})")
-    
+
     print()
     print("Fleet commands:")
     print("-" * 40)
-    
+
     fleet_commands = [
         "all robots move to charging station",
         "robot with highest battery go to zone A",
         "find closest robot to position x=10, y=20",
         "status of all robots",
     ]
-    
+
     for cmd in fleet_commands:
         print(f"\n📝 Command: '{cmd}'")
         try:
@@ -148,12 +148,12 @@ async def tutorial_3_fleet_management():
             print(f"✅ Result: {result}")
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     print()
     print("=" * 60)
     print("Tutorial 3 Complete!")
     print("=" * 60)
-    
+
     await bridge.stop()
 
 
@@ -163,12 +163,12 @@ async def main():
     print("Agent ROS Bridge - Interactive Tutorials")
     print("=" * 60)
     print()
-    
+
     try:
         await tutorial_1_basic_commands()
         await tutorial_2_context_awareness()
         await tutorial_3_fleet_management()
-        
+
         print()
         print("=" * 60)
         print("🎉 All Tutorials Complete!")
@@ -178,7 +178,7 @@ async def main():
         print("  1. Try the LangChain integration: examples/langchain_demo.py")
         print("  2. Try the MCP server: python -m agent_ros_bridge.frameworks.mcp.server")
         print("  3. Read the documentation: docs/")
-        
+
     except KeyboardInterrupt:
         print("\n\n⚠️  Tutorials interrupted by user")
     except Exception as e:

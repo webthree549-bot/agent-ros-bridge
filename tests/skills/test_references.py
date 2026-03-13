@@ -3,7 +3,6 @@
 TDD for references/ directory content.
 """
 
-import re
 import unittest
 from pathlib import Path
 

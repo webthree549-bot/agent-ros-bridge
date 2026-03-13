@@ -5,22 +5,23 @@ Usage:
     ros2 launch agent_ros_bridge context_manager.launch.py
 """
 
-from launch import LaunchDescription
-from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+
+from launch import LaunchDescription
 
 
 def generate_launch_description():
     """Generate launch description for context manager node."""
-    
+
     # Launch arguments
     log_level_arg = DeclareLaunchArgument(
         'log_level',
         default_value='info',
         description='Logging level (debug, info, warn, error)'
     )
-    
+
     # Context Manager Node
     context_manager_node = Node(
         package='agent_ros_bridge',
@@ -36,7 +37,7 @@ def generate_launch_description():
             }
         ]
     )
-    
+
     return LaunchDescription([
         log_level_arg,
         context_manager_node,

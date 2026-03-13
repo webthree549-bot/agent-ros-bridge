@@ -8,7 +8,6 @@ TDD Step 3: Refactor
 import re
 import unittest
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 import yaml
 

@@ -5,9 +5,8 @@ Test suite for Agent ROS Bridge AI Layer interfaces.
 Tests message serialization, service compatibility, and interface contracts.
 """
 
-import unittest
 import sys
-import os
+import unittest
 from pathlib import Path
 
 # Add parent directory to path for imports
@@ -17,7 +16,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 try:
     import rclpy
     from rclpy.node import Node
-    from agent_ros_bridge_msgs.msg import Intent, Entity, Constraint, ContextQuery, ContextResponse
+
+    from agent_ros_bridge_msgs.msg import Constraint, ContextQuery, ContextResponse, Entity, Intent
     from agent_ros_bridge_msgs.srv import ParseIntent, ResolveContext
 
     ROS2_AVAILABLE = True

@@ -1,9 +1,10 @@
 """Tests for CLI module."""
 
-import pytest
 import argparse
-from unittest.mock import Mock, patch, MagicMock
 import sys
+from unittest.mock import patch
+
+import pytest
 
 import agent_ros_bridge.cli as cli_module
 

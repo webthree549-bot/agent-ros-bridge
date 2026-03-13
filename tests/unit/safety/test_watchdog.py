@@ -5,9 +5,10 @@ Agent ROS Bridge v0.6.1 - Week 2 Implementation
 Following TDD: Red -> Green -> Refactor
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+
+import pytest
 
 
 class TestWatchdogNodeExists:

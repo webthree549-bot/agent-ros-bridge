@@ -3,12 +3,12 @@
 Provides MCP tools for Claude and other MCP-compatible clients.
 """
 
-from typing import Dict, Any, List, Optional
 import asyncio
 import json
+from typing import Any
 
 from mcp.server import Server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 
 class AgentROSMCPBridge:
@@ -17,17 +17,17 @@ class AgentROSMCPBridge:
     Provides MCP tools for robot control that can be used by Claude Desktop
     and other MCP-compatible clients.
     """
-    
+
     def __init__(self, bridge_client):
         self.bridge_client = bridge_client
         self.server = Server("agent-ros-bridge")
         self._setup_tools()
-    
+
     def _setup_tools(self):
         """Register MCP tools."""
-        
+
         @self.server.list_tools()
-        async def list_tools() -> List[Tool]:
+        async def list_tools() -> list[Tool]:
             """List available tools."""
             return [
                 Tool(
@@ -144,9 +144,9 @@ class AgentROSMCPBridge:
                     }
                 ),
             ]
-        
+
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
+        async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
             """Handle tool calls."""
             try:
                 if name == "ros2_publish":
@@ -156,7 +156,7 @@ class AgentROSMCPBridge:
                         arguments["data"]
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 elif name == "ros2_subscribe":
                     result = self.bridge_client.subscribe(
                         arguments["topic"],
@@ -164,7 +164,7 @@ class AgentROSMCPBridge:
                         arguments.get("timeout", 5.0)
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 elif name == "ros2_action":
                     result = self.bridge_client.execute_action(
                         arguments["action_name"],
@@ -173,32 +173,32 @@ class AgentROSMCPBridge:
                         arguments.get("timeout", 30.0)
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 elif name == "robot_command":
                     result = self.bridge_client.execute_natural_language(
                         arguments["command"],
                         arguments.get("robot_id")
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 elif name == "list_robots":
                     result = self.bridge_client.list_robots()
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 elif name == "get_robot_info":
                     result = self.bridge_client.get_robot_info(arguments["robot_id"])
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
-                
+
                 else:
                     return [TextContent(type="text", text=f"Unknown tool: {name}")]
-            
+
             except Exception as e:
                 return [TextContent(type="text", text=f"Error: {str(e)}")]
-    
+
     async def run(self):
         """Run the MCP server."""
         from mcp.server.stdio import stdio_server
-        
+
         async with stdio_server() as (read_stream, write_stream):
             await self.server.run(
                 read_stream,
@@ -210,21 +210,22 @@ class AgentROSMCPBridge:
 def main():
     """Main entry point for MCP server."""
     import sys
+
     from agent_ros_bridge.frameworks.langchain import AgentROSBridgeClient
-    
+
     # Get configuration from environment or arguments
     bridge_url = "http://localhost:8765"
     token = None
-    
+
     # Parse arguments
     if len(sys.argv) > 1:
         bridge_url = sys.argv[1]
     if len(sys.argv) > 2:
         token = sys.argv[2]
-    
+
     # Create client
     client = AgentROSBridgeClient(bridge_url, token)
-    
+
     # Create and run MCP bridge
     bridge = AgentROSMCPBridge(client)
     asyncio.run(bridge.run())

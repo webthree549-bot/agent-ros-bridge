@@ -3,19 +3,19 @@
 TDD tests for FleetOrchestrator, Task, FleetRobot, RobotCapability.
 """
 
+from datetime import UTC, datetime, timedelta
+from unittest.mock import Mock
+
 import pytest
-import asyncio
-from datetime import datetime, timezone, timedelta
-from unittest.mock import Mock, AsyncMock
 
 from agent_ros_bridge.fleet.orchestrator import (
+    FleetMetrics,
     FleetOrchestrator,
     FleetRobot,
     RobotCapability,
+    RobotStatus,
     Task,
     TaskStatus,
-    RobotStatus,
-    FleetMetrics,
 )
 
 
@@ -73,7 +73,7 @@ class TestTask:
 
     def test_task_custom_values(self):
         """Task can have custom values."""
-        deadline = datetime.now(timezone.utc) + timedelta(hours=1)
+        deadline = datetime.now(UTC) + timedelta(hours=1)
         task = Task(
             type="manipulate",
             priority=1,

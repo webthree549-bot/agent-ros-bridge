@@ -18,7 +18,6 @@ try:
 except ImportError:
     ROS2_AVAILABLE = False
 
-from unittest.mock import Mock, patch, MagicMock
 import time
 
 # Skip entire module if ROS2 not available
@@ -26,9 +25,10 @@ pytestmark = pytest.mark.skipif(not ROS2_AVAILABLE, reason="ROS2 not available")
 
 # Import messages and services - skip if not available
 try:
-    from agent_ros_bridge_msgs.srv import ResolveContext
+    from geometry_msgs.msg import Point, Pose, PoseStamped, Quaternion
+
     from agent_ros_bridge_msgs.msg import ContextQuery, ContextResponse
-    from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
+    from agent_ros_bridge_msgs.srv import ResolveContext
 
     MSGS_AVAILABLE = True
 except ImportError:

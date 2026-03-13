@@ -17,11 +17,9 @@ Requirements:
     - Nav2 installed
 """
 
-import pytest
 import subprocess
-import time
-import json
-from typing import Dict, Any
+
+import pytest
 
 
 def run_in_ros2(cmd: str, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -69,13 +67,13 @@ class TestNavigationE2E:
         result = run_in_ros2("ros2 lifecycle nodes 2>&1 || echo 'No lifecycle nodes'")
         # This will fail if Nav2 isn't running, which is expected
         assert result.returncode == 0 or "No lifecycle nodes" in result.stdout
-        print(f"\n✅ Nav2 lifecycle command works")
+        print("\n✅ Nav2 lifecycle command works")
 
     def test_navigation_interface_types(self, check_nav2_available):
         """Verify navigation action types exist."""
         result = run_in_ros2("ros2 interface list | grep -E 'NavigateToPose|FollowPath' | head -5")
         # Should find navigation action types
-        print(f"\n✅ Navigation interfaces available")
+        print("\n✅ Navigation interfaces available")
         if result.stdout:
             for line in result.stdout.strip().split("\n")[:3]:
                 print(f"  - {line}")
@@ -87,19 +85,19 @@ class TestNavigationE2E:
         result = run_in_ros2("ros2 interface show nav2_msgs/action/NavigateToPose 2>&1 | head -20")
         assert result.returncode == 0
         assert "NavigateToPose" in result.stdout or "goal" in result.stdout
-        print(f"\n✅ NavigateToPose action interface verified")
+        print("\n✅ NavigateToPose action interface verified")
 
     def test_costmap_topic_structure(self, check_nav2_available):
         """Verify costmap topic structure exists."""
         result = run_in_ros2("ros2 topic list -t 2>&1 | grep -E 'costmap|plan' | head -10")
         # Topics may not exist yet if Nav2 isn't running
-        print(f"\n✅ Costmap topic query works")
+        print("\n✅ Costmap topic query works")
 
     def test_amcl_pose_topic(self, check_nav2_available):
         """Test AMCL pose topic type."""
         result = run_in_ros2("ros2 topic info /amcl_pose 2>&1 || echo 'Topic not available'")
         assert result.returncode == 0
-        print(f"\n✅ AMCL pose topic check works")
+        print("\n✅ AMCL pose topic check works")
 
     def test_cmd_vel_publishing(self, check_nav2_available):
         """Test that cmd_vel can be published to."""
@@ -109,20 +107,20 @@ class TestNavigationE2E:
             "'{linear: {x: 0.0}, angular: {z: 0.0}}' 2>&1"
         )
         assert result.returncode == 0
-        print(f"\n✅ cmd_vel publishing works")
+        print("\n✅ cmd_vel publishing works")
 
     def test_odom_subscription(self, check_nav2_available):
         """Test subscribing to odometry."""
         result = run_in_ros2("ros2 topic echo /odom --once 2>&1 | head -30")
         assert result.returncode == 0
         assert "pose" in result.stdout or "twist" in result.stdout
-        print(f"\n✅ Odometry data available")
+        print("\n✅ Odometry data available")
 
     def test_robot_pose_in_map(self, check_nav2_available):
         """Test getting robot pose via TF."""
         result = run_in_ros2("ros2 run tf2_ros tf2_echo base_footprint map 2>&1 &")
         # TF may not be available without full stack
-        print(f"\n✅ TF echo command works")
+        print("\n✅ TF echo command works")
 
 
 class TestNavigationIntegration:
@@ -153,7 +151,7 @@ class TestNavigationIntegration:
         assert (
             "navigate_to_pose" in result.stdout.lower()
         ), f"NavigateToPose action not available. Output: {result.stdout}"
-        print(f"\n✅ NavigateToPose action available")
+        print("\n✅ NavigateToPose action available")
 
     def test_waypoint_following(self):
         """Test waypoint following action server."""
@@ -163,7 +161,7 @@ class TestNavigationIntegration:
         assert (
             "navigate_through_poses" in result.stdout.lower()
         ), f"NavigateThroughPoses action not available. Output: {result.stdout}"
-        print(f"\n✅ NavigateThroughPoses action available")
+        print("\n✅ NavigateThroughPoses action available")
 
 
 if __name__ == "__main__":

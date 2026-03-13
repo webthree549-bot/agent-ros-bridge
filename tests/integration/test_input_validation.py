@@ -4,11 +4,12 @@ Verifies security and safety validation.
 """
 
 import pytest
+
 from agent_ros_bridge.integrations.input_validation import (
     InputValidator,
     SafetyValidator,
-    validate_input_safe,
     is_command_safe,
+    validate_input_safe,
 )
 
 

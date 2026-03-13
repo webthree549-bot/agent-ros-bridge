@@ -1,8 +1,7 @@
 """Tests for WebSocket transport."""
 
+
 import pytest
-import asyncio
-from unittest.mock import Mock, patch, AsyncMock
 
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 

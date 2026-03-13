@@ -3,29 +3,23 @@
 Following TDD patterns to improve coverage.
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from dataclasses import dataclass
+from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from agent_ros_bridge.gateway_v2.core import (
-    Robot,
-    Connector,
-    RobotEndpoint,
-    ConnectorRegistry,
-    Plugin,
-    PluginManager,
     Bridge,
+    Command,
+    Event,
+    Identity,
+    Message,
+    QoS,
+    Robot,
     RobotFleet,
+    Telemetry,
     Transport,
     TransportManager,
-    Message,
-    Command,
-    Telemetry,
-    Header,
-    Identity,
-    Event,
-    QoS,
 )
 
 

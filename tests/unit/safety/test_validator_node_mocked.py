@@ -3,10 +3,11 @@
 Tests the safety validator node logic without requiring actual ROS2 installation.
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from typing import Any
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class MockSafetyValidator:

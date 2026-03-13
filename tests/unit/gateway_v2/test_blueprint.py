@@ -6,21 +6,20 @@ Following TDD principles:
 3. Refactor
 """
 
-import pytest
 from dataclasses import dataclass
-from typing import Optional
+
+import pytest
 
 from agent_ros_bridge.gateway_v2.blueprint import (
     Blueprint,
-    ModuleBlueprint,
     Connection,
+    ModuleBlueprint,
     StreamDefinition,
-    RPCDefinition,
     autoconnect,
-    skill,
     rpc,
+    skill,
 )
-from agent_ros_bridge.gateway_v2.module import Module, In, Out, Stream
+from agent_ros_bridge.gateway_v2.module import In, Module, Out
 
 
 # Test message types

@@ -3,9 +3,10 @@
 Validates the entire system from AI agent to robot control.
 """
 
-import pytest
 import asyncio
 from dataclasses import dataclass
+
+import pytest
 
 # Skip if ROS not available
 pytestmark = pytest.mark.skipif(
@@ -33,8 +34,8 @@ class TestEndToEndSystem:
     async def system(self):
         """Set up complete system."""
         from agent_ros_bridge import Bridge
+        from agent_ros_bridge.gateway_v2 import Blueprint, In, Module, Out, skill
         from agent_ros_bridge.gateway_v2.transports import WebSocketTransport
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, skill
 
         state = SystemState()
 
@@ -194,7 +195,7 @@ class TestEndToEndSystem:
     @pytest.mark.asyncio
     async def test_blueprint_autoconnect(self, system):
         """Test blueprint autoconnect functionality."""
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, autoconnect
+        from agent_ros_bridge.gateway_v2 import In, Module, Out, autoconnect
 
         @dataclass
         class TestMsg:
@@ -233,10 +234,6 @@ class TestProductionReadiness:
         from agent_ros_bridge.security_utils import (
             hash_password,
             verify_password,
-            generate_token,
-            encrypt,
-            decrypt,
-            RateLimiter,
         )
 
         assert callable(hash_password)
@@ -251,14 +248,14 @@ class TestProductionReadiness:
 
     def test_all_transports_importable(self):
         """All transports can be imported."""
-        from agent_ros_bridge.gateway_v2.transports import WebSocketTransport, MQTTTransport
+        from agent_ros_bridge.gateway_v2.transports import MQTTTransport, WebSocketTransport
 
         assert WebSocketTransport is not None
         assert MQTTTransport is not None
 
     def test_blueprint_system_importable(self):
         """Blueprint system can be imported."""
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, autoconnect, skill, rpc
+        from agent_ros_bridge.gateway_v2 import Blueprint, Module
 
         assert Blueprint is not None
         assert Module is not None
@@ -278,7 +275,7 @@ class TestProductionReadiness:
         # Send many messages
         messages_sent = 0
         for i in range(100):
-            from agent_ros_bridge.gateway_v2.core import Message, Header
+            from agent_ros_bridge.gateway_v2.core import Header, Message
 
             msg = Message(header=Header(source="test"))
             await transport.send(msg, f"recipient_{i}")

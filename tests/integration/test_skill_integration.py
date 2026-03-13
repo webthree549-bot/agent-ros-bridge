@@ -3,10 +3,10 @@
 Tests end-to-end scenarios that span multiple components.
 """
 
+
 import pytest
-import asyncio
+
 from agent_ros_bridge import Bridge
-from agent_ros_bridge.integrations.openclaw_adapter import OpenClawAdapter
 
 
 class TestIntegrationKitchenScenario:
@@ -78,9 +78,9 @@ class TestIntegrationFleetScenario:
         """
         from agent_ros_bridge.integrations.fleet_intelligence import (
             FleetIntelligence,
+            RobotCapabilities,
             RobotState,
             RobotStatus,
-            RobotCapabilities,
         )
 
         fleet = FleetIntelligence()

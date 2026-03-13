@@ -12,32 +12,33 @@ Usage:
     ros2 launch agent_ros_bridge safety_layer.launch.py
 """
 
-from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+from launch import LaunchDescription
+
 
 def generate_launch_description():
     """Generate launch description for safety layer"""
-    
+
     # Launch arguments
     config_path_arg = DeclareLaunchArgument(
         'config_path',
         default_value='config/safety_limits.yaml',
         description='Path to safety limits configuration file'
     )
-    
+
     auth_code_arg = DeclareLaunchArgument(
         'auth_code',
         default_value='safety_auth_12345',
         description='Authorization code for clearing emergency stop'
     )
-    
+
     # Get launch configurations
     config_path = LaunchConfiguration('config_path')
     auth_code = LaunchConfiguration('auth_code')
-    
+
     # Safety Limits Node
     limits_node = Node(
         package='agent_ros_bridge',
@@ -50,7 +51,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True
     )
-    
+
     # Safety Validator Node
     validator_node = Node(
         package='agent_ros_bridge',
@@ -60,7 +61,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True
     )
-    
+
     # Emergency Stop Node
     emergency_stop_node = Node(
         package='agent_ros_bridge',
@@ -73,7 +74,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True
     )
-    
+
     # Watchdog Node
     watchdog_node = Node(
         package='agent_ros_bridge',
@@ -83,7 +84,7 @@ def generate_launch_description():
         output='screen',
         emulate_tty=True
     )
-    
+
     return LaunchDescription([
         config_path_arg,
         auth_code_arg,

@@ -3,12 +3,6 @@ Test robot models in simulation - TDD approach
 Week 2 Deliverable: Refined Robot Models
 """
 
-import pytest
-import subprocess
-import time
-import os
-import signal
-import yaml
 from pathlib import Path
 
 

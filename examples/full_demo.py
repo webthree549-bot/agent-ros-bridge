@@ -17,9 +17,9 @@ Requirements:
     - Agent ROS Bridge installed
 """
 
-import time
 import subprocess
-from datetime import datetime, timezone
+import time
+from datetime import UTC, datetime
 
 
 def print_header(text):
@@ -50,7 +50,7 @@ def run_in_ros2(cmd, timeout=10):
 def demo_intent_parsing():
     """Demonstrate natural language intent parsing using ROS in Docker."""
     print_step(1, "Natural Language Understanding (ROS Docker)")
-    
+
     # Run intent parsing in Docker container using rule-based parser
     result = run_in_ros2_container("""
 python3 << 'PYEOF'
@@ -95,7 +95,7 @@ for cmd in commands:
     print()
 PYEOF
     """, timeout=30)
-    
+
     if result.returncode == 0:
         print(result.stdout)
         print("✅ Intent parsing working in ROS Docker")
@@ -107,7 +107,7 @@ PYEOF
 def demo_context_awareness():
     """Demonstrate context-aware parsing using ROS in Docker."""
     print_step(2, "Context Awareness (ROS Docker)")
-    
+
     result = run_in_ros2_container("""
 python3 << 'PYEOF'
 import sys
@@ -158,7 +158,7 @@ print(f"→ Robot location: {parser.robot_state['location']}")
 print(f"→ Battery: {parser.robot_state['battery']:.1f}%")
 PYEOF
     """, timeout=30)
-    
+
     if result.returncode == 0:
         print(result.stdout)
         print("✅ Context awareness working in ROS Docker")
@@ -170,7 +170,7 @@ PYEOF
 def demo_multi_language():
     """Demonstrate multi-language support using ROS in Docker."""
     print_step(3, "Multi-Language Support (ROS Docker)")
-    
+
     result = run_in_ros2_container("""
 python3 << 'PYEOF'
 import sys
@@ -228,7 +228,7 @@ for phrase, expected_lang in phrases:
     print()
 PYEOF
     """, timeout=30)
-    
+
     if result.returncode == 0:
         print(result.stdout)
         print("✅ Multi-language support working in ROS Docker")
@@ -240,27 +240,27 @@ PYEOF
 def demo_ros2_bridge():
     """Demonstrate ROS2 bridge communication."""
     print_step(4, "ROS2 Bridge Communication")
-    
+
     # Check if ROS2 container is running
     result = subprocess.run(
         ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
         capture_output=True,
         text=True
     )
-    
+
     if "Up" not in result.stdout:
         print("  ⚠️  ROS2 container not running")
         print("  Start with: docker start ros2_humble")
         return
-    
+
     print("  ✅ ROS2 container is running")
-    
+
     # Test basic ROS2 commands
     result = run_in_ros2("ros2 topic list")
     if result.returncode == 0:
         topics = result.stdout.strip().split('\n')[:5]
         print(f"  Available topics: {', '.join(topics)}")
-    
+
     # Start demo nodes (in background, don't wait)
     print("\n  Starting demo talker...")
     subprocess.Popen(
@@ -270,19 +270,19 @@ def demo_ros2_bridge():
         stderr=subprocess.DEVNULL
     )
     time.sleep(2)
-    
+
     # Check if topic is publishing
     result = run_in_ros2("ros2 topic echo /chatter --once", timeout=3)
     if "Hello World" in result.stdout:
         print("  ✅ Demo node publishing successfully")
-    
+
     print("\n  ROS2 Bridge is operational!")
 
 
 def demo_safety_validation():
     """Demonstrate safety validation using ROS in Docker."""
     print_step(5, "Safety Validation (ROS Docker)")
-    
+
     result = run_in_ros2_container("""
 python3 << 'PYEOF'
 import sys
@@ -361,7 +361,7 @@ if result['approved'] and 'certificate' in result:
     print(f"  → Certificate issued: {cert_id}...")
 PYEOF
     """, timeout=30)
-    
+
     if result.returncode == 0:
         print(result.stdout)
         print("✅ Safety validation working in ROS Docker")
@@ -373,7 +373,7 @@ PYEOF
 def demo_performance():
     """Demonstrate performance metrics using ROS in Docker."""
     print_step(6, "Performance Metrics (ROS Docker)")
-    
+
     result = run_in_ros2_container("""
 python3 << 'PYEOF'
 import sys
@@ -424,7 +424,7 @@ else:
     print(f"  → Target: <10ms ❌")
 PYEOF
     """, timeout=60)
-    
+
     if result.returncode == 0:
         print(result.stdout)
         print("✅ Performance metrics from ROS Docker")
@@ -463,13 +463,13 @@ def run_in_ros2_container(cmd, timeout=30):
 def main():
     """Run the full demonstration."""
     print_header("Agent ROS Bridge - Full Demonstration")
-    print(f"Time: {datetime.now(timezone.utc).isoformat()}")
-    print(f"Version: 0.6.1")
-    
+    print(f"Time: {datetime.now(UTC).isoformat()}")
+    print("Version: 0.6.1")
+
     # Check ROS2 Docker is running
     if not check_ros2_docker():
         return 1
-    
+
     # Copy workspace to container
     print("\n📦 Copying workspace to ROS container...")
     result = subprocess.run(
@@ -481,7 +481,7 @@ def main():
         print(f"❌ Failed to copy workspace: {result.stderr}")
         return 1
     print("✅ Workspace copied to container")
-    
+
     try:
         demo_intent_parsing()
         demo_context_awareness()
@@ -489,14 +489,14 @@ def main():
         demo_ros2_bridge()
         demo_safety_validation()
         demo_performance()
-        
+
         print_header("Demonstration Complete")
         print("\n✅ All components operational!")
         print("\nNext steps:")
         print("  1. Start Gazebo: ros2 launch turtlebot3_gazebo empty_world.launch.py")
         print("  2. Test navigation: ros2 launch nav2_bringup navigation_launch.py")
         print("  3. Run E2E tests: pytest tests/e2e/ -v")
-        
+
     except KeyboardInterrupt:
         print("\n\n⚠️  Demonstration interrupted by user")
     except Exception as e:

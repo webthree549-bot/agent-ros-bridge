@@ -1,9 +1,7 @@
 """Tests for safety limits node."""
 
-import pytest
-import tempfile
 import os
-from pathlib import Path
+import tempfile
 
 from agent_ros_bridge.safety.limits import SafetyLimitsNode
 

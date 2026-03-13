@@ -19,16 +19,15 @@ Usage:
     python tests/e2e/test_gazebo_e2e.py
 """
 
-import pytest
-import time
 import subprocess
-import os
+
+import pytest
 
 # Check if ROS2 is available locally
 try:
     import rclpy
-    from rclpy.node import Node
     from rclpy.action import ActionClient
+    from rclpy.node import Node
 
     ROS2_AVAILABLE = True
 except ImportError:

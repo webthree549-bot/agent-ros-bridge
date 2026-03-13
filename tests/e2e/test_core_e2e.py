@@ -3,10 +3,11 @@
 Validates the core system without ROS dependencies.
 """
 
-import pytest
 import asyncio
 import os
 from dataclasses import dataclass
+
+import pytest
 
 
 @dataclass
@@ -24,8 +25,8 @@ class TestEndToEndCoreSystem:
     async def test_full_system_lifecycle(self):
         """Test complete system lifecycle."""
         from agent_ros_bridge import Bridge
+        from agent_ros_bridge.gateway_v2 import Blueprint, In, Module, Out, skill
         from agent_ros_bridge.gateway_v2.transports import WebSocketTransport
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, skill
 
         # Track state
         states = []
@@ -134,7 +135,7 @@ class TestEndToEndCoreSystem:
     @pytest.mark.asyncio
     async def test_blueprint_autoconnect_flow(self):
         """Test blueprint autoconnect."""
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, autoconnect
+        from agent_ros_bridge.gateway_v2 import In, Module, Out, autoconnect
 
         received = []
 
@@ -173,10 +174,10 @@ class TestEndToEndCoreSystem:
     def test_security_end_to_end(self):
         """Test security utilities."""
         from agent_ros_bridge.security_utils import (
+            RateLimiter,
+            generate_token,
             hash_password,
             verify_password,
-            generate_token,
-            RateLimiter,
         )
 
         # Password hashing
@@ -250,22 +251,14 @@ class TestProductionReadiness:
     def test_all_core_imports(self):
         """All core modules importable."""
         # Core
-        from agent_ros_bridge import Bridge
-        from agent_ros_bridge.gateway_v2 import Transport, Message
 
         # Transports
-        from agent_ros_bridge.gateway_v2.transports import WebSocketTransport, MQTTTransport
 
         # Blueprint
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, In, Out, autoconnect, skill, rpc
 
         # Safety
-        from agent_ros_bridge.safety import SafetyValidator
 
         # Utils
-        from agent_ros_bridge.utils.error_handling import AgentError
-        from agent_ros_bridge.security_utils import hash_password
-        from agent_ros_bridge.metrics import get_metrics
 
         print("✅ All core imports work")
 
@@ -286,8 +279,9 @@ class TestProductionReadiness:
     @pytest.mark.asyncio
     async def test_performance_baseline(self):
         """Basic performance test."""
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module, Out
         import time
+
+        from agent_ros_bridge.gateway_v2 import Blueprint, Module, Out
 
         class FastModule(Module):
             output: Out[dict]
@@ -328,8 +322,9 @@ class TestUserExperience:
 
     def test_type_hints_present(self):
         """Public APIs have type hints."""
-        from agent_ros_bridge.gateway_v2 import Blueprint, Module
         import inspect
+
+        from agent_ros_bridge.gateway_v2 import Blueprint, Module
 
         # Check Blueprint methods
         sig = inspect.signature(Blueprint.start)

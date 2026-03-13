@@ -270,8 +270,9 @@ class TestAuthenticationCapabilities(unittest.TestCase):
 
     def test_jwt_auth_required(self):
         """Verify JWT authentication is enforced."""
-        from agent_ros_bridge import Bridge
         import os
+
+        from agent_ros_bridge import Bridge
 
         # Remove JWT_SECRET to test enforcement
         original = os.environ.pop("JWT_SECRET", None)
@@ -281,7 +282,7 @@ class TestAuthenticationCapabilities(unittest.TestCase):
             bridge = Bridge()
             # If we get here, check if safety is initialized (it requires JWT)
             self.assertIsNotNone(bridge)
-        except (RuntimeError, ValueError, Exception) as e:
+        except (RuntimeError, ValueError, Exception):
             # If an exception is raised, that's the expected secure behavior
             pass
         finally:
@@ -293,8 +294,6 @@ class TestAuthenticationCapabilities(unittest.TestCase):
 
     def test_token_generation_works(self):
         """Verify token generation script exists and works."""
-        import subprocess
-        import os
 
         script_path = Path(__file__).parent.parent.parent / "scripts" / "generate_token.py"
         self.assertTrue(script_path.exists(), "generate_token.py script must exist")
@@ -305,7 +304,6 @@ class TestTransportCapabilities(unittest.TestCase):
 
     def test_websocket_transport_exists(self):
         """Verify WebSocket transport is available."""
-        from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
         # Should be importable
         self.assertTrue(True, "WebSocketTransport imported successfully")
@@ -370,7 +368,7 @@ class TestGapAnalysis(unittest.TestCase):
         """
         Verify parameter inference is implemented.
         """
-        from agent_ros_bridge.integrations.nl_params import infer_parameter, infer_speed
+        from agent_ros_bridge.integrations.nl_params import infer_speed
 
         # Parameter inference functions exist
         result = infer_speed("slowly")

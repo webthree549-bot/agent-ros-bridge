@@ -119,13 +119,13 @@ def show_skill_path():
     """Show the skill path for packaging."""
     bridge = Bridge()
     adapter = bridge.get_openclaw_adapter()
-    
+
     skill_path = adapter.get_skill_path()
     if skill_path:
         print(f"OpenClaw skill path: {skill_path}")
-        print(f"\nTo package:")
+        print("\nTo package:")
         print(f"  cd {skill_path}")
-        print(f"  python scripts/package_skill.py")
+        print("  python scripts/package_skill.py")
     else:
         print("Skill path not found")
         sys.exit(1)
@@ -135,20 +135,20 @@ def package_skill():
     """Package the OpenClaw skill."""
     bridge = Bridge()
     adapter = bridge.get_openclaw_adapter()
-    
+
     skill_path = adapter.get_skill_path()
     if not skill_path:
         print("Skill path not found")
         sys.exit(1)
-    
+
     output_dir = Path(__file__).parent.parent.parent / "dist"
     output_dir.mkdir(exist_ok=True)
-    
+
     try:
         output_file = adapter.package_skill(output_dir)
         print(f"Packaged skill: {output_file}")
         print(f"Size: {output_file.stat().st_size} bytes")
-        
+
         # List contents
         import zipfile
         print("\nContents:")

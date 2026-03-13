@@ -30,10 +30,11 @@ import logging
 import sys
 import time
 import traceback
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from agent_ros_bridge.gateway_v2.core import Command
 
@@ -52,7 +53,7 @@ class PhysicalTestResult:
     passed: bool
     duration_ms: float
     message: str
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -62,7 +63,7 @@ class RobotTestSuite:
 
     name: str
     description: str
-    tests: List[Callable]
+    tests: list[Callable]
     requires_motion: bool = False
     safety_level: str = "low"  # low, medium, high
 
@@ -81,7 +82,7 @@ class SafetyMonitor:
             "max_joint_velocity": 1.0,  # rad/s
             "timeout_no_telemetry": 5.0,  # seconds
         }
-        self.violations: List[Dict] = []
+        self.violations: list[dict] = []
 
     async def start(self):
         """Start safety monitoring."""
@@ -132,9 +133,9 @@ class PhysicalRobotTester:
         self.bridge = bridge
         self.robot = robot
         self.dry_run = dry_run
-        self.results: List[PhysicalTestResult] = []
-        self.safety_monitor: Optional[SafetyMonitor] = None
-        self.test_data: Dict[str, Any] = {
+        self.results: list[PhysicalTestResult] = []
+        self.safety_monitor: SafetyMonitor | None = None
+        self.test_data: dict[str, Any] = {
             "start_time": datetime.now().isoformat(),
             "robot_id": robot.robot_id,
             "robot_type": robot.connector_type,

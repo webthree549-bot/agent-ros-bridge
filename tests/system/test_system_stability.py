@@ -6,12 +6,10 @@ Week 4 - Full stack testing and long-running stability
 Tests the complete system with all components running together.
 """
 
-import pytest
-import asyncio
 import time
-import threading
 from concurrent.futures import ThreadPoolExecutor
-from unittest.mock import Mock, patch, MagicMock
+
+import pytest
 
 # Check ROS2 availability
 try:
@@ -97,8 +95,8 @@ class TestSystemStability:
             avg_latency = sum(latencies) / len(latencies)
             max_latency = max(latencies)
 
-            print(f"\nStability Test Results:")
-            print(f"  Iterations: 1000")
+            print("\nStability Test Results:")
+            print("  Iterations: 1000")
             print(f"  Errors: {errors}")
             print(f"  Avg latency: {avg_latency:.2f}ms")
             print(f"  Max latency: {max_latency:.2f}ms")
@@ -163,8 +161,8 @@ class TestSystemStability:
 
             avg_latency = sum(latencies) / len(latencies)
 
-            print(f"\nSafety Validator Stability:")
-            print(f"  Iterations: 1000")
+            print("\nSafety Validator Stability:")
+            print("  Iterations: 1000")
             print(f"  Errors: {errors}")
             print(f"  Avg latency: {avg_latency:.2f}ms")
 
@@ -228,7 +226,7 @@ class TestMultiRobotCoordination:
             latencies = [r["latency"] for r in results]
             avg_latency = sum(latencies) / len(latencies)
 
-            print(f"\nMulti-Robot Coordination:")
+            print("\nMulti-Robot Coordination:")
             print(f"  Robots: {len(results)}")
             print(f"  Avg latency: {avg_latency:.2f}ms")
             print(f"  Max latency: {max(latencies):.2f}ms")
@@ -350,7 +348,7 @@ class TestPerformanceRegression:
             avg = sum(latencies) / len(latencies)
             p95 = latencies[int(len(latencies) * 0.95)]
 
-            print(f"\nPerformance Regression Test:")
+            print("\nPerformance Regression Test:")
             print(f"  Average: {avg:.2f}ms (target: <{TARGET_AVG_MS}ms)")
             print(f"  p95: {p95:.2f}ms (target: <{TARGET_P95_MS}ms)")
 

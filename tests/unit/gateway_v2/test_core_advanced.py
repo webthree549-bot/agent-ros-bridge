@@ -3,25 +3,23 @@
 Following TDD to improve coverage.
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch
-from dataclasses import dataclass
+from unittest.mock import Mock
+
+import pytest
 
 from agent_ros_bridge.gateway_v2.core import (
-    Robot,
-    Connector,
-    RobotEndpoint,
-    ConnectorRegistry,
-    Plugin,
-    PluginManager,
     Bridge,
-)
-from agent_ros_bridge.gateway_v2.core import (
     Command,
-    Telemetry,
+    Connector,
+    ConnectorRegistry,
     Header,
     Identity,
+    Plugin,
+    PluginManager,
+    Robot,
+    RobotEndpoint,
+    Telemetry,
 )
 
 
@@ -251,7 +249,9 @@ class MockPlugin(Plugin):
 
 
 # Import Message and Identity for tests
-from agent_ros_bridge.gateway_v2.core import Message, Identity
+from datetime import UTC
+
+from agent_ros_bridge.gateway_v2.core import Message
 
 
 class TestPlugin:
@@ -448,9 +448,9 @@ class TestHeader:
 
     def test_header_custom_values(self):
         """Header can have custom values."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         header = Header(
             message_id="msg-123",
             timestamp=now,
@@ -574,7 +574,7 @@ class TestMessageFlow:
     @pytest.mark.asyncio
     async def test_message_routing(self):
         """Messages can be routed through transport manager."""
-        from agent_ros_bridge.gateway_v2.core import TransportManager, Message, Identity
+        from agent_ros_bridge.gateway_v2.core import Identity, Message, TransportManager
 
         manager = TransportManager()
 

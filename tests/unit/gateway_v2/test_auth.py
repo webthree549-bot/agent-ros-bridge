@@ -3,11 +3,10 @@
 Improving coverage from 38% to 80%+.
 """
 
-import pytest
-from unittest.mock import Mock, patch
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 import jwt
+import pytest
 
 from agent_ros_bridge.gateway_v2.auth import (
     AuthConfig,
@@ -277,8 +276,8 @@ class TestSecurityFeatures:
         assert "iat" in payload
 
         # Check expiry is roughly 1 hour from now
-        exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
-        now = datetime.now(timezone.utc)
+        exp = datetime.fromtimestamp(payload["exp"], tz=UTC)
+        now = datetime.now(UTC)
         diff = exp - now
         assert 3500 < diff.total_seconds() < 3700  # ~1 hour
 
@@ -287,13 +286,13 @@ class TestSecurityFeatures:
         config = AuthConfig(jwt_secret="test_secret_32_chars_long!!")
         auth = Authenticator(config)
 
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         token = auth.create_token("user123")
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
 
         payload = jwt.decode(token, "test_secret_32_chars_long!!", algorithms=["HS256"])
 
-        iat = datetime.fromtimestamp(payload["iat"], tz=timezone.utc)
+        iat = datetime.fromtimestamp(payload["iat"], tz=UTC)
         # JWT stores timestamps at second precision, so we need to truncate before/after
         before_truncated = before.replace(microsecond=0)
         after_truncated = after.replace(microsecond=0) + timedelta(

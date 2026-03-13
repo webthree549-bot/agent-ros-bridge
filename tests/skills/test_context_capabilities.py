@@ -4,13 +4,14 @@ Verifies that context management fulfills SKILL promises about
 context-aware conversations.
 """
 
-import pytest
-import tempfile
 import os
+import tempfile
+
+import pytest
+
 from agent_ros_bridge.integrations.context import (
-    ContextManager,
-    ConversationContext,
     ContextAwareNLInterpreter,
+    ContextManager,
 )
 from agent_ros_bridge.integrations.nl_interpreter import RuleBasedInterpreter
 

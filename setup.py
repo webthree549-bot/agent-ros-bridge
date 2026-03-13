@@ -4,8 +4,8 @@ Setup script for agent_ros_bridge package.
 This is used by ROS2 colcon build system.
 """
 
-from setuptools import setup, find_packages
-import os
+
+from setuptools import find_packages, setup
 
 package_name = 'agent_ros_bridge'
 
@@ -44,7 +44,7 @@ setup(
             # Main CLI
             'agent-ros-bridge = agent_ros_bridge.cli:main',
             'arb = agent_ros_bridge.cli:main',
-            
+
             # AI Layer Nodes (Week 2)
             'intent_parser = agent_ros_bridge.ai.intent_parser:main',
             'context_manager = agent_ros_bridge.ai.context_manager:main',

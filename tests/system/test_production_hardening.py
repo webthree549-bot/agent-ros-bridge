@@ -11,9 +11,9 @@ Tests for:
 - Security validations
 """
 
+from unittest.mock import patch
+
 import pytest
-import time
-from unittest.mock import Mock, patch, MagicMock
 
 
 class TestLLMParserHardening:
@@ -221,8 +221,9 @@ class TestContextAwareHardening:
     def test_concurrent_context_updates(self):
         """Test thread safety of context updates."""
         try:
-            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
             import threading
+
+            from agent_ros_bridge.ai.context_aware_parser import ContextAwareParser
 
             parser = ContextAwareParser()
             errors = []
@@ -401,8 +402,9 @@ class TestPerformanceHardening:
     def test_memory_usage_under_load(self):
         """Test memory usage doesn't grow unbounded."""
         try:
-            import psutil
             import os
+
+            import psutil
 
             from agent_ros_bridge.ai.llm_parser import LLMIntentParser
 

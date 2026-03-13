@@ -3,10 +3,10 @@
 Tests the intent parser logic using mocks to avoid ROS2 dependencies.
 """
 
-import pytest
 import re
-import time
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestIntentParserNoROS:
@@ -427,9 +427,7 @@ class TestIntentParserSourceTracking:
         """High confidence intents are marked as RULE_BASED."""
         confidence = 0.95
 
-        if confidence >= 0.95:
-            source = "RULE_BASED"
-        elif confidence >= 0.70:
+        if confidence >= 0.95 or confidence >= 0.70:
             source = "RULE_BASED"
         else:
             source = "LLM_ASSISTED"
@@ -440,9 +438,7 @@ class TestIntentParserSourceTracking:
         """Medium confidence intents are marked as RULE_BASED."""
         confidence = 0.75
 
-        if confidence >= 0.95:
-            source = "RULE_BASED"
-        elif confidence >= 0.70:
+        if confidence >= 0.95 or confidence >= 0.70:
             source = "RULE_BASED"
         else:
             source = "LLM_ASSISTED"
@@ -453,9 +449,7 @@ class TestIntentParserSourceTracking:
         """Low confidence intents use LLM fallback."""
         confidence = 0.50
 
-        if confidence >= 0.95:
-            source = "RULE_BASED"
-        elif confidence >= 0.70:
+        if confidence >= 0.95 or confidence >= 0.70:
             source = "RULE_BASED"
         else:
             source = "LLM_ASSISTED"

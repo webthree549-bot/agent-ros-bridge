@@ -3,16 +3,15 @@
 Tests the memory integration without external dependencies.
 """
 
-import pytest
-import json
-import sqlite3
-import tempfile
 import os
-from unittest.mock import Mock, patch, AsyncMock
+import tempfile
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
+
+import pytest
 
 from agent_ros_bridge.integrations.memory import AgentMemory, MemoryEntry
 from agent_ros_bridge.integrations.safety import SafetyLevel, SafetyManager
-from datetime import datetime, timedelta
 
 
 class TestMemoryEntry:
@@ -242,9 +241,8 @@ class TestAgentMemoryRedis:
 
     def test_redis_backend_import_error(self):
         """Redis backend raises error if redis not installed."""
-        with patch.dict("sys.modules", {"redis": None}):
-            with pytest.raises(ImportError):
-                AgentMemory(backend="redis")
+        with patch.dict("sys.modules", {"redis": None}), pytest.raises(ImportError):
+            AgentMemory(backend="redis")
 
     @pytest.mark.asyncio
     async def test_redis_get(self):

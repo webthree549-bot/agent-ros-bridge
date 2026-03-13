@@ -6,15 +6,15 @@ Simple web interface to visualize ROS2 robot state
 import asyncio
 import json
 import subprocess
-from datetime import datetime
-from pathlib import Path
-
-# HTTP server for dashboard
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import threading
 
 # ROS2 bridge
 import sys
+import threading
+from datetime import datetime
+
+# HTTP server for dashboard
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 sys.path.insert(0, '/Users/webthree/.openclaw/workspace')
 
 from agent_ros_bridge import Bridge
@@ -167,7 +167,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
             self.end_headers()
-            
+
             # Get fresh data from ROS2
             html = self.generate_dashboard()
             self.wfile.write(html.encode())
@@ -179,14 +179,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(status).encode())
         else:
             self.send_error(404)
-    
+
     def generate_dashboard(self):
         """Generate dashboard HTML with live data."""
         status = self.get_system_status()
-        
+
         # Replace placeholders with actual data
         html = DASHBOARD_HTML
-        
+
         # System status
         system_html = f"""
             <strong>ROS2 Container:</strong> {'✅ Running' if status['ros2_running'] else '❌ Stopped'}<br>
@@ -196,7 +196,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <strong>Topics:</strong> {status['topic_count']} active
         """
         html = html.replace('id="system-status">Loading...', f'id="system-status">{system_html}')
-        
+
         # Robot position
         pos = status.get('robot_position', {})
         pos_html = f"""
@@ -205,7 +205,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <strong>Theta:</strong> {pos.get('theta', 'N/A'):.3f} rad
         """ if pos else "Position data not available"
         html = html.replace('id="robot-position">Loading...', f'id="robot-position">{pos_html}')
-        
+
         # Navigation status
         nav_html = f"""
             <strong>Status:</strong> {status.get('nav_status', 'Unknown')}<br>
@@ -214,12 +214,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
             - /navigate_through_poses ✅
         """
         html = html.replace('id="nav-status">Loading...', f'id="nav-status">{nav_html}')
-        
+
         # ROS topics
         topics = status.get('topics', [])
         topics_html = '<br>'.join(topics[:10]) + (f'<br>... and {len(topics)-10} more' if len(topics) > 10 else '')
         html = html.replace('id="ros-topics">Loading...', f'id="ros-topics">{topics_html}')
-        
+
         # Map status
         map_html = f"""
             <strong>Map Topic:</strong> {'✅ /map publishing' if status.get('map_active') else '❌ Inactive'}<br>
@@ -227,7 +227,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <strong>SLAM:</strong> {'✅ Running' if status.get('slam_running') else '❌ Stopped'}
         """
         html = html.replace('id="map-status">Loading...', f'id="map-status">{map_html}')
-        
+
         # Velocity
         vel = status.get('velocity', {})
         vel_html = f"""
@@ -235,9 +235,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
             <strong>Angular Z:</strong> {vel.get('angular_z', 0):.4f} rad/s
         """
         html = html.replace('id="velocity">Loading...', f'id="velocity">{vel_html}')
-        
+
         return html
-    
+
     def get_system_status(self):
         """Get current system status from ROS2."""
         status = {
@@ -253,7 +253,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             'velocity': None,
             'nav_status': 'idle'
         }
-        
+
         try:
             # Check container running
             result = subprocess.run(
@@ -261,7 +261,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 capture_output=True, text=True, timeout=5
             )
             status['ros2_running'] = 'Up' in result.stdout
-            
+
             if status['ros2_running']:
                 # Get topic list
                 result = subprocess.run(
@@ -273,13 +273,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     topics = [t.strip() for t in result.stdout.strip().split('\n') if t.strip()]
                     status['topics'] = topics
                     status['topic_count'] = len(topics)
-                    
+
                     # Check specific components
                     status['gazebo_running'] = '/clock' in topics
                     status['map_active'] = '/map' in topics
                     status['slam_running'] = '/slam_toolbox/feedback' in topics or '/map' in topics
                     status['nav2_running'] = '/navigate_to_pose' in topics or '/goal_pose' in topics
-                
+
                 # Get robot position
                 result = subprocess.run(
                     ['docker', 'exec', 'ros2_humble', 'bash', '-c',
@@ -302,7 +302,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                         pos['y'] = float(lines[j].split(':')[1].strip())
                                     except: pass
                     status['robot_position'] = pos
-                    
+
                     # Get velocity
                     vel = {'linear_x': 0, 'angular_z': 0}
                     for i, line in enumerate(lines):
@@ -317,12 +317,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                         vel['angular_z'] = float(lines[j].split(':')[1].strip())
                                     except: pass
                     status['velocity'] = vel
-        
+
         except Exception as e:
             status['error'] = str(e)
-        
+
         return status
-    
+
     def log_message(self, format, *args):
         pass  # Suppress logs
 
@@ -338,22 +338,22 @@ async def main():
     print("=" * 60)
     print("🚀 Agent ROS Bridge - System Status Dashboard")
     print("=" * 60)
-    
+
     # Start HTTP server in background
     http_thread = threading.Thread(target=run_http_server, args=(8080,), daemon=True)
     http_thread.start()
-    
+
     # Create bridge with WebSocket
     bridge = Bridge()
     bridge.transport_manager.register(
         WebSocketTransport({"host": "0.0.0.0", "port": 8768, "auth": {"enabled": False}})
     )
-    
+
     print("📡 WebSocket: ws://localhost:8768")
     print("=" * 60)
-    
+
     await bridge.start()
-    
+
     # Keep running
     try:
         while True:

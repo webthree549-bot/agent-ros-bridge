@@ -16,9 +16,10 @@ Usage:
 import asyncio
 import contextlib
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from math import cos, sin
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 from unittest import mock
 
 logger = logging.getLogger(__name__)
@@ -40,10 +41,10 @@ class SimulatedTopic:
 
     name: str
     msg_type: str
-    publishers: List[str] = field(default_factory=list)
-    subscribers: List[str] = field(default_factory=list)
-    last_message: Optional[SimulatedMessage] = None
-    message_history: List[SimulatedMessage] = field(default_factory=list)
+    publishers: list[str] = field(default_factory=list)
+    subscribers: list[str] = field(default_factory=list)
+    last_message: SimulatedMessage | None = None
+    message_history: list[SimulatedMessage] = field(default_factory=list)
 
 
 @dataclass
@@ -52,7 +53,7 @@ class SimulatedService:
 
     name: str
     service_type: str
-    handler: Optional[Callable] = None
+    handler: Callable | None = None
 
 
 class SimulatedROS2Node:
@@ -64,10 +65,10 @@ class SimulatedROS2Node:
 
     def __init__(self, node_name: str = "simulated_node"):
         self.node_name = node_name
-        self.topics: Dict[str, SimulatedTopic] = {}
-        self.services: Dict[str, SimulatedService] = {}
-        self.subscribers: Dict[str, Callable] = {}
-        self.publishers: Dict[str, Any] = {}
+        self.topics: dict[str, SimulatedTopic] = {}
+        self.services: dict[str, SimulatedService] = {}
+        self.subscribers: dict[str, Callable] = {}
+        self.publishers: dict[str, Any] = {}
         self._message_queue: asyncio.Queue = asyncio.Queue()
         self._running = True
 
@@ -115,15 +116,15 @@ class SimulatedROS2Node:
             name=name, service_type=getattr(srv_type, "__name__", str(srv_type)), handler=callback
         )
 
-    def get_topic_names_and_types(self) -> List[tuple]:
+    def get_topic_names_and_types(self) -> list[tuple]:
         """Get all topics."""
         return [(name, [topic.msg_type]) for name, topic in self.topics.items()]
 
-    def get_service_names_and_types(self) -> List[tuple]:
+    def get_service_names_and_types(self) -> list[tuple]:
         """Get all services."""
         return [(name, [service.service_type]) for name, service in self.services.items()]
 
-    def get_node_names(self) -> List[str]:
+    def get_node_names(self) -> list[str]:
         """Get all node names."""
         return [self.node_name]
 
@@ -137,7 +138,7 @@ class SimulatedROS2Node:
         if publisher.topic in self.publishers:
             del self.publishers[publisher.topic]
 
-    def simulate_message(self, topic: str, data: Dict[str, Any], msg_type: str = "unknown"):
+    def simulate_message(self, topic: str, data: dict[str, Any], msg_type: str = "unknown"):
         """Simulate receiving a message on a topic."""
         SimulatedMessage(topic=topic, data=data, msg_type=msg_type)
         if topic in self.subscribers:
@@ -156,13 +157,13 @@ class SimulatedROS2Node:
         """Add a topic to the simulation."""
         self.topics[name] = SimulatedTopic(name=name, msg_type=msg_type)
 
-    def add_service(self, name: str, service_type: str, handler: Optional[Callable] = None):
+    def add_service(self, name: str, service_type: str, handler: Callable | None = None):
         """Add a service to the simulation."""
         self.services[name] = SimulatedService(
             name=name, service_type=service_type, handler=handler
         )
 
-    def _msg_to_dict(self, msg) -> Dict[str, Any]:
+    def _msg_to_dict(self, msg) -> dict[str, Any]:
         """Convert a message to dictionary."""
         if hasattr(msg, "__dict__"):
             return {k: v for k, v in msg.__dict__.items() if not k.startswith("_")}
@@ -171,7 +172,7 @@ class SimulatedROS2Node:
         else:
             return {"data": str(msg)}
 
-    def _dict_to_msg(self, data: Dict[str, Any], msg_type: str):
+    def _dict_to_msg(self, data: dict[str, Any], msg_type: str):
         """Create a mock message from a dictionary."""
         msg = mock.MagicMock()
         for key, value in data.items():
@@ -181,7 +182,7 @@ class SimulatedROS2Node:
 
     async def wait_for_message(
         self, topic: str, timeout: float = 1.0
-    ) -> Optional[SimulatedMessage]:
+    ) -> SimulatedMessage | None:
         """Wait for a message on a topic."""
         deadline = asyncio.get_event_loop().time() + timeout
         while asyncio.get_event_loop().time() < deadline:
@@ -189,11 +190,11 @@ class SimulatedROS2Node:
                 msg = await asyncio.wait_for(self._message_queue.get(), timeout=0.1)
                 if msg.topic == topic:
                     return msg
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
         return None
 
-    def get_message_history(self, topic: str) -> List[SimulatedMessage]:
+    def get_message_history(self, topic: str) -> list[SimulatedMessage]:
         """Get message history for a topic."""
         if topic in self.topics:
             return self.topics[topic].message_history
@@ -219,7 +220,7 @@ class SimulatedRobot:
             "angular_velocity": 0.0,
         }
         self._running = True
-        self._update_task: Optional[asyncio.Task] = None
+        self._update_task: asyncio.Task | None = None
 
     async def start(self):
         """Start the simulated robot."""
@@ -309,8 +310,8 @@ class SimulatedROSEnvironment:
     """
 
     def __init__(self):
-        self.robots: Dict[str, SimulatedRobot] = {}
-        self.global_topics: Dict[str, SimulatedTopic] = {}
+        self.robots: dict[str, SimulatedRobot] = {}
+        self.global_topics: dict[str, SimulatedTopic] = {}
         self._running = False
 
     async def add_robot(
@@ -328,14 +329,14 @@ class SimulatedROSEnvironment:
             await self.robots[robot_id].stop()
             del self.robots[robot_id]
 
-    def get_all_topics(self) -> List[tuple]:
+    def get_all_topics(self) -> list[tuple]:
         """Get all topics from all robots."""
         topics = []
         for robot in self.robots.values():
             topics.extend(robot.node.get_topic_names_and_types())
         return topics
 
-    def get_all_services(self) -> List[tuple]:
+    def get_all_services(self) -> list[tuple]:
         """Get all services from all robots."""
         services = []
         for robot in self.robots.values():
@@ -380,7 +381,7 @@ class SimulatedROSEnvironment:
 
 
 # Singleton instance for tests
-_simulation_instance: Optional[SimulatedROSEnvironment] = None
+_simulation_instance: SimulatedROSEnvironment | None = None
 
 
 def get_simulation() -> SimulatedROSEnvironment:

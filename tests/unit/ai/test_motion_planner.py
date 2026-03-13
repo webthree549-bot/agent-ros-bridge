@@ -3,9 +3,9 @@
 TDD Approach: Write failing tests first, then implement to pass.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-import asyncio
 
 
 class TestMotionPlannerNode:
@@ -235,8 +235,8 @@ class TestPlanMultiplePrimitives:
         """RED: Sequence plans include safety certificate."""
         from agent_ros_bridge.ai.motion_planner import MotionPlannerNode
         from agent_ros_bridge.ai.motion_primitives import (
-            NavigateToPosePrimitive,
             GripperControlPrimitive,
+            NavigateToPosePrimitive,
         )
 
         node = MotionPlannerNode()
