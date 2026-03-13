@@ -16,7 +16,7 @@ import sys
 import websockets
 
 # Add workspace to path
-sys.path.insert(0, '/Users/webthree/.openclaw/workspace')
+sys.path.insert(0, "/Users/webthree/.openclaw/workspace")
 
 from agent_ros_bridge.gateway_v2.auth import AuthConfig, Authenticator
 
@@ -26,16 +26,11 @@ async def generate_token():
     # Get secret from environment or use demo secret
     jwt_secret = os.getenv("JWT_SECRET", "demo-secret-for-testing")
 
-    config = AuthConfig(
-        jwt_secret=jwt_secret,
-        jwt_expiry_hours=1
-    )
+    config = AuthConfig(jwt_secret=jwt_secret, jwt_expiry_hours=1)
     auth = Authenticator(config)
 
     token = auth.create_token(
-        user_id="demo_client",
-        roles=["robot_operator"],
-        metadata={"source": "client_example"}
+        user_id="demo_client", roles=["robot_operator"], metadata={"source": "client_example"}
     )
 
     return token
@@ -64,18 +59,14 @@ async def connect_and_control():
 
             # 1. List available robots
             print("🤖 Listing robots...")
-            await ws.send(json.dumps({
-                "command": "list_robots"
-            }))
+            await ws.send(json.dumps({"command": "list_robots"}))
             response = await ws.recv()
             print(f"   Response: {response}")
             print()
 
             # 2. Get topics
             print("📡 Getting ROS topics...")
-            await ws.send(json.dumps({
-                "command": "get_topics"
-            }))
+            await ws.send(json.dumps({"command": "get_topics"}))
             response = await ws.recv()
             data = json.loads(response)
             if data.get("topics"):
@@ -85,11 +76,11 @@ async def connect_and_control():
 
             # 3. Subscribe to odometry
             print("📊 Subscribing to /odom...")
-            await ws.send(json.dumps({
-                "command": "subscribe",
-                "topic": "/odom",
-                "msg_type": "nav_msgs/Odometry"
-            }))
+            await ws.send(
+                json.dumps(
+                    {"command": "subscribe", "topic": "/odom", "msg_type": "nav_msgs/Odometry"}
+                )
+            )
 
             # Read a few messages
             for i in range(3):
@@ -102,15 +93,19 @@ async def connect_and_control():
 
             # 4. Send movement command
             print("🚀 Sending move command...")
-            await ws.send(json.dumps({
-                "command": "publish",
-                "topic": "/cmd_vel",
-                "msg_type": "geometry_msgs/Twist",
-                "message": {
-                    "linear": {"x": 0.2, "y": 0.0, "z": 0.0},
-                    "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                }
-            }))
+            await ws.send(
+                json.dumps(
+                    {
+                        "command": "publish",
+                        "topic": "/cmd_vel",
+                        "msg_type": "geometry_msgs/Twist",
+                        "message": {
+                            "linear": {"x": 0.2, "y": 0.0, "z": 0.0},
+                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                        },
+                    }
+                )
+            )
             response = await ws.recv()
             print(f"   Response: {response}")
             print()
@@ -120,15 +115,19 @@ async def connect_and_control():
 
             # 5. Stop
             print("🛑 Stopping robot...")
-            await ws.send(json.dumps({
-                "command": "publish",
-                "topic": "/cmd_vel",
-                "msg_type": "geometry_msgs/Twist",
-                "message": {
-                    "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
-                    "angular": {"x": 0.0, "y": 0.0, "z": 0.0}
-                }
-            }))
+            await ws.send(
+                json.dumps(
+                    {
+                        "command": "publish",
+                        "topic": "/cmd_vel",
+                        "msg_type": "geometry_msgs/Twist",
+                        "message": {
+                            "linear": {"x": 0.0, "y": 0.0, "z": 0.0},
+                            "angular": {"x": 0.0, "y": 0.0, "z": 0.0},
+                        },
+                    }
+                )
+            )
             response = await ws.recv()
             print(f"   Response: {response}")
 
@@ -153,10 +152,9 @@ if __name__ == "__main__":
 
     # Check if bridge is running
     import subprocess
+
     result = subprocess.run(
-        ["lsof", "-Pi", ":8766", "-sTCP:LISTEN"],
-        capture_output=True,
-        text=True
+        ["lsof", "-Pi", ":8766", "-sTCP:LISTEN"], capture_output=True, text=True
     )
     if not result.stdout.strip():
         print("⚠️  Bridge doesn't appear to be running on port 8766")

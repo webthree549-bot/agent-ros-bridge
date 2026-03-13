@@ -15,6 +15,7 @@ def demo_performance():
     except ImportError:
         # Fallback to simple regex-based parsing for demo
         import re
+
         use_ros = False
 
     # Measure parsing latency
@@ -39,11 +40,12 @@ def demo_performance():
         else:
             # Simple regex parsing for demo
             import re
-            if re.search(r'\bgo\s+to\b|\bnavigate\b', utterance, re.I):
+
+            if re.search(r"\bgo\s+to\b|\bnavigate\b", utterance, re.I):
                 intent_type = "NAVIGATE"
-            elif re.search(r'\bpick\s+up\b|\bgrab\b', utterance, re.I):
+            elif re.search(r"\bpick\s+up\b|\bgrab\b", utterance, re.I):
                 intent_type = "MANIPULATE"
-            elif re.search(r'\bstop\b|\bhalt\b', utterance, re.I):
+            elif re.search(r"\bstop\b|\bhalt\b", utterance, re.I):
                 intent_type = "SAFETY"
             else:
                 intent_type = "UNKNOWN"

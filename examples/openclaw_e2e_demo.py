@@ -29,6 +29,7 @@ def check_prerequisites():
     """Check if required components are available."""
     try:
         import rclpy
+
         print("✅ ROS2 Python bindings available")
     except ImportError:
         print("❌ ROS2 Python bindings not found")
@@ -37,6 +38,7 @@ def check_prerequisites():
 
     try:
         import agent_ros_bridge
+
         print(f"✅ Agent ROS Bridge v{agent_ros_bridge.__version__} available")
     except ImportError:
         print("❌ Agent ROS Bridge not found")
@@ -49,12 +51,12 @@ def check_prerequisites():
 def demo_mcp_tool_call():
     """
     Demo: OpenClaw agent calls ROS tools via MCP.
-    
+
     This simulates what OpenClaw would do when it wants to control a robot.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO 1: MCP Tool Call (Agent Runtime Mode)")
-    print("="*60)
+    print("=" * 60)
 
     print("\nScenario: OpenClaw agent receives command from user")
     print("User: 'Navigate to the kitchen'")
@@ -94,16 +96,16 @@ def demo_mcp_tool_call():
 def demo_standalone_api():
     """
     Demo: Direct Python API without external agent.
-    
+
     This shows how to use Agent ROS Bridge as a standalone library.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO 2: Standalone Python API")
-    print("="*60)
+    print("=" * 60)
 
     print("\nScenario: Python script controls robot directly")
 
-    code = '''
+    code = """
 from agent_ros_bridge import RobotController, NavigationGoal
 
 # Connect to robot
@@ -125,7 +127,7 @@ if result.success:
     print(f"Execution time: {result.execution_time:.2f}s")
 else:
     print(f"Navigation failed: {result.error_message}")
-'''
+"""
 
     print("\nExample code:")
     print(code)
@@ -147,12 +149,12 @@ else:
 def demo_agent_learning():
     """
     Demo: Agent learns from interactions.
-    
+
     Shows how the agent improves over time.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO 3: Agent Learning Loop")
-    print("="*60)
+    print("=" * 60)
 
     print("\nFirst interaction:")
     print("  User: 'Go to the place where we eat'")
@@ -186,9 +188,9 @@ def demo_safety_validation():
     """
     Demo: Safety validation prevents dangerous commands.
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("DEMO 4: Safety Validation")
-    print("="*60)
+    print("=" * 60)
 
     print("\nScenario 1: Safe command")
     print("  User: 'Move forward 1 meter at 0.5 m/s'")
@@ -213,9 +215,9 @@ def demo_safety_validation():
 
 def main():
     """Run all demos."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("AGENT ROS BRIDGE - OpenClaw E2E Demo")
-    print("="*60)
+    print("=" * 60)
 
     # Check prerequisites
     print("\nChecking prerequisites...")
@@ -236,9 +238,9 @@ def main():
         demo_agent_learning()
         demo_safety_validation()
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("ALL DEMOS COMPLETE")
-        print("="*60)
+        print("=" * 60)
         print("\nNext steps:")
         print("  1. Start Gazebo: ros2 launch turtlebot3_gazebo empty_world.launch.py")
         print("  2. Start bridge: python -m agent_ros_bridge --mcp-server")

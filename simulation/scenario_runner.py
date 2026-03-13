@@ -19,6 +19,7 @@ import yaml
 @dataclass
 class ScenarioResult:
     """Result of running a scenario"""
+
     scenario_name: str
     success: bool
     duration: float
@@ -63,11 +64,7 @@ class ScenarioRunner:
         """Launch Gazebo with specified world"""
         try:
             # Check if Gazebo is already running
-            result = subprocess.run(
-                ["pgrep", "-f", "gazebo"],
-                capture_output=True,
-                text=True
-            )
+            result = subprocess.run(["pgrep", "-f", "gazebo"], capture_output=True, text=True)
 
             if result.returncode == 0:
                 print("Gazebo already running, skipping launch")
@@ -80,7 +77,7 @@ class ScenarioRunner:
                 ["gazebo", "--headless-rendering", world_file],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                preexec_fn=os.setsid
+                preexec_fn=os.setsid,
             )
 
             # Wait for Gazebo to start
@@ -124,13 +121,22 @@ class ScenarioRunner:
 
             # Use ROS2 spawn entity
             cmd = [
-                "ros2", "run", "gazebo_ros", "spawn_entity.py",
-                "-entity", name,
-                "-file", model_file,
-                "-x", str(x),
-                "-y", str(y),
-                "-z", str(z),
-                "-Y", str(yaw)
+                "ros2",
+                "run",
+                "gazebo_ros",
+                "spawn_entity.py",
+                "-entity",
+                name,
+                "-file",
+                model_file,
+                "-x",
+                str(x),
+                "-y",
+                str(y),
+                "-z",
+                str(z),
+                "-Y",
+                str(yaw),
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -203,16 +209,24 @@ class ScenarioRunner:
 """
 
             temp_sdf = f"/tmp/{name}.sdf"
-            with open(temp_sdf, 'w') as f:
+            with open(temp_sdf, "w") as f:
                 f.write(sdf_content)
 
             cmd = [
-                "ros2", "run", "gazebo_ros", "spawn_entity.py",
-                "-entity", name,
-                "-file", temp_sdf,
-                "-x", str(x),
-                "-y", str(y),
-                "-z", str(z)
+                "ros2",
+                "run",
+                "gazebo_ros",
+                "spawn_entity.py",
+                "-entity",
+                name,
+                "-file",
+                temp_sdf,
+                "-x",
+                str(x),
+                "-y",
+                str(y),
+                "-z",
+                str(z),
             ]
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -255,7 +269,7 @@ class ScenarioRunner:
                     duration=time.time() - start_time,
                     metrics=metrics,
                     errors=errors,
-                    logs=logs
+                    logs=logs,
                 )
 
             # Spawn robots
@@ -301,23 +315,27 @@ class ScenarioRunner:
             duration=time.time() - start_time,
             metrics=metrics,
             errors=errors,
-            logs=logs
+            logs=logs,
         )
 
     def save_result(self, result: ScenarioResult):
         """Save scenario result to file"""
         result_file = self.results_dir / f"{result.scenario_name}_{int(time.time())}.json"
 
-        with open(result_file, 'w') as f:
-            json.dump({
-                "scenario_name": result.scenario_name,
-                "success": result.success,
-                "duration": result.duration,
-                "metrics": result.metrics,
-                "errors": result.errors,
-                "logs": result.logs,
-                "timestamp": result.timestamp
-            }, f, indent=2)
+        with open(result_file, "w") as f:
+            json.dump(
+                {
+                    "scenario_name": result.scenario_name,
+                    "success": result.success,
+                    "duration": result.duration,
+                    "metrics": result.metrics,
+                    "errors": result.errors,
+                    "logs": result.logs,
+                    "timestamp": result.timestamp,
+                },
+                f,
+                indent=2,
+            )
 
         return result_file
 
@@ -329,22 +347,24 @@ class ScenarioRunner:
             "=" * 60,
             f"Generated: {datetime.now().isoformat()}",
             f"Total Scenarios: {len(results)}",
-            ""
+            "",
         ]
 
         passed = sum(1 for r in results if r.success)
         failed = len(results) - passed
 
-        report_lines.extend([
-            f"PASSED: {passed}",
-            f"FAILED: {failed}",
-            f"SUCCESS RATE: {passed/len(results)*100:.1f}%" if results else "N/A",
-            "",
-            "-" * 60,
-            "DETAILED RESULTS",
-            "-" * 60,
-            ""
-        ])
+        report_lines.extend(
+            [
+                f"PASSED: {passed}",
+                f"FAILED: {failed}",
+                f"SUCCESS RATE: {passed/len(results)*100:.1f}%" if results else "N/A",
+                "",
+                "-" * 60,
+                "DETAILED RESULTS",
+                "-" * 60,
+                "",
+            ]
+        )
 
         for result in results:
             status = "✓ PASS" if result.success else "✗ FAIL"
@@ -354,12 +374,7 @@ class ScenarioRunner:
                 for error in result.errors:
                     report_lines.append(f"    Error: {error}")
 
-        report_lines.extend([
-            "",
-            "=" * 60,
-            "END OF REPORT",
-            "=" * 60
-        ])
+        report_lines.extend(["", "=" * 60, "END OF REPORT", "=" * 60])
 
         return "\n".join(report_lines)
 
@@ -409,7 +424,7 @@ def main():
         # Save report
         report_file = Path(args.output) / f"report_{int(time.time())}.txt"
         report_file.parent.mkdir(exist_ok=True)
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             f.write(report)
         print(f"\nReport saved to: {report_file}")
 

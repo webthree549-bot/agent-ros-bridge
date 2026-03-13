@@ -3,7 +3,6 @@
 Tests end-to-end scenarios that span multiple components.
 """
 
-
 import pytest
 
 from agent_ros_bridge import Bridge

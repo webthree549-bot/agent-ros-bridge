@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ParallelScenarioResult:
     """Result of running a scenario in parallel"""
+
     scenario_name: str
     worker_id: int
     success: bool
@@ -39,7 +40,7 @@ class ParallelRunner:
         self,
         scenarios_dir: str = "simulation/scenarios",
         results_dir: str = "results",
-        max_workers: int = 100
+        max_workers: int = 100,
     ):
         self.scenarios_dir = Path(scenarios_dir)
         self.results_dir = Path(results_dir)
@@ -67,11 +68,7 @@ class ParallelRunner:
         with open(scenario_file) as f:
             return yaml.safe_load(f)
 
-    def run_single_scenario(
-        self,
-        scenario_name: str,
-        worker_id: int
-    ) -> ParallelScenarioResult:
+    def run_single_scenario(self, scenario_name: str, worker_id: int) -> ParallelScenarioResult:
         """Run a single scenario (called by worker process)"""
         start_time = time.time()
         errors = []
@@ -106,7 +103,7 @@ class ParallelRunner:
                 "obstacles_spawned": len(obstacles),
                 "scenario_duration": duration,
                 "worker_id": worker_id,
-                "simulated": True
+                "simulated": True,
             }
 
             # Simulate occasional failures for testing
@@ -127,13 +124,11 @@ class ParallelRunner:
             success=success,
             duration=time.time() - start_time,
             metrics=metrics,
-            errors=errors
+            errors=errors,
         )
 
     def run_parallel(
-        self,
-        scenarios: list[str] | None = None,
-        num_workers: int | None = None
+        self, scenarios: list[str] | None = None, num_workers: int | None = None
     ) -> list[ParallelScenarioResult]:
         """Run scenarios in parallel using process pool"""
 
@@ -150,11 +145,7 @@ class ParallelRunner:
         with ProcessPoolExecutor(max_workers=num_workers) as executor:
             # Submit all scenarios
             future_to_scenario = {
-                executor.submit(
-                    self.run_single_scenario,
-                    scenario,
-                    i % num_workers
-                ): scenario
+                executor.submit(self.run_single_scenario, scenario, i % num_workers): scenario
                 for i, scenario in enumerate(scenarios)
             }
 
@@ -173,20 +164,20 @@ class ParallelRunner:
 
                 except Exception as e:
                     logger.error(f"Scenario {scenario} generated an exception: {e}")
-                    results.append(ParallelScenarioResult(
-                        scenario_name=scenario,
-                        worker_id=-1,
-                        success=False,
-                        duration=0.0,
-                        errors=[str(e)]
-                    ))
+                    results.append(
+                        ParallelScenarioResult(
+                            scenario_name=scenario,
+                            worker_id=-1,
+                            success=False,
+                            duration=0.0,
+                            errors=[str(e)],
+                        )
+                    )
 
         return results
 
     def save_results(
-        self,
-        results: list[ParallelScenarioResult],
-        batch_name: str | None = None
+        self, results: list[ParallelScenarioResult], batch_name: str | None = None
     ) -> Path:
         """Save results to JSON file"""
         if batch_name is None:
@@ -200,19 +191,16 @@ class ParallelRunner:
             "total_scenarios": len(results),
             "successful": sum(1 for r in results if r.success),
             "failed": sum(1 for r in results if not r.success),
-            "results": [asdict(r) for r in results]
+            "results": [asdict(r) for r in results],
         }
 
-        with open(result_file, 'w') as f:
+        with open(result_file, "w") as f:
             json.dump(output, f, indent=2)
 
         logger.info(f"Results saved to: {result_file}")
         return result_file
 
-    def generate_coverage_report(
-        self,
-        results: list[ParallelScenarioResult]
-    ) -> dict[str, Any]:
+    def generate_coverage_report(self, results: list[ParallelScenarioResult]) -> dict[str, Any]:
         """Generate a coverage report"""
 
         total = len(results)
@@ -250,42 +238,35 @@ class ParallelRunner:
                 "success_rate": successful / total * 100 if total > 0 else 0,
                 "avg_duration": avg_duration,
                 "min_duration": min_duration,
-                "max_duration": max_duration
+                "max_duration": max_duration,
             },
             "by_type": {
                 scenario_type: {
                     "total": stats["total"],
                     "passed": stats["passed"],
                     "failed": stats["total"] - stats["passed"],
-                    "pass_rate": stats["passed"] / stats["total"] * 100
+                    "pass_rate": stats["passed"] / stats["total"] * 100,
                 }
                 for scenario_type, stats in scenario_types.items()
             },
             "failed_scenarios": [
-                {
-                    "name": r.scenario_name,
-                    "worker_id": r.worker_id,
-                    "errors": r.errors
-                }
-                for r in results if not r.success
+                {"name": r.scenario_name, "worker_id": r.worker_id, "errors": r.errors}
+                for r in results
+                if not r.success
             ],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         return report
 
-    def save_coverage_report(
-        self,
-        report: dict[str, Any],
-        filename: str | None = None
-    ) -> Path:
+    def save_coverage_report(self, report: dict[str, Any], filename: str | None = None) -> Path:
         """Save coverage report to file"""
         if filename is None:
             filename = f"coverage_report_{int(time.time())}.json"
 
         report_file = self.results_dir / filename
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Coverage report saved to: {report_file}")
@@ -315,7 +296,7 @@ class ParallelRunner:
             f"Maximum:            {summary['max_duration']:.2f}s",
             "",
             "COVERAGE BY TYPE",
-            "-" * 70
+            "-" * 70,
         ]
 
         for scenario_type, stats in report["by_type"].items():
@@ -326,23 +307,14 @@ class ParallelRunner:
             )
 
         if report["failed_scenarios"]:
-            lines.extend([
-                "",
-                "FAILED SCENARIOS",
-                "-" * 70
-            ])
+            lines.extend(["", "FAILED SCENARIOS", "-" * 70])
 
             for failed in report["failed_scenarios"]:
                 lines.append(f"  - {failed['name']} (worker {failed['worker_id']})")
-                for error in failed['errors']:
+                for error in failed["errors"]:
                     lines.append(f"      Error: {error}")
 
-        lines.extend([
-            "",
-            "=" * 70,
-            "END OF REPORT",
-            "=" * 70
-        ])
+        lines.extend(["", "=" * 70, "END OF REPORT", "=" * 70])
 
         return "\n".join(lines)
 
@@ -360,10 +332,7 @@ def main():
 
     args = parser.parse_args()
 
-    runner = ParallelRunner(
-        results_dir=args.output,
-        max_workers=args.workers
-    )
+    runner = ParallelRunner(results_dir=args.output, max_workers=args.workers)
 
     # Determine which scenarios to run
     if args.all:

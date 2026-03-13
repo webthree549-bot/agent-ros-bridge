@@ -3,6 +3,7 @@
 Agent ROS Bridge - System Status Dashboard
 Simple web interface to visualize ROS2 robot state
 """
+
 import asyncio
 import json
 import subprocess
@@ -15,7 +16,7 @@ from datetime import datetime
 # HTTP server for dashboard
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-sys.path.insert(0, '/Users/webthree/.openclaw/workspace')
+sys.path.insert(0, "/Users/webthree/.openclaw/workspace")
 
 from agent_ros_bridge import Bridge
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
@@ -27,7 +28,7 @@ robot_state = {
     "cmd_vel": None,
     "map": None,
     "nav_status": "idle",
-    "last_update": None
+    "last_update": None,
 }
 
 # HTML Dashboard
@@ -161,19 +162,20 @@ DASHBOARD_HTML = """
 </html>
 """
 
+
 class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/':
+        if self.path == "/":
             self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
+            self.send_header("Content-Type", "text/html")
             self.end_headers()
 
             # Get fresh data from ROS2
             html = self.generate_dashboard()
             self.wfile.write(html.encode())
-        elif self.path == '/api/status':
+        elif self.path == "/api/status":
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
+            self.send_header("Content-Type", "application/json")
             self.end_headers()
             status = self.get_system_status()
             self.wfile.write(json.dumps(status).encode())
@@ -198,12 +200,16 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = html.replace('id="system-status">Loading...', f'id="system-status">{system_html}')
 
         # Robot position
-        pos = status.get('robot_position', {})
-        pos_html = f"""
+        pos = status.get("robot_position", {})
+        pos_html = (
+            f"""
             <strong>X:</strong> {pos.get('x', 'N/A'):.3f}<br>
             <strong>Y:</strong> {pos.get('y', 'N/A'):.3f}<br>
             <strong>Theta:</strong> {pos.get('theta', 'N/A'):.3f} rad
-        """ if pos else "Position data not available"
+        """
+            if pos
+            else "Position data not available"
+        )
         html = html.replace('id="robot-position">Loading...', f'id="robot-position">{pos_html}')
 
         # Navigation status
@@ -216,8 +222,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = html.replace('id="nav-status">Loading...', f'id="nav-status">{nav_html}')
 
         # ROS topics
-        topics = status.get('topics', [])
-        topics_html = '<br>'.join(topics[:10]) + (f'<br>... and {len(topics)-10} more' if len(topics) > 10 else '')
+        topics = status.get("topics", [])
+        topics_html = "<br>".join(topics[:10]) + (
+            f"<br>... and {len(topics)-10} more" if len(topics) > 10 else ""
+        )
         html = html.replace('id="ros-topics">Loading...', f'id="ros-topics">{topics_html}')
 
         # Map status
@@ -229,7 +237,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         html = html.replace('id="map-status">Loading...', f'id="map-status">{map_html}')
 
         # Velocity
-        vel = status.get('velocity', {})
+        vel = status.get("velocity", {})
         vel_html = f"""
             <strong>Linear X:</strong> {vel.get('linear_x', 0):.4f} m/s<br>
             <strong>Angular Z:</strong> {vel.get('angular_z', 0):.4f} rad/s
@@ -241,89 +249,107 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def get_system_status(self):
         """Get current system status from ROS2."""
         status = {
-            'timestamp': datetime.now().isoformat(),
-            'ros2_running': False,
-            'gazebo_running': False,
-            'nav2_running': False,
-            'slam_running': False,
-            'map_active': False,
-            'topic_count': 0,
-            'topics': [],
-            'robot_position': None,
-            'velocity': None,
-            'nav_status': 'idle'
+            "timestamp": datetime.now().isoformat(),
+            "ros2_running": False,
+            "gazebo_running": False,
+            "nav2_running": False,
+            "slam_running": False,
+            "map_active": False,
+            "topic_count": 0,
+            "topics": [],
+            "robot_position": None,
+            "velocity": None,
+            "nav_status": "idle",
         }
 
         try:
             # Check container running
             result = subprocess.run(
-                ['docker', 'ps', '--filter', 'name=ros2_humble', '--format', '{{.Status}}'],
-                capture_output=True, text=True, timeout=5
+                ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
-            status['ros2_running'] = 'Up' in result.stdout
+            status["ros2_running"] = "Up" in result.stdout
 
-            if status['ros2_running']:
+            if status["ros2_running"]:
                 # Get topic list
                 result = subprocess.run(
-                    ['docker', 'exec', 'ros2_humble', 'bash', '-c',
-                     'source /opt/ros/humble/setup.bash && ros2 topic list'],
-                    capture_output=True, text=True, timeout=10
+                    [
+                        "docker",
+                        "exec",
+                        "ros2_humble",
+                        "bash",
+                        "-c",
+                        "source /opt/ros/humble/setup.bash && ros2 topic list",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
                 )
                 if result.returncode == 0:
-                    topics = [t.strip() for t in result.stdout.strip().split('\n') if t.strip()]
-                    status['topics'] = topics
-                    status['topic_count'] = len(topics)
+                    topics = [t.strip() for t in result.stdout.strip().split("\n") if t.strip()]
+                    status["topics"] = topics
+                    status["topic_count"] = len(topics)
 
                     # Check specific components
-                    status['gazebo_running'] = '/clock' in topics
-                    status['map_active'] = '/map' in topics
-                    status['slam_running'] = '/slam_toolbox/feedback' in topics or '/map' in topics
-                    status['nav2_running'] = '/navigate_to_pose' in topics or '/goal_pose' in topics
+                    status["gazebo_running"] = "/clock" in topics
+                    status["map_active"] = "/map" in topics
+                    status["slam_running"] = "/slam_toolbox/feedback" in topics or "/map" in topics
+                    status["nav2_running"] = "/navigate_to_pose" in topics or "/goal_pose" in topics
 
                 # Get robot position
                 result = subprocess.run(
-                    ['docker', 'exec', 'ros2_humble', 'bash', '-c',
-                     'source /opt/ros/humble/setup.bash && ros2 topic echo /odom --once 2>/dev/null | head -20'],
-                    capture_output=True, text=True, timeout=5
+                    [
+                        "docker",
+                        "exec",
+                        "ros2_humble",
+                        "bash",
+                        "-c",
+                        "source /opt/ros/humble/setup.bash && ros2 topic echo /odom --once 2>/dev/null | head -20",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
                 )
-                if result.returncode == 0 and 'position:' in result.stdout:
+                if result.returncode == 0 and "position:" in result.stdout:
                     # Parse position from output
-                    lines = result.stdout.split('\n')
-                    pos = {'x': 0, 'y': 0, 'theta': 0}
+                    lines = result.stdout.split("\n")
+                    pos = {"x": 0, "y": 0, "theta": 0}
                     for i, line in enumerate(lines):
-                        if 'position:' in line:
-                            for j in range(i+1, min(i+5, len(lines))):
-                                if 'x:' in lines[j]:
+                        if "position:" in line:
+                            for j in range(i + 1, min(i + 5, len(lines))):
+                                if "x:" in lines[j]:
                                     try:
-                                        pos['x'] = float(lines[j].split(':')[1].strip())
+                                        pos["x"] = float(lines[j].split(":")[1].strip())
                                     except Exception:
                                         pass
-                                if 'y:' in lines[j]:
+                                if "y:" in lines[j]:
                                     try:
-                                        pos['y'] = float(lines[j].split(':')[1].strip())
+                                        pos["y"] = float(lines[j].split(":")[1].strip())
                                     except Exception:
                                         pass
-                    status['robot_position'] = pos
+                    status["robot_position"] = pos
 
                     # Get velocity
-                    vel = {'linear_x': 0, 'angular_z': 0}
+                    vel = {"linear_x": 0, "angular_z": 0}
                     for i, line in enumerate(lines):
-                        if 'twist:' in line or 'linear:' in line:
-                            for j in range(i+1, min(i+10, len(lines))):
-                                if 'x:' in lines[j] and 'linear' in lines[i]:
+                        if "twist:" in line or "linear:" in line:
+                            for j in range(i + 1, min(i + 10, len(lines))):
+                                if "x:" in lines[j] and "linear" in lines[i]:
                                     try:
-                                        vel['linear_x'] = float(lines[j].split(':')[1].strip())
+                                        vel["linear_x"] = float(lines[j].split(":")[1].strip())
                                     except Exception:
                                         pass
-                                if 'z:' in lines[j] and 'angular' in lines[i]:
+                                if "z:" in lines[j] and "angular" in lines[i]:
                                     try:
-                                        vel['angular_z'] = float(lines[j].split(':')[1].strip())
+                                        vel["angular_z"] = float(lines[j].split(":")[1].strip())
                                     except Exception:
                                         pass
-                    status['velocity'] = vel
+                    status["velocity"] = vel
 
         except Exception as e:
-            status['error'] = str(e)
+            status["error"] = str(e)
 
         return status
 
@@ -333,7 +359,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
 def run_http_server(port=8080):
     """Run HTTP server in background thread."""
-    server = HTTPServer(('0.0.0.0', port), DashboardHandler)
+    server = HTTPServer(("0.0.0.0", port), DashboardHandler)
     print(f"🌐 Dashboard: http://localhost:{port}")
     server.serve_forever()
 

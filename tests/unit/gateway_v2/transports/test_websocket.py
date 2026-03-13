@@ -1,6 +1,5 @@
 """Tests for WebSocket transport."""
 
-
 import pytest
 
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport

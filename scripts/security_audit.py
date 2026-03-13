@@ -21,7 +21,7 @@ class SecurityAuditor:
 
     def run_all_checks(self) -> bool:
         """Run all security checks.
-        
+
         Returns:
             True if no critical issues found
         """
@@ -45,11 +45,7 @@ class SecurityAuditor:
                 print(f"   ✅ {name} check passed")
             except Exception as e:
                 print(f"   ❌ {name} check failed: {e}")
-                self.issues.append({
-                    "check": name,
-                    "error": str(e),
-                    "severity": "high"
-                })
+                self.issues.append({"check": name, "error": str(e), "severity": "high"})
 
         return self.report()
 
@@ -57,22 +53,21 @@ class SecurityAuditor:
         """Check for vulnerable dependencies."""
         # Run safety check
         result = subprocess.run(
-            ["safety", "check", "--json"],
-            capture_output=True,
-            text=True,
-            cwd=self.root
+            ["safety", "check", "--json"], capture_output=True, text=True, cwd=self.root
         )
 
         if result.returncode != 0:
             try:
                 vulnerabilities = json.loads(result.stdout)
                 for vuln in vulnerabilities:
-                    self.issues.append({
-                        "check": "Dependencies",
-                        "package": vuln.get("package_name"),
-                        "vulnerability": vuln.get("vulnerability_id"),
-                        "severity": vuln.get("severity", "medium")
-                    })
+                    self.issues.append(
+                        {
+                            "check": "Dependencies",
+                            "package": vuln.get("package_name"),
+                            "vulnerability": vuln.get("vulnerability_id"),
+                            "severity": vuln.get("severity", "medium"),
+                        }
+                    )
             except json.JSONDecodeError:
                 pass
 
@@ -83,7 +78,7 @@ class SecurityAuditor:
             (r'secret\s*=\s*["\'][^"\']+["\']', "Hardcoded secret"),
             (r'api_key\s*=\s*["\'][^"\']+["\']', "Hardcoded API key"),
             (r'token\s*=\s*["\'][^"\']{20,}["\']', "Hardcoded token"),
-            (r'-----BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----', "Private key"),
+            (r"-----BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----", "Private key"),
         ]
 
         import re
@@ -101,13 +96,15 @@ class SecurityAuditor:
                         if "test" in str(file_path) or "example" in str(file_path):
                             continue
 
-                        self.issues.append({
-                            "check": "Secrets",
-                            "file": str(file_path),
-                            "line": content[:match.start()].count('\n') + 1,
-                            "description": description,
-                            "severity": "critical"
-                        })
+                        self.issues.append(
+                            {
+                                "check": "Secrets",
+                                "file": str(file_path),
+                                "line": content[: match.start()].count("\n") + 1,
+                                "description": description,
+                                "severity": "critical",
+                            }
+                        )
                 except Exception:
                     pass
 
@@ -125,13 +122,15 @@ class SecurityAuditor:
                 mode = oct(stat.st_mode)[-3:]
 
                 if int(mode) > 600:
-                    self.warnings.append({
-                        "check": "File Permissions",
-                        "file": str(file_path),
-                        "mode": mode,
-                        "recommended": "600",
-                        "severity": "medium"
-                    })
+                    self.warnings.append(
+                        {
+                            "check": "File Permissions",
+                            "file": str(file_path),
+                            "mode": mode,
+                            "recommended": "600",
+                            "severity": "medium",
+                        }
+                    )
 
     def check_configuration(self) -> None:
         """Check configuration for security issues."""
@@ -142,44 +141,51 @@ class SecurityAuditor:
 
             # Check for debug mode in production
             if "debug: true" in content.lower():
-                self.warnings.append({
-                    "check": "Configuration",
-                    "issue": "Debug mode enabled",
-                    "recommendation": "Set debug: false for production",
-                    "severity": "medium"
-                })
+                self.warnings.append(
+                    {
+                        "check": "Configuration",
+                        "issue": "Debug mode enabled",
+                        "recommendation": "Set debug: false for production",
+                        "severity": "medium",
+                    }
+                )
 
             # Check for weak JWT secret
             if "jwt_secret:" in content:
                 import re
+
                 match = re.search(r'jwt_secret:\s*["\']?([^"\'\n]+)', content)
                 if match:
                     secret = match.group(1)
                     # Skip if null or empty (will be loaded from env)
                     if secret in ("null", "", "~"):
-                        self.warnings.append({
-                            "check": "Configuration",
-                            "issue": "JWT secret not set in config",
-                            "recommendation": "Set JWT_SECRET environment variable for production",
-                            "severity": "medium"
-                        })
+                        self.warnings.append(
+                            {
+                                "check": "Configuration",
+                                "issue": "JWT secret not set in config",
+                                "recommendation": "Set JWT_SECRET environment variable for production",
+                                "severity": "medium",
+                            }
+                        )
                     elif len(secret) < 32:
-                        self.issues.append({
-                            "check": "Configuration",
-                            "issue": "Weak JWT secret",
-                            "recommendation": "Use at least 256-bit secret",
-                            "severity": "high"
-                        })
+                        self.issues.append(
+                            {
+                                "check": "Configuration",
+                                "issue": "Weak JWT secret",
+                                "recommendation": "Use at least 256-bit secret",
+                                "severity": "high",
+                            }
+                        )
 
     def check_code_patterns(self) -> None:
         """Check for dangerous code patterns."""
         dangerous_patterns = [
-            (r'eval\s*\(', "Use of eval()"),
-            (r'exec\s*\(', "Use of exec()"),
-            (r'subprocess\.call\s*\([^)]*shell\s*=\s*True', "Shell=True in subprocess"),
-            (r'\.format\s*\([^)]*%', "Potential format string vulnerability"),
-            (r'input\s*\(', "Use of input()"),
-            (r'__import__\s*\(', "Dynamic import"),
+            (r"eval\s*\(", "Use of eval()"),
+            (r"exec\s*\(", "Use of exec()"),
+            (r"subprocess\.call\s*\([^)]*shell\s*=\s*True", "Shell=True in subprocess"),
+            (r"\.format\s*\([^)]*%", "Potential format string vulnerability"),
+            (r"input\s*\(", "Use of input()"),
+            (r"__import__\s*\(", "Dynamic import"),
         ]
 
         import re
@@ -193,13 +199,15 @@ class SecurityAuditor:
                     content = file_path.read_text()
                     matches = re.finditer(pattern, content)
                     for match in matches:
-                        self.warnings.append({
-                            "check": "Code Patterns",
-                            "file": str(file_path),
-                            "line": content[:match.start()].count('\n') + 1,
-                            "description": description,
-                            "severity": "medium"
-                        })
+                        self.warnings.append(
+                            {
+                                "check": "Code Patterns",
+                                "file": str(file_path),
+                                "line": content[: match.start()].count("\n") + 1,
+                                "description": description,
+                                "severity": "medium",
+                            }
+                        )
                 except Exception:
                     pass
 
@@ -212,21 +220,25 @@ class SecurityAuditor:
 
             # Check for non-root user
             if "USER" not in content:
-                self.issues.append({
-                    "check": "Docker Security",
-                    "issue": "No non-root user specified",
-                    "recommendation": "Add 'USER <username>' directive",
-                    "severity": "high"
-                })
+                self.issues.append(
+                    {
+                        "check": "Docker Security",
+                        "issue": "No non-root user specified",
+                        "recommendation": "Add 'USER <username>' directive",
+                        "severity": "high",
+                    }
+                )
 
             # Check for health check
             if "HEALTHCHECK" not in content:
-                self.warnings.append({
-                    "check": "Docker Security",
-                    "issue": "No HEALTHCHECK defined",
-                    "recommendation": "Add HEALTHCHECK directive",
-                    "severity": "low"
-                })
+                self.warnings.append(
+                    {
+                        "check": "Docker Security",
+                        "issue": "No HEALTHCHECK defined",
+                        "recommendation": "Add HEALTHCHECK directive",
+                        "severity": "low",
+                    }
+                )
 
     def check_tls_configuration(self) -> None:
         """Check TLS/SSL configuration."""
@@ -237,16 +249,18 @@ class SecurityAuditor:
             content = config_file.read_text()
 
             if "tls:" not in content.lower() and "ssl:" not in content.lower():
-                self.warnings.append({
-                    "check": "TLS/SSL",
-                    "issue": "No TLS configuration found",
-                    "recommendation": "Enable TLS for production",
-                    "severity": "medium"
-                })
+                self.warnings.append(
+                    {
+                        "check": "TLS/SSL",
+                        "issue": "No TLS configuration found",
+                        "recommendation": "Enable TLS for production",
+                        "severity": "medium",
+                    }
+                )
 
     def report(self) -> bool:
         """Generate and print audit report.
-        
+
         Returns:
             True if no critical issues
         """
@@ -261,15 +275,21 @@ class SecurityAuditor:
 
         print(f"\n🔴 Critical Issues: {len(critical)}")
         for issue in critical:
-            print(f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}")
+            print(
+                f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}"
+            )
 
         print(f"\n🟠 High Severity: {len(high)}")
         for issue in high:
-            print(f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}")
+            print(
+                f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}"
+            )
 
         print(f"\n🟡 Medium Severity: {len(medium)}")
         for issue in medium:
-            print(f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}")
+            print(
+                f"   - {issue['check']}: {issue.get('description', issue.get('issue', 'Unknown'))}"
+            )
 
         print(f"\n🟢 Warnings: {len(self.warnings)}")
 

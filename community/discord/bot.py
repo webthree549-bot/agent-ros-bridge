@@ -18,9 +18,7 @@ class AgentROSBot(commands.Bot):
         intents.members = True
 
         super().__init__(
-            command_prefix="!",
-            intents=intents,
-            help_command=commands.DefaultHelpCommand()
+            command_prefix="!", intents=intents, help_command=commands.DefaultHelpCommand()
         )
 
         self.bridge_status = {"online": False, "robots": 0}
@@ -37,10 +35,7 @@ class AgentROSBot(commands.Bot):
 
         # Set presence
         await self.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching,
-                name="ROS robots | !help"
-            )
+            activity=discord.Activity(type=discord.ActivityType.watching, name="ROS robots | !help")
         )
 
     async def on_command_error(self, ctx, error):
@@ -48,11 +43,7 @@ class AgentROSBot(commands.Bot):
         if isinstance(error, commands.CommandNotFound):
             return
 
-        embed = discord.Embed(
-            title="❌ Error",
-            description=str(error),
-            color=discord.Color.red()
-        )
+        embed = discord.Embed(title="❌ Error", description=str(error), color=discord.Color.red())
         await ctx.send(embed=embed)
 
     @tasks.loop(minutes=5)
@@ -67,24 +58,18 @@ class AgentROSBot(commands.Bot):
         """Check Agent ROS Bridge status."""
         embed = discord.Embed(
             title="🤖 Agent ROS Bridge Status",
-            color=discord.Color.green() if self.bridge_status["online"] else discord.Color.red()
+            color=discord.Color.green() if self.bridge_status["online"] else discord.Color.red(),
         )
 
         embed.add_field(
             name="Status",
             value="🟢 Online" if self.bridge_status["online"] else "🔴 Offline",
-            inline=True
+            inline=True,
         )
         embed.add_field(
-            name="Connected Robots",
-            value=str(self.bridge_status["robots"]),
-            inline=True
+            name="Connected Robots", value=str(self.bridge_status["robots"]), inline=True
         )
-        embed.add_field(
-            name="Version",
-            value="0.5.0",
-            inline=True
-        )
+        embed.add_field(name="Version", value="0.5.0", inline=True)
 
         await ctx.send(embed=embed)
 
@@ -94,28 +79,28 @@ class AgentROSBot(commands.Bot):
         embed = discord.Embed(
             title="📚 Documentation",
             description="Official Agent ROS Bridge resources",
-            color=discord.Color.blue()
+            color=discord.Color.blue(),
         )
 
         embed.add_field(
             name="Getting Started",
             value="[Quick Start Guide](https://github.com/webthree549-bot/agent-ros-bridge#quick-start)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="API Reference",
             value="[Full Documentation](https://docs.agentrosbridge.io)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="Examples",
             value="[GitHub Examples](https://github.com/webthree549-bot/agent-ros-bridge/tree/main/examples)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="Troubleshooting",
             value="[Common Issues](https://github.com/webthree549-bot/agent-ros-bridge/blob/main/docs/TROUBLESHOOTING.md)",
-            inline=False
+            inline=False,
         )
 
         await ctx.send(embed=embed)
@@ -126,7 +111,7 @@ class AgentROSBot(commands.Bot):
         embed = discord.Embed(
             title="🚀 Installation",
             description="Choose your preferred method:",
-            color=discord.Color.blue()
+            color=discord.Color.blue(),
         )
 
         methods = {
@@ -147,23 +132,21 @@ class AgentROSBot(commands.Bot):
         embed = discord.Embed(
             title="🆘 Support",
             description="Need help? Here are your options:",
-            color=discord.Color.orange()
+            color=discord.Color.orange(),
         )
 
         embed.add_field(
             name="GitHub Issues",
             value="[Report bugs](https://github.com/webthree549-bot/agent-ros-bridge/issues)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="Documentation",
             value="[Troubleshooting Guide](https://github.com/webthree549-bot/agent-ros-bridge/blob/main/docs/TROUBLESHOOTING.md)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
-            name="Community",
-            value="Ask in #general or #support channels",
-            inline=False
+            name="Community", value="Ask in #general or #support channels", inline=False
         )
 
         await ctx.send(embed=embed)
@@ -171,7 +154,7 @@ class AgentROSBot(commands.Bot):
     @commands.command(name="example")
     async def example(self, ctx, example_type: str = "basic"):
         """Show code examples.
-        
+
         Usage: !example [basic|langchain|mcp]
         """
         examples = {
@@ -214,7 +197,7 @@ agent.run("move the robot to the kitchen")
         embed = discord.Embed(
             title=f"💻 {example_type.title()} Example",
             description=code,
-            color=discord.Color.purple()
+            color=discord.Color.purple(),
         )
 
         await ctx.send(embed=embed)
@@ -222,10 +205,7 @@ agent.run("move the robot to the kitchen")
     @commands.command(name="stats")
     async def stats(self, ctx):
         """Show community statistics."""
-        embed = discord.Embed(
-            title="📊 Community Stats",
-            color=discord.Color.blue()
-        )
+        embed = discord.Embed(title="📊 Community Stats", color=discord.Color.blue())
 
         # Mock statistics - in production, fetch from database
         embed.add_field(name="GitHub Stars", value="⭐ 1.2k", inline=True)

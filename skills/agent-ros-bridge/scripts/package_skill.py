@@ -12,7 +12,7 @@ from pathlib import Path
 
 def validate_skill(skill_dir: Path) -> list[str]:
     """Validate skill structure before packaging.
-    
+
     Returns:
         List of error messages (empty if valid)
     """
@@ -40,11 +40,11 @@ def validate_skill(skill_dir: Path) -> list[str]:
 
 def package_skill(skill_dir: Path, output_dir: Path) -> Path:
     """Package skill into .skill file (zip format).
-    
+
     Args:
         skill_dir: Path to skill directory
         output_dir: Path to output directory
-        
+
     Returns:
         Path to created .skill file
     """
@@ -52,8 +52,8 @@ def package_skill(skill_dir: Path, output_dir: Path) -> Path:
     output_file = output_dir / f"{skill_name}.skill"
 
     # Create zip file
-    with zipfile.ZipFile(output_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for file_path in skill_dir.rglob('*'):
+    with zipfile.ZipFile(output_file, "w", zipfile.ZIP_DEFLATED) as zf:
+        for file_path in skill_dir.rglob("*"):
             if file_path.is_file():
                 # Add file to zip, preserving relative structure
                 arcname = file_path.relative_to(skill_dir)
@@ -68,7 +68,7 @@ def main():
         "output_dir",
         nargs="?",
         default=".",
-        help="Output directory for .skill file (default: current directory)"
+        help="Output directory for .skill file (default: current directory)",
     )
 
     args = parser.parse_args()
@@ -102,7 +102,7 @@ def main():
 
     # List contents
     print("\nPackage contents:")
-    with zipfile.ZipFile(output_file, 'r') as zf:
+    with zipfile.ZipFile(output_file, "r") as zf:
         for info in zf.infolist():
             print(f"  {info.filename} ({info.file_size} bytes)")
 

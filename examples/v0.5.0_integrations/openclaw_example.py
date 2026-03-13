@@ -151,8 +151,9 @@ def package_skill():
 
         # List contents
         import zipfile
+
         print("\nContents:")
-        with zipfile.ZipFile(output_file, 'r') as zf:
+        with zipfile.ZipFile(output_file, "r") as zf:
             for name in zf.namelist():
                 print(f"  {name}")
     except Exception as e:

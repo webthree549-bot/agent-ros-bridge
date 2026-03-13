@@ -24,9 +24,9 @@ from datetime import UTC, datetime
 
 def print_header(text):
     """Print a formatted header."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"  {text}")
-    print("="*60)
+    print("=" * 60)
 
 
 def print_step(step_num, description):
@@ -38,11 +38,17 @@ def print_step(step_num, description):
 def run_in_ros2(cmd, timeout=10):
     """Run a command in the ROS2 Docker container."""
     result = subprocess.run(
-        ["docker", "exec", "ros2_humble", "bash", "-c",
-         f"source /opt/ros/humble/setup.bash && {cmd}"],
+        [
+            "docker",
+            "exec",
+            "ros2_humble",
+            "bash",
+            "-c",
+            f"source /opt/ros/humble/setup.bash && {cmd}",
+        ],
         capture_output=True,
         text=True,
-        timeout=timeout
+        timeout=timeout,
     )
     return result
 
@@ -52,7 +58,8 @@ def demo_intent_parsing():
     print_step(1, "Natural Language Understanding (ROS Docker)")
 
     # Run intent parsing in Docker container using rule-based parser
-    result = run_in_ros2_container("""
+    result = run_in_ros2_container(
+        """
 python3 << 'PYEOF'
 import sys
 import re
@@ -94,7 +101,9 @@ for cmd in commands:
     print(f"→ Confidence: {confidence:.2f}")
     print()
 PYEOF
-    """, timeout=30)
+    """,
+        timeout=30,
+    )
 
     if result.returncode == 0:
         print(result.stdout)
@@ -108,7 +117,8 @@ def demo_context_awareness():
     """Demonstrate context-aware parsing using ROS in Docker."""
     print_step(2, "Context Awareness (ROS Docker)")
 
-    result = run_in_ros2_container("""
+    result = run_in_ros2_container(
+        """
 python3 << 'PYEOF'
 import sys
 import re
@@ -157,7 +167,9 @@ print(f"→ Resolved: '{resolved}'")
 print(f"→ Robot location: {parser.robot_state['location']}")
 print(f"→ Battery: {parser.robot_state['battery']:.1f}%")
 PYEOF
-    """, timeout=30)
+    """,
+        timeout=30,
+    )
 
     if result.returncode == 0:
         print(result.stdout)
@@ -171,7 +183,8 @@ def demo_multi_language():
     """Demonstrate multi-language support using ROS in Docker."""
     print_step(3, "Multi-Language Support (ROS Docker)")
 
-    result = run_in_ros2_container("""
+    result = run_in_ros2_container(
+        """
 python3 << 'PYEOF'
 import sys
 import re
@@ -227,7 +240,9 @@ for phrase, expected_lang in phrases:
     print(f"  → Intent: {intent}")
     print()
 PYEOF
-    """, timeout=30)
+    """,
+        timeout=30,
+    )
 
     if result.returncode == 0:
         print(result.stdout)
@@ -245,7 +260,7 @@ def demo_ros2_bridge():
     result = subprocess.run(
         ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if "Up" not in result.stdout:
@@ -258,16 +273,22 @@ def demo_ros2_bridge():
     # Test basic ROS2 commands
     result = run_in_ros2("ros2 topic list")
     if result.returncode == 0:
-        topics = result.stdout.strip().split('\n')[:5]
+        topics = result.stdout.strip().split("\n")[:5]
         print(f"  Available topics: {', '.join(topics)}")
 
     # Start demo nodes (in background, don't wait)
     print("\n  Starting demo talker...")
     subprocess.Popen(
-        ["docker", "exec", "ros2_humble", "bash", "-c",
-         "source /opt/ros/humble/setup.bash && ros2 run demo_nodes_cpp talker"],
+        [
+            "docker",
+            "exec",
+            "ros2_humble",
+            "bash",
+            "-c",
+            "source /opt/ros/humble/setup.bash && ros2 run demo_nodes_cpp talker",
+        ],
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        stderr=subprocess.DEVNULL,
     )
     time.sleep(2)
 
@@ -283,7 +304,8 @@ def demo_safety_validation():
     """Demonstrate safety validation using ROS in Docker."""
     print_step(5, "Safety Validation (ROS Docker)")
 
-    result = run_in_ros2_container("""
+    result = run_in_ros2_container(
+        """
 python3 << 'PYEOF'
 import sys
 import time
@@ -360,7 +382,9 @@ if result['approved'] and 'certificate' in result:
     cert_id = result['certificate'].get('certificate_id', 'unknown')[:8]
     print(f"  → Certificate issued: {cert_id}...")
 PYEOF
-    """, timeout=30)
+    """,
+        timeout=30,
+    )
 
     if result.returncode == 0:
         print(result.stdout)
@@ -374,7 +398,8 @@ def demo_performance():
     """Demonstrate performance metrics using ROS in Docker."""
     print_step(6, "Performance Metrics (ROS Docker)")
 
-    result = run_in_ros2_container("""
+    result = run_in_ros2_container(
+        """
 python3 << 'PYEOF'
 import sys
 import time
@@ -423,7 +448,9 @@ if avg_latency < 10:
 else:
     print(f"  → Target: <10ms ❌")
 PYEOF
-    """, timeout=60)
+    """,
+        timeout=60,
+    )
 
     if result.returncode == 0:
         print(result.stdout)
@@ -438,7 +465,7 @@ def check_ros2_docker():
     result = subprocess.run(
         ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
         capture_output=True,
-        text=True
+        text=True,
     )
     if "Up" not in result.stdout:
         print("❌ ROS2 Docker container 'ros2_humble' is not running!")
@@ -451,11 +478,17 @@ def check_ros2_docker():
 def run_in_ros2_container(cmd, timeout=30):
     """Run Python code in the ROS2 Docker container."""
     result = subprocess.run(
-        ["docker", "exec", "ros2_humble", "bash", "-c",
-         f"source /opt/ros/humble/setup.bash && {cmd}"],
+        [
+            "docker",
+            "exec",
+            "ros2_humble",
+            "bash",
+            "-c",
+            f"source /opt/ros/humble/setup.bash && {cmd}",
+        ],
         capture_output=True,
         text=True,
-        timeout=timeout
+        timeout=timeout,
     )
     return result
 
@@ -475,7 +508,7 @@ def main():
     result = subprocess.run(
         ["docker", "cp", "/Users/webthree/.openclaw/workspace", "ros2_humble:/workspace"],
         capture_output=True,
-        text=True
+        text=True,
     )
     if result.returncode != 0:
         print(f"❌ Failed to copy workspace: {result.stderr}")
@@ -502,6 +535,7 @@ def main():
     except Exception as e:
         print(f"\n\n❌ Error during demonstration: {e}")
         import traceback
+
         traceback.print_exc()
 
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Simple WebSocket server for agent_ros_bridge"""
+
 import asyncio
 import sys
 
-sys.path.insert(0, '/Users/webthree/.openclaw/workspace')
+sys.path.insert(0, "/Users/webthree/.openclaw/workspace")
 
 from agent_ros_bridge import Bridge
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
@@ -35,6 +36,7 @@ async def main():
         pass
     finally:
         await bridge.stop()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

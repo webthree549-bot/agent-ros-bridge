@@ -25,10 +25,7 @@ async def tutorial_1_basic_commands():
     # Initialize bridge
     print("Step 1: Initialize the bridge")
     print("-" * 40)
-    bridge = AgentROSBridge({
-        "websocket_port": 8765,
-        "jwt_secret": "demo-secret"
-    })
+    bridge = AgentROSBridge({"websocket_port": 8765, "jwt_secret": "demo-secret"})
     await bridge.start()
     print("✅ Bridge started on port 8765")
     print()
@@ -68,10 +65,7 @@ async def tutorial_2_context_awareness():
     print("=" * 60)
     print()
 
-    bridge = AgentROSBridge({
-        "websocket_port": 8766,
-        "jwt_secret": "demo-secret"
-    })
+    bridge = AgentROSBridge({"websocket_port": 8766, "jwt_secret": "demo-secret"})
     await bridge.start()
 
     # Simulate conversation with context
@@ -111,10 +105,7 @@ async def tutorial_3_fleet_management():
     print("=" * 60)
     print()
 
-    bridge = AgentROSBridge({
-        "websocket_port": 8767,
-        "jwt_secret": "demo-secret"
-    })
+    bridge = AgentROSBridge({"websocket_port": 8767, "jwt_secret": "demo-secret"})
     await bridge.start()
 
     # Register mock robots

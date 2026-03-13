@@ -13,6 +13,7 @@ from langchain.tools import BaseTool
 
 class ROS2PublishInput(BaseModel):
     """Input for ROS2 publish tool."""
+
     topic: str = Field(description="ROS topic name")
     message_type: str = Field(description="ROS message type (e.g., std_msgs/String)")
     data: dict[str, Any] = Field(description="Message data as dictionary")
@@ -39,7 +40,7 @@ class ROS2PublishTool(BaseTool):
         topic: str,
         message_type: str,
         data: dict[str, Any],
-        run_manager: CallbackManagerForToolRun | None = None
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> str:
         """Execute the tool."""
         try:
@@ -55,6 +56,7 @@ class ROS2PublishTool(BaseTool):
 
 class ROS2SubscribeInput(BaseModel):
     """Input for ROS2 subscribe tool."""
+
     topic: str = Field(description="ROS topic name")
     message_type: str = Field(description="ROS message type")
     timeout: float = Field(default=5.0, description="Timeout in seconds")
@@ -82,7 +84,7 @@ class ROS2SubscribeTool(BaseTool):
         topic: str,
         message_type: str,
         timeout: float = 5.0,
-        run_manager: CallbackManagerForToolRun | None = None
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> str:
         """Execute the tool."""
         try:
@@ -98,6 +100,7 @@ class ROS2SubscribeTool(BaseTool):
 
 class ROS2ActionInput(BaseModel):
     """Input for ROS2 action tool."""
+
     action_name: str = Field(description="Action server name")
     action_type: str = Field(description="Action type")
     goal: dict[str, Any] = Field(description="Goal parameters")
@@ -126,7 +129,7 @@ class ROS2ActionTool(BaseTool):
         action_type: str,
         goal: dict[str, Any],
         timeout: float = 30.0,
-        run_manager: CallbackManagerForToolRun | None = None
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> str:
         """Execute the tool."""
         try:
@@ -142,6 +145,7 @@ class ROS2ActionTool(BaseTool):
 
 class BridgeStatusInput(BaseModel):
     """Input for bridge status tool."""
+
     pass
 
 
@@ -159,10 +163,7 @@ class BridgeStatusTool(BaseTool):
         super().__init__()
         self.bridge_client = bridge_client
 
-    def _run(
-        self,
-        run_manager: CallbackManagerForToolRun | None = None
-    ) -> str:
+    def _run(self, run_manager: CallbackManagerForToolRun | None = None) -> str:
         """Execute the tool."""
         try:
             status = self.bridge_client.get_status()
@@ -177,6 +178,7 @@ class BridgeStatusTool(BaseTool):
 
 class NaturalLanguageCommandInput(BaseModel):
     """Input for natural language command tool."""
+
     command: str = Field(description="Natural language command for the robot")
     robot_id: str | None = Field(default=None, description="Optional robot ID")
 
@@ -204,7 +206,7 @@ class NaturalLanguageCommandTool(BaseTool):
         self,
         command: str,
         robot_id: str | None = None,
-        run_manager: CallbackManagerForToolRun | None = None
+        run_manager: CallbackManagerForToolRun | None = None,
     ) -> str:
         """Execute the tool."""
         try:
@@ -221,10 +223,10 @@ class NaturalLanguageCommandTool(BaseTool):
 # Convenience function to get all tools
 def get_ros_tools(bridge_client):
     """Get all ROS-related LangChain tools.
-    
+
     Args:
         bridge_client: Bridge client instance
-        
+
     Returns:
         List of LangChain tools
     """

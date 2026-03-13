@@ -34,7 +34,7 @@ def validate_python_file(filepath: Path) -> tuple[bool, str]:
             [sys.executable, "-m", "py_compile", str(filepath)],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         if result.returncode == 0:
             return True, ""
@@ -52,7 +52,7 @@ def validate_docker_compose(filepath: Path) -> tuple[bool, str]:
             ["docker-compose", "-f", str(filepath), "config"],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=10,
         )
         if result.returncode == 0:
             return True, ""
@@ -67,11 +67,11 @@ def validate_docker_compose(filepath: Path) -> tuple[bool, str]:
 
 def check_tdd_compliance(example_path: Path) -> tuple[bool, list[str]]:
     """Check if example has corresponding tests (TDD compliance).
-    
+
     Per TDD workflow, every feature/example should have tests.
     Examples are documentation, so they don't need full test coverage,
     but critical examples should have integration tests.
-    
+
     Returns:
         (is_compliant, list_of_issues)
     """
@@ -111,7 +111,7 @@ def check_tdd_compliance(example_path: Path) -> tuple[bool, list[str]]:
 
 def check_example_structure(example_dir: Path) -> tuple[bool, list[str]]:
     """Check if example directory follows TDD structure.
-    
+
     Structure should be:
     - README.md (what it does)
     - docker-compose.yml (how to run)
@@ -151,12 +151,7 @@ def main() -> int:
         print(f"❌ Examples directory not found: {examples_dir}")
         return 1
 
-    results: dict[str, list[dict]] = {
-        "python": [],
-        "docker": [],
-        "readme": [],
-        "tdd": []
-    }
+    results: dict[str, list[dict]] = {"python": [], "docker": [], "readme": [], "tdd": []}
 
     print("=" * 60)
     print("🔍 Validating Agent ROS Bridge Examples")
@@ -171,11 +166,7 @@ def main() -> int:
     for py_file in sorted(python_files):
         valid, error = validate_python_file(py_file)
         rel_path = py_file.relative_to(examples_dir)
-        results["python"].append({
-            "file": str(rel_path),
-            "valid": valid,
-            "error": error
-        })
+        results["python"].append({"file": str(rel_path), "valid": valid, "error": error})
         status = "✅" if valid else "❌"
         print(f"  {status} {rel_path}")
 
@@ -186,11 +177,7 @@ def main() -> int:
     for compose_file in sorted(compose_files):
         valid, error = validate_docker_compose(compose_file)
         rel_path = compose_file.relative_to(examples_dir)
-        results["docker"].append({
-            "file": str(rel_path),
-            "valid": valid,
-            "error": error
-        })
+        results["docker"].append({"file": str(rel_path), "valid": valid, "error": error})
         status = "✅" if valid else "❌"
         print(f"  {status} {rel_path}")
 
@@ -200,11 +187,7 @@ def main() -> int:
 
     for readme in sorted(readme_files):
         rel_path = readme.relative_to(examples_dir)
-        results["readme"].append({
-            "file": str(rel_path),
-            "valid": True,
-            "error": ""
-        })
+        results["readme"].append({"file": str(rel_path), "valid": True, "error": ""})
         print(f"  ✅ {rel_path}")
 
     # TDD Compliance Checks
@@ -222,11 +205,9 @@ def main() -> int:
                     tdd_valid, tdd_issues = check_tdd_compliance(py_file)
                     issues.extend(tdd_issues)
 
-                results["tdd"].append({
-                    "dir": str(rel_path),
-                    "valid": valid and len(issues) == 0,
-                    "issues": issues
-                })
+                results["tdd"].append(
+                    {"dir": str(rel_path), "valid": valid and len(issues) == 0, "issues": issues}
+                )
 
                 if issues:
                     print(f"  ⚠️  {rel_path}")

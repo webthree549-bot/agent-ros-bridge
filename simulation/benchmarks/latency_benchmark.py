@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 @dataclass
 class BenchmarkResult:
     """Result of a single benchmark run"""
+
     name: str
     operation: str
     iterations: int
@@ -48,11 +49,7 @@ class LatencyBenchmark:
         self.results: list[BenchmarkResult] = []
 
     def benchmark_operation(
-        self,
-        name: str,
-        operation: Callable,
-        setup: Callable = None,
-        teardown: Callable = None
+        self, name: str, operation: Callable, setup: Callable = None, teardown: Callable = None
     ) -> BenchmarkResult:
         """Benchmark a single operation"""
 
@@ -92,7 +89,7 @@ class LatencyBenchmark:
             median_time=statistics.median(times),
             p95_time=times_sorted[p95_idx] if p95_idx < n else times_sorted[-1],
             p99_time=times_sorted[p99_idx] if p99_idx < n else times_sorted[-1],
-            std_dev=statistics.stdev(times) if len(times) > 1 else 0.0
+            std_dev=statistics.stdev(times) if len(times) > 1 else 0.0,
         )
 
         self.results.append(result)
@@ -112,7 +109,7 @@ class LatencyBenchmark:
             "go back to home",
             "what is your status",
             "help",
-            "cancel current task"
+            "cancel current task",
         ]
 
         def parse_intent():
@@ -126,11 +123,7 @@ class LatencyBenchmark:
             intent_type = self._classify_intent(tokens)
             entities = self._extract_entities(tokens)
 
-            return {
-                "intent": intent_type,
-                "entities": entities,
-                "confidence": 0.95
-            }
+            return {"intent": intent_type, "entities": entities, "confidence": 0.95}
 
         return self.benchmark_operation("intent_parsing", parse_intent)
 
@@ -156,7 +149,7 @@ class LatencyBenchmark:
             certificate = {
                 "id": f"cert_{int(time.time()*1000)}",
                 "expires": time.time() + 30,
-                "constraints_checked": ["velocity", "workspace"]
+                "constraints_checked": ["velocity", "workspace"],
             }
 
             return {"approved": True, "certificate": certificate}
@@ -181,7 +174,7 @@ class LatencyBenchmark:
             return {
                 "path_length": len(path),
                 "trajectory_points": len(trajectory),
-                "estimated_duration": len(trajectory) * 0.1
+                "estimated_duration": len(trajectory) * 0.1,
             }
 
         return self.benchmark_operation("motion_planning", plan_motion)
@@ -225,12 +218,7 @@ class LatencyBenchmark:
             # 4. Validate safety
             valid = all(p.get("velocity", 0) < 1.5 for p in trajectory)
 
-            return {
-                "intent": intent,
-                "target": target,
-                "path_length": len(path),
-                "valid": valid
-            }
+            return {"intent": intent, "target": target, "path_length": len(path), "valid": valid}
 
         return self.benchmark_operation("end_to_end", end_to_end)
 
@@ -263,28 +251,28 @@ class LatencyBenchmark:
     def _generate_sample_trajectory(self) -> list[dict]:
         """Generate a sample trajectory"""
         import random
+
         points = []
         for i in range(10):
-            points.append({
-                "x": i * 0.5,
-                "y": i * 0.3,
-                "velocity": random.uniform(0.1, 1.0)
-            })
+            points.append({"x": i * 0.5, "y": i * 0.3, "velocity": random.uniform(0.1, 1.0)})
         return points
 
     def _plan_path(self, start: dict, goal: dict) -> list[dict]:
         """Simulate path planning"""
         import random
+
         path = [start]
 
         # Simple interpolation
         steps = 20
         for i in range(1, steps):
             t = i / steps
-            path.append({
-                "x": start["x"] + (goal["x"] - start["x"]) * t + random.uniform(-0.1, 0.1),
-                "y": start["y"] + (goal["y"] - start["y"]) * t + random.uniform(-0.1, 0.1),
-            })
+            path.append(
+                {
+                    "x": start["x"] + (goal["x"] - start["x"]) * t + random.uniform(-0.1, 0.1),
+                    "y": start["y"] + (goal["y"] - start["y"]) * t + random.uniform(-0.1, 0.1),
+                }
+            )
 
         path.append(goal)
         return path
@@ -293,11 +281,13 @@ class LatencyBenchmark:
         """Convert path to trajectory with velocities"""
         trajectory = []
         for i, point in enumerate(path):
-            trajectory.append({
-                "x": point["x"],
-                "y": point["y"],
-                "velocity": 0.5 + (i % 3) * 0.2  # Varying velocity
-            })
+            trajectory.append(
+                {
+                    "x": point["x"],
+                    "y": point["y"],
+                    "velocity": 0.5 + (i % 3) * 0.2,  # Varying velocity
+                }
+            )
         return trajectory
 
     def run_all_benchmarks(self) -> list[BenchmarkResult]:
@@ -309,7 +299,7 @@ class LatencyBenchmark:
             ("Context Resolution", self.benchmark_context_resolution),
             ("Safety Validation", self.benchmark_safety_validation),
             ("Motion Planning", self.benchmark_motion_planning),
-            ("End-to-End Pipeline", self.benchmark_end_to_end)
+            ("End-to-End Pipeline", self.benchmark_end_to_end),
         ]
 
         for name, benchmark_func in benchmarks:
@@ -351,8 +341,8 @@ class LatencyBenchmark:
                 ),
                 "avg_end_to_end_ms": next(
                     (r.avg_time for r in self.results if r.name == "end_to_end"), 0
-                )
-            }
+                ),
+            },
         }
 
     def save_report(self, output_dir: str = "results") -> Path:
@@ -364,7 +354,7 @@ class LatencyBenchmark:
 
         report = self.generate_report()
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nBenchmark report saved to: {report_file}")
@@ -388,29 +378,26 @@ class LatencyBenchmark:
             "End-to-End:           < 100 ms (target)",
             "",
             "BENCHMARK RESULTS",
-            "-" * 70
+            "-" * 70,
         ]
 
         for result in self.results:
             status = "✓" if result.avg_time < self._get_target(result.name) else "✗"
             target = self._get_target(result.name)
 
-            lines.extend([
-                "",
-                f"{status} {result.name.upper().replace('_', ' ')}",
-                f"  Average:  {result.avg_time:>8.3f} ms (target: {target} ms)",
-                f"  Median:   {result.median_time:>8.3f} ms",
-                f"  P95:      {result.p95_time:>8.3f} ms",
-                f"  P99:      {result.p99_time:>8.3f} ms",
-                f"  Min/Max:  {result.min_time:>8.3f} / {result.max_time:.3f} ms"
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"{status} {result.name.upper().replace('_', ' ')}",
+                    f"  Average:  {result.avg_time:>8.3f} ms (target: {target} ms)",
+                    f"  Median:   {result.median_time:>8.3f} ms",
+                    f"  P95:      {result.p95_time:>8.3f} ms",
+                    f"  P99:      {result.p99_time:>8.3f} ms",
+                    f"  Min/Max:  {result.min_time:>8.3f} / {result.max_time:.3f} ms",
+                ]
+            )
 
-        lines.extend([
-            "",
-            "=" * 70,
-            "END OF REPORT",
-            "=" * 70
-        ])
+        lines.extend(["", "=" * 70, "END OF REPORT", "=" * 70])
 
         return "\n".join(lines)
 
@@ -421,7 +408,7 @@ class LatencyBenchmark:
             "context_resolution": 5.0,
             "safety_validation": 10.0,
             "motion_planning": 50.0,
-            "end_to_end": 100.0
+            "end_to_end": 100.0,
         }
         return targets.get(benchmark_name, 100.0)
 
@@ -432,21 +419,14 @@ def main():
 
     parser = argparse.ArgumentParser(description="Run performance benchmarks")
     parser.add_argument(
-        "--iterations",
-        type=int,
-        default=1000,
-        help="Number of iterations per benchmark"
+        "--iterations", type=int, default=1000, help="Number of iterations per benchmark"
     )
-    parser.add_argument(
-        "--output",
-        default="results",
-        help="Output directory for reports"
-    )
+    parser.add_argument("--output", default="results", help="Output directory for reports")
     parser.add_argument(
         "--benchmark",
         choices=["intent", "context", "safety", "planning", "e2e", "all"],
         default="all",
-        help="Specific benchmark to run"
+        help="Specific benchmark to run",
     )
 
     args = parser.parse_args()

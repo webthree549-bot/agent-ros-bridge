@@ -19,6 +19,7 @@ from typing import Any
 # Check ROS2 availability
 try:
     import rclpy
+
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
@@ -103,19 +104,22 @@ def benchmark_safety_validator(iterations: int = 100) -> dict[str, Any]:
 
         # Test trajectories
         safe_trajectory = {
-            'waypoints': [{'x': 0.0, 'y': 0.0, 'z': 0.0}, {'x': 1.0, 'y': 0.0, 'z': 0.0}],
-            'velocities': [0.5, 0.5],
-            'accelerations': [0.1, 0.1]
+            "waypoints": [{"x": 0.0, "y": 0.0, "z": 0.0}, {"x": 1.0, "y": 0.0, "z": 0.0}],
+            "velocities": [0.5, 0.5],
+            "accelerations": [0.1, 0.1],
         }
 
         limits = {
-            'max_velocity': 1.0,
-            'max_acceleration': 2.0,
-            'workspace_bounds': {
-                'x_min': -5.0, 'x_max': 5.0,
-                'y_min': -5.0, 'y_max': 5.0,
-                'z_min': 0.0, 'z_max': 2.0
-            }
+            "max_velocity": 1.0,
+            "max_acceleration": 2.0,
+            "workspace_bounds": {
+                "x_min": -5.0,
+                "x_max": 5.0,
+                "y_min": -5.0,
+                "y_max": 5.0,
+                "z_min": 0.0,
+                "z_max": 2.0,
+            },
         }
 
         latencies = []
@@ -171,7 +175,7 @@ def print_results(results: dict[str, Any]):
     print(f"  Std Dev:  {results['std_dev_ms']:>8.3f} ms")
     print("-" * 70)
 
-    status = "✅ PASS" if results['target_met'] else "❌ FAIL"
+    status = "✅ PASS" if results["target_met"] else "❌ FAIL"
     print(f"  Target Met: {status}")
     print("=" * 70)
 
@@ -180,8 +184,13 @@ def main():
     parser = argparse.ArgumentParser(description="Benchmark v0.6.1 AI Layer")
     parser.add_argument("--iterations", type=int, default=100, help="Number of iterations")
     parser.add_argument("--output", type=str, help="Output file for JSON results")
-    parser.add_argument("--component", type=str, choices=["intent", "safety", "all"], default="all",
-                       help="Component to benchmark")
+    parser.add_argument(
+        "--component",
+        type=str,
+        choices=["intent", "safety", "all"],
+        default="all",
+        help="Component to benchmark",
+    )
 
     args = parser.parse_args()
 
@@ -214,8 +223,10 @@ def main():
         if "error" in results:
             print(f"  {name}: ERROR - {results['error']}")
         else:
-            status = "✅ PASS" if results['target_met'] else "❌ FAIL"
-            print(f"  {name}: {status} (p95: {results['p95_ms']:.2f}ms, target: <{results['target_ms']}ms)")
+            status = "✅ PASS" if results["target_met"] else "❌ FAIL"
+            print(
+                f"  {name}: {status} (p95: {results['p95_ms']:.2f}ms, target: <{results['target_ms']}ms)"
+            )
 
     overall = "✅ ALL TARGETS MET" if all_passed else "❌ SOME TARGETS MISSED"
     print(f"\n  Overall: {overall}")
@@ -226,9 +237,9 @@ def main():
         output_data = {
             "timestamp": datetime.now().isoformat(),
             "iterations": args.iterations,
-            "results": all_results
+            "results": all_results,
         }
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
         print(f"\n💾 Results saved to: {args.output}")
 

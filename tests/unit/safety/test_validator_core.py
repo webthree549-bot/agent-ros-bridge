@@ -3,7 +3,6 @@
 Tests the safety validator core logic.
 """
 
-
 import pytest
 
 from agent_ros_bridge.safety.validator import SafetyValidatorNode

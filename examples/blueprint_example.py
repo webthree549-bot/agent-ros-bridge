@@ -18,6 +18,7 @@ from agent_ros_bridge.gateway_v2.transports.lcm_transport import LCMTransport
 @dataclass
 class Image:
     """Camera image message."""
+
     width: int
     height: int
     data: bytes
@@ -27,6 +28,7 @@ class Image:
 @dataclass
 class Detection:
     """Object detection message."""
+
     class_name: str
     confidence: float
     bbox: tuple  # (x, y, w, h)
@@ -35,6 +37,7 @@ class Detection:
 @dataclass
 class Twist:
     """Velocity command."""
+
     linear_x: float
     angular_z: float
 
@@ -66,8 +69,8 @@ class CameraModule(Module):
         return Image(
             width=1920,
             height=1080,
-            data=b'fake_image_data',
-            timestamp=asyncio.get_event_loop().time()
+            data=b"fake_image_data",
+            timestamp=asyncio.get_event_loop().time(),
         )
 
     async def run(self) -> None:
@@ -77,8 +80,8 @@ class CameraModule(Module):
             img = Image(
                 width=1920,
                 height=1080,
-                data=b'fake_frame_data',
-                timestamp=asyncio.get_event_loop().time()
+                data=b"fake_frame_data",
+                timestamp=asyncio.get_event_loop().time(),
             )
 
             # Publish to stream
@@ -106,11 +109,7 @@ class DetectorModule(Module):
             img = await self.image.get()
 
             # Simulate detection
-            detection = Detection(
-                class_name="person",
-                confidence=0.95,
-                bbox=(100, 100, 50, 100)
-            )
+            detection = Detection(class_name="person", confidence=0.95, bbox=(100, 100, 50, 100))
 
             # Publish detection
             await self.detections.publish(detection)
@@ -137,10 +136,7 @@ class NavigationModule(Module):
         """Main loop: Generate velocity commands."""
         while self._running:
             # Simulate navigation
-            cmd = Twist(
-                linear_x=0.5,
-                angular_z=0.1
-            )
+            cmd = Twist(linear_x=0.5, angular_z=0.1)
             await self.cmd_vel.publish(cmd)
             await asyncio.sleep(0.1)
 
@@ -164,9 +160,7 @@ async def example_blueprint():
     blueprint.connect("camera", "image", "detector", "image")
 
     # Use LCM transport for image streams
-    blueprint.transports({
-        ("image", Image): LCMTransport({"udp_url": "udpm://239.255.76.67:7667"})
-    })
+    blueprint.transports({("image", Image): LCMTransport({"udp_url": "udpm://239.255.76.67:7667"})})
 
     # Build and start
     await blueprint.start()
@@ -206,10 +200,7 @@ async def example_lcm_transport():
     """Example: Using LCM transport directly."""
 
     # Create LCM transport
-    transport = LCMTransport({
-        "udp_url": "udpm://239.255.76.67:7667",
-        "shared_memory": True
-    })
+    transport = LCMTransport({"udp_url": "udpm://239.255.76.67:7667", "shared_memory": True})
 
     # Start transport
     await transport.start()
@@ -243,14 +234,10 @@ async def example_mixed_transports():
     bridge = Bridge()
 
     # WebSocket for external AI agents
-    bridge.transport_manager.register(
-        WebSocketTransport({"port": 8765})
-    )
+    bridge.transport_manager.register(WebSocketTransport({"port": 8765}))
 
     # LCM for internal high-performance communication
-    bridge.transport_manager.register(
-        LCMTransport({"udp_url": "udpm://239.255.76.67:7667"})
-    )
+    bridge.transport_manager.register(LCMTransport({"udp_url": "udpm://239.255.76.67:7667"}))
 
     await bridge.start()
 

@@ -180,9 +180,7 @@ class SimulatedROS2Node:
         msg._type = msg_type
         return msg
 
-    async def wait_for_message(
-        self, topic: str, timeout: float = 1.0
-    ) -> SimulatedMessage | None:
+    async def wait_for_message(self, topic: str, timeout: float = 1.0) -> SimulatedMessage | None:
         """Wait for a message on a topic."""
         deadline = asyncio.get_event_loop().time() + timeout
         while asyncio.get_event_loop().time() < deadline:

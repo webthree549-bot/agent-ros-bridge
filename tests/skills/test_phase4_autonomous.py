@@ -3,7 +3,6 @@
 Verifies final gap closure for 100% SKILL fulfillment.
 """
 
-
 import pytest
 
 from agent_ros_bridge.integrations.autonomous_behaviors import (

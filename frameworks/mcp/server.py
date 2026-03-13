@@ -13,7 +13,7 @@ from mcp.types import TextContent, Tool
 
 class AgentROSMCPBridge:
     """MCP bridge for Agent ROS.
-    
+
     Provides MCP tools for robot control that can be used by Claude Desktop
     and other MCP-compatible clients.
     """
@@ -38,19 +38,19 @@ class AgentROSMCPBridge:
                         "properties": {
                             "topic": {
                                 "type": "string",
-                                "description": "ROS topic name (e.g., '/cmd_vel')"
+                                "description": "ROS topic name (e.g., '/cmd_vel')",
                             },
                             "message_type": {
                                 "type": "string",
-                                "description": "ROS message type (e.g., 'geometry_msgs/Twist')"
+                                "description": "ROS message type (e.g., 'geometry_msgs/Twist')",
                             },
                             "data": {
                                 "type": "object",
-                                "description": "Message data as JSON object"
-                            }
+                                "description": "Message data as JSON object",
+                            },
                         },
-                        "required": ["topic", "message_type", "data"]
-                    }
+                        "required": ["topic", "message_type", "data"],
+                    },
                 ),
                 Tool(
                     name="ros2_subscribe",
@@ -58,22 +58,16 @@ class AgentROSMCPBridge:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "topic": {
-                                "type": "string",
-                                "description": "ROS topic name"
-                            },
-                            "message_type": {
-                                "type": "string",
-                                "description": "ROS message type"
-                            },
+                            "topic": {"type": "string", "description": "ROS topic name"},
+                            "message_type": {"type": "string", "description": "ROS message type"},
                             "timeout": {
                                 "type": "number",
                                 "description": "Timeout in seconds",
-                                "default": 5.0
-                            }
+                                "default": 5.0,
+                            },
                         },
-                        "required": ["topic", "message_type"]
-                    }
+                        "required": ["topic", "message_type"],
+                    },
                 ),
                 Tool(
                     name="ros2_action",
@@ -81,26 +75,17 @@ class AgentROSMCPBridge:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "action_name": {
-                                "type": "string",
-                                "description": "Action server name"
-                            },
-                            "action_type": {
-                                "type": "string",
-                                "description": "Action type"
-                            },
-                            "goal": {
-                                "type": "object",
-                                "description": "Goal parameters"
-                            },
+                            "action_name": {"type": "string", "description": "Action server name"},
+                            "action_type": {"type": "string", "description": "Action type"},
+                            "goal": {"type": "object", "description": "Goal parameters"},
                             "timeout": {
                                 "type": "number",
                                 "description": "Timeout in seconds",
-                                "default": 30.0
-                            }
+                                "default": 30.0,
+                            },
                         },
-                        "required": ["action_name", "action_type", "goal"]
-                    }
+                        "required": ["action_name", "action_type", "goal"],
+                    },
                 ),
                 Tool(
                     name="robot_command",
@@ -110,24 +95,21 @@ class AgentROSMCPBridge:
                         "properties": {
                             "command": {
                                 "type": "string",
-                                "description": "Natural language command (e.g., 'move forward 1 meter')"
+                                "description": "Natural language command (e.g., 'move forward 1 meter')",
                             },
                             "robot_id": {
                                 "type": "string",
                                 "description": "Optional robot ID",
-                                "default": None
-                            }
+                                "default": None,
+                            },
                         },
-                        "required": ["command"]
-                    }
+                        "required": ["command"],
+                    },
                 ),
                 Tool(
                     name="list_robots",
                     description="List all connected robots",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {}
-                    }
+                    inputSchema={"type": "object", "properties": {}},
                 ),
                 Tool(
                     name="get_robot_info",
@@ -135,13 +117,10 @@ class AgentROSMCPBridge:
                     inputSchema={
                         "type": "object",
                         "properties": {
-                            "robot_id": {
-                                "type": "string",
-                                "description": "Robot identifier"
-                            }
+                            "robot_id": {"type": "string", "description": "Robot identifier"}
                         },
-                        "required": ["robot_id"]
-                    }
+                        "required": ["robot_id"],
+                    },
                 ),
             ]
 
@@ -151,17 +130,13 @@ class AgentROSMCPBridge:
             try:
                 if name == "ros2_publish":
                     result = self.bridge_client.publish(
-                        arguments["topic"],
-                        arguments["message_type"],
-                        arguments["data"]
+                        arguments["topic"], arguments["message_type"], arguments["data"]
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
                 elif name == "ros2_subscribe":
                     result = self.bridge_client.subscribe(
-                        arguments["topic"],
-                        arguments["message_type"],
-                        arguments.get("timeout", 5.0)
+                        arguments["topic"], arguments["message_type"], arguments.get("timeout", 5.0)
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -170,14 +145,13 @@ class AgentROSMCPBridge:
                         arguments["action_name"],
                         arguments["action_type"],
                         arguments["goal"],
-                        arguments.get("timeout", 30.0)
+                        arguments.get("timeout", 30.0),
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
                 elif name == "robot_command":
                     result = self.bridge_client.execute_natural_language(
-                        arguments["command"],
-                        arguments.get("robot_id")
+                        arguments["command"], arguments.get("robot_id")
                     )
                     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -201,9 +175,7 @@ class AgentROSMCPBridge:
 
         async with stdio_server() as (read_stream, write_stream):
             await self.server.run(
-                read_stream,
-                write_stream,
-                self.server.create_initialization_options()
+                read_stream, write_stream, self.server.create_initialization_options()
             )
 
 

@@ -27,10 +27,7 @@ async def langchain_basic_example():
     # Initialize bridge client
     print("Step 1: Connect to Agent ROS Bridge")
     print("-" * 40)
-    client = AgentROSBridgeClient(
-        base_url="http://localhost:8765",
-        token="your-jwt-token"
-    )
+    client = AgentROSBridgeClient(base_url="http://localhost:8765", token="your-jwt-token")
     print("✅ Connected to bridge")
     print()
 
@@ -55,12 +52,7 @@ async def langchain_basic_example():
         print("⚠️  OpenAI API key not found, using mock LLM")
         llm = OpenAI(temperature=0)
 
-    agent = initialize_agent(
-        tools,
-        llm,
-        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        verbose=True
-    )
+    agent = initialize_agent(tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True)
     print("✅ Agent initialized")
     print()
 
