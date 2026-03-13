@@ -4,11 +4,9 @@ This launch file starts the motion_planner and execution_monitor nodes
 with configuration for Nav2 and MoveIt2 integration.
 """
 
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 
 from launch import LaunchDescription
 
@@ -90,35 +88,35 @@ def generate_launch_description():
         ]
     )
 
-    # Include Nav2 launch if enabled
-    nav2_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('nav2_bringup'),
-                'launch',
-                'navigation_launch.py'
-            ])
-        ]),
-        condition=LaunchConfiguration('nav2_enabled'),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-        }.items()
-    )
+    # Include Nav2 launch if enabled (currently disabled - uncomment when Nav2 available)
+    # nav2_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource([
+    #         PathJoinSubstitution([
+    #             FindPackageShare('nav2_bringup'),
+    #             'launch',
+    #             'navigation_launch.py'
+    #         ])
+    #     ]),
+    #     condition=LaunchConfiguration('nav2_enabled'),
+    #     launch_arguments={
+    #         'use_sim_time': use_sim_time,
+    #     }.items()
+    # )
 
-    # Include MoveIt2 launch if enabled
-    moveit_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('moveit_config'),  # Package with MoveIt config
-                'launch',
-                'move_group.launch.py'
-            ])
-        ]),
-        condition=LaunchConfiguration('moveit_enabled'),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-        }.items()
-    )
+    # Include MoveIt2 launch if enabled (currently disabled - uncomment when MoveIt2 available)
+    # moveit_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource([
+    #         PathJoinSubstitution([
+    #             FindPackageShare('moveit_config'),  # Package with MoveIt config
+    #             'launch',
+    #             'move_group.launch.py'
+    #         ])
+    #     ]),
+    #     condition=LaunchConfiguration('moveit_enabled'),
+    #     launch_arguments={
+    #         'use_sim_time': use_sim_time,
+    #     }.items()
+    # )
 
     # Create launch description
     ld = LaunchDescription()

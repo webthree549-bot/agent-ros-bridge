@@ -1,6 +1,9 @@
+import time
+
+
 def demo_performance():
     """Demonstrate performance metrics."""
-    print_step(6, "Performance Metrics")
+    print("Performance Metrics")
 
     # Use rule-based parser that doesn't require ROS
     try:

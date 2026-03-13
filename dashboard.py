@@ -154,7 +154,7 @@ DASHBOARD_HTML = """
         setInterval(() => location.reload(), 5000);
         
         // Update timestamp
-        document.getElementById('timestamp').textContent = 
+        document.getElementById('timestamp').textContent =
             'Last updated: ' + new Date().toLocaleString();
     </script>
 </body>
@@ -296,11 +296,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 if 'x:' in lines[j]:
                                     try:
                                         pos['x'] = float(lines[j].split(':')[1].strip())
-                                    except: pass
+                                    except Exception:
+                                        pass
                                 if 'y:' in lines[j]:
                                     try:
                                         pos['y'] = float(lines[j].split(':')[1].strip())
-                                    except: pass
+                                    except Exception:
+                                        pass
                     status['robot_position'] = pos
 
                     # Get velocity
@@ -311,11 +313,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
                                 if 'x:' in lines[j] and 'linear' in lines[i]:
                                     try:
                                         vel['linear_x'] = float(lines[j].split(':')[1].strip())
-                                    except: pass
+                                    except Exception:
+                                        pass
                                 if 'z:' in lines[j] and 'angular' in lines[i]:
                                     try:
                                         vel['angular_z'] = float(lines[j].split(':')[1].strip())
-                                    except: pass
+                                    except Exception:
+                                        pass
                     status['velocity'] = vel
 
         except Exception as e:

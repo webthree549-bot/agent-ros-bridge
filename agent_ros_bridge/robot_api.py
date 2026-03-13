@@ -324,7 +324,7 @@ class RobotController:
 
 # Export public API
 __all__ = [
-    "Robot",
+    "RobotController",
     "NavigationGoal",
     "ManipulationGoal",
     "RobotCommandResult",
