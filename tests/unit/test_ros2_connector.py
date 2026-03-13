@@ -173,23 +173,21 @@ class TestCommandExecution:
     @pytest.mark.asyncio
     async def test_execute_get_topics(self, robot):
         """Test get_topics command"""
-        # Mock topic list
-        robot._cmd_get_topics = mock.MagicMock(return_value=["/topic1", "/topic2"])
+        # Mock topic list - patch the method on the instance
+        with mock.patch.object(robot, '_cmd_get_topics', return_value=["/topic1", "/topic2"]):
+            command = Command(action="get_topics", parameters={})
+            result = await robot.execute(command)
 
-        command = Command(action="get_topics", parameters={})
-        result = await robot.execute(command)
-
-        assert result == ["/topic1", "/topic2"]
+            assert result == ["/topic1", "/topic2"]
 
     @pytest.mark.asyncio
     async def test_execute_get_nodes(self, robot):
         """Test get_nodes command"""
-        robot._cmd_get_nodes = mock.MagicMock(return_value=["node1", "node2"])
+        with mock.patch.object(robot, '_cmd_get_nodes', return_value=["node1", "node2"]):
+            command = Command(action="get_nodes", parameters={})
+            result = await robot.execute(command)
 
-        command = Command(action="get_nodes", parameters={})
-        result = await robot.execute(command)
-
-        assert result == ["node1", "node2"]
+            assert result == ["node1", "node2"]
 
     @pytest.mark.asyncio
     async def test_execute_unknown_command(self, robot):

@@ -276,37 +276,36 @@ class TestToolDiscovery:
 
     def test_get_dangerous_tools(self, discovery):
         """Dangerous tools can be retrieved."""
-        # Clear cache first
+        # Clear cache completely and mock discover_all to not add anything
         discovery._cache.clear()
+        
+        # Mock discover_all to return only our test data
+        with mock.patch.object(discovery, 'discover_all', return_value=list(discovery._cache.values())):
+            # Pre-populate cache with dangerous and safe actions
+            safe_action = ROSAction(
+                name="safe_action",
+                action_type="action",
+                ros_type="test",
+                description="Safe",
+                parameters={},
+                dangerous=False,
+            )
+            dangerous_action = ROSAction(
+                name="dangerous_action",
+                action_type="action",
+                ros_type="test",
+                description="Dangerous",
+                parameters={},
+                dangerous=True,
+            )
+            discovery._cache["safe_action"] = safe_action
+            discovery._cache["dangerous_action"] = dangerous_action
 
-        # Clear cache to avoid interference from default actions
-        discovery._cache.clear()
+            dangerous = discovery.get_dangerous_tools()
 
-        # Pre-populate cache with dangerous and safe actions
-        safe_action = ROSAction(
-            name="safe_action",
-            action_type="action",
-            ros_type="test",
-            description="Safe",
-            parameters={},
-            dangerous=False,
-        )
-        dangerous_action = ROSAction(
-            name="dangerous_action",
-            action_type="action",
-            ros_type="test",
-            description="Dangerous",
-            parameters={},
-            dangerous=True,
-        )
-        discovery._cache["safe_action"] = safe_action
-        discovery._cache["dangerous_action"] = dangerous_action
-
-        dangerous = discovery.get_dangerous_tools()
-
-        # Should only return the dangerous action
-        assert len(dangerous) == 1
-        assert dangerous[0].name == "dangerous_action"
+            # Should only return the dangerous action
+            assert len(dangerous) == 1
+            assert dangerous[0].name == "dangerous_action"
 
 
 class TestToolDiscoveryROS2:
