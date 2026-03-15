@@ -8,7 +8,7 @@ low-bandwidth robot communication.
 import asyncio
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 try:
@@ -253,7 +253,7 @@ class MQTTTransport(Transport):
         timestamp = (
             datetime.fromisoformat(timestamp_str)
             if isinstance(timestamp_str, str)
-            else datetime.now(UTC)
+            else datetime.now(timezone.utc)
         )
         header = Header(
             message_id=payload.get("id", ""),

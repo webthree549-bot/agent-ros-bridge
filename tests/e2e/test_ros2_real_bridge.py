@@ -241,20 +241,26 @@ class TestROS2RobotExecution:
     @pytest.mark.asyncio
     async def test_execute_get_topics(self, mock_ros2_robot):
         """Test execute get_topics command"""
-        mock_ros2_robot._cmd_get_topics = mock.MagicMock(return_value=[{"name": "/test"}])
+        # Setup mock to return a list
+        mock_ros2_robot._cmd_get_topics = mock.MagicMock()
+        mock_ros2_robot._cmd_get_topics.return_value = [{"name": "/test"}]
 
         result = await mock_ros2_robot.execute(Command(action="get_topics", parameters={}))
 
+        assert isinstance(result, list)
         assert len(result) == 1
         assert result[0]["name"] == "/test"
 
     @pytest.mark.asyncio
     async def test_execute_get_nodes(self, mock_ros2_robot):
         """Test execute get_nodes command"""
-        mock_ros2_robot._cmd_get_nodes = mock.MagicMock(return_value=["node1", "node2"])
+        # Setup mock to return a list
+        mock_ros2_robot._cmd_get_nodes = mock.MagicMock()
+        mock_ros2_robot._cmd_get_nodes.return_value = ["node1", "node2"]
 
         result = await mock_ros2_robot.execute(Command(action="get_nodes", parameters={}))
 
+        assert isinstance(result, list)
         assert "node1" in result
         assert "node2" in result
 

@@ -1,75 +1,198 @@
 version: '3.8'
 
+# Agent ROS Bridge - Full Simulation Environment
+# Includes: ROS2 Humble, Gazebo, Nav2, TurtleBot3, and the bridge
+#
+# Usage:
+#   docker-compose -f docker-compose.ros2.yml up -d gazebo
+#   docker-compose -f docker-compose.ros2.yml up -d nav2
+#   docker-compose -f docker-compose.ros2.yml up -d bridge
+#
+# Or start all at once:
+#   docker-compose -f docker-compose.ros2.yml up -d
+
 services:
-  ros2:
-    image: osrf/ros:humble-desktop-full
-    container_name: ros2_humble
+  # Gazebo Simulation with TurtleBot3
+  gazebo:
+    image: agent-ros-bridge-sim:latest
+    container_name: ros2_gazebo_sim
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.simulation
     privileged: true
     environment:
-      - DISPLAY=host.docker.internal:0
+      - DISPLAY=${DISPLAY:-host.docker.internal:0}
       - ROS_DISTRO=humble
       - TURTLEBOT3_MODEL=burger
+      - GAZEBO_MODEL_PATH=/opt/ros/humble/share/turtlebot3_gazebo/models
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./workspace:/workspace
-      - ./agent_ros_bridge:/workspace/agent_ros_bridge:ro
+      - gazebo_cache:/root/.gazebo
     ports:
-      - "11311:11311"
-      - "8765:8765"
-      - "9090:9090"
+      - "11345:11345"  # Gazebo server
+    networks:
+      - ros2_sim_network
     command: >
       bash -c "
         source /opt/ros/humble/setup.bash &&
-        echo 'ROS2 Humble ready!' &&
-        echo 'Run: ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py' &&
+        echo 'Starting Gazebo with TurtleBot3...' &&
+        ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py &
+        tail -f /dev/null
+      "
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && ros2 topic list | grep -q /odom"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Nav2 Navigation Stack
+  nav2:
+    image: agent-ros-bridge-sim:latest
+    container_name: ros2_nav2_sim
+    privileged: true
+    environment:
+      - ROS_DISTRO=humble
+      - TURTLEBOT3_MODEL=burger
+      - ROS_DOMAIN_ID=0
+    networks:
+      - ros2_sim_network
+    depends_on:
+      gazebo:
+        condition: service_healthy
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        echo 'Waiting for Gazebo...' &&
+        sleep 10 &&
+        echo 'Starting Nav2 navigation...' &&
+        ros2 launch nav2_bringup navigation_launch.py use_sim_time:=true &
+        tail -f /dev/null
+      "
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && ros2 action list | grep -q navigate"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  # Agent ROS Bridge
+  bridge:
+    image: agent-ros-bridge-sim:latest
+    container_name: ros2_bridge
+    privileged: true
+    environment:
+      - ROS_DISTRO=humble
+      - JWT_SECRET=${JWT_SECRET:-$(openssl rand -base64 32)}
+      - ROS_DOMAIN_ID=0
+    volumes:
+      - .:/workspace:ro
+    ports:
+      - "8766:8766"   # WebSocket
+      - "50051:50051" # gRPC
+    networks:
+      - ros2_sim_network
+    depends_on:
+      nav2:
+        condition: service_healthy
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        cd /workspace &&
+        pip3 install -e . --quiet 2>/dev/null || true &&
+        echo 'Starting Agent ROS Bridge...' &&
+        python3 -m agent_ros_bridge.gateway_v2 --transport websocket --port 8766 &
+        tail -f /dev/null
+      "
+    healthcheck:
+      test: ["CMD", "bash", "-c", "curl -f http://localhost:8766/health || exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # RViz for visualization (optional)
+  rviz:
+    image: agent-ros-bridge-sim:latest
+    container_name: ros2_rviz
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY:-host.docker.internal:0}
+      - ROS_DISTRO=humble
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./config/rviz:/root/.rviz2:rw
+    networks:
+      - ros2_sim_network
+    depends_on:
+      - nav2
+    profiles:
+      - rviz
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        ros2 run rviz2 rviz2 -d /opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz
+      "
+
+  # ROS2 Rosbridge for Foxglove Visualization
+  rosbridge:
+    image: osrf/ros:humble-desktop
+    container_name: ros2_rosbridge
+    privileged: true
+    environment:
+      - ROS_DISTRO=humble
+      - ROS_DOMAIN_ID=0
+    ports:
+      - "9090:9090"
+    networks:
+      - ros2_sim_network
+    depends_on:
+      gazebo:
+        condition: service_healthy
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y ros-humble-rosbridge-server 2>/dev/null || true &&
+        source /opt/ros/humble/setup.bash &&
+        echo 'Starting rosbridge_server for Foxglove...' &&
+        ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+      "
+    healthcheck:
+      test: ["CMD", "bash", "-c", "source /opt/ros/humble/setup.bash && ros2 topic list"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # ROS2 Command Interface
+  ros2cli:
+    image: agent-ros-bridge-sim:latest
+    container_name: ros2_cli
+    privileged: true
+    environment:
+      - ROS_DISTRO=humble
+    networks:
+      - ros2_sim_network
+    profiles:
+      - cli
+    command: >
+      bash -c "
+        source /opt/ros/humble/setup.bash &&
+        echo 'ROS2 CLI ready. Available commands:' &&
+        echo '  ros2 topic list' &&
+        echo '  ros2 node list' &&
+        echo '  ros2 service list' &&
+        echo '  ros2 action list' &&
         bash
       "
-    networks:
-      - ros2_network
-
-  gazebo:
-    image: osrf/ros:humble-desktop-full
-    container_name: ros2_gazebo
-    privileged: true
-    environment:
-      - DISPLAY=host.docker.internal:0
-      - ROS_DISTRO=humble
-      - TURTLEBOT3_MODEL=burger
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    ports:
-      - "11345:11345"
-    command: >
-      bash -c "
-        source /opt/ros/humble/setup.bash &&
-        apt-get update && apt-get install -y ros-humble-turtlebot3-gazebo || true &&
-        ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
-      "
-    networks:
-      - ros2_network
-    profiles:
-      - gazebo
-
-  nav2:
-    image: osrf/ros:humble-desktop-full
-    container_name: ros2_nav2
-    privileged: true
-    environment:
-      - DISPLAY=host.docker.internal:0
-      - ROS_DISTRO=humble
-      - TURTLEBOT3_MODEL=burger
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    command: >
-      bash -c "
-        source /opt/ros/humble/setup.bash &&
-        ros2 launch nav2_bringup navigation_launch.py
-      "
-    networks:
-      - ros2_network
-    profiles:
-      - nav2
+    stdin_open: true
+    tty: true
 
 networks:
-  ros2_network:
+  ros2_sim_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  gazebo_cache:
+    driver: local

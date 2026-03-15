@@ -7,7 +7,7 @@ Supports JWT tokens and API keys for securing WebSocket connections.
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 import jwt
@@ -67,8 +67,8 @@ class Authenticator:
 
         payload = {
             "sub": user_id,
-            "iat": datetime.now(UTC),
-            "exp": datetime.now(UTC) + timedelta(hours=self.config.jwt_expiry_hours),
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=self.config.jwt_expiry_hours),
             "roles": roles or ["user"],
             "metadata": metadata or {},
         }
@@ -145,8 +145,8 @@ class Authenticator:
 
         new_payload = {
             "sub": user_id,
-            "iat": datetime.now(UTC),
-            "exp": datetime.now(UTC) + timedelta(hours=self.config.jwt_expiry_hours),
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=self.config.jwt_expiry_hours),
             "roles": roles,
             "metadata": metadata,
             "jti": secrets.token_urlsafe(16),  # Unique token ID

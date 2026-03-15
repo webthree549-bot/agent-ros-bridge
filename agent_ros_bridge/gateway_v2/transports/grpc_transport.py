@@ -11,8 +11,8 @@ from typing import Any
 import grpc
 from grpc import aio
 
-from ..auth.jwt import JWTAuthenticator
-from .base import BaseTransport
+from ..auth import Authenticator
+from ..core import Transport
 
 # Generated protobuf imports (would be generated from .proto files)
 # from . import bridge_pb2
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class GRPCServicer:
     """gRPC servicer for bridge commands."""
 
-    def __init__(self, command_handler: Callable, authenticator: JWTAuthenticator):
+    def __init__(self, command_handler: Callable, authenticator: Authenticator):
         self.command_handler = command_handler
         self.authenticator = authenticator
 
@@ -67,7 +67,7 @@ class GRPCServicer:
             return  # bridge_pb2.CommandResponse()
 
 
-class GRPCTransport(BaseTransport):
+class GRPCTransport(Transport):
     """gRPC transport implementation."""
 
     transport_type = "grpc"
