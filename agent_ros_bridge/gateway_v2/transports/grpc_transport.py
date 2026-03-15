@@ -11,7 +11,7 @@ from typing import Any
 import grpc
 from grpc import aio
 
-from ..auth import Authenticator
+from ..auth import Authenticator, JWTAuthenticator
 from ..core import Transport
 
 # Generated protobuf imports (would be generated from .proto files)

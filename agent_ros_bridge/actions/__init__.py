@@ -23,7 +23,7 @@ import contextlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from enum import Enum, auto
 from typing import Any
 
@@ -52,7 +52,7 @@ class ActionGoal:
     goal_data: dict[str, Any]
     action_type: str  # e.g., "nav2_msgs/action/NavigateToPose"
     timeout_sec: float = 30.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -61,7 +61,7 @@ class ActionFeedback:
 
     goal_id: str
     feedback_data: dict[str, Any]
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -212,7 +212,7 @@ class ROS2ActionClient(BaseActionClient):
         )
 
         self._current_goal = goal
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self.status = ActionStatus.PENDING
 
         try:
@@ -258,7 +258,7 @@ class ROS2ActionClient(BaseActionClient):
                     asyncio.wrap_future(result_future), timeout=timeout_sec
                 )
 
-                execution_time = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+                execution_time = (datetime.now(UTC) - self._start_time).total_seconds()
 
                 # Check result status
                 if result_response.status == 4:  # SUCCEEDED
@@ -395,7 +395,7 @@ class SimulatedActionClient(BaseActionClient):
         )
 
         self.status = ActionStatus.ACTIVE
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
 
         logger.info(f"▶️  Simulated action: {self.action_name} goal {goal_id}")
 
@@ -413,7 +413,7 @@ class SimulatedActionClient(BaseActionClient):
             logger.debug(f"Simulated feedback: {feedback_data}")
 
         # Complete successfully
-        execution_time = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+        execution_time = (datetime.now(UTC) - self._start_time).total_seconds()
         self.status = ActionStatus.SUCCEEDED
 
         result = ActionResult(

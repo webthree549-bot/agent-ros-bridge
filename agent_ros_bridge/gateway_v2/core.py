@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum, auto
 from typing import Any
 
@@ -68,7 +68,7 @@ class Header:
     """Message header."""
 
     message_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     source: str = ""
     target: str = ""
     correlation_id: str | None = None
@@ -548,7 +548,7 @@ class Bridge:
                 {
                     "action": cmd.action,
                     "parameters": cmd.parameters,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             )
 

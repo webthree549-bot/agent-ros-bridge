@@ -1,0 +1,76 @@
+# Agent ROS Bridge - Full Simulation Environment
+# ROS2 Humble + Gazebo + Nav2 + TurtleBot3
+
+FROM osrf/ros:humble-desktop-full
+
+# Prevent interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ROS_DISTRO=humble
+ENV TURTLEBOT3_MODEL=burger
+
+# Install essential tools and dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Core tools
+    git \
+    wget \
+    curl \
+    vim \
+    nano \
+    python3-pip \
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-vcstool \
+    # Gazebo and simulation
+    ros-humble-gazebo-ros-pkgs \
+    ros-humble-gazebo-ros2-control \
+    # TurtleBot3 packages
+    ros-humble-turtlebot3 \
+    ros-humble-turtlebot3-gazebo \
+    ros-humble-turtlebot3-navigation2 \
+    ros-humble-turtlebot3-cartographer \
+    # Nav2 packages
+    ros-humble-nav2-bringup \
+    ros-humble-nav2-simple-commander \
+    # Additional message types
+    ros-humble-geometry-msgs \
+    ros-humble-sensor-msgs \
+    ros-humble-nav-msgs \
+    ros-humble-std-msgs \
+    ros-humble-action-msgs \
+    ros-humble-tf2-ros \
+    # Python dependencies
+    python3-numpy \
+    python3-yaml \
+    && rm -rf /var/lib/apt/lists/*
+
+# Setup workspace
+WORKDIR /ros2_ws
+
+# Initialize rosdep
+RUN rosdep init 2>/dev/null || true && rosdep update
+
+# Source ROS2 in bashrc
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
+    echo "source /ros2_ws/install/setup.bash 2>/dev/null || true" >> /root/.bashrc && \
+    echo "export TURTLEBOT3_MODEL=burger" >> /root/.bashrc && \
+    echo "export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models" >> /root/.bashrc
+
+# Copy agent-ros-bridge code
+COPY . /ros2_ws/src/agent-ros-bridge/
+
+# Install agent-ros-bridge dependencies
+WORKDIR /ros2_ws/src/agent-ros-bridge
+RUN pip3 install --no-cache-dir -e . 2>/dev/null || true
+
+# Build the workspace
+WORKDIR /ros2_ws
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+    rosdep install --from-paths src --ignore-src -y 2>/dev/null || true && \
+    colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release 2>&1 | tail -10 || true"
+
+# Setup entrypoint
+COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

@@ -1,7 +1,7 @@
 """Dashboard Server - Real-time web UI for monitoring."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from typing import Any
 
 try:
@@ -163,7 +163,7 @@ class DashboardServer:
         b = self.bridge
         status = {
             "status": "running" if (b and b.running) else "stopped",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "transports": list(b.transport_manager.transports.keys()) if b else [],
             "fleets": list(b.fleets.keys()) if b else [],
         }

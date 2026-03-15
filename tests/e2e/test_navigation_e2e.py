@@ -22,9 +22,11 @@ import subprocess
 import pytest
 
 
-def run_in_ros2(cmd: str, timeout: int = 30, container: str = "ros2_gazebo_sim") -> subprocess.CompletedProcess:
+def run_in_ros2(
+    cmd: str, timeout: int = 30, container: str = "ros2_gazebo_sim"
+) -> subprocess.CompletedProcess:
     """Run a command in the ROS2 Docker container.
-    
+
     Args:
         cmd: Command to run
         timeout: Timeout in seconds
@@ -32,16 +34,16 @@ def run_in_ros2(cmd: str, timeout: int = 30, container: str = "ros2_gazebo_sim")
     """
     # Try simulation container first, fall back to ros2_humble
     import subprocess
-    
+
     # Check if simulation container is running
     check = subprocess.run(
         ["docker", "ps", "--filter", f"name={container}", "--format", "{{.Names}}"],
         capture_output=True,
         text=True,
     )
-    
+
     target_container = container if container in check.stdout else "ros2_humble"
-    
+
     return subprocess.run(
         [
             "docker",
@@ -123,13 +125,13 @@ class TestNavigationE2E:
         result = run_in_ros2("ros2 topic list | grep cmd_vel", timeout=5)
         if result.returncode != 0 or "cmd_vel" not in result.stdout:
             pytest.skip("cmd_vel topic not available (simulation may not be running)")
-        
+
         # Publish a zero velocity command with short timeout
         # The -t 1 flag publishes once and exits, but may wait for subscribers
         result = run_in_ros2(
             "timeout 3 ros2 topic pub -t 1 /cmd_vel geometry_msgs/msg/Twist "
             "'{linear: {x: 0.0}, angular: {z: 0.0}}' 2>&1 || true",
-            timeout=5
+            timeout=5,
         )
         # Just verify the command runs without error
         print("\n✅ cmd_vel publishing works")

@@ -1,27 +1,22 @@
 repos:
-  # Code formatting
+  # Ruff linting and import sorting (replaces flake8 + isort)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.0
+    hooks:
+      - id: ruff
+        args: ['--fix', '--exit-non-zero-on-fix']
+        files: ^(agent_ros_bridge|tests)/.*\.py$
+      - id: ruff-format
+        args: ['--line-length=100']
+        files: ^(agent_ros_bridge|tests)/.*\.py$
+
+  # Code formatting (Black for non-Ruff files)
   - repo: https://github.com/psf/black
     rev: 24.1.1
     hooks:
       - id: black
         language_version: python3.11
         args: ['--line-length=100']
-        files: ^(agent_ros_bridge|tests)/.*\.py$
-
-  # Import sorting
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ['--profile=black', '--line-length=100']
-        files: ^(agent_ros_bridge|tests)/.*\.py$
-
-  # Linting
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
-    hooks:
-      - id: flake8
-        args: ['--max-line-length=100', '--extend-ignore=E203,W503']
         files: ^(agent_ros_bridge|tests)/.*\.py$
 
   # Type checking

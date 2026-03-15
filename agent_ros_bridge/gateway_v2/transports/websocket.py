@@ -8,7 +8,7 @@ dashboards, and web applications.
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 try:
@@ -294,7 +294,7 @@ class WebSocketTransport(Transport):
         header = Header(
             message_id=header_data.get("message_id", ""),
             timestamp=datetime.fromisoformat(
-                header_data.get("timestamp", datetime.now(timezone.utc).isoformat())
+                header_data.get("timestamp", datetime.now(UTC).isoformat())
             ),
             source=header_data.get("source", ""),
             target=header_data.get("target", ""),
