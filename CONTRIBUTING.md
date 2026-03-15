@@ -61,21 +61,38 @@ refactor: simplify bridge initialization
 test: add fleet orchestrator tests
 ```
 
-### Testing
+### Testing (TDD Workflow)
+
+We follow **Test-Driven Development (TDD)**:
+1. Write failing test first
+2. Write minimal code to pass
+3. Refactor while keeping tests green
 
 ```bash
-# Run all tests
-pytest
+# Run unit tests (fast, no Docker needed)
+pytest tests/unit -v
 
 # Run with coverage
-pytest --cov=agent_ros_bridge --cov-report=html
+pytest tests/unit --cov=agent_ros_bridge --cov-report=html
+
+# Run E2E tests (requires ROS2 Docker container)
+# Start the container first:
+docker-compose -f docker-compose.ros2.yml up -d
+# Then run E2E tests:
+pytest tests/e2e -v
+
+# Run integration tests (requires ROS2 Docker container)
+pytest tests/integration -v
 
 # Run specific test file
-pytest tests/test_bridge.py
+pytest tests/unit/test_bridge.py
 
 # Run specific test
-pytest tests/test_bridge.py::test_bridge_initialization
+pytest tests/unit/test_bridge.py::test_bridge_initialization
 ```
+
+**CI/CD runs:** Unit tests only (E2E/Integration require local Docker)
+**Local development:** Run all test suites before committing
 
 ## What to Contribute
 
