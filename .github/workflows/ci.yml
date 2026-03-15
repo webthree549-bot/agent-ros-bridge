@@ -68,8 +68,10 @@ jobs:
       - name: Test with pytest
         run: pytest tests/unit --cov=agent_ros_bridge --cov-report=xml
 
-      - name: Test E2E (optional)
-        run: pytest tests/e2e -v || echo "E2E tests require ROS2 - skipping"
+      # E2E tests disabled in CI - require local ROS2 Docker container
+      # Run locally with: docker-compose -f docker-compose.ros2.yml up -d && pytest tests/e2e -v
+      # - name: Test E2E (optional)
+      #   run: pytest tests/e2e -v || echo "E2E tests require ROS2 - skipping"
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
@@ -81,7 +83,7 @@ jobs:
       - name: Check minimum coverage
         run: |
           # Coverage threshold for core modules (excluding optional deps)
-          pytest tests/unit tests/e2e --cov=agent_ros_bridge.gateway_v2.core --cov=agent_ros_bridge.gateway_v2.auth --cov=agent_ros_bridge.gateway_v2.config --cov-fail-under=80 || echo "Core coverage check (informational)"
+          pytest tests/unit --cov=agent_ros_bridge.gateway_v2.core --cov=agent_ros_bridge.gateway_v2.auth --cov=agent_ros_bridge.gateway_v2.config --cov-fail-under=80 || echo "Core coverage check (informational)"
 
       - name: Test OpenClaw skill
         run: |
