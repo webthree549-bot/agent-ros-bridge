@@ -23,7 +23,7 @@ import contextlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, UTC
+from datetime import UTC, datetime, timezone
 from enum import Enum, auto
 from typing import Any
 
