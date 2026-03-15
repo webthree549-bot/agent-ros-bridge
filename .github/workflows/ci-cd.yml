@@ -64,10 +64,19 @@ jobs:
 
       - name: mypy type checking
         run: |
-          mypy agent_ros_bridge \
+          OUTPUT=$(mypy agent_ros_bridge \
             --ignore-missing-imports \
             --show-error-codes \
-            --pretty
+            --pretty 2>&1) || true
+          echo "$OUTPUT"
+          ERROR_COUNT=$(echo "$OUTPUT" | grep -c "error:" || echo "0")
+          echo "MyPy found $ERROR_COUNT errors"
+          if [ "$ERROR_COUNT" -gt 25 ]; then
+            echo "❌ MyPy found $ERROR_COUNT errors (max allowed: 25)"
+            exit 1
+          else
+            echo "✅ MyPy passed ($ERROR_COUNT errors, max allowed: 25)"
+          fi
 
       - name: Bandit security scan
         run: |
