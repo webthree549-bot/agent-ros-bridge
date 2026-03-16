@@ -24,15 +24,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install component-detection tool
-        run: |
-          # Install Microsoft's component-detection tool
-          wget -q https://github.com/microsoft/component-detection/releases/latest/download/component-detection-linux-x64 -O component-detection
-          chmod +x component-detection
-          sudo mv component-detection /usr/local/bin/
-
       - name: Submit dependency graph
-        uses: actions/dependency-submission-action@v3
+        uses: advanced-security/python-dependency-submission-action@v1
         with:
-          component-detection-tool: /usr/local/bin/component-detection
-        continue-on-error: true  # Don't fail CI if this step fails
+          continue-on-error: true  # Don't fail CI if this step fails

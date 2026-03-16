@@ -106,6 +106,15 @@ class TestAgentROSBridgeE2E:
 
     def test_bridge_ros_command_execution(self):
         """Test bridge can execute ROS commands via Docker."""
+        # Check if container is running first
+        result = subprocess.run(
+            ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Status}}"],
+            capture_output=True,
+            text=True,
+        )
+        if "Up" not in result.stdout:
+            pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
+
         # Start a demo node in background
         run_in_ros2_container("ros2 run demo_nodes_cpp talker &", timeout=5)
 

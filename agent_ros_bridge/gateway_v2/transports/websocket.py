@@ -42,13 +42,13 @@ logger = logging.getLogger("transport.websocket")
 class WebSocketTransport(Transport):
     """WebSocket transport implementation with authentication."""
 
-    def __init__(self, name: str, config: dict[str, Any]):
+    def __init__(self, config: dict[str, Any], name: str = "websocket"):
         """Initialize WebSocket transport with configuration.
 
         Args:
-            name: Transport identifier.
             config: Transport configuration including host, port, TLS settings,
                 and optional authentication configuration.
+            name: Transport identifier (default: "websocket").
         """
         super().__init__(name, config)
         self.host = config.get("host", "0.0.0.0")
