@@ -6,8 +6,8 @@ This test uses actual Gazebo simulation with TurtleBot3.
 No mocking - real physics, real ROS2, real robot behavior.
 
 Prerequisites:
-    - ROS2 Humble in Docker: docker start ros2_humble
-    - OR ROS2 Humble installed locally
+    - ROS2 in Docker: docker start ros2_humble
+    - OR ROS2 installed locally
     - Gazebo Ignition installed
     - TurtleBot3 packages
 
@@ -23,6 +23,9 @@ import subprocess
 
 import pytest
 
+CONTAINER_NAME = "ros2_humble"
+
+
 # Check if ROS2 is available locally
 try:
     import rclpy
@@ -34,17 +37,35 @@ except ImportError:
     ROS2_AVAILABLE = False
 
 
+def get_ros_distro() -> str:
+    """Auto-detect ROS distribution in container."""
+    try:
+        result = subprocess.run(
+            ["docker", "exec", CONTAINER_NAME, "ls", "/opt/ros/"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            distros = result.stdout.strip().split()
+            if distros:
+                return distros[0]
+    except Exception:
+        pass
+    return "humble"
+
+
 # Check if Docker ROS2 is available
 def is_docker_ros2_available():
     """Check if ROS2 Docker container is running."""
     try:
         result = subprocess.run(
-            ["docker", "ps", "--filter", "name=ros2_humble", "--format", "{{.Names}}"],
+            ["docker", "ps", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"],
             capture_output=True,
             text=True,
             timeout=5,
         )
-        return "ros2_humble" in result.stdout
+        return CONTAINER_NAME in result.stdout
     except Exception:
         return False
 
@@ -58,7 +79,7 @@ def require_ros2_docker():
     """Ensure ROS2 Docker container is running before any tests."""
     if not DOCKER_ROS2_AVAILABLE:
         pytest.skip(
-            "ROS2 Docker container 'ros2_humble' is not running. "
+            f"ROS2 Docker container '{CONTAINER_NAME}' is not running. "
             "E2E tests require local Docker setup."
         )
 
@@ -80,15 +101,17 @@ class TestGazeboE2E:
         if not DOCKER_ROS2_AVAILABLE:
             pytest.skip("Docker ROS2 not available")
 
+        distro = get_ros_distro()
+
         # Test basic ROS2 command
         result = subprocess.run(
             [
                 "docker",
                 "exec",
-                "ros2_humble",
+                CONTAINER_NAME,
                 "bash",
                 "-c",
-                "source /opt/ros/humble/setup.bash && ros2 --help",
+                f"source /opt/ros/{distro}/setup.bash && ros2 --help",
             ],
             capture_output=True,
             text=True,

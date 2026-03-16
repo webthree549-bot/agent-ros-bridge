@@ -41,8 +41,9 @@ docker run -d \
     --hostname "${CONTAINER_NAME}" \
     -v "${PROJECT_ROOT}:/workspace:ro" \
     -w /workspace \
+    --entrypoint bash \
     "${IMAGE_NAME}" \
-    bash -c "while true; do sleep 1; done"
+    -c "while true; do sleep 1; done"
 
 echo ""
 echo -e "${GREEN}✅ Container '${CONTAINER_NAME}' is running${NC}"
