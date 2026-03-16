@@ -256,7 +256,7 @@ class Connector(ABC):
     connector_type: str = "abstract"
 
     @abstractmethod
-    async def connect(self, uri: str, **kwargs) -> Robot:
+    async def connect(self, uri: str, **kwargs) -> Robot | None:
         """Connect to robot at URI."""
         pass
 

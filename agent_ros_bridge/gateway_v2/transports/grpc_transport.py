@@ -72,15 +72,15 @@ class GRPCTransport(Transport):
 
     transport_type = "grpc"
 
-    def __init__(self, config: dict[str, Any]):
-        super().__init__(config)
+    def __init__(self, name: str, config: dict[str, Any]):
+        super().__init__(name, config)
         self.host = config.get("host", "0.0.0.0")
         self.port = config.get("port", 50051)
         self.max_workers = config.get("max_workers", 10)
         self.server: aio.Server | None = None
         self.authenticator = JWTAuthenticator(config.get("jwt_secret"))
 
-    async def start(self) -> None:
+    async def start(self) -> bool:
         """Start gRPC server."""
         logger.info(f"Starting gRPC server on {self.host}:{self.port}")
 
@@ -106,6 +106,8 @@ class GRPCTransport(Transport):
         # Start server
         await self.server.start()
         logger.info(f"gRPC server started on {listen_addr}")
+        self.running = True
+        return True
 
     async def stop(self) -> None:
         """Stop gRPC server."""
@@ -113,6 +115,17 @@ class GRPCTransport(Transport):
             logger.info("Stopping gRPC server...")
             await self.server.stop(grace_period=5)
             logger.info("gRPC server stopped")
+        self.running = False
+
+    async def send(self, message: Any, recipient: str) -> bool:
+        """Send message to specific recipient (not implemented for gRPC)."""
+        logger.warning("gRPC send not implemented")
+        return False
+
+    async def broadcast(self, message: Any) -> list[str]:
+        """Broadcast to all connected clients (not implemented for gRPC)."""
+        logger.warning("gRPC broadcast not implemented")
+        return []
 
     async def handle_command(self, command: dict[str, Any]) -> dict[str, Any]:
         """Handle incoming command."""

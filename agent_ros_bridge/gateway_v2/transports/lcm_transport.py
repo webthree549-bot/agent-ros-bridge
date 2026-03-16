@@ -226,7 +226,7 @@ class LCMTransport(Transport):
         # Convert Message to LCM format
         if isinstance(message, Message):
             # Build data from available fields
-            data = {
+            data: dict[str, Any] = {
                 "header": {
                     "source": message.header.source if message.header else "unknown",
                     "timestamp": message.header.timestamp.isoformat() if message.header else "",

@@ -182,14 +182,11 @@ class ROS2Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS2 command: {action}")
 
-    async def subscribe(self, topic: str, **kwargs: Any) -> AsyncIterator[Telemetry]:
-        msg_type: str | None = kwargs.get("msg_type")
+    async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:
         """Subscribe to ROS2 topic.
 
         Args:
             topic: ROS topic name
-            msg_type: Optional message type (e.g., "geometry_msgs/Twist").
-                     If not provided, will try to auto-detect from topic info.
         """
         if topic in self.subscriptions:
             logger.warning(f"Already subscribed to {topic}")
@@ -203,12 +200,11 @@ class ROS2Robot(Robot):
                     continue
             return
 
-        # Auto-detect message type if not provided
+        # Auto-detect message type
+        msg_type = self._get_topic_message_type(topic)
         if msg_type is None:
-            msg_type = self._get_topic_message_type(topic)
-            if msg_type is None:
-                logger.error(f"Could not determine message type for {topic}")
-                return
+            logger.error(f"Could not determine message type for {topic}")
+            return
 
         # Get message class
         msg_class = get_message_class(msg_type)
