@@ -11,11 +11,11 @@ _Last updated: 2026-03-16_
 **Current Version:** v0.6.1 (production ready)
 
 ### Status Summary
-- **Tests:** 997 unit tests passing, 36 E2E tests passing
-- **E2E Tests:** 36 passed, 19 skipped (Nav2 requires large Docker image)
+- **Tests:** 997 unit tests passing, 43 E2E tests passing
+- **E2E Tests:** 43 passed, 12 skipped (OpenClaw integration tests)
 - **Coverage:** 40.44% (target: 60%)
 - **CI/CD:** 9-stage pipeline operational
-- **ROS2:** Docker-based (`ros2_humble` container with Jazzy)
+- **ROS2:** Docker-based (`ros2_humble` container with Jazzy + Nav2)
 
 ### Recent Fixes (2026-03-16)
 1. **WebSocketTransport API** - Fixed breaking change in `__init__` signature
@@ -25,8 +25,7 @@ _Last updated: 2026-03-16_
 5. **Dependency Workflow** - Fixed invalid GitHub Action reference
 
 ### Docker Strategy
-- **Base Image:** `agent-ros-bridge:ros2-humble` (ROS2 Jazzy + demo nodes)
-- **Nav2 Image:** Separate image with Nav2 (large, ~2GB additional)
+- **Image:** `agent-ros-bridge:ros2-humble` (ROS2 Jazzy + demo nodes + Nav2, 5GB)
 - **E2E Tests:** Run locally with `./scripts/test-e2e.sh`
 - **CI Behavior:** E2E tests skip if container not running
 
@@ -42,8 +41,8 @@ _Last updated: 2026-03-16_
 
 ### Next Priorities
 - Reach 60% test coverage
-- Complete Nav2 Docker image for navigation E2E tests
 - Optimize CI pipeline speed
+- Fix remaining 12 skipped E2E tests (OpenClaw integration)
 
 ---
 
@@ -51,7 +50,7 @@ _Last updated: 2026-03-16_
 
 | Date | Milestone | Tests | Version |
 |------|-----------|-------|---------|
-| 2026-03-16 | E2E tests fixed, Docker strategy complete | 1033 | v0.6.1 |
+| 2026-03-16 | Nav2 Docker image complete, 43 E2E tests passing | 1040 | v0.6.1 |
 | 2026-03-12 | CI fixes, 997 tests, 40% coverage | 997 | v0.6.1 |
 | 2026-03-09 | Docker-based ROS2 setup complete | 691 | v0.6.1 |
 | 2026-03-04 | Week 1 TODO complete (gRPC, Redis, rate limiting) | - | v0.6.0 |
