@@ -1,10 +1,6 @@
 # ParseIntent.srv
 # Service for parsing natural language utterances into structured intents
 
-# Request
----
-# Response
-
 # The natural language utterance to parse
 # Examples:
 #   "go to the kitchen"

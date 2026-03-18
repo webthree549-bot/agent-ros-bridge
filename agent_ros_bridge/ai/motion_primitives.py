@@ -64,6 +64,11 @@ class MotionPrimitive:
     parameters: dict[str, Any] = field(default_factory=dict)
     expected_duration: float = 0.0
 
+    @property
+    def name(self) -> str:
+        """Return the primitive name (alias for type)."""
+        return self.type
+
     def validate(self) -> bool:
         """Validate primitive parameters.
 
@@ -674,17 +679,43 @@ class MotionPrimitiveFactory:
 
 
 # Convenience functions for quick primitive creation
-def navigate_to_pose(target_pose: Any, max_velocity: float = 0.5) -> NavigateToPosePrimitive:
+def navigate_to_pose(
+    target_pose: Any = None,
+    x: float = None,
+    y: float = None,
+    theta: float = 0.0,
+    max_velocity: float = 0.5,
+) -> NavigateToPosePrimitive:
     """Create a navigate to pose primitive.
 
     Args:
-        target_pose: Target pose to navigate to
+        target_pose: Target pose to navigate to (optional)
+        x: X coordinate (alternative to target_pose)
+        y: Y coordinate (alternative to target_pose)
+        theta: Orientation in radians (alternative to target_pose)
         max_velocity: Maximum linear velocity
 
     Returns:
         NavigateToPosePrimitive instance
+
+    Examples:
+        # Using target_pose
+        nav = navigate_to_pose(target_pose=some_pose)
+
+        # Using coordinates
+        nav = navigate_to_pose(x=1.0, y=2.0, theta=0.0)
     """
-    return NavigateToPosePrimitive(target_pose=target_pose, max_velocity=max_velocity)
+    if target_pose is not None:
+        return NavigateToPosePrimitive(target_pose=target_pose, max_velocity=max_velocity)
+    elif x is not None and y is not None:
+        # Create pose from coordinates
+        pose = PoseStamped()
+        pose.pose.position.x = x
+        pose.pose.position.y = y
+        pose.pose.orientation.w = 1.0  # Simplified orientation
+        return NavigateToPosePrimitive(target_pose=pose, max_velocity=max_velocity)
+    else:
+        raise ValueError("Must provide either target_pose or both x and y coordinates")
 
 
 def pick_object(

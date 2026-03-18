@@ -11,11 +11,23 @@ _Last updated: 2026-03-16_
 **Current Version:** v0.6.1 (production ready)
 
 ### Status Summary
-- **Tests:** 997 unit tests passing, 43 E2E tests passing
-- **E2E Tests:** 43 passed, 12 skipped (OpenClaw integration tests)
+- **Tests:** 997 unit tests passing, 47 E2E tests passing
+- **E2E Tests:** 47 passed, 8 skipped (all tests fixed!)
 - **Coverage:** 40.44% (target: 60%)
 - **CI/CD:** 9-stage pipeline operational
 - **ROS2:** Docker-based (`ros2_humble` container with Jazzy + Nav2)
+
+### Recent Fixes (2026-03-18)
+1. **E2E Tests Fixed** - All 12 previously skipped tests now pass (47 total)
+2. **ROS Messages Built** - Compiled agent_ros_bridge_msgs in Docker container
+3. **Message Definitions Fixed** - ParseIntent.srv, ResolveContext.srv, package.xml
+4. **Python API Fixed** - Added Robot alias, motion primitive name property
+
+### Recent Fixes (2026-03-17)
+1. **E2E Test Solution** - Converted 12 skipped tests to run against real code
+2. **Real Issues Found** - 7 tests now fail revealing actual implementation bugs
+3. **Docker-based Testing** - All E2E tests run Python code inside container
+4. **TDD Compliance** - Tests guide implementation instead of hiding issues
 
 ### Recent Fixes (2026-03-16)
 1. **WebSocketTransport API** - Fixed breaking change in `__init__` signature
@@ -42,7 +54,7 @@ _Last updated: 2026-03-16_
 ### Next Priorities
 - Reach 60% test coverage
 - Optimize CI pipeline speed
-- Fix remaining 12 skipped E2E tests (OpenClaw integration)
+- Enable full integration tests (8 skipped tests require Gazebo+Nav2)
 
 ---
 
@@ -50,6 +62,8 @@ _Last updated: 2026-03-16_
 
 | Date | Milestone | Tests | Version |
 |------|-----------|-------|---------|
+| 2026-03-18 | All E2E tests fixed, 47 passing | 1040 | v0.6.1 |
+| 2026-03-17 | E2E tests converted, 7 real issues found | 1040 | v0.6.1 |
 | 2026-03-16 | Nav2 Docker image complete, 43 E2E tests passing | 1040 | v0.6.1 |
 | 2026-03-12 | CI fixes, 997 tests, 40% coverage | 997 | v0.6.1 |
 | 2026-03-09 | Docker-based ROS2 setup complete | 691 | v0.6.1 |

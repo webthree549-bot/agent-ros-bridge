@@ -113,3 +113,20 @@ try:
     )
 except ImportError:
     _ROBOT_API_AVAILABLE = False
+
+
+# Convenience alias for standalone API
+# The test expects 'Robot' but we have 'RobotController'
+class Robot(RobotController):
+    """Convenience alias for RobotController.
+
+    Provides a simpler class name for standalone usage:
+        from agent_ros_bridge import Robot
+        robot = Robot()
+        robot.navigate_to(NavigationGoal(x=1.0, y=2.0))
+    """
+
+    pass
+
+
+__all__.append("Robot")

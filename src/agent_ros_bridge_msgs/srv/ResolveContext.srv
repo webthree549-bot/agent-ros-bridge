@@ -1,10 +1,6 @@
 # ResolveContext.srv
 # Service for resolving contextual references in natural language
 
-# Request
----
-# Response
-
 # The context query to resolve
 ContextQuery query
 
