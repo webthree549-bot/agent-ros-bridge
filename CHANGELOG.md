@@ -25,6 +25,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.2] - 2026-03-18
+
+### Fixed
+- **E2E Test Infrastructure** - Fixed all E2E tests (47 passing, up from 43)
+  - Built ROS messages in Docker container using `colcon build`
+  - Fixed service file syntax in `ParseIntent.srv` and `ResolveContext.srv`
+  - Fixed `package.xml` dependencies (removed redundant entries)
+- **Python API** - Added missing features for test compatibility
+  - Added `Robot` class alias for `RobotController`
+  - Added `name` property to `MotionPrimitive`
+  - Fixed `navigate_to_pose()` to accept `x, y, theta` parameters
+- **Test Scripts** - Updated to use compiled ROS messages
+  - Tests now run inside Docker container with proper ROS environment
+  - Added `rclpy.init()` / `rclpy.shutdown()` calls
+  - Fixed import paths for `robot_api` module
+
 ## [0.6.1] - 2026-03-09
 
 ### Added

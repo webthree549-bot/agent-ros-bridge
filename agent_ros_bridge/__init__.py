@@ -12,7 +12,7 @@ Example:
     >>> await bridge.start()
 """
 
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 __author__ = "Agent ROS Bridge Team"
 __email__ = "dev@agent-ros-bridge.org"
 
