@@ -27,7 +27,7 @@ class SecureConfig:
     # Patterns that look like API keys (for redaction)
     SENSITIVE_PATTERNS = [
         (r"sk-[a-zA-Z0-9]{48}", "sk-***"),  # OpenAI
-        (r"sk-ant-[a-zA-Z0-9]{32}", "sk-ant-***"),  # Anthropic
+        (r"sk-ant-[a-zA-Z0-9]{24,32}", "sk-ant-***"),  # Anthropic (variable length)
         (r"[a-f0-9]{64}", "***"),  # Generic hex keys
     ]
 
