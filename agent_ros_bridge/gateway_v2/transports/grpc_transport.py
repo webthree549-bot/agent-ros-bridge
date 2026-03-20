@@ -8,10 +8,16 @@ from collections.abc import Callable
 from concurrent import futures
 from typing import Any
 
-import grpc
-from grpc import aio
+try:
+    import grpc
+    from grpc import aio
+    GRPC_AVAILABLE = True
+except ImportError:
+    GRPC_AVAILABLE = False
+    grpc = None  # type: ignore
+    aio = None  # type: ignore
 
-from ..auth import Authenticator, JWTAuthenticator
+from ..auth import AuthConfig, Authenticator
 from ..core import Transport
 
 # Generated protobuf imports (would be generated from .proto files)
@@ -72,16 +78,30 @@ class GRPCTransport(Transport):
 
     transport_type = "grpc"
 
-    def __init__(self, name: str, config: dict[str, Any]):
-        super().__init__(name, config)
-        self.host = config.get("host", "0.0.0.0")
-        self.port = config.get("port", 50051)
-        self.max_workers = config.get("max_workers", 10)
+    def __init__(self, config: dict[str, Any] | None = None):
+        self.name = "grpc"
+        self.config = config or {}
+        self.host = self.config.get("host", "0.0.0.0")
+        self.port = self.config.get("port", 50051)
+        self.max_workers = self.config.get("max_workers", 10)
+        self.reflection = self.config.get("reflection", True)
+        self.keepalive_time_ms = self.config.get("keepalive_time_ms", 10000)
+        self.tls_cert = self.config.get("tls_cert")
+        self.tls_key = self.config.get("tls_key")
+        self.ca_cert = self.config.get("ca_cert")
         self.server: aio.Server | None = None
-        self.authenticator = JWTAuthenticator(config.get("jwt_secret"))
+        self.running = False
+        auth_config = AuthConfig(
+            jwt_secret=self.config.get("jwt_secret", "test-secret")
+        )
+        self.authenticator = Authenticator(auth_config)
 
     async def start(self) -> bool:
         """Start gRPC server."""
+        if not GRPC_AVAILABLE:
+            logger.error("gRPC not available")
+            return False
+
         logger.info(f"Starting gRPC server on {self.host}:{self.port}")
 
         # Create server

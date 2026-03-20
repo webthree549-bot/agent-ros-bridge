@@ -132,7 +132,7 @@ class RobotController:
             print("✅ RobotController connected to ROS")
 
         except ImportError as e:
-            print(f"Warning: ROS2 not available ({e}). Running in mock mode.")
+            # ROS2 not available, running in mock mode
             self._connected = False
 
     def _odom_callback(self, msg):

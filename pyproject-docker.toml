@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests",
+    "ros: ROS-dependent tests",
+    "asyncio: Async tests",
+    "benchmark: Benchmark tests",
+]

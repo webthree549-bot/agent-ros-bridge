@@ -23,7 +23,7 @@ try:
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
-    print("Warning: ROS2 not available. Running mock tests only.")
+    # Warning suppressed - tests will be skipped individually
 
 
 class TestMessageSerialization(unittest.TestCase):
