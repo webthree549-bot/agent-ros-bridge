@@ -143,9 +143,11 @@ class TestExecuteTool:
         """Test ros2_list_topics with no connector."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        result = await adapter.execute_tool("ros2_list_topics", {})
-        assert result["success"] is False
-        assert "ROS2 connector not available" in result["error"]
+        # Mock _get_ros2_connector to return None
+        with patch.object(adapter, "_get_ros2_connector", return_value=None):
+            result = await adapter.execute_tool("ros2_list_topics", {})
+            assert result["success"] is False
+            assert "ROS2 connector not available" in result["error"]
 
     @pytest.mark.asyncio
     async def test_execute_bridge_list_robots_no_fleets(self):

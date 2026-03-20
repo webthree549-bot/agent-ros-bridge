@@ -51,38 +51,54 @@ class TestRobotControllerNavigationDetailed:
     def test_navigate_goal_rejected(self):
         """Test navigation when goal is rejected."""
         with patch.object(RobotController, "_connect"):
-            robot = RobotController()
-            robot._connected = True
-            robot._nav_client = MagicMock()
-            robot._node = MagicMock()
+            with patch.dict(
+                "sys.modules",
+                {
+                    "geometry_msgs.msg": MagicMock(),
+                    "rclpy": MagicMock(),
+                    "nav2_msgs.action": MagicMock(),
+                },
+            ):
+                robot = RobotController()
+                robot._connected = True
+                robot._nav_client = MagicMock()
+                robot._node = MagicMock()
 
-            # Mock goal handle with rejected goal
-            mock_future = MagicMock()
-            mock_future.result.return_value = None  # Goal rejected
-            robot._nav_client.wait_for_server = MagicMock(return_value=True)
-            robot._nav_client.send_goal_async = MagicMock(return_value=mock_future)
+                # Mock goal handle with rejected goal
+                mock_future = MagicMock()
+                mock_future.result.return_value = None  # Goal rejected
+                robot._nav_client.wait_for_server = MagicMock(return_value=True)
+                robot._nav_client.send_goal_async = MagicMock(return_value=mock_future)
 
-            goal = NavigationGoal(x=5.0, y=5.0)
-            result = robot.navigate_to(goal)
+                goal = NavigationGoal(x=5.0, y=5.0)
+                result = robot.navigate_to(goal)
 
-            assert result.success is False
-            assert "rejected" in result.error_message.lower()
+                assert result.success is False
+                assert "rejected" in result.error_message.lower()
 
     def test_navigate_server_not_available(self):
         """Test navigation when server not available."""
         with patch.object(RobotController, "_connect"):
-            robot = RobotController()
-            robot._connected = True
-            robot._nav_client = MagicMock()
+            with patch.dict(
+                "sys.modules",
+                {
+                    "geometry_msgs.msg": MagicMock(),
+                    "rclpy": MagicMock(),
+                    "nav2_msgs.action": MagicMock(),
+                },
+            ):
+                robot = RobotController()
+                robot._connected = True
+                robot._nav_client = MagicMock()
 
-            # Server not available
-            robot._nav_client.wait_for_server = MagicMock(return_value=False)
+                # Server not available
+                robot._nav_client.wait_for_server = MagicMock(return_value=False)
 
-            goal = NavigationGoal(x=5.0, y=5.0)
-            result = robot.navigate_to(goal)
+                goal = NavigationGoal(x=5.0, y=5.0)
+                result = robot.navigate_to(goal)
 
-            assert result.success is False
-            assert "not available" in result.error_message.lower()
+                assert result.success is False
+                assert "not available" in result.error_message.lower()
 
 
 class TestRobotControllerManipulationDetailed:
@@ -127,14 +143,15 @@ class TestRobotControllerStopDetailed:
     def test_stop_connected_publishes(self):
         """Test stop publishes when connected."""
         with patch.object(RobotController, "_connect"):
-            robot = RobotController()
-            robot._connected = True
-            robot._cmd_vel_pub = MagicMock()
+            with patch.dict("sys.modules", {"geometry_msgs.msg": MagicMock()}):
+                robot = RobotController()
+                robot._connected = True
+                robot._cmd_vel_pub = MagicMock()
 
-            result = robot.stop()
+                result = robot.stop()
 
-            assert result is True
-            robot._cmd_vel_pub.publish.assert_called_once()
+                assert result is True
+                robot._cmd_vel_pub.publish.assert_called_once()
 
     def test_stop_disconnected(self):
         """Test stop when disconnected."""

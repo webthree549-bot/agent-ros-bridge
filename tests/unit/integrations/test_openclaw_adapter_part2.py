@@ -122,11 +122,10 @@ class TestOpenClawAdapterExecuteToolDetailed:
     async def test_execute_ros2_list_services(self):
         """Test ros2_list_services execution."""
         mock_bridge = Mock()
-        mock_ros2 = MagicMock()
-        mock_ros2.list_services = AsyncMock(return_value=["/spawn", "/reset"])
-        adapter = OpenClawAdapter(mock_bridge)
-        adapter._get_ros2_connector = Mock(return_value=mock_ros2)
+        # Mock the bridge's execute_action to handle list_services
+        mock_bridge.execute_action = AsyncMock(return_value=["/spawn", "/reset"])
 
+        adapter = OpenClawAdapter(mock_bridge)
         result = await adapter.execute_tool("ros2_list_services", {})
 
         assert result["success"] is True

@@ -9,8 +9,12 @@ from agent_ros_bridge.metrics import (
     MetricsCollector,
     MetricsServer,
     MetricsSnapshot,
+    PROMETHEUS_AVAILABLE,
     get_metrics,
 )
+
+# Skip all tests in this file if prometheus_client is not available
+pytestmark = pytest.mark.skipif(not PROMETHEUS_AVAILABLE, reason="prometheus_client not available")
 
 
 class TestMetricsCollectorWithPrometheus:

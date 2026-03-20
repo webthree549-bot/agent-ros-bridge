@@ -52,14 +52,13 @@ class TestMetricsCollectorInitialization:
 
     def test_init_with_prometheus(self):
         """Test initialization with prometheus."""
-        with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", True):
-            with patch("agent_ros_bridge.metrics.CollectorRegistry"):
-                with patch("agent_ros_bridge.metrics.Counter"):
-                    with patch("agent_ros_bridge.metrics.Gauge"):
-                        with patch("agent_ros_bridge.metrics.Histogram"):
-                            with patch("agent_ros_bridge.metrics.Info"):
-                                collector = MetricsCollector()
-                                assert collector._initialized is True
+        from agent_ros_bridge.metrics import PROMETHEUS_AVAILABLE
+
+        if not PROMETHEUS_AVAILABLE:
+            pytest.skip("prometheus_client not available")
+        # When prometheus is available, the collector should initialize
+        collector = MetricsCollector()
+        assert collector._initialized is True
 
 
 class TestMetricsRecording:

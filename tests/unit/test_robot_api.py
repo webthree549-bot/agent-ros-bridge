@@ -178,12 +178,13 @@ class TestRobotControllerStop:
     def test_stop_connected(self):
         """Test stop when connected."""
         with patch.object(RobotController, "_connect"):
-            robot = RobotController()
-            robot._connected = True
-            robot._cmd_vel_pub = Mock()
-            result = robot.stop()
-            assert result is True
-            robot._cmd_vel_pub.publish.assert_called_once()
+            with patch.dict("sys.modules", {"geometry_msgs.msg": MagicMock()}):
+                robot = RobotController()
+                robot._connected = True
+                robot._cmd_vel_pub = Mock()
+                result = robot.stop()
+                assert result is True
+                robot._cmd_vel_pub.publish.assert_called_once()
 
 
 class TestRobotControllerSay:
