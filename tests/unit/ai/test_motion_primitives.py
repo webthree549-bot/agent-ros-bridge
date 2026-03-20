@@ -10,6 +10,7 @@ import pytest
 # Try to import rclpy, skip all tests in this module if not available
 try:
     import rclpy
+
     RCLPY_AVAILABLE = True
 except ImportError:
     RCLPY_AVAILABLE = False
@@ -37,9 +38,9 @@ class TestMotionPrimitiveBase:
             parameters={"key": "value"},
             expected_duration=5.0,
         )
-        
+
         data = primitive.to_dict()
-        
+
         assert data["type"] == "TEST"
         assert data["primitive_id"] == "test_primitive"
         assert data["parameters"]["key"] == "value"
@@ -125,21 +126,21 @@ class TestMotionPrimitiveFactory:
         factory = MotionPrimitiveFactory()
         mock_pose = Mock()
         primitive = factory.create_navigate_to_pose(target_pose=mock_pose)
-        
+
         assert isinstance(primitive, NavigateToPosePrimitive)
 
     def test_create_gripper_control(self):
         """Test creating gripper primitive."""
         factory = MotionPrimitiveFactory()
         primitive = factory.create_gripper_control(action="open")
-        
+
         assert isinstance(primitive, GripperControlPrimitive)
 
     def test_create_rotate_in_place(self):
         """Test creating rotate primitive."""
         factory = MotionPrimitiveFactory()
         primitive = factory.create_rotate_in_place(angle=90.0)
-        
+
         assert isinstance(primitive, RotateInPlacePrimitive)
 
     def test_create_from_dict(self):
@@ -151,6 +152,6 @@ class TestMotionPrimitiveFactory:
             "parameters": {"action": "open"},
         }
         primitive = factory.create_from_dict(data)
-        
+
         assert primitive is not None
         assert primitive.type == "GRIPPER"

@@ -98,12 +98,14 @@ class TestAgentROSBridgeE2E:
         """Test Agent can parse natural language to intent (runs in Docker)."""
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
-        
+
         if not ros_messages_compiled():
-            pytest.skip("ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'")
+            pytest.skip(
+                "ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'"
+            )
 
         # Run intent parsing test inside the container
-        test_script = '''
+        test_script = """
 import sys
 # Use compiled messages first, then workspace
 sys.path.insert(0, "/tmp/ros_build/install/agent_ros_bridge_msgs/lib/python3.12/site-packages")
@@ -144,12 +146,12 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "INTENT_PARSING_PASSED" not in result.stdout:
             pytest.fail(f"Intent parsing test failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ Agent intent parsing test passed")
 
     def test_bridge_ros_command_execution(self):
@@ -184,12 +186,14 @@ except Exception as e:
         """
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
-            
+
         if not ros_messages_compiled():
-            pytest.skip("ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'")
+            pytest.skip(
+                "ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'"
+            )
 
         # Run full flow test inside the container
-        test_script = '''
+        test_script = """
 import sys
 # Use compiled messages first, then workspace
 sys.path.insert(0, "/tmp/ros_build/install/agent_ros_bridge_msgs/lib/python3.12/site-packages")
@@ -228,12 +232,12 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "FULL_FLOW_PASSED" not in result.stdout:
             pytest.fail(f"Full flow test failed: {result.stdout} {result.stderr}")
-        
+
         # Step 3: Verify ROS2 can receive commands
         result = run_in_ros2_container("ros2 topic list")
         assert result.returncode == 0
@@ -245,12 +249,14 @@ except Exception as e:
         """Test end-to-end latency is acceptable."""
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
-            
+
         if not ros_messages_compiled():
-            pytest.skip("ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'")
+            pytest.skip(
+                "ROS messages not compiled - run 'colcon build --packages-select agent_ros_bridge_msgs'"
+            )
 
         # Run performance test inside the container
-        test_script = '''
+        test_script = """
 import sys
 import time
 # Use compiled messages first, then workspace
@@ -300,15 +306,15 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "PERFORMANCE_PASSED" not in result.stdout:
             pytest.fail(f"Performance test failed: {result.stdout} {result.stderr}")
-        
+
         # Extract and print performance metrics
-        for line in result.stdout.split('\n'):
-            if 'PERFORMANCE:' in line:
+        for line in result.stdout.split("\n"):
+            if "PERFORMANCE:" in line:
                 print(f"\n✅ {line.replace('PERFORMANCE:', 'Performance:')}")
 
 

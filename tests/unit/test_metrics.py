@@ -139,7 +139,7 @@ class TestMetricsSnapshot:
             collector.set_robots_online(3)
             collector.set_robots_total(5)
             collector.record_message_sent()
-            
+
             snapshot = collector.get_snapshot()
             assert isinstance(snapshot, MetricsSnapshot)
             assert snapshot.robots_online == 3
@@ -155,7 +155,7 @@ class TestMetricsText:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             collector = MetricsCollector()
             collector.set_robots_online(3)
-            
+
             text = collector.get_metrics_text()
             assert "robots_online 3" in text
             assert "Agent ROS Bridge Metrics" in text
@@ -194,8 +194,9 @@ class TestGetMetrics:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             # Reset global
             import agent_ros_bridge.metrics as metrics_module
+
             metrics_module._global_metrics = None
-            
+
             m1 = get_metrics()
             m2 = get_metrics()
             assert m1 is m2

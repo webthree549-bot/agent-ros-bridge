@@ -31,14 +31,15 @@ class TestMetricsRecordingAdditional:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             with patch.dict("sys.modules", {"psutil": MagicMock()}):
                 import sys
+
                 mock_psutil = MagicMock()
                 mock_psutil.cpu_percent.return_value = 50.0
                 mock_psutil.virtual_memory.return_value.used = 1024 * 1024 * 100  # 100MB
                 sys.modules["psutil"] = mock_psutil
-                
+
                 collector = MetricsCollector()
                 collector.update_system_metrics()
-                
+
                 assert collector._gauges.get("cpu_percent") == 50.0
                 assert collector._gauges.get("memory_mb") == 100.0
 
@@ -56,10 +57,10 @@ class TestMetricsServerAdditional:
                     mock_runner.return_value = mock_runner_instance
                     mock_site_instance = AsyncMock()
                     mock_site.return_value = mock_site_instance
-                    
+
                     server = MetricsServer(port=8080)
                     await server.start()
-                    
+
                     assert server.running is True
 
     def test_stop_server(self):

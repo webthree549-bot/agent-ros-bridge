@@ -55,7 +55,7 @@ class TestContextManager:
         with patch("sqlite3.connect") as mock_connect:
             mock_conn, _ = _create_mock_conn()
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager()
             assert manager.db_path.name == ".agent_ros_context.db"
 
@@ -65,10 +65,10 @@ class TestContextManager:
             mock_conn, mock_cursor = _create_mock_conn()
             mock_cursor.fetchone.return_value = None
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager(":memory:")
             ctx = manager.get_context("new_session")
-            
+
             assert ctx.session_id == "new_session"
 
     def test_save_context(self):
@@ -76,14 +76,17 @@ class TestContextManager:
         with patch("sqlite3.connect") as mock_connect:
             mock_conn, _ = _create_mock_conn()
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager(":memory:")
             ctx = ConversationContext(session_id="test", current_location="kitchen")
             manager.save_context(ctx)
-            
+
             # Check that execute was called with INSERT/REPLACE
-            calls = [call for call in mock_conn.execute.call_args_list 
-                     if 'INSERT' in str(call) or 'REPLACE' in str(call)]
+            calls = [
+                call
+                for call in mock_conn.execute.call_args_list
+                if "INSERT" in str(call) or "REPLACE" in str(call)
+            ]
             assert len(calls) > 0
 
     def test_learn_location(self):
@@ -91,13 +94,16 @@ class TestContextManager:
         with patch("sqlite3.connect") as mock_connect:
             mock_conn, _ = _create_mock_conn()
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager(":memory:")
             manager.learn_location("session1", "kitchen", {"x": 10, "y": 5})
-            
+
             # Check that execute was called with INSERT/REPLACE for locations
-            calls = [call for call in mock_conn.execute.call_args_list 
-                     if 'locations' in str(call).lower()]
+            calls = [
+                call
+                for call in mock_conn.execute.call_args_list
+                if "locations" in str(call).lower()
+            ]
             assert len(calls) > 0
 
     def test_get_location_found(self):
@@ -110,10 +116,10 @@ class TestContextManager:
                 (json.dumps({"x": 10, "y": 5}),),  # location row
             ]
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager(":memory:")
             coords = manager.get_location("session1", "kitchen")
-            
+
             assert coords == {"x": 10, "y": 5}
 
     def test_get_location_not_found(self):
@@ -126,10 +132,10 @@ class TestContextManager:
                 None,  # location row
             ]
             mock_connect.return_value = mock_conn
-            
+
             manager = ContextManager(":memory:")
             coords = manager.get_location("session1", "unknown")
-            
+
             assert coords is None
 
 
@@ -141,7 +147,7 @@ class TestContextAwareNLInterpreter:
         mock_nl = MagicMock()
         mock_ctx = MagicMock()
         interpreter = ContextAwareNLInterpreter(mock_nl, mock_ctx)
-        
+
         assert interpreter.base is mock_nl
         assert interpreter.context is mock_ctx
 
@@ -151,8 +157,8 @@ class TestContextAwareNLInterpreter:
         mock_nl.interpret.return_value = {"tool": "navigate"}
         mock_ctx = MagicMock()
         mock_ctx.get_context.return_value = MagicMock(known_locations={"kitchen": {"x": 10}})
-        
+
         interpreter = ContextAwareNLInterpreter(mock_nl, mock_ctx)
         result = interpreter.interpret("go to kitchen", "session1")
-        
+
         assert result["tool"] == "navigate"

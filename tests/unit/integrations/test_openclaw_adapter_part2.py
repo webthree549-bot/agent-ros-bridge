@@ -16,7 +16,7 @@ class TestOpenClawAdapterToolFormats:
         """Test that all default tools are registered."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         expected_tools = [
             "ros2_publish",
             "ros2_subscribe_once",
@@ -36,7 +36,7 @@ class TestOpenClawAdapterToolFormats:
             "memory_set",
             "memory_get",
         ]
-        
+
         for tool_name in expected_tools:
             assert tool_name in adapter._tools, f"Tool {tool_name} not found"
 
@@ -44,10 +44,15 @@ class TestOpenClawAdapterToolFormats:
         """Test that dangerous tools are marked correctly."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         # These should be marked dangerous
-        dangerous_tools = ["ros2_action_goal", "ros2_param_set", "safety_trigger_estop", "safety_release_estop"]
-        
+        dangerous_tools = [
+            "ros2_action_goal",
+            "ros2_param_set",
+            "safety_trigger_estop",
+            "safety_release_estop",
+        ]
+
         for tool_name in dangerous_tools:
             tool = adapter.get_tool(tool_name)
             assert tool.dangerous is True, f"Tool {tool_name} should be dangerous"
@@ -60,9 +65,9 @@ class TestOpenClawAdapterToolFormats:
             parameters={"arg1": {"type": "string", "description": "An argument"}},
             dangerous=False,
         )
-        
+
         result = tool.to_openclaw_format()
-        
+
         assert result["name"] == "test_tool"
         assert result["description"] == "A test tool"
         assert result["dangerous"] is False
@@ -82,12 +87,15 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_ros2 = MagicMock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter._get_ros2_connector = Mock(return_value=mock_ros2)
-        
-        result = await adapter.execute_tool("ros2_param_get", {
-            "node_name": "/robot",
-            "param_name": "max_speed",
-        })
-        
+
+        result = await adapter.execute_tool(
+            "ros2_param_get",
+            {
+                "node_name": "/robot",
+                "param_name": "max_speed",
+            },
+        )
+
         # Should attempt execution
         assert "success" in result
 
@@ -98,13 +106,16 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_ros2 = MagicMock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter._get_ros2_connector = Mock(return_value=mock_ros2)
-        
-        result = await adapter.execute_tool("ros2_param_set", {
-            "node_name": "/robot",
-            "param_name": "max_speed",
-            "value": 1.0,
-        })
-        
+
+        result = await adapter.execute_tool(
+            "ros2_param_set",
+            {
+                "node_name": "/robot",
+                "param_name": "max_speed",
+                "value": 1.0,
+            },
+        )
+
         assert "success" in result
 
     @pytest.mark.asyncio
@@ -115,9 +126,9 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_ros2.list_services = AsyncMock(return_value=["/spawn", "/reset"])
         adapter = OpenClawAdapter(mock_bridge)
         adapter._get_ros2_connector = Mock(return_value=mock_ros2)
-        
+
         result = await adapter.execute_tool("ros2_list_services", {})
-        
+
         assert result["success"] is True
 
     @pytest.mark.asyncio
@@ -127,11 +138,14 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_ros2 = MagicMock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter._get_ros2_connector = Mock(return_value=mock_ros2)
-        
-        result = await adapter.execute_tool("ros2_camera_snapshot", {
-            "camera_topic": "/camera/image_raw",
-        })
-        
+
+        result = await adapter.execute_tool(
+            "ros2_camera_snapshot",
+            {
+                "camera_topic": "/camera/image_raw",
+            },
+        )
+
         assert "success" in result
 
     @pytest.mark.asyncio
@@ -140,11 +154,14 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_bridge = Mock()
         mock_bridge.fleets = {}
         adapter = OpenClawAdapter(mock_bridge)
-        
-        result = await adapter.execute_tool("bridge_get_robot_status", {
-            "robot_id": "robot1",
-        })
-        
+
+        result = await adapter.execute_tool(
+            "bridge_get_robot_status",
+            {
+                "robot_id": "robot1",
+            },
+        )
+
         # Should fail since no fleets
         assert result["success"] is False
 
@@ -153,13 +170,16 @@ class TestOpenClawAdapterExecuteToolDetailed:
         """Test fleet_submit_task execution."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
-        result = await adapter.execute_tool("fleet_submit_task", {
-            "task_type": "navigate",
-            "target_location": "kitchen",
-            "priority": 5,
-        })
-        
+
+        result = await adapter.execute_tool(
+            "fleet_submit_task",
+            {
+                "task_type": "navigate",
+                "target_location": "kitchen",
+                "priority": 5,
+            },
+        )
+
         assert "success" in result
 
     @pytest.mark.asyncio
@@ -171,21 +191,27 @@ class TestOpenClawAdapterExecuteToolDetailed:
         mock_memory.get = AsyncMock(return_value="test_value")
         mock_bridge.memory = mock_memory
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         # Test memory_set
-        result = await adapter.execute_tool("memory_set", {
-            "key": "test_key",
-            "value": "test_value",
-            "ttl": 3600,
-        })
-        
+        result = await adapter.execute_tool(
+            "memory_set",
+            {
+                "key": "test_key",
+                "value": "test_value",
+                "ttl": 3600,
+            },
+        )
+
         assert result["success"] is True
-        
+
         # Test memory_get
-        result = await adapter.execute_tool("memory_get", {
-            "key": "test_key",
-        })
-        
+        result = await adapter.execute_tool(
+            "memory_get",
+            {
+                "key": "test_key",
+            },
+        )
+
         assert result["success"] is True
         assert result["data"]["value"] == "test_value"
 
@@ -197,12 +223,12 @@ class TestOpenClawAdapterRosclawCompatibility:
         """Test RosClaw format structure."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         tools = adapter.to_rosclaw_compatible_format()
-        
+
         assert isinstance(tools, list)
         assert len(tools) > 0
-        
+
         for tool in tools:
             assert tool["type"] == "function"
             assert "function" in tool
@@ -214,9 +240,9 @@ class TestOpenClawAdapterRosclawCompatibility:
         """Test that format matches RosClaw interface."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         tools = adapter.to_rosclaw_compatible_format()
-        
+
         # Should have standard ROS2 tools
         tool_names = [t["function"]["name"] for t in tools]
         assert "ros2_publish" in tool_names
@@ -232,20 +258,22 @@ class TestOpenClawAdapterNaturalLanguageDetailed:
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter.enable_natural_language()
-        
+
         # Mock interpreter
         adapter.contextual_interpreter = MagicMock()
-        adapter.contextual_interpreter.interpret = Mock(return_value={
-            "tool": "ros2_action_goal",
-            "action_name": "/navigate_to_pose",
-            "goal": {"pose": {"position": {"x": 5, "y": 3}}},
-            "explanation": "Navigate to coordinates",
-            "location_name": "kitchen",
-        })
-        
+        adapter.contextual_interpreter.interpret = Mock(
+            return_value={
+                "tool": "ros2_action_goal",
+                "action_name": "/navigate_to_pose",
+                "goal": {"pose": {"position": {"x": 5, "y": 3}}},
+                "explanation": "Navigate to coordinates",
+                "location_name": "kitchen",
+            }
+        )
+
         with patch.object(adapter, "execute_tool", return_value={"success": True}):
             result = await adapter.execute_nl("go to kitchen", "session1")
-            
+
             assert result["success"] is True
             assert result["command"] == "go to kitchen"
             assert "interpretation" in result
@@ -256,16 +284,18 @@ class TestOpenClawAdapterNaturalLanguageDetailed:
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter.enable_natural_language()
-        
+
         # Mock interpreter returning error
         adapter.contextual_interpreter = MagicMock()
-        adapter.contextual_interpreter.interpret = Mock(return_value={
-            "error": "Unknown command",
-            "suggestion": "Try: move forward",
-        })
-        
+        adapter.contextual_interpreter.interpret = Mock(
+            return_value={
+                "error": "Unknown command",
+                "suggestion": "Try: move forward",
+            }
+        )
+
         result = await adapter.execute_nl("do something weird", "session1")
-        
+
         assert result["success"] is False
         assert "error" in result
 
@@ -274,9 +304,9 @@ class TestOpenClawAdapterNaturalLanguageDetailed:
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
         adapter.enable_natural_language()
-        
+
         adapter.learn_location("session1", "kitchen", {"x": 10, "y": 5})
-        
+
         ctx = adapter.context_manager.get_context("session1")
         assert "kitchen" in ctx.known_locations
         assert ctx.known_locations["kitchen"] == {"x": 10, "y": 5}
@@ -290,7 +320,7 @@ class TestOpenClawAdapterSkillPackagingDetailed:
         """Test that package_skill creates zip file."""
         mock_bridge = Mock()
         adapter = OpenClawAdapter(mock_bridge)
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             skill_dir = Path(tmpdir) / "agent-ros-bridge"
             skill_dir.mkdir()
@@ -299,18 +329,19 @@ class TestOpenClawAdapterSkillPackagingDetailed:
             subdir = skill_dir / "subdir"
             subdir.mkdir()
             (subdir / "file.txt").write_text("content")
-            
+
             adapter._skill_path = skill_dir
             output_dir = Path(tmpdir)
-            
+
             result = adapter.package_skill(output_dir)
-            
+
             assert result.exists()
             assert result.suffix == ".skill"
-            
+
             # Verify zip contents
             import zipfile
-            with zipfile.ZipFile(result, 'r') as zf:
+
+            with zipfile.ZipFile(result, "r") as zf:
                 names = zf.namelist()
                 assert "SKILL.md" in names
                 assert "tools.yaml" in names

@@ -24,9 +24,9 @@ class TestRobotControllerStateDetailed:
             robot._current_pose.position.x = 1.5
             robot._current_pose.position.y = 2.5
             robot._battery_level = 75.5
-            
+
             state = robot.get_state()
-            
+
             assert state["connected"] is True
             assert state["battery_level"] == 75.5
             assert state["pose"] is not None
@@ -37,9 +37,9 @@ class TestRobotControllerStateDetailed:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = False
-            
+
             state = robot.get_state()
-            
+
             assert state["connected"] is False
             assert state["status"] == "disconnected"
             assert state["pose"] is None
@@ -55,16 +55,16 @@ class TestRobotControllerNavigationDetailed:
             robot._connected = True
             robot._nav_client = MagicMock()
             robot._node = MagicMock()
-            
+
             # Mock goal handle with rejected goal
             mock_future = MagicMock()
             mock_future.result.return_value = None  # Goal rejected
             robot._nav_client.wait_for_server = MagicMock(return_value=True)
             robot._nav_client.send_goal_async = MagicMock(return_value=mock_future)
-            
+
             goal = NavigationGoal(x=5.0, y=5.0)
             result = robot.navigate_to(goal)
-            
+
             assert result.success is False
             assert "rejected" in result.error_message.lower()
 
@@ -74,13 +74,13 @@ class TestRobotControllerNavigationDetailed:
             robot = RobotController()
             robot._connected = True
             robot._nav_client = MagicMock()
-            
+
             # Server not available
             robot._nav_client.wait_for_server = MagicMock(return_value=False)
-            
+
             goal = NavigationGoal(x=5.0, y=5.0)
             result = robot.navigate_to(goal)
-            
+
             assert result.success is False
             assert "not available" in result.error_message.lower()
 
@@ -93,9 +93,9 @@ class TestRobotControllerManipulationDetailed:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = True
-            
+
             result = robot.pick_up("cup")
-            
+
             # Returns success (implementation pending)
             assert isinstance(result, RobotCommandResult)
 
@@ -104,9 +104,9 @@ class TestRobotControllerManipulationDetailed:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = True
-            
+
             result = robot.place_at("table")
-            
+
             assert isinstance(result, RobotCommandResult)
 
     def test_execute_manipulation_not_connected(self):
@@ -114,11 +114,9 @@ class TestRobotControllerManipulationDetailed:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = False
-            
-            result = robot._execute_manipulation(
-                ManipulationGoal(object_name="cup", action="pick")
-            )
-            
+
+            result = robot._execute_manipulation(ManipulationGoal(object_name="cup", action="pick"))
+
             assert result.success is False
             assert "Not connected" in result.error_message
 
@@ -132,9 +130,9 @@ class TestRobotControllerStopDetailed:
             robot = RobotController()
             robot._connected = True
             robot._cmd_vel_pub = MagicMock()
-            
+
             result = robot.stop()
-            
+
             assert result is True
             robot._cmd_vel_pub.publish.assert_called_once()
 
@@ -143,9 +141,9 @@ class TestRobotControllerStopDetailed:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = False
-            
+
             result = robot.stop()
-            
+
             assert result is False
 
 
@@ -157,9 +155,9 @@ class TestRobotControllerSay:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = True
-            
+
             result = robot.say("Hello world")
-            
+
             assert result is True
 
     def test_say_disconnected(self):
@@ -167,9 +165,9 @@ class TestRobotControllerSay:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = False
-            
+
             result = robot.say("Hello world")
-            
+
             # Should still work (just prints)
             assert result is True
 
@@ -186,9 +184,9 @@ class TestRobotControllerDisconnect:
             robot._cmd_vel_pub = MagicMock()
             robot._odom_sub = MagicMock()
             robot._node = MagicMock()
-            
+
             robot._disconnect()
-            
+
             assert robot._connected is False
             robot._nav_client.destroy.assert_called_once()
             robot._cmd_vel_pub.destroy.assert_called_once()
@@ -200,10 +198,10 @@ class TestRobotControllerDisconnect:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._connected = False
-            
+
             # Should not raise
             robot._disconnect()
-            
+
             assert robot._connected is False
 
 
@@ -215,10 +213,10 @@ class TestRobotControllerContextManager:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._disconnect = MagicMock()
-            
+
             with robot:
                 pass
-            
+
             robot._disconnect.assert_called_once()
 
     def test_context_manager_cleanup_on_exception(self):
@@ -226,11 +224,11 @@ class TestRobotControllerContextManager:
         with patch.object(RobotController, "_connect"):
             robot = RobotController()
             robot._disconnect = MagicMock()
-            
+
             try:
                 with robot:
                     raise ValueError("Test error")
             except ValueError:
                 pass
-            
+
             robot._disconnect.assert_called_once()

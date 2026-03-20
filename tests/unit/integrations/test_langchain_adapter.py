@@ -102,9 +102,9 @@ class TestROSBridgeTool:
             mock_bridge = Mock()
             mock_bridge.execute_action = AsyncMock(return_value={"success": True})
             tool = ROSBridgeTool(mock_bridge, actions=["navigate"])
-            
+
             result = await tool._arun("Navigate to 5,3")
-            
+
             data = json.loads(result)
             assert data["success"] is True
 
@@ -113,9 +113,9 @@ class TestROSBridgeTool:
         """Test async execution without bridge."""
         with patch("agent_ros_bridge.integrations.langchain_adapter.LANGCHAIN_AVAILABLE", True):
             tool = ROSBridgeTool(None, actions=["navigate"])
-            
+
             result = await tool._arun("Navigate to 5,3")
-            
+
             data = json.loads(result)
             assert "error" in data
 
@@ -126,9 +126,9 @@ class TestROSBridgeTool:
             mock_bridge = Mock()
             mock_bridge.execute_action = AsyncMock(side_effect=Exception("Failed"))
             tool = ROSBridgeTool(mock_bridge, actions=["navigate"])
-            
+
             result = await tool._arun("Navigate to 5,3")
-            
+
             data = json.loads(result)
             assert "error" in data
 
@@ -160,9 +160,9 @@ class TestROSAgent:
             mock_bridge = Mock()
             agent = ROSAgent(mock_bridge)
             agent.tool._arun = AsyncMock(return_value=json.dumps({"success": True}))
-            
+
             result = await agent.run("Navigate to 5,3")
-            
+
             assert result["task"] == "Navigate to 5,3"
             assert result["success"] is True
 

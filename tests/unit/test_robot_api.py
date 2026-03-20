@@ -59,9 +59,7 @@ class TestRobotCommandResult:
     def test_result_with_error(self):
         """Test result with error."""
         result = RobotCommandResult(
-            success=False,
-            execution_time=0.0,
-            error_message="Connection failed"
+            success=False, execution_time=0.0, error_message="Connection failed"
         )
         assert result.success is False
         assert result.error_message == "Connection failed"
@@ -82,9 +80,7 @@ class TestRobotControllerInitialization:
         """Test custom initialization."""
         with patch.object(RobotController, "_connect"):
             robot = RobotController(
-                ros_master="192.168.1.100:11311",
-                robot_name="my_robot",
-                safety_enabled=False
+                ros_master="192.168.1.100:11311", robot_name="my_robot", safety_enabled=False
             )
             assert robot.ros_master == "192.168.1.100:11311"
             assert robot.robot_name == "my_robot"

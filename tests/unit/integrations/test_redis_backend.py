@@ -284,10 +284,12 @@ class TestGetAllLocations:
         backend = RedisContextBackend()
         backend._connected = True
         backend.client = AsyncMock()
-        backend.client.hgetall = AsyncMock(return_value={
-            "kitchen": '{"x": 10, "y": 5}',
-            "office": '{"x": 20, "y": 10}',
-        })
+        backend.client.hgetall = AsyncMock(
+            return_value={
+                "kitchen": '{"x": 10, "y": 5}',
+                "office": '{"x": 20, "y": 10}',
+            }
+        )
 
         result = await backend.get_all_locations("session1")
 
@@ -370,13 +372,15 @@ class TestGetStats:
         backend = RedisContextBackend()
         backend._connected = True
         backend.client = AsyncMock()
-        backend.client.info = AsyncMock(return_value={
-            "connected_clients": 5,
-            "used_memory_human": "1.5M",
-            "total_commands_processed": 1000,
-            "keyspace_hits": 800,
-            "keyspace_misses": 200,
-        })
+        backend.client.info = AsyncMock(
+            return_value={
+                "connected_clients": 5,
+                "used_memory_human": "1.5M",
+                "total_commands_processed": 1000,
+                "keyspace_hits": 800,
+                "keyspace_misses": 200,
+            }
+        )
 
         result = await backend.get_stats()
 

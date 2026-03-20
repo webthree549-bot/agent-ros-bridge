@@ -25,7 +25,7 @@ class TestMetricsCollectorPrometheus:
                         with patch("agent_ros_bridge.metrics.Histogram") as mock_hist:
                             with patch("agent_ros_bridge.metrics.Info") as mock_info:
                                 collector = MetricsCollector()
-                                
+
                                 # Should create multiple counters
                                 assert mock_counter.call_count >= 4
                                 # Should create multiple gauges
@@ -48,7 +48,7 @@ class TestMetricsCollectorRecordingDetailed:
                         with patch("agent_ros_bridge.metrics.Info"):
                             collector = MetricsCollector()
                             collector.record_message_sent("websocket", 1024)
-                            
+
                             # Should observe message size
                             mock_hist.return_value.observe.assert_called_with(1024)
 
@@ -61,7 +61,7 @@ class TestMetricsCollectorRecordingDetailed:
                         with patch("agent_ros_bridge.metrics.Info"):
                             collector = MetricsCollector()
                             collector.record_message_received("mqtt", 512)
-                            
+
                             mock_hist.return_value.observe.assert_called_with(512)
 
     def test_record_task_completed_with_duration(self):
@@ -73,7 +73,7 @@ class TestMetricsCollectorRecordingDetailed:
                         with patch("agent_ros_bridge.metrics.Info"):
                             collector = MetricsCollector()
                             collector.record_task_completed("navigate", 5.5)
-                            
+
                             mock_hist.return_value.observe.assert_called_with(5.5)
 
     def test_record_task_failed(self):
@@ -85,7 +85,7 @@ class TestMetricsCollectorRecordingDetailed:
                         with patch("agent_ros_bridge.metrics.Info"):
                             collector = MetricsCollector()
                             collector.record_task_failed("manipulate")
-                            
+
                             # Should increment failed counter
                             mock_counter.return_value.labels.assert_called_with(status="failed")
 
@@ -97,11 +97,11 @@ class TestMetricsCollectorRecordingDetailed:
                     with patch("agent_ros_bridge.metrics.Histogram"):
                         with patch("agent_ros_bridge.metrics.Info"):
                             collector = MetricsCollector()
-                            
+
                             collector.set_robots_online(5)
                             collector.set_robots_online(3)
                             collector.set_robots_online(8)
-                            
+
                             # Should call set each time
                             assert mock_gauge.return_value.set.call_count == 3
 
@@ -118,9 +118,9 @@ class TestMetricsSnapshotDetailed:
             collector.record_message_sent()
             collector.record_message_received()
             collector.record_task_completed()
-            
+
             snapshot = collector.get_snapshot()
-            
+
             assert snapshot.robots_total == 10
             assert snapshot.robots_online == 8
             assert snapshot.messages_sent == 1
@@ -142,9 +142,9 @@ class TestMetricsTextFormat:
                                 with patch("agent_ros_bridge.metrics.Info"):
                                     mock_generate.return_value = b"# HELP test\ntest 1\n"
                                     collector = MetricsCollector()
-                                    
+
                                     text = collector.get_metrics_text()
-                                    
+
                                     assert "# HELP test" in text
                                     assert "test 1" in text
 
@@ -154,9 +154,9 @@ class TestMetricsTextFormat:
             collector = MetricsCollector()
             collector.set_robots_online(5)
             collector.set_robots_total(10)
-            
+
             text = collector.get_metrics_text()
-            
+
             assert "Agent ROS Bridge Metrics" in text
             assert "robots_online 5" in text
             assert "robots_total 10" in text
@@ -170,9 +170,10 @@ class TestGetMetricsSingleton:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             # Reset global
             import agent_ros_bridge.metrics as metrics_module
+
             original = metrics_module._global_metrics
             metrics_module._global_metrics = None
-            
+
             try:
                 metrics = get_metrics()
                 assert metrics is not None
@@ -185,14 +186,15 @@ class TestGetMetricsSingleton:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             # Reset global
             import agent_ros_bridge.metrics as metrics_module
+
             original = metrics_module._global_metrics
             metrics_module._global_metrics = None
-            
+
             try:
                 m1 = get_metrics()
                 m2 = get_metrics()
                 m3 = get_metrics()
-                
+
                 assert m1 is m2 is m3
             finally:
                 metrics_module._global_metrics = original

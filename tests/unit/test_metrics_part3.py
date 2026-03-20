@@ -25,7 +25,7 @@ class TestMetricsCollectorWithPrometheus:
         mock_prometheus.Gauge = MagicMock
         mock_prometheus.Histogram = MagicMock
         mock_prometheus.Info = MagicMock
-        
+
         with patch.dict("sys.modules", {"prometheus_client": mock_prometheus}):
             with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", True):
                 collector = MetricsCollector()
@@ -38,17 +38,17 @@ class TestMetricsCollectorWithPrometheus:
         mock_gauge = MagicMock()
         mock_hist = MagicMock()
         mock_info = MagicMock()
-        
+
         mock_prometheus.Counter = Mock(return_value=mock_counter)
         mock_prometheus.Gauge = Mock(return_value=mock_gauge)
         mock_prometheus.Histogram = Mock(return_value=mock_hist)
         mock_prometheus.Info = Mock(return_value=mock_info)
         mock_prometheus.CollectorRegistry = Mock
-        
+
         with patch.dict("sys.modules", {"prometheus_client": mock_prometheus}):
             with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", True):
                 collector = MetricsCollector()
-                
+
                 # Test recording
                 collector.record_message_sent("websocket", 1024)
                 collector.record_message_received("mqtt", 512)
@@ -56,7 +56,7 @@ class TestMetricsCollectorWithPrometheus:
                 collector.record_task_failed("manipulate")
                 collector.record_connection_opened("grpc")
                 collector.record_response_time(0.1)
-                
+
                 # All should succeed without error
                 assert True
 
@@ -74,14 +74,14 @@ class TestMetricsServerStart:
         mock_prometheus.Gauge = Mock
         mock_prometheus.Histogram = Mock
         mock_prometheus.Info = Mock
-        
+
         with patch.dict("sys.modules", {"prometheus_client": mock_prometheus}):
             with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", True):
                 collector = MetricsCollector()
                 server = MetricsServer(port=9090, collector=collector)
-                
+
                 await server.start()
-                
+
                 assert server.running is True
                 mock_prometheus.start_http_server.assert_called_once()
 
@@ -93,7 +93,7 @@ class TestMetricsSnapshotCoverage:
         """Test snapshot with all fields."""
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             collector = MetricsCollector()
-            
+
             # Set all metrics
             collector.set_robots_total(10)
             collector.set_robots_online(8)
@@ -104,9 +104,9 @@ class TestMetricsSnapshotCoverage:
             collector.record_task_completed("nav", 1.0)
             collector.record_task_failed("nav")
             collector.record_connection_opened("ws")
-            
+
             snapshot = collector.get_snapshot()
-            
+
             assert snapshot.robots_total == 10
             assert snapshot.robots_online == 8
             assert snapshot.messages_sent == 1
@@ -124,14 +124,15 @@ class TestGetMetricsMultiple:
         with patch("agent_ros_bridge.metrics.PROMETHEUS_AVAILABLE", False):
             # Reset global
             import agent_ros_bridge.metrics as metrics_module
+
             original = metrics_module._global_metrics
             metrics_module._global_metrics = None
-            
+
             try:
                 m1 = get_metrics()
                 m2 = get_metrics()
                 m3 = get_metrics()
-                
+
                 # All should be same object
                 assert m1 is m2
                 assert m2 is m3

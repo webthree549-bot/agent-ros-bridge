@@ -77,7 +77,7 @@ class TestOpenClawE2E:
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
 
         # Run test inside the container
-        test_script = '''
+        test_script = """
 import sys
 sys.path.insert(0, "/workspace")
 
@@ -134,27 +134,27 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "NAV2_NOT_AVAILABLE" in result.stdout:
             pytest.skip("Nav2 not available - full simulation not running")
         if "NAVIGATION_TEST_PASSED" not in result.stdout:
             pytest.fail(f"Navigation test failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ E2E navigation test passed")
 
     def test_e2e_mcp_tool_call(self):
         """
         E2E Test: MCP tool call from OpenClaw agent.
-        
+
         Tests the MCP server running inside the container.
         """
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
 
         # Check if MCP server module is available
-        test_script = '''
+        test_script = """
 import sys
 sys.path.insert(0, "/workspace")
 
@@ -163,14 +163,14 @@ try:
     print("MCP_AVAILABLE")
 except ImportError as e:
     print(f"MCP_NOT_AVAILABLE: {e}")
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=30)
-        
+
         if "MCP_NOT_AVAILABLE" in result.stdout:
             pytest.skip("MCP server not available in container")
         if "MCP_AVAILABLE" not in result.stdout:
             pytest.fail(f"MCP check failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ MCP tool call test passed")
 
     def test_e2e_agent_memory(self):
@@ -220,10 +220,10 @@ except Exception as e:
     sys.exit(1)
 """
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "MEMORY_TEST_PASSED" not in result.stdout:
             pytest.fail(f"Agent memory test failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ Agent memory test passed")
 
 
@@ -242,7 +242,7 @@ class TestOpenClawStandaloneE2E:
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
 
-        test_script = '''
+        test_script = """
 import sys
 sys.path.insert(0, "/workspace")
 
@@ -261,14 +261,14 @@ try:
     print("ROBOT_API_AVAILABLE")
 except ImportError as e:
     print(f"ROBOT_API_NOT_AVAILABLE: {e}")
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=30)
-        
+
         if "ROBOT_API_NOT_AVAILABLE" in result.stdout:
             pytest.skip(f"Standalone Robot API not available: {result.stdout}")
         if "ROBOT_API_AVAILABLE" not in result.stdout:
             pytest.fail(f"Robot API check failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ Standalone Robot API test passed")
 
     def test_standalone_skill_execution(self):
@@ -280,7 +280,7 @@ except ImportError as e:
         if not is_container_running():
             pytest.skip("ROS2 container not running - start with: ./docker-manager.sh start")
 
-        test_script = '''
+        test_script = """
 import sys
 sys.path.insert(0, "/workspace")
 
@@ -305,12 +305,12 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     sys.exit(1)
-'''
+"""
         result = run_in_ros2_container(f"python3 -c '{test_script}'", timeout=60)
-        
+
         if "SKILL_EXECUTION_PASSED" not in result.stdout:
             pytest.fail(f"Skill execution test failed: {result.stdout} {result.stderr}")
-        
+
         print("\n✅ Skill execution test passed")
 
 

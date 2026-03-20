@@ -11,6 +11,7 @@ from typing import Any
 try:
     import grpc
     from grpc import aio
+
     GRPC_AVAILABLE = True
 except ImportError:
     GRPC_AVAILABLE = False
@@ -91,9 +92,7 @@ class GRPCTransport(Transport):
         self.ca_cert = self.config.get("ca_cert")
         self.server: aio.Server | None = None
         self.running = False
-        auth_config = AuthConfig(
-            jwt_secret=self.config.get("jwt_secret", "test-secret")
-        )
+        auth_config = AuthConfig(jwt_secret=self.config.get("jwt_secret", "test-secret"))
         self.authenticator = Authenticator(auth_config)
 
     async def start(self) -> bool:

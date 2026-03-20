@@ -142,7 +142,7 @@ class TestPlanExploration:
             resolution=2.0,
         )
         mission = planner.plan_exploration(area, strategy="systematic")
-        
+
         assert mission.name.startswith("Explore")
         assert len(mission.steps) > 0
         assert "systematic" in mission.description
@@ -155,7 +155,7 @@ class TestPlanExploration:
             resolution=1.0,
         )
         mission = planner.plan_exploration(area, strategy="spiral")
-        
+
         assert mission.name.startswith("Explore")
         assert len(mission.steps) > 0
 
@@ -175,7 +175,7 @@ class TestPlanPatrol:
             interval_minutes=15,
         )
         mission = planner.plan_patrol(route)
-        
+
         assert "Patrol" in mission.name
         assert len(mission.steps) > 0
         assert mission.metadata["interval_minutes"] == 15
@@ -191,7 +191,7 @@ class TestPlanSearch:
             bounds={"min_x": 0, "max_x": 5, "min_y": 0, "max_y": 5},
         )
         mission = planner.plan_search("red ball", area)
-        
+
         assert "Search for" in mission.name
         assert "red ball" in mission.description
         assert mission.metadata["target"] == "red ball"
@@ -212,9 +212,9 @@ class TestExecuteMission:
                 MissionStep(step_id="step1", action="navigate", parameters={}),
             ],
         )
-        
+
         result = await planner.execute_mission(mission)
-        
+
         assert result["mission_id"] == "test"
         assert result["steps_total"] == 1
         assert result["steps_completed"] == 1
@@ -233,9 +233,9 @@ class TestExecuteMission:
                 MissionStep(step_id="step1", action="navigate", parameters={}),
             ],
         )
-        
+
         result = await planner.execute_mission(mission)
-        
+
         assert result["steps_completed"] == 1
         callback.assert_called_once()
 
@@ -252,9 +252,9 @@ class TestExecuteMission:
                 MissionStep(step_id="step1", action="navigate", parameters={}),
             ],
         )
-        
+
         result = await planner.execute_mission(mission)
-        
+
         assert result["steps_failed"] == 1
         assert len(result["errors"]) == 1
 
@@ -272,9 +272,9 @@ class TestCancelMission:
             steps=[],
         )
         planner.active_missions["test"] = mission
-        
+
         result = planner.cancel_mission("test")
-        
+
         assert result is True
         assert mission.status == MissionStatus.CANCELLED
 
@@ -303,9 +303,9 @@ class TestGetMissionStatus:
             current_step_index=1,
         )
         planner.active_missions["test"] = mission
-        
+
         status = planner.get_mission_status("test")
-        
+
         assert status["mission_id"] == "test"
         assert status["status"] == "RUNNING"
         assert status["progress"] == "1/2"
@@ -314,6 +314,7 @@ class TestGetMissionStatus:
         """Test getting completed mission status."""
         planner = MissionPlanner()
         from datetime import datetime
+
         mission = Mission(
             mission_id="test",
             name="Test",
@@ -323,9 +324,9 @@ class TestGetMissionStatus:
             completed_at=datetime.now(),
         )
         planner.mission_history.append(mission)
-        
+
         status = planner.get_mission_status("test")
-        
+
         assert status["mission_id"] == "test"
         assert status["status"] == "COMPLETED"
 
@@ -352,15 +353,15 @@ class TestAutonomousBehaviorManager:
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
         manager._running = True
-        
+
         route = PatrolRoute(
             name="test",
             waypoints=[Waypoint(x=0, y=0)],
             interval_minutes=1,
         )
-        
+
         behavior_id = await manager.start_patrol(route, "robot1")
-        
+
         assert behavior_id.startswith("patrol_test")
         assert behavior_id in manager.active_behaviors
         assert manager.active_behaviors[behavior_id]["type"] == "patrol"
@@ -370,13 +371,13 @@ class TestAutonomousBehaviorManager:
         """Test starting exploration."""
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
-        
+
         area = ExplorationArea(
             bounds={"min_x": 0, "max_x": 5, "min_y": 0, "max_y": 5},
         )
-        
+
         behavior_id = await manager.start_exploration(area, "robot1")
-        
+
         assert behavior_id.startswith("explore_")
         assert behavior_id in manager.active_behaviors
         assert manager.active_behaviors[behavior_id]["type"] == "exploration"
@@ -389,9 +390,9 @@ class TestAutonomousBehaviorManager:
             "type": "patrol",
             "status": BehaviorStatus.EXECUTING,
         }
-        
+
         result = manager.stop_behavior("test")
-        
+
         assert result is True
         assert manager.active_behaviors["test"]["status"] == BehaviorStatus.COMPLETED
 
@@ -407,6 +408,7 @@ class TestAutonomousBehaviorManager:
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
         from datetime import datetime
+
         manager.active_behaviors["test"] = {
             "type": "patrol",
             "status": BehaviorStatus.EXECUTING,
@@ -414,9 +416,9 @@ class TestAutonomousBehaviorManager:
             "iterations": 2,
             "robot_id": "robot1",
         }
-        
+
         status = manager.get_behavior_status("test")
-        
+
         assert status["behavior_id"] == "test"
         assert status["type"] == "patrol"
         assert status["iterations"] == 2
@@ -436,20 +438,20 @@ class TestConvenienceFunctions:
         """Test explore function."""
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
-        
+
         behavior_id = explore_autonomously(manager, {"min_x": 0, "max_x": 10}, "robot1")
-        
+
         assert behavior_id.startswith("explore_")
 
     def test_patrol_route(self):
         """Test patrol function."""
         planner = MissionPlanner()
         manager = AutonomousBehaviorManager(planner)
-        
+
         behavior_id = patrol_route(
             manager,
             [{"x": 0, "y": 0}, {"x": 10, "y": 10}],
             interval_minutes=30,
         )
-        
+
         assert behavior_id.startswith("patrol_")
