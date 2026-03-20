@@ -15,10 +15,23 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install --break-system-packages --no-cache-dir -r requirements.txt
 
+# Install test dependencies
+RUN pip3 install --break-system-packages --no-cache-dir \
+    pytest-asyncio>=0.21.0 \
+    pytest-cov>=4.0.0
+
 COPY . .
 RUN pip3 install --break-system-packages --no-cache-dir -e .
 
+# Set ROS2 environment variables permanently for all processes
 ENV ROS_DISTRO=jazzy
+ENV ROS_ROOT=/opt/ros/jazzy
+ENV LD_LIBRARY_PATH=/opt/ros/jazzy/lib
+ENV PYTHONPATH=/opt/ros/jazzy/lib/python3.12/site-packages
+ENV PATH=/opt/ros/jazzy/bin:$PATH
+ENV CMAKE_PREFIX_PATH=/opt/ros/jazzy
+
+# Also source in bashrc for interactive shells
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc
 
 ENV PYTHONUNBUFFERED=1

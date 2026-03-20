@@ -39,7 +39,7 @@ echo -e "${GREEN}Creating ROS2 container...${NC}"
 docker run -d \
     --name "${CONTAINER_NAME}" \
     --hostname "${CONTAINER_NAME}" \
-    -v "${PROJECT_ROOT}:/workspace:ro" \
+    -v "${PROJECT_ROOT}:/workspace:rw" \
     -w /workspace \
     --entrypoint bash \
     "${IMAGE_NAME}" \
