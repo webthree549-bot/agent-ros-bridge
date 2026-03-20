@@ -1,14 +1,14 @@
 """Additional tests for robot API - Part 2."""
 
-from unittest.mock import Mock, patch, MagicMock, AsyncMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, Mock, PropertyMock, patch
 
 import pytest
 
 from agent_ros_bridge.robot_api import (
-    RobotController,
-    NavigationGoal,
     ManipulationGoal,
+    NavigationGoal,
     RobotCommandResult,
+    RobotController,
 )
 
 

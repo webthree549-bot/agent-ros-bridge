@@ -1,7 +1,7 @@
 """Additional tests for OpenClaw adapter."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, Mock
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
@@ -187,8 +187,8 @@ class TestOpenClawAdapterSkillPackaging:
         adapter = OpenClawAdapter(mock_bridge)
         
         # Create a temp skill directory
-        import tempfile
         import os
+        import tempfile
         with tempfile.TemporaryDirectory() as tmpdir:
             skill_dir = Path(tmpdir) / "agent-ros-bridge"
             skill_dir.mkdir()

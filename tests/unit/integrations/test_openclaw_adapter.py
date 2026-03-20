@@ -1,7 +1,7 @@
 """Tests for OpenClaw adapter."""
 
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 

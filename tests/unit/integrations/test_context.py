@@ -1,15 +1,15 @@
 """Tests for context module (non-async version)."""
 
-from unittest.mock import Mock, patch, MagicMock
 import json
 import sqlite3
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
 from agent_ros_bridge.integrations.context import (
-    ConversationContext,
-    ContextManager,
     ContextAwareNLInterpreter,
+    ContextManager,
+    ConversationContext,
 )
 
 

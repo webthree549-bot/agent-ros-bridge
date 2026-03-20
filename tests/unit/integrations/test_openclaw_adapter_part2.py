@@ -1,8 +1,8 @@
 """Additional tests for OpenClaw adapter - Part 2."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, Mock, call
-from pathlib import Path
 import tempfile
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 

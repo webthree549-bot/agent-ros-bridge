@@ -1,7 +1,7 @@
 """Tests for metrics module."""
 
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 

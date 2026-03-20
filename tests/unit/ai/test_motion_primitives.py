@@ -1,6 +1,7 @@
 """Tests for motion primitives."""
 
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
 
 # These tests require ROS2 environment
@@ -15,11 +16,11 @@ except ImportError:
 
 if RCLPY_AVAILABLE:
     from agent_ros_bridge.ai.motion_primitives import (
-        MotionPrimitive,
-        NavigateToPosePrimitive,
         GripperControlPrimitive,
-        RotateInPlacePrimitive,
+        MotionPrimitive,
         MotionPrimitiveFactory,
+        NavigateToPosePrimitive,
+        RotateInPlacePrimitive,
     )
 
 pytestmark = pytest.mark.skipif(not RCLPY_AVAILABLE, reason="ROS2 rclpy not available")

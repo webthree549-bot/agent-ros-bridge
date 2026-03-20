@@ -37,7 +37,6 @@ from agent_ros_bridge.gateway_v2.core import (
     Plugin,
     PluginManager,
     QoS,
-    Robot,
     RobotFleet,
     Telemetry,
     Transport,

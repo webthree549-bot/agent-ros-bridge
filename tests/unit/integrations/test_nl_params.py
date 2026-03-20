@@ -2,7 +2,13 @@
 
 import pytest
 
-from agent_ros_bridge.integrations.nl_params import infer_angle, infer_speed, infer_distance, infer_parameter, parse_numeric
+from agent_ros_bridge.integrations.nl_params import (
+    infer_angle,
+    infer_distance,
+    infer_parameter,
+    infer_speed,
+    parse_numeric,
+)
 
 
 class TestInferAngle:

@@ -1,20 +1,20 @@
 """Tests for autonomous behaviors module."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, Mock
 import json
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
 from agent_ros_bridge.integrations.autonomous_behaviors import (
-    MissionStatus,
-    BehaviorStatus,
-    Waypoint,
-    MissionStep,
-    Mission,
-    ExplorationArea,
-    PatrolRoute,
-    MissionPlanner,
     AutonomousBehaviorManager,
+    BehaviorStatus,
+    ExplorationArea,
+    Mission,
+    MissionPlanner,
+    MissionStatus,
+    MissionStep,
+    PatrolRoute,
+    Waypoint,
     explore_autonomously,
     patrol_route,
 )

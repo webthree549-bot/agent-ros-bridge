@@ -1,22 +1,24 @@
 """Tests for intent parser."""
 
-from unittest.mock import Mock, patch, MagicMock
-import pytest
 import re
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # These tests require ROS2 environment
 # Run with: docker exec ros2_humble bash -c "source /opt/ros/jazzy/setup.bash && cd /workspace && python3 -m pytest tests/unit/ai/test_intent_parser.py -v"
 
-# Try to import rclpy, skip tests if not available
+# Try to import rclpy and the intent parser, skip tests if not available
 try:
     import rclpy
+
+    from agent_ros_bridge.ai.intent_parser import IntentParserNode
     RCLPY_AVAILABLE = True
 except ImportError:
     RCLPY_AVAILABLE = False
+    IntentParserNode = None
 
 pytestmark = pytest.mark.skipif(not RCLPY_AVAILABLE, reason="ROS2 rclpy not available")
-
-from agent_ros_bridge.ai.intent_parser import IntentParserNode
 
 
 class TestIntentParserPatterns:

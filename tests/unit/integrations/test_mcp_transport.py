@@ -1,8 +1,8 @@
 """Tests for MCP transport."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, Mock, call
-import json
 import asyncio
+import json
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 

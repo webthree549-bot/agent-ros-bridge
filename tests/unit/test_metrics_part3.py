@@ -1,7 +1,7 @@
 """Additional tests for metrics module - Part 3 (Fixed)."""
 
-from unittest.mock import Mock, AsyncMock, patch, MagicMock, call
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 
 import pytest
 
