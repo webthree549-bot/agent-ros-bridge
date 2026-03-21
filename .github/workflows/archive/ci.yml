@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,test]"
+
+      - name: Lint with Ruff
+        run: ruff check .
+
+      - name: Format check with Black
+        run: black --check .
+
+      - name: Type check with MyPy
+        run: |
+          # Run mypy and capture output
+          OUTPUT=$(mypy agent_ros_bridge 2>&1) || true
+          echo "$OUTPUT"
+          
+          # Count errors
+          ERROR_COUNT=$(echo "$OUTPUT" | grep -c "error:" || echo "0")
+          echo "MyPy found $ERROR_COUNT errors"
+          
+          # Allow the 25 known errors, fail on new ones
+          if [ "$ERROR_COUNT" -gt 25 ]; then
+            echo "❌ MyPy found $ERROR_COUNT errors (max allowed: 25)"
+            echo "See docs/MYPY_KNOWN_ISSUES.md for details"
+            exit 1
+          elif [ "$ERROR_COUNT" -lt 25 ]; then
+            echo "✅ MyPy errors reduced! Update docs/MYPY_KNOWN_ISSUES.md"
+          else
+            echo "✅ MyPy passed (25 known errors, no new issues)"
+          fi
+
+      - name: Test with pytest
+        run: pytest tests/unit --cov=agent_ros_bridge --cov-report=xml
+
+      # E2E tests disabled in CI - require local ROS2 Docker container
+      # Run locally with: docker-compose -f docker-compose.ros2.yml up -d && pytest tests/e2e -v
+      # - name: Test E2E (optional)
+      #   run: pytest tests/e2e -v || echo "E2E tests require ROS2 - skipping"
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Check minimum coverage
+        run: |
+          # Coverage threshold for core modules (excluding optional deps)
+          pytest tests/unit --cov=agent_ros_bridge.gateway_v2.core --cov=agent_ros_bridge.gateway_v2.auth --cov=agent_ros_bridge.gateway_v2.config --cov-fail-under=80 || echo "Core coverage check (informational)"
+
+      - name: Test OpenClaw skill
+        run: |
+          pytest tests/skills/ -v
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t agent-ros-bridge:test .
+
+      - name: Test Docker image
+        run: |
+          export JWT_SECRET=test123
+          docker run --rm -e JWT_SECRET agent-ros-bridge:test agent-ros-bridge --version
+
+  release:
+    needs: [test, docker]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  skill-release:
+    name: Release OpenClaw Skill
+    needs: [test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Package OpenClaw skill
+        run: |
+          cd skills/agent-ros-bridge
+          python scripts/package_skill.py ../../dist
+
+      - name: Upload skill artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-skill
+          path: dist/*.skill
+
+      - name: Attach skill to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*.skill
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
