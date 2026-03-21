@@ -25,6 +25,6 @@ jobs:
           python-version: '3.11'
 
       - name: Submit dependency graph
-        uses: advanced-security/python-dependency-submission-action@v1
+        uses: github/dependency-submission-action@v1
         with:
           continue-on-error: true  # Don't fail CI if this step fails
