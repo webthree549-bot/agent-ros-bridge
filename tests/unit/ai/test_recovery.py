@@ -1,20 +1,21 @@
 """Tests for recovery strategies."""
 
 import asyncio
+
 import pytest
 
 from agent_ros_bridge.ai.recovery import (
+    DeviationRecovery,
+    ObstacleRecovery,
     RecoveryAction,
     RecoveryStrategy,
     RecoveryStrategyFactory,
     RecoveryStrategyType,
     StuckRecovery,
-    DeviationRecovery,
-    ObstacleRecovery,
     TimeoutRecovery,
-    recover_from_stuck,
     recover_from_deviation,
     recover_from_obstacle,
+    recover_from_stuck,
     recover_from_timeout,
 )
 
