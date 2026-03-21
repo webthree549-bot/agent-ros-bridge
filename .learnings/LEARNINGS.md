@@ -65,4 +65,37 @@ Fix `tests/unit/ai/test_intent_parser.py` to skip gracefully when ROS2 unavailab
 - First-Seen: 2025-03-20
 - Last-Seen: 2025-03-20
 
+## [LRN-20250320-003] testing
+
+**Logged**: 2025-03-20T20:01:00-07:00
+**Priority**: critical
+**Status**: active
+**Area**: tests
+
+### Summary
+Local testing should use ROS Docker container for real ROS2 environment. CI uses mocks on top of this approach to skip tests when ROS2 unavailable.
+
+### Details
+The dual-environment testing strategy:
+- **Docker (local/dev)**: Tests run with real ROS2, no mocks needed for ROS imports
+- **CI (GitHub Actions)**: Tests skip gracefully using pytest.importorskip() when ROS2 unavailable
+
+This means:
+1. Write tests to work in Docker with real ROS2 first
+2. Add skip conditions for CI where ROS2 isn't available
+3. Tests should pass in both environments - real in Docker, skipped in CI
+4. Don't over-mock in Docker tests - use real ROS2 when possible
+
+### Suggested Action
+When fixing tests, verify they pass in Docker container with `./scripts/test-e2e.sh` or direct docker exec commands.
+
+### Metadata
+- Source: user_feedback
+- Related Files: tests/unit/ai/, scripts/test-e2e.sh, scripts/docker-manager.sh
+- Tags: tdd, ros2, testing, docker, ci
+- Pattern-Key: testing.docker_first
+- Recurrence-Count: 1
+- First-Seen: 2025-03-20
+- Last-Seen: 2025-03-20
+
 ---
