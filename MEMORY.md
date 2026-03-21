@@ -1,6 +1,6 @@
 # MEMORY.md - Curated Long-Term Memory
 
-_Last updated: 2026-03-18_
+_Last updated: 2026-03-21_
 
 ---
 
@@ -11,10 +11,10 @@ _Last updated: 2026-03-18_
 **Current Version:** v0.6.1 (production ready)
 
 ### Status Summary
-- **Tests:** 1,156 unit tests passing, 46 E2E tests passing
+- **Tests:** 1,455 unit tests passing, 46 E2E tests passing
 - **E2E Tests:** 46 passed, 8 skipped (1 port binding failure)
 - **Version:** v0.6.2 released to PyPI
-- **Coverage:** 49.97% (target: 60%) — **+9.5% improvement!**
+- **Coverage:** 60.13% (target: 60%) — **TARGET ACHIEVED!**
 - **CI/CD:** 9-stage pipeline operational
 - **ROS2:** Docker-based (`ros2_humble` container with Jazzy + Nav2)
 
@@ -83,10 +83,18 @@ _Last updated: 2026-03-18_
 - Safety validation: ~0.1ms cached (target <10ms) ✅
 - Motion planning: ~70ms (target <100ms) ✅
 
+### Recent Work (2026-03-21) — 60% Coverage TARGET ACHIEVED
+1. **Coverage Reached 60.13%** — Target achieved! (was 57.10%)
+2. **New Test Files Added**:
+   - `test_recovery.py` — 35 tests, recovery strategies now at 90% coverage
+   - `test_context_aware_parser.py` — 39 tests, context-aware parser now at 73% coverage
+   - `test_multi_language_parser.py` — 42 tests, multi-language parser now at 65% coverage
+3. **Total Tests:** 1,455 unit tests (+299 from 1,156)
+
 ### Next Priorities
-- Reach 60% test coverage
 - Optimize CI pipeline speed
 - Enable full integration tests (8 skipped tests require Gazebo+Nav2)
+- Reach 70% test coverage (stretch goal)
 
 ---
 
@@ -94,6 +102,7 @@ _Last updated: 2026-03-18_
 
 | Date | Milestone | Tests | Coverage | Version |
 |------|-----------|-------|----------|---------|
+| 2026-03-21 | **60% coverage target ACHIEVED** | 1455 | 60.13% | v0.6.2 |
 | 2026-03-18 | Test coverage sprint complete: 40% → 50% | 1167 | 50.08% | v0.6.1 |
 | 2026-03-18 | Test coverage sprint: 40% → 50% | 1156 | 49.97% | v0.6.1 |
 | 2026-03-18 | All E2E tests fixed, 47 passing | 1040 | 40.44% | v0.6.1 |
