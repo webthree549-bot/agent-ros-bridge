@@ -17,12 +17,12 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: metadata
-        uses: dependabot/fetch-metadata@v1
+        uses: dependabot/fetch-metadata@d7267f4e4e860b4e9e1c20f8f45a28ed9093b2d3  # v2.3.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      
+
       - name: Wait for CI to pass
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: lewagon/wait-on-check-action@ccfb013c525c3e8fc9d5a1780d6fd3b9a5c8ad6f  # v1.3.4
         with:
           ref: ${{ github.ref }}
           check-name: 'All Checks Passed'
