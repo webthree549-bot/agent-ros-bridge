@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
 import pytest
 
 from agent_ros_bridge.metrics import (
+    PROMETHEUS_AVAILABLE,
     MetricsCollector,
     MetricsServer,
     MetricsSnapshot,
-    PROMETHEUS_AVAILABLE,
     get_metrics,
 )
 
