@@ -31,9 +31,11 @@ class TestCLIArgumentParsing:
 
     def test_main_no_args(self, mock_bridge):
         """Test main with no arguments."""
-        with patch("sys.argv", ["agent-ros-bridge"]), patch(
-            "os.environ.get", return_value="test-secret"
-        ), patch("asyncio.run") as mock_run:
+        with (
+            patch("sys.argv", ["agent-ros-bridge"]),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run") as mock_run,
+        ):
             main()
             mock_run.assert_called_once()
 
@@ -54,64 +56,78 @@ class TestCLIArgumentParsing:
     def test_main_missing_jwt_secret(self):
         """Test main exits when JWT_SECRET not set."""
         with pytest.raises(SystemExit) as exc_info:
-            with patch("sys.argv", ["agent-ros-bridge"]), patch(
-                "os.environ.get", return_value=None
+            with (
+                patch("sys.argv", ["agent-ros-bridge"]),
+                patch("os.environ.get", return_value=None),
             ):
                 main()
         assert exc_info.value.code == 1
 
     def test_main_with_jwt_secret_arg(self):
         """Test main with --jwt-secret argument."""
-        with patch("sys.argv", ["agent-ros-bridge", "--jwt-secret", "my-secret"]), patch(
-            "asyncio.run"
-        ) as mock_run:
+        with (
+            patch("sys.argv", ["agent-ros-bridge", "--jwt-secret", "my-secret"]),
+            patch("asyncio.run") as mock_run,
+        ):
             main()
             assert os.environ.get("JWT_SECRET") == "my-secret"
             mock_run.assert_called_once()
 
     def test_main_with_config(self):
         """Test main with --config argument."""
-        with patch(
-            "sys.argv", ["agent-ros-bridge", "--config", "custom/config.yaml"]
-        ), patch("os.environ.get", return_value="test-secret"), patch("asyncio.run"):
+        with (
+            patch("sys.argv", ["agent-ros-bridge", "--config", "custom/config.yaml"]),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run"),
+        ):
             main()
 
     def test_main_with_ports(self):
         """Test main with custom ports."""
-        with patch(
-            "sys.argv",
-            [
-                "agent-ros-bridge",
-                "--websocket-port",
-                "9000",
-                "--mqtt-port",
-                "9001",
-                "--grpc-port",
-                "9002",
-            ],
-        ), patch("os.environ.get", return_value="test-secret"), patch("asyncio.run"):
+        with (
+            patch(
+                "sys.argv",
+                [
+                    "agent-ros-bridge",
+                    "--websocket-port",
+                    "9000",
+                    "--mqtt-port",
+                    "9001",
+                    "--grpc-port",
+                    "9002",
+                ],
+            ),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run"),
+        ):
             main()
 
     def test_main_with_log_level(self):
         """Test main with --log-level argument."""
-        with patch("sys.argv", ["agent-ros-bridge", "--log-level", "DEBUG"]), patch(
-            "os.environ.get", return_value="test-secret"
-        ), patch("asyncio.run"):
+        with (
+            patch("sys.argv", ["agent-ros-bridge", "--log-level", "DEBUG"]),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run"),
+        ):
             main()
 
     def test_main_start_command(self):
         """Test main with start command."""
-        with patch("sys.argv", ["agent-ros-bridge", "start"]), patch(
-            "os.environ.get", return_value="test-secret"
-        ), patch("asyncio.run") as mock_run:
+        with (
+            patch("sys.argv", ["agent-ros-bridge", "start"]),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run") as mock_run,
+        ):
             main()
             mock_run.assert_called_once()
 
     def test_main_start_with_daemon(self):
         """Test main with start --daemon."""
-        with patch("sys.argv", ["agent-ros-bridge", "start", "--daemon"]), patch(
-            "os.environ.get", return_value="test-secret"
-        ), patch("asyncio.run"):
+        with (
+            patch("sys.argv", ["agent-ros-bridge", "start", "--daemon"]),
+            patch("os.environ.get", return_value="test-secret"),
+            patch("asyncio.run"),
+        ):
             main()
 
 
@@ -134,9 +150,10 @@ class TestConfigCommand:
         """Test config --init creates parent directories."""
         args = argparse.Namespace(init=True, validate=False)
 
-        with patch("pathlib.Path.mkdir") as mock_mkdir, patch(
-            "pathlib.Path.write_text"
-        ) as mock_write:
+        with (
+            patch("pathlib.Path.mkdir") as mock_mkdir,
+            patch("pathlib.Path.write_text") as mock_write,
+        ):
             handle_config(args)
             mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
@@ -273,9 +290,10 @@ class TestStatusCommand:
             mock_sock.connect_ex.return_value = 1
             mock_socket.return_value = mock_sock
 
-            with patch("pathlib.Path.exists", return_value=True), patch(
-                "pathlib.Path.stat"
-            ) as mock_stat:
+            with (
+                patch("pathlib.Path.exists", return_value=True),
+                patch("pathlib.Path.stat") as mock_stat,
+            ):
                 mock_stat.return_value = MagicMock(st_size=1024)
                 handle_status(args)
 
@@ -318,9 +336,7 @@ class TestStartBridge:
             bridge_instance = MagicMock()
             bridge_instance.transport_manager = MagicMock()
             bridge_instance.run = MagicMock()
-            bridge_instance.run.return_value.__aenter__ = AsyncMock(
-                side_effect=KeyboardInterrupt()
-            )
+            bridge_instance.run.return_value.__aenter__ = AsyncMock(side_effect=KeyboardInterrupt())
             bridge_instance.run.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_bridge.return_value = bridge_instance
 
@@ -343,15 +359,14 @@ class TestStartBridge:
     @pytest.mark.asyncio
     async def test_start_bridge_registers_websocket(self, mock_args):
         """Test start_bridge registers WebSocket transport."""
-        with patch("agent_ros_bridge.cli.Bridge") as mock_bridge, patch(
-            "agent_ros_bridge.gateway_v2.transports.websocket.WebSocketTransport"
-        ) as mock_ws:
+        with (
+            patch("agent_ros_bridge.cli.Bridge") as mock_bridge,
+            patch("agent_ros_bridge.gateway_v2.transports.websocket.WebSocketTransport") as mock_ws,
+        ):
             bridge_instance = MagicMock()
             bridge_instance.transport_manager = MagicMock()
             bridge_instance.run = MagicMock()
-            bridge_instance.run.return_value.__aenter__ = AsyncMock(
-                side_effect=KeyboardInterrupt()
-            )
+            bridge_instance.run.return_value.__aenter__ = AsyncMock(side_effect=KeyboardInterrupt())
             bridge_instance.run.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_bridge.return_value = bridge_instance
 
