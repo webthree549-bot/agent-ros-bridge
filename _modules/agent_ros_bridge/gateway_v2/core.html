@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>agent_ros_bridge.gateway_v2.core &#8212; Agent ROS Bridge 0.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for agent_ros_bridge.gateway_v2.core</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;OpenClaw Gateway - Universal Robot Gateway.</span>
+
+<span class="sd">The next-generation architecture for robot-AI connectivity.</span>
+<span class="sd">Multi-protocol, multi-robot, cloud-native.</span>
+
+<span class="sd">v0.5.0: Integrated AI Agent Support</span>
+<span class="sd">- Agent Memory (SQLite/Redis)</span>
+<span class="sd">- Safety Manager (confirmation, emergency stop)</span>
+<span class="sd">- Tool Discovery (MCP/OpenAI export)</span>
+<span class="sd">- LangChain/AutoGPT/MCP integrations</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">AsyncIterator</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">UTC</span><span class="p">,</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="c1"># Configure logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;agent_ros_bridge&quot;</span><span class="p">)</span>
+
+<span class="c1"># v0.5.0: Import AI integrations</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">..integrations.discovery</span> <span class="kn">import</span> <span class="n">ToolDiscovery</span>
+    <span class="kn">from</span> <span class="nn">..integrations.memory</span> <span class="kn">import</span> <span class="n">AgentMemory</span>
+    <span class="kn">from</span> <span class="nn">..integrations.safety</span> <span class="kn">import</span> <span class="n">SafetyLevel</span><span class="p">,</span> <span class="n">SafetyManager</span>
+
+    <span class="n">INTEGRATIONS_AVAILABLE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">INTEGRATIONS_AVAILABLE</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;AI integrations not available&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Core Data Models</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="QoS">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.QoS">[docs]</a>
+<span class="k">class</span> <span class="nc">QoS</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quality of Service levels.&quot;&quot;&quot;</span>
+
+    <span class="n">BEST_EFFORT</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>  <span class="c1"># Fire and forget</span>
+    <span class="n">AT_LEAST_ONCE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>  <span class="c1"># Retry until ack</span>
+    <span class="n">EXACTLY_ONCE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>  <span class="c1"># Deduplication guaranteed</span></div>
+
+
+
+<div class="viewcode-block" id="Identity">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Identity">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Identity</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Authenticated identity.&quot;&quot;&quot;</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">roles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Header">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Header">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Header</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Message header.&quot;&quot;&quot;</span>
+
+    <span class="n">message_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()))</span>
+    <span class="n">timestamp</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">))</span>
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">correlation_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="Command">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Command">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Command</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Robot command.&quot;&quot;&quot;</span>
+
+    <span class="n">action</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">timeout_ms</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5000</span>
+    <span class="n">priority</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># 1-10, lower = higher priority</span></div>
+
+
+
+<div class="viewcode-block" id="Telemetry">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Telemetry">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Telemetry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sensor/telemetry data.&quot;&quot;&quot;</span>
+
+    <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">quality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Data quality 0-1</span></div>
+
+
+
+<div class="viewcode-block" id="Event">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Event">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Event</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;System event.&quot;&quot;&quot;</span>
+
+    <span class="n">event_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">severity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;info&quot;</span>  <span class="c1"># debug, info, warning, error, critical</span>
+    <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Message">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Message">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unified message format.&quot;&quot;&quot;</span>
+
+    <span class="n">header</span><span class="p">:</span> <span class="n">Header</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Header</span><span class="p">)</span>
+    <span class="n">command</span><span class="p">:</span> <span class="n">Command</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">telemetry</span><span class="p">:</span> <span class="n">Telemetry</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">event</span><span class="p">:</span> <span class="n">Event</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Transport Layer Abstraction</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="Transport">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport">[docs]</a>
+<span class="k">class</span> <span class="nc">Transport</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract transport layer.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize transport with name and configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Transport identifier (e.g., &quot;websocket&quot;, &quot;grpc&quot;).</span>
+<span class="sd">            config: Transport-specific configuration dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message_handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Message</span><span class="p">,</span> <span class="n">Identity</span><span class="p">],</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Future</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Transport.start">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport.start">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the transport.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Transport.stop">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport.stop">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop the transport.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Transport.send">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport.send">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">recipient</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send message to specific recipient.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Transport.broadcast">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport.broadcast">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Broadcast to all connected clients.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Transport.on_message">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Transport.on_message">[docs]</a>
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Message</span><span class="p">,</span> <span class="n">Identity</span><span class="p">],</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register message handler.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">message_handler</span> <span class="o">=</span> <span class="n">handler</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TransportManager">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager">[docs]</a>
+<span class="k">class</span> <span class="nc">TransportManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages multiple transport endpoints.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize transport manager with empty transport registry.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Transport</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_message_handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Message</span><span class="p">,</span> <span class="n">Identity</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="TransportManager.register">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager.register">[docs]</a>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport</span><span class="p">:</span> <span class="n">Transport</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a transport.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="p">[</span><span class="n">transport</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">transport</span>
+        <span class="n">transport</span><span class="o">.</span><span class="n">on_message</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_route_message</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registered transport: </span><span class="si">{</span><span class="n">transport</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_route_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Route incoming message to handler — schedules the coroutine on the running loop.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_message_handler</span><span class="p">:</span>
+            <span class="n">asyncio</span><span class="o">.</span><span class="n">ensure_future</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_message_handler</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">identity</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TransportManager.on_message">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager.on_message">[docs]</a>
+    <span class="k">def</span> <span class="nf">on_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Message</span><span class="p">,</span> <span class="n">Identity</span><span class="p">],</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set global message handler.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_message_handler</span> <span class="o">=</span> <span class="n">handler</span></div>
+
+
+<div class="viewcode-block" id="TransportManager.start_all">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager.start_all">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start all registered transports.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span></div>
+
+
+<div class="viewcode-block" id="TransportManager.stop_all">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager.stop_all">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stop_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop all transports.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span></div>
+
+
+<div class="viewcode-block" id="TransportManager.send">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.TransportManager.send">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">recipient</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send via specific transport.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">transport_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown transport: </span><span class="si">{</span><span class="n">transport_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">transports</span><span class="p">[</span><span class="n">transport_name</span><span class="p">]</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">recipient</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Connector Layer Abstraction</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="Robot">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Robot">[docs]</a>
+<span class="k">class</span> <span class="nc">Robot</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract robot representation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">connector_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize robot with ID, name, and connector type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            robot_id: Unique identifier for the robot.</span>
+<span class="sd">            name: Human-readable robot name.</span>
+<span class="sd">            connector_type: Type of connector (e.g., &quot;ros1&quot;, &quot;ros2&quot;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robot_id</span> <span class="o">=</span> <span class="n">robot_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connector_type</span> <span class="o">=</span> <span class="n">connector_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connected</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capabilities</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_subscribers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="Robot.connect">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Robot.connect">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to robot.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Robot.disconnect">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Robot.disconnect">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disconnect from robot.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Robot.execute">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Robot.execute">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">Command</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute command on robot.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Robot.subscribe">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Robot.subscribe">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AsyncIterator</span><span class="p">[</span><span class="n">Telemetry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Subscribe to telemetry topic.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_notify_subscribers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Telemetry</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify subscribers of new data.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">callback</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_subscribers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="p">[]):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">callback</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subscriber error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Connector">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Connector">[docs]</a>
+<span class="k">class</span> <span class="nc">Connector</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract robot connector.&quot;&quot;&quot;</span>
+
+    <span class="n">connector_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;abstract&quot;</span>
+
+<div class="viewcode-block" id="Connector.connect">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Connector.connect">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Robot</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to robot at URI.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Connector.discover">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Connector.discover">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">discover</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RobotEndpoint</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discover available robots.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RobotEndpoint">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotEndpoint">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">RobotEndpoint</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discovered robot endpoint.&quot;&quot;&quot;</span>
+
+    <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">connector_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">capabilities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="ConnectorRegistry">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.ConnectorRegistry">[docs]</a>
+<span class="k">class</span> <span class="nc">ConnectorRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Registry of robot connectors.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize empty connector registry.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connectors</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Connector</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ConnectorRegistry.register">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.register">[docs]</a>
+    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connector</span><span class="p">:</span> <span class="n">Connector</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a connector.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connectors</span><span class="p">[</span><span class="n">connector</span><span class="o">.</span><span class="n">connector_type</span><span class="p">]</span> <span class="o">=</span> <span class="n">connector</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registered connector: </span><span class="si">{</span><span class="n">connector</span><span class="o">.</span><span class="n">connector_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConnectorRegistry.connect">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.connect">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Robot</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to robot using appropriate connector.&quot;&quot;&quot;</span>
+        <span class="c1"># Parse URI to determine connector type</span>
+        <span class="c1"># e.g., ros2://192.168.1.100:7411</span>
+        <span class="n">scheme</span> <span class="o">=</span> <span class="n">uri</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;://&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">scheme</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connectors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No connector for scheme: </span><span class="si">{</span><span class="n">scheme</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connectors</span><span class="p">[</span><span class="n">scheme</span><span class="p">]</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConnectorRegistry.discover_all">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.discover_all">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">discover_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RobotEndpoint</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Discover robots using all connectors.&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">connector</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connectors</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">robots</span> <span class="o">=</span> <span class="k">await</span> <span class="n">connector</span><span class="o">.</span><span class="n">discover</span><span class="p">()</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">robots</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Discovery failed for </span><span class="si">{</span><span class="n">connector</span><span class="o">.</span><span class="n">connector_type</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+</div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Orchestration Layer</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="RobotFleet">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet">[docs]</a>
+<span class="k">class</span> <span class="nc">RobotFleet</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages a fleet of robots.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize fleet with name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name: Fleet identifier name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Robot</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="RobotFleet.add_robot">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet.add_robot">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot</span><span class="p">:</span> <span class="n">Robot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add robot to fleet.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">[</span><span class="n">robot</span><span class="o">.</span><span class="n">robot_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">robot</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added robot </span><span class="si">{</span><span class="n">robot</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> to fleet </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RobotFleet.remove_robot">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet.remove_robot">[docs]</a>
+    <span class="k">def</span> <span class="nf">remove_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove robot from fleet.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">robot_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="p">[</span><span class="n">robot_id</span><span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removed robot </span><span class="si">{</span><span class="n">robot_id</span><span class="si">}</span><span class="s2"> from fleet </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RobotFleet.get_robot">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet.get_robot">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">robot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Robot</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get robot by ID.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">robot_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RobotFleet.select">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet.select">[docs]</a>
+    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Robot</span><span class="p">],</span> <span class="nb">bool</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Robot</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select robots matching predicate.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">predicate</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="RobotFleet.broadcast">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.RobotFleet.broadcast">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="n">Command</span><span class="p">,</span> <span class="n">selector</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Robot</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Broadcast command to selected robots.&quot;&quot;&quot;</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span> <span class="k">if</span> <span class="n">selector</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">robots</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">exec_with_id</span><span class="p">(</span><span class="n">robot</span><span class="p">:</span> <span class="n">Robot</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">wait_for</span><span class="p">(</span>
+                    <span class="n">robot</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="n">command</span><span class="o">.</span><span class="n">timeout_ms</span> <span class="o">/</span> <span class="mi">1000</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">robot</span><span class="o">.</span><span class="n">robot_id</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">}</span>
+            <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">robot</span><span class="o">.</span><span class="n">robot_id</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;timeout&quot;</span><span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">robot</span><span class="o">.</span><span class="n">robot_id</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">exec_with_id</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Plugin">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Plugin">[docs]</a>
+<span class="k">class</span> <span class="nc">Plugin</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract plugin.&quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;abstract_plugin&quot;</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;0.0.1&quot;</span>
+
+<div class="viewcode-block" id="Plugin.initialize">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Plugin.initialize">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gateway</span><span class="p">:</span> <span class="n">Bridge</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize plugin with gateway reference.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Plugin.shutdown">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Plugin.shutdown">[docs]</a>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shutdown plugin.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Plugin.handle_message">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Plugin.handle_message">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">_identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle message - return response or None.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PluginManager">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.PluginManager">[docs]</a>
+<span class="k">class</span> <span class="nc">PluginManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manages plugins with hot reload.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize plugin manager with empty registry.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Plugin</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gateway</span><span class="p">:</span> <span class="n">Bridge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="PluginManager.set_gateway">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.PluginManager.set_gateway">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_gateway</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gateway</span><span class="p">:</span> <span class="n">Bridge</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set gateway reference.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gateway</span> <span class="o">=</span> <span class="n">gateway</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.load_plugin">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.PluginManager.load_plugin">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">load_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plugin</span><span class="p">:</span> <span class="n">Plugin</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load and initialize a plugin.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gateway</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Gateway not set&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">plugin</span>
+        <span class="k">await</span> <span class="n">plugin</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gateway</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded plugin: </span><span class="si">{</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> v</span><span class="si">{</span><span class="n">plugin</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.unload_plugin">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.PluginManager.unload_plugin">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">unload_plugin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unload a plugin.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unloaded plugin: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PluginManager.handle_message">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.PluginManager.handle_message">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Route message through plugins.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">plugin</span><span class="o">.</span><span class="n">handle_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">response</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Plugin </span><span class="si">{</span><span class="n">plugin</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+</div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Main Gateway</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="Bridge">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge">[docs]</a>
+<span class="k">class</span> <span class="nc">Bridge</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Universal robot gateway - main entry point.</span>
+
+<span class="sd">    v0.5.0: Added AI agent integrations</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize Bridge gateway with optional configuration.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Gateway configuration dictionary including memory backend,</span>
+<span class="sd">                safety settings, and integration options.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span> <span class="o">=</span> <span class="n">TransportManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connector_registry</span> <span class="o">=</span> <span class="n">ConnectorRegistry</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RobotFleet</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_manager</span> <span class="o">=</span> <span class="n">PluginManager</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plugin_manager</span><span class="o">.</span><span class="n">set_gateway</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># v0.5.0: Initialize AI integrations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">:</span> <span class="n">AgentMemory</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="p">:</span> <span class="n">SafetyManager</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">:</span> <span class="n">ToolDiscovery</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_integrations</span><span class="p">()</span>
+
+        <span class="c1"># Set up message routing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span><span class="o">.</span><span class="n">on_message</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_message</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_init_integrations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize v0.5.0 AI integrations.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Agent Memory (SQLite default, Redis optional)</span>
+            <span class="n">memory_backend</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;memory_backend&quot;</span><span class="p">,</span> <span class="s2">&quot;sqlite&quot;</span><span class="p">)</span>
+            <span class="n">memory_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;memory_path&quot;</span><span class="p">,</span> <span class="s2">&quot;:memory:&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">AgentMemory</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">memory_backend</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">memory_path</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AgentMemory initialized (</span><span class="si">{</span><span class="n">memory_backend</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Safety Manager</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety</span> <span class="o">=</span> <span class="n">SafetyManager</span><span class="p">()</span>
+            <span class="c1"># Register default safety policies</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">register_policy</span><span class="p">(</span>
+                <span class="s2">&quot;emergency_stop&quot;</span><span class="p">,</span> <span class="n">SafetyLevel</span><span class="o">.</span><span class="n">DANGEROUS</span><span class="p">,</span> <span class="s2">&quot;Emergency stop - requires confirmation&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">register_policy</span><span class="p">(</span>
+                <span class="s2">&quot;move_arm&quot;</span><span class="p">,</span> <span class="n">SafetyLevel</span><span class="o">.</span><span class="n">DANGEROUS</span><span class="p">,</span> <span class="s2">&quot;Arm movement - requires confirmation&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SafetyManager initialized&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Tool Discovery</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tools</span> <span class="o">=</span> <span class="n">ToolDiscovery</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ToolDiscovery initialized&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to initialize integrations: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Continue without integrations - core functionality still works</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_handle_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle incoming message from transport.&quot;&quot;&quot;</span>
+        <span class="c1"># Try plugins first</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_manager</span><span class="o">.</span><span class="n">handle_message</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">response</span><span class="p">:</span>
+            <span class="c1"># Send response back</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+                <span class="n">identity</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;transport&quot;</span><span class="p">,</span> <span class="s2">&quot;websocket&quot;</span><span class="p">),</span> <span class="n">response</span><span class="p">,</span> <span class="n">identity</span><span class="o">.</span><span class="n">id</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Handle core commands</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_core_command</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="p">:</span>
+                <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span><span class="o">.</span><span class="n">send</span><span class="p">(</span>
+                    <span class="n">identity</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;transport&quot;</span><span class="p">,</span> <span class="s2">&quot;websocket&quot;</span><span class="p">),</span> <span class="n">response</span><span class="p">,</span> <span class="n">identity</span><span class="o">.</span><span class="n">id</span>
+                <span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">_handle_core_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">,</span> <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Message</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle core gateway commands.</span>
+
+<span class="sd">        v0.5.0: Integrated safety checks and memory logging</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">message</span><span class="o">.</span><span class="n">command</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">command</span>
+
+        <span class="c1"># v0.5.0: Safety check for dangerous actions</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">requires_confirmation</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">action</span><span class="p">):</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">request_confirmation</span><span class="p">(</span>
+                <span class="n">cmd</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Execute </span><span class="si">{</span><span class="n">cmd</span><span class="o">.</span><span class="n">action</span><span class="si">}</span><span class="s2">?&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+            <span class="p">)</span>
+            <span class="n">approved</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">wait_for_confirmation</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">approved</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Message</span><span class="p">(</span>
+                    <span class="n">header</span><span class="o">=</span><span class="n">Header</span><span class="p">(</span><span class="n">correlation_id</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">message_id</span><span class="p">),</span>
+                    <span class="n">event</span><span class="o">=</span><span class="n">Event</span><span class="p">(</span>
+                        <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;action_rejected&quot;</span><span class="p">,</span>
+                        <span class="n">severity</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;not_confirmed&quot;</span><span class="p">},</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+
+        <span class="c1"># v0.5.0: Log to memory</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;agent:</span><span class="si">{</span><span class="n">identity</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:actions&quot;</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span><span class="p">,</span>
+                    <span class="s2">&quot;parameters&quot;</span><span class="p">:</span> <span class="n">cmd</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span>
+                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">UTC</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;discover&quot;</span><span class="p">:</span>
+            <span class="c1"># Discover robots</span>
+            <span class="n">endpoints</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connector_registry</span><span class="o">.</span><span class="n">discover_all</span><span class="p">()</span>
+
+            <span class="c1"># v0.5.0: Also discover tools if available</span>
+            <span class="n">tools</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="p">:</span>
+                <span class="n">tools</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">to_mcp_tools</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">Message</span><span class="p">(</span>
+                <span class="n">header</span><span class="o">=</span><span class="n">Header</span><span class="p">(</span><span class="n">correlation_id</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">message_id</span><span class="p">),</span>
+                <span class="n">telemetry</span><span class="o">=</span><span class="n">Telemetry</span><span class="p">(</span>
+                    <span class="n">topic</span><span class="o">=</span><span class="s2">&quot;/discovery/results&quot;</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;robots&quot;</span><span class="p">:</span> <span class="p">[</span>
+                            <span class="p">{</span><span class="s2">&quot;uri&quot;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">connector_type</span><span class="p">}</span>
+                            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">endpoints</span>
+                        <span class="p">],</span>
+                        <span class="s2">&quot;tools&quot;</span><span class="p">:</span> <span class="n">tools</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;fleet.list&quot;</span><span class="p">:</span>
+            <span class="c1"># List fleets</span>
+            <span class="k">return</span> <span class="n">Message</span><span class="p">(</span>
+                <span class="n">header</span><span class="o">=</span><span class="n">Header</span><span class="p">(</span><span class="n">correlation_id</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">message_id</span><span class="p">),</span>
+                <span class="n">telemetry</span><span class="o">=</span><span class="n">Telemetry</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="s2">&quot;/fleet/list&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">keys</span><span class="p">())),</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;fleet.robots&quot;</span><span class="p">:</span>
+            <span class="c1"># List robots in fleet</span>
+            <span class="n">fleet_name</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;fleet&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fleet_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">fleet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fleet_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fleet</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Message</span><span class="p">(</span>
+                    <span class="n">header</span><span class="o">=</span><span class="n">Header</span><span class="p">(</span><span class="n">correlation_id</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">message_id</span><span class="p">),</span>
+                    <span class="n">telemetry</span><span class="o">=</span><span class="n">Telemetry</span><span class="p">(</span>
+                        <span class="n">topic</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/fleet/</span><span class="si">{</span><span class="n">fleet_name</span><span class="si">}</span><span class="s2">/robots&quot;</span><span class="p">,</span>
+                        <span class="n">data</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">robot_id</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span><span class="p">}</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">robots</span><span class="o">.</span><span class="n">values</span><span class="p">()],</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">cmd</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;robot.execute&quot;</span><span class="p">:</span>
+            <span class="c1"># Execute command on specific robot</span>
+            <span class="n">robot_id</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;robot_id&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">robot_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">robot</span> <span class="o">=</span> <span class="n">fleet</span><span class="o">.</span><span class="n">get_robot</span><span class="p">(</span><span class="n">robot_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">robot</span><span class="p">:</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">robot</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">Message</span><span class="p">(</span>
+                        <span class="n">header</span><span class="o">=</span><span class="n">Header</span><span class="p">(</span><span class="n">correlation_id</span><span class="o">=</span><span class="n">message</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">message_id</span><span class="p">),</span>
+                        <span class="n">telemetry</span><span class="o">=</span><span class="n">Telemetry</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;/robot/</span><span class="si">{</span><span class="n">robot_id</span><span class="si">}</span><span class="s2">/result&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">result</span><span class="p">),</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Bridge.create_fleet">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.create_fleet">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_fleet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RobotFleet</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new robot fleet.&quot;&quot;&quot;</span>
+        <span class="n">fleet</span> <span class="o">=</span> <span class="n">RobotFleet</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">fleet</span>
+        <span class="k">return</span> <span class="n">fleet</span></div>
+
+
+<div class="viewcode-block" id="Bridge.connect_robot">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.connect_robot">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">connect_robot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">uri</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fleet_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Robot</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect to a robot and optionally add to fleet.&quot;&quot;&quot;</span>
+        <span class="n">robot</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">connector_registry</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fleet_name</span> <span class="ow">and</span> <span class="n">fleet_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="p">[</span><span class="n">fleet_name</span><span class="p">]</span><span class="o">.</span><span class="n">add_robot</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">robot</span></div>
+
+
+<div class="viewcode-block" id="Bridge.start">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.start">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Start the gateway.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting Agent ROS Bridge...&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span><span class="o">.</span><span class="n">start_all</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bridge started&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.stop">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.stop">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stop the gateway.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopping Agent ROS Bridge...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">transport_manager</span><span class="o">.</span><span class="n">stop_all</span><span class="p">()</span>
+
+        <span class="c1"># Disconnect all robots</span>
+        <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">robot</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">robots</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">await</span> <span class="n">robot</span><span class="o">.</span><span class="n">disconnect</span><span class="p">()</span>
+
+        <span class="c1"># Unload plugins</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plugin_manager</span><span class="o">.</span><span class="n">plugins</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">plugin_manager</span><span class="o">.</span><span class="n">unload_plugin</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bridge stopped&quot;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># v0.5.0: AI Agent Integration Methods</span>
+
+<div class="viewcode-block" id="Bridge.get_langchain_tool">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_langchain_tool">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_langchain_tool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get LangChain tool for this bridge.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            from langchain.agents import initialize_agent</span>
+
+<span class="sd">            tool = bridge.get_langchain_tool([&quot;navigate&quot;, &quot;move_arm&quot;])</span>
+<span class="sd">            agent = initialize_agent([tool], llm, agent=&quot;zero-shot-react-description&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.langchain_adapter</span> <span class="kn">import</span> <span class="n">ROSBridgeTool</span>
+
+        <span class="k">return</span> <span class="n">ROSBridgeTool</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">actions</span><span class="o">=</span><span class="n">actions</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_autogpt_adapter">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_autogpt_adapter">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_autogpt_adapter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get AutoGPT adapter for this bridge.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            adapter = bridge.get_autogpt_adapter()</span>
+<span class="sd">            commands = adapter.get_commands()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.autogpt_adapter</span> <span class="kn">import</span> <span class="n">AutoGPTAdapter</span>
+
+        <span class="k">return</span> <span class="n">AutoGPTAdapter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_mcp_server">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_mcp_server">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_mcp_server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;stdio&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get MCP server transport for this bridge.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            mcp = bridge.get_mcp_server(mode=&quot;stdio&quot;)</span>
+<span class="sd">            await mcp.start()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.mcp_transport</span> <span class="kn">import</span> <span class="n">MCPServerTransport</span>
+
+        <span class="k">return</span> <span class="n">MCPServerTransport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_tool_discovery">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_tool_discovery">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_tool_discovery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get tool discovery for ROS introspection.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            discovery = bridge.get_tool_discovery()</span>
+<span class="sd">            tools = discovery.discover_all()</span>
+<span class="sd">            mcp_tools = discovery.to_mcp_tools()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.discovery</span> <span class="kn">import</span> <span class="n">ToolDiscovery</span>
+
+        <span class="k">return</span> <span class="n">ToolDiscovery</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_dashboard">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_dashboard">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8080</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get dashboard server for this bridge.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            dashboard = bridge.get_dashboard(port=8080)</span>
+<span class="sd">            await dashboard.start()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.dashboard_server</span> <span class="kn">import</span> <span class="n">DashboardServer</span>
+
+        <span class="k">return</span> <span class="n">DashboardServer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_openclaw_adapter">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_openclaw_adapter">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_openclaw_adapter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_ros1</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get OpenClaw adapter for this bridge.</span>
+
+<span class="sd">        Provides integration with the OpenClaw AI agent framework through</span>
+<span class="sd">        ClawHub skills. The adapter provides:</span>
+
+<span class="sd">        1. Skill Mode: Access to ClawHub skill for OpenClaw agents</span>
+<span class="sd">        2. Extension Mode: Direct tool execution (optional)</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            adapter = bridge.get_openclaw_adapter()</span>
+
+<span class="sd">            # Get skill path for ClawHub</span>
+<span class="sd">            skill_path = adapter.get_skill_path()</span>
+
+<span class="sd">            # Or use extension mode</span>
+<span class="sd">            tools = adapter.get_tools()</span>
+<span class="sd">            result = await adapter.execute_tool(&quot;ros2_publish&quot;, {...})</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            include_ros1: Whether to include ROS1-specific tools.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            OpenClawAdapter instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">INTEGRATIONS_AVAILABLE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Integrations not available&quot;</span><span class="p">)</span>
+
+        <span class="kn">from</span> <span class="nn">..integrations.openclaw_adapter</span> <span class="kn">import</span> <span class="n">OpenClawAdapter</span>
+
+        <span class="k">return</span> <span class="n">OpenClawAdapter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_ros1</span><span class="o">=</span><span class="n">include_ros1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.execute_action">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.execute_action">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">execute_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute an action via the bridge (used by AI integrations).</span>
+
+<span class="sd">        This is the main entry point for AI agents to control robots.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            action: Action name (e.g., &quot;navigate&quot;, &quot;move_arm&quot;)</span>
+<span class="sd">            parameters: Action parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Action result</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Create command</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">Command</span><span class="p">(</span><span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># Create dummy identity for AI agent</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">Identity</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;ai_agent&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;AI Agent&quot;</span><span class="p">,</span> <span class="n">roles</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Create message</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">Message</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="c1"># Handle via core command handler</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_core_command</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">identity</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">response</span> <span class="ow">and</span> <span class="n">response</span><span class="o">.</span><span class="n">telemetry</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">telemetry</span><span class="o">.</span><span class="n">data</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;No response from bridge&quot;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Bridge.get_actions">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.get_actions">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_actions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get list of available actions (used by discovery).&quot;&quot;&quot;</span>
+        <span class="c1"># Return common actions - actual implementation would discover from robots</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;discover&quot;</span><span class="p">,</span> <span class="s2">&quot;fleet.list&quot;</span><span class="p">,</span> <span class="s2">&quot;fleet.robots&quot;</span><span class="p">,</span> <span class="s2">&quot;robot.execute&quot;</span><span class="p">,</span> <span class="s2">&quot;emergency_stop&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Bridge.emergency_stop">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.emergency_stop">[docs]</a>
+    <span class="k">def</span> <span class="nf">emergency_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Trigger emergency stop.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety</span><span class="o">.</span><span class="n">trigger_emergency_stop</span><span class="p">(</span><span class="s2">&quot;Manual emergency stop triggered&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;EMERGENCY STOP triggered&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Safety manager not available&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Bridge.run">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.Bridge.run">[docs]</a>
+    <span class="nd">@asynccontextmanager</span>
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Context manager for gateway lifecycle.&quot;&quot;&quot;</span>
+        <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="c1"># =============================================================================</span>
+<span class="c1"># Example Usage</span>
+<span class="c1"># =============================================================================</span>
+
+
+<div class="viewcode-block" id="example">
+<a class="viewcode-back" href="../../../index.html#agent_ros_bridge.gateway_v2.core.example">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">example</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Example gateway usage.&quot;&quot;&quot;</span>
+    <span class="c1"># Create gateway</span>
+    <span class="n">gateway</span> <span class="o">=</span> <span class="n">Bridge</span><span class="p">()</span>
+
+    <span class="c1"># Register transports (simplified - actual implementations needed)</span>
+    <span class="c1"># gateway.transport_manager.register(WebSocketTransport(&quot;websocket&quot;, {&quot;port&quot;: 8765}))</span>
+    <span class="c1"># gateway.transport_manager.register(GRPCTransport(&quot;grpc&quot;, {&quot;port&quot;: 50051}))</span>
+
+    <span class="c1"># Register connectors (simplified - actual implementations needed)</span>
+    <span class="c1"># gateway.connector_registry.register(ROS2Connector())</span>
+    <span class="c1"># gateway.connector_registry.register(MQTTConnector())</span>
+
+    <span class="c1"># Load plugins</span>
+    <span class="c1"># await gateway.plugin_manager.load_plugin(GreenhousePlugin())</span>
+
+    <span class="c1"># Create fleet</span>
+    <span class="n">gateway</span><span class="o">.</span><span class="n">create_fleet</span><span class="p">(</span><span class="s2">&quot;warehouse&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Start gateway</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">gateway</span><span class="o">.</span><span class="n">run</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Gateway running. Press Ctrl+C to stop.&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">gateway</span><span class="o">.</span><span class="n">running</span><span class="p">:</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">example</span><span class="p">())</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Agent ROS Bridge</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Agent ROS Bridge Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

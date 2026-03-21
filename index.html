@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Agent ROS Bridge Documentation &#8212; Agent ROS Bridge 0.5.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=1dd76d02"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="agent-ros-bridge-documentation">
+<h1>Agent ROS Bridge Documentation<a class="headerlink" href="#agent-ros-bridge-documentation" title="Link to this heading">¶</a></h1>
+<p>Welcome to the Agent ROS Bridge documentation.</p>
+<div class="toctree-wrapper compound">
+</div>
+<section id="module-agent_ros_bridge.gateway_v2.core">
+<span id="api-documentation"></span><h2>API Documentation<a class="headerlink" href="#module-agent_ros_bridge.gateway_v2.core" title="Link to this heading">¶</a></h2>
+<p>OpenClaw Gateway - Universal Robot Gateway.</p>
+<p>The next-generation architecture for robot-AI connectivity.
+Multi-protocol, multi-robot, cloud-native.</p>
+<p>v0.5.0: Integrated AI Agent Support
+- Agent Memory (SQLite/Redis)
+- Safety Manager (confirmation, emergency stop)
+- Tool Discovery (MCP/OpenAI export)
+- LangChain/AutoGPT/MCP integrations</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Bridge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge" title="Link to this definition">¶</a></dt>
+<dd><p>Universal robot gateway - main entry point.</p>
+<p>v0.5.0: Added AI agent integrations</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.connect_robot">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect_robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fleet_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.connect_robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.connect_robot" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to a robot and optionally add to fleet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.create_fleet">
+<span class="sig-name descname"><span class="pre">create_fleet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.RobotFleet" title="agent_ros_bridge.gateway_v2.core.RobotFleet"><span class="pre">RobotFleet</span></a></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.create_fleet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.create_fleet" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new robot fleet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.emergency_stop">
+<span class="sig-name descname"><span class="pre">emergency_stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.emergency_stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.emergency_stop" title="Link to this definition">¶</a></dt>
+<dd><p>Trigger emergency stop.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.execute_action">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">execute_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.execute_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.execute_action" title="Link to this definition">¶</a></dt>
+<dd><p>Execute an action via the bridge (used by AI integrations).</p>
+<p>This is the main entry point for AI agents to control robots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action</strong> – Action name (e.g., “navigate”, “move_arm”)</p></li>
+<li><p><strong>parameters</strong> – Action parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Action result</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_actions">
+<span class="sig-name descname"><span class="pre">get_actions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_actions" title="Link to this definition">¶</a></dt>
+<dd><p>Get list of available actions (used by discovery).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_autogpt_adapter">
+<span class="sig-name descname"><span class="pre">get_autogpt_adapter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_autogpt_adapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_autogpt_adapter" title="Link to this definition">¶</a></dt>
+<dd><p>Get AutoGPT adapter for this bridge.</p>
+<p class="rubric">Example</p>
+<p>adapter = bridge.get_autogpt_adapter()
+commands = adapter.get_commands()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_dashboard">
+<span class="sig-name descname"><span class="pre">get_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8080</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_dashboard"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_dashboard" title="Link to this definition">¶</a></dt>
+<dd><p>Get dashboard server for this bridge.</p>
+<p class="rubric">Example</p>
+<p>dashboard = bridge.get_dashboard(port=8080)
+await dashboard.start()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_langchain_tool">
+<span class="sig-name descname"><span class="pre">get_langchain_tool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_langchain_tool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_langchain_tool" title="Link to this definition">¶</a></dt>
+<dd><p>Get LangChain tool for this bridge.</p>
+<p class="rubric">Example</p>
+<p>from langchain.agents import initialize_agent</p>
+<p>tool = bridge.get_langchain_tool([“navigate”, “move_arm”])
+agent = initialize_agent([tool], llm, agent=”zero-shot-react-description”)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_mcp_server">
+<span class="sig-name descname"><span class="pre">get_mcp_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'stdio'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_mcp_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_mcp_server" title="Link to this definition">¶</a></dt>
+<dd><p>Get MCP server transport for this bridge.</p>
+<p class="rubric">Example</p>
+<p>mcp = bridge.get_mcp_server(mode=”stdio”)
+await mcp.start()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_openclaw_adapter">
+<span class="sig-name descname"><span class="pre">get_openclaw_adapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_ros1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_openclaw_adapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_openclaw_adapter" title="Link to this definition">¶</a></dt>
+<dd><p>Get OpenClaw adapter for this bridge.</p>
+<p>Provides integration with the OpenClaw AI agent framework through
+ClawHub skills. The adapter provides:</p>
+<ol class="arabic simple">
+<li><p>Skill Mode: Access to ClawHub skill for OpenClaw agents</p></li>
+<li><p>Extension Mode: Direct tool execution (optional)</p></li>
+</ol>
+<p class="rubric">Example</p>
+<p>adapter = bridge.get_openclaw_adapter()</p>
+<p># Get skill path for ClawHub
+skill_path = adapter.get_skill_path()</p>
+<p># Or use extension mode
+tools = adapter.get_tools()
+result = await adapter.execute_tool(“ros2_publish”, {…})</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>include_ros1</strong> – Whether to include ROS1-specific tools.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>OpenClawAdapter instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.get_tool_discovery">
+<span class="sig-name descname"><span class="pre">get_tool_discovery</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.get_tool_discovery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.get_tool_discovery" title="Link to this definition">¶</a></dt>
+<dd><p>Get tool discovery for ROS introspection.</p>
+<p class="rubric">Example</p>
+<p>discovery = bridge.get_tool_discovery()
+tools = discovery.discover_all()
+mcp_tools = discovery.to_mcp_tools()</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.run" title="Link to this definition">¶</a></dt>
+<dd><p>Context manager for gateway lifecycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.start">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the gateway.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Bridge.stop">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Bridge.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Bridge.stop" title="Link to this definition">¶</a></dt>
+<dd><p>Stop the gateway.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Command">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout_ms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Command" title="Link to this definition">¶</a></dt>
+<dd><p>Robot command.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Connector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Connector</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Connector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Connector" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract robot connector.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Connector.connect">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Connector.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Connector.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to robot at URI.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Connector.discover">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.RobotEndpoint" title="agent_ros_bridge.gateway_v2.core.RobotEndpoint"><span class="pre">RobotEndpoint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Connector.discover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Connector.discover" title="Link to this definition">¶</a></dt>
+<dd><p>Discover available robots.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.ConnectorRegistry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">ConnectorRegistry</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#ConnectorRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.ConnectorRegistry" title="Link to this definition">¶</a></dt>
+<dd><p>Registry of robot connectors.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.ConnectorRegistry.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#ConnectorRegistry.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to robot using appropriate connector.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.ConnectorRegistry.discover_all">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">discover_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.RobotEndpoint" title="agent_ros_bridge.gateway_v2.core.RobotEndpoint"><span class="pre">RobotEndpoint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#ConnectorRegistry.discover_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.discover_all" title="Link to this definition">¶</a></dt>
+<dd><p>Discover robots using all connectors.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.ConnectorRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Connector" title="agent_ros_bridge.gateway_v2.core.Connector"><span class="pre">Connector</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#ConnectorRegistry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.ConnectorRegistry.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a connector.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Event">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">severity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'info'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Event"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Event" title="Link to this definition">¶</a></dt>
+<dd><p>System event.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Header">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correlation_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Header" title="Link to this definition">¶</a></dt>
+<dd><p>Message header.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Identity">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Identity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">roles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Identity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Identity" title="Link to this definition">¶</a></dt>
+<dd><p>Authenticated identity.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Message">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Header" title="agent_ros_bridge.gateway_v2.core.Header"><span class="pre">Header</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Command" title="agent_ros_bridge.gateway_v2.core.Command"><span class="pre">Command</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">telemetry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Telemetry" title="agent_ros_bridge.gateway_v2.core.Telemetry"><span class="pre">Telemetry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Event" title="agent_ros_bridge.gateway_v2.core.Event"><span class="pre">Event</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Identity" title="agent_ros_bridge.gateway_v2.core.Identity"><span class="pre">Identity</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Message" title="Link to this definition">¶</a></dt>
+<dd><p>Unified message format.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Plugin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Plugin</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Plugin" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract plugin.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Plugin.handle_message">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">handle_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">_identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Identity" title="agent_ros_bridge.gateway_v2.core.Identity"><span class="pre">Identity</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Plugin.handle_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Plugin.handle_message" title="Link to this definition">¶</a></dt>
+<dd><p>Handle message - return response or None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Plugin.initialize">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">initialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gateway</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Bridge" title="agent_ros_bridge.gateway_v2.core.Bridge"><span class="pre">Bridge</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Plugin.initialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Plugin.initialize" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize plugin with gateway reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Plugin.shutdown">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shutdown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Plugin.shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Plugin.shutdown" title="Link to this definition">¶</a></dt>
+<dd><p>Shutdown plugin.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.PluginManager">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">PluginManager</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#PluginManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.PluginManager" title="Link to this definition">¶</a></dt>
+<dd><p>Manages plugins with hot reload.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.PluginManager.handle_message">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">handle_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Identity" title="agent_ros_bridge.gateway_v2.core.Identity"><span class="pre">Identity</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#PluginManager.handle_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.PluginManager.handle_message" title="Link to this definition">¶</a></dt>
+<dd><p>Route message through plugins.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.PluginManager.load_plugin">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plugin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Plugin" title="agent_ros_bridge.gateway_v2.core.Plugin"><span class="pre">Plugin</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#PluginManager.load_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.PluginManager.load_plugin" title="Link to this definition">¶</a></dt>
+<dd><p>Load and initialize a plugin.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.PluginManager.set_gateway">
+<span class="sig-name descname"><span class="pre">set_gateway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gateway</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Bridge" title="agent_ros_bridge.gateway_v2.core.Bridge"><span class="pre">Bridge</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#PluginManager.set_gateway"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.PluginManager.set_gateway" title="Link to this definition">¶</a></dt>
+<dd><p>Set gateway reference.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.PluginManager.unload_plugin">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unload_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#PluginManager.unload_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.PluginManager.unload_plugin" title="Link to this definition">¶</a></dt>
+<dd><p>Unload a plugin.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.QoS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">QoS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#QoS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.QoS" title="Link to this definition">¶</a></dt>
+<dd><p>Quality of Service levels.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Robot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connector_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Robot" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract robot representation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Robot.connect">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Robot.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Robot.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to robot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Robot.disconnect">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Robot.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Robot.disconnect" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect from robot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Robot.execute">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Command" title="agent_ros_bridge.gateway_v2.core.Command"><span class="pre">Command</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Robot.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Robot.execute" title="Link to this definition">¶</a></dt>
+<dd><p>Execute command on robot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Robot.subscribe">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">subscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AsyncIterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Telemetry" title="agent_ros_bridge.gateway_v2.core.Telemetry"><span class="pre">Telemetry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Robot.subscribe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Robot.subscribe" title="Link to this definition">¶</a></dt>
+<dd><p>Subscribe to telemetry topic.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotEndpoint">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">RobotEndpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connector_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capabilities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotEndpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotEndpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Discovered robot endpoint.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">RobotFleet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet" title="Link to this definition">¶</a></dt>
+<dd><p>Manages a fleet of robots.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet.add_robot">
+<span class="sig-name descname"><span class="pre">add_robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet.add_robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet.add_robot" title="Link to this definition">¶</a></dt>
+<dd><p>Add robot to fleet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet.broadcast">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Command" title="agent_ros_bridge.gateway_v2.core.Command"><span class="pre">Command</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">selector</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet.broadcast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet.broadcast" title="Link to this definition">¶</a></dt>
+<dd><p>Broadcast command to selected robots.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet.get_robot">
+<span class="sig-name descname"><span class="pre">get_robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet.get_robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet.get_robot" title="Link to this definition">¶</a></dt>
+<dd><p>Get robot by ID.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet.remove_robot">
+<span class="sig-name descname"><span class="pre">remove_robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet.remove_robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet.remove_robot" title="Link to this definition">¶</a></dt>
+<dd><p>Remove robot from fleet.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.RobotFleet.select">
+<span class="sig-name descname"><span class="pre">select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">predicate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#RobotFleet.select"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.RobotFleet.select" title="Link to this definition">¶</a></dt>
+<dd><p>Select robots matching predicate.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Telemetry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Telemetry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Telemetry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Telemetry" title="Link to this definition">¶</a></dt>
+<dd><p>Sensor/telemetry data.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">Transport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport" title="Link to this definition">¶</a></dt>
+<dd><p>Abstract transport layer.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport.broadcast">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport.broadcast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport.broadcast" title="Link to this definition">¶</a></dt>
+<dd><p>Broadcast to all connected clients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport.on_message">
+<span class="sig-name descname"><span class="pre">on_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">handler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Identity" title="agent_ros_bridge.gateway_v2.core.Identity"><span class="pre">Identity</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport.on_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport.on_message" title="Link to this definition">¶</a></dt>
+<dd><p>Register message handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport.send">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport.send"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport.send" title="Link to this definition">¶</a></dt>
+<dd><p>Send message to specific recipient.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport.start">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport.start" title="Link to this definition">¶</a></dt>
+<dd><p>Start the transport.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.Transport.stop">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#Transport.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.Transport.stop" title="Link to this definition">¶</a></dt>
+<dd><p>Stop the transport.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">TransportManager</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager" title="Link to this definition">¶</a></dt>
+<dd><p>Manages multiple transport endpoints.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager.on_message">
+<span class="sig-name descname"><span class="pre">on_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">handler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Identity" title="agent_ros_bridge.gateway_v2.core.Identity"><span class="pre">Identity</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager.on_message"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager.on_message" title="Link to this definition">¶</a></dt>
+<dd><p>Set global message handler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Transport" title="agent_ros_bridge.gateway_v2.core.Transport"><span class="pre">Transport</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager.register" title="Link to this definition">¶</a></dt>
+<dd><p>Register a transport.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager.send">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Message" title="agent_ros_bridge.gateway_v2.core.Message"><span class="pre">Message</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager.send"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager.send" title="Link to this definition">¶</a></dt>
+<dd><p>Send via specific transport.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager.start_all">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager.start_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager.start_all" title="Link to this definition">¶</a></dt>
+<dd><p>Start all registered transports.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.TransportManager.stop_all">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stop_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#TransportManager.stop_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.TransportManager.stop_all" title="Link to this definition">¶</a></dt>
+<dd><p>Stop all transports.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.core.example">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.core.</span></span><span class="sig-name descname"><span class="pre">example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/core.html#example"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.core.example" title="Link to this definition">¶</a></dt>
+<dd><p>Example gateway usage.</p>
+</dd></dl>
+
+<p id="module-agent_ros_bridge.gateway_v2.connectors.ros2_connector">ROS2 Connector for OpenClaw Gateway.</p>
+<p>Connects to ROS2 robots and bridges ROS2 topics/services/actions
+to the OpenClaw unified message format.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.Node">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#Node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.Node" title="Link to this definition">¶</a></dt>
+<dd><p>Placeholder Node class when rclpy is not available.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">ROS2Connector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Connector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector" title="Link to this definition">¶</a></dt>
+<dd><p>ROS2 connector implementation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Connector.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to ROS2 system.</p>
+<p>URI format: ros2://[&lt;domain_id&gt;]/[&lt;namespace&gt;]</p>
+<p class="rubric">Examples</p>
+<p>ros2://0/                    # Domain 0, root namespace
+ros2://42/production/robots  # Domain 42, specific namespace</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector.discover">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.RobotEndpoint" title="agent_ros_bridge.gateway_v2.core.RobotEndpoint"><span class="pre">RobotEndpoint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Connector.discover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Connector.discover" title="Link to this definition">¶</a></dt>
+<dd><p>Discover ROS2 systems on network.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">ROS2Robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ros_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.Node" title="agent_ros_bridge.gateway_v2.connectors.ros2_connector.Node"><span class="pre">Node</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot" title="Link to this definition">¶</a></dt>
+<dd><p>ROS2 robot implementation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Robot.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.connect" title="Link to this definition">¶</a></dt>
+<dd><p>ROS2 robot is already connected via node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.disconnect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Robot.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.disconnect" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect from ROS2.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.execute">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Command" title="agent_ros_bridge.gateway_v2.core.Command"><span class="pre">Command</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Robot.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.execute" title="Link to this definition">¶</a></dt>
+<dd><p>Execute command on ROS2 robot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.subscribe">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">subscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AsyncIterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Telemetry" title="agent_ros_bridge.gateway_v2.core.Telemetry"><span class="pre">Telemetry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Robot.subscribe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Robot.subscribe" title="Link to this definition">¶</a></dt>
+<dd><p>Subscribe to ROS2 topic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>topic</strong> – ROS topic name</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Topic">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">ROS2Topic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qos_profile</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#ROS2Topic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.ROS2Topic" title="Link to this definition">¶</a></dt>
+<dd><p>ROS2 topic information.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.example">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#example"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.example" title="Link to this definition">¶</a></dt>
+<dd><p>Example ROS2 connector usage.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros2_connector.get_message_class">
+<span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros2_connector.</span></span><span class="sig-name descname"><span class="pre">get_message_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros2_connector.html#get_message_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros2_connector.get_message_class" title="Link to this definition">¶</a></dt>
+<dd><p>Dynamically import and return a ROS2 message class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>msg_type</strong> – ROS message type string (e.g., “geometry_msgs/Twist”)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Message class or None if not available</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-agent_ros_bridge.gateway_v2.connectors.ros1_connector">ROS1 Connector for OpenClaw Gateway.</p>
+<p>Connects to ROS1 robots (Noetic) and bridges ROS topics/services/actions
+to the OpenClaw unified message format.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Action">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">ROS1Action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Action" title="Link to this definition">¶</a></dt>
+<dd><p>ROS1 action information.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">ROS1Connector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master_uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Connector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector" title="Link to this definition">¶</a></dt>
+<dd><p>ROS1 (Noetic) connector.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Robot" title="agent_ros_bridge.gateway_v2.core.Robot"><span class="pre">Robot</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Connector.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to a ROS1 robot.</p>
+<dl class="simple">
+<dt>URI formats:</dt><dd><p>ros1:///&lt;namespace&gt;         # Connect to namespace
+ros1://&lt;node_name&gt;          # Connect to specific node</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.discover">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">discover</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.RobotEndpoint" title="agent_ros_bridge.gateway_v2.core.RobotEndpoint"><span class="pre">RobotEndpoint</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Connector.discover"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Connector.discover" title="Link to this definition">¶</a></dt>
+<dd><p>Discover ROS1 systems on network.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">ROS1Robot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">robot_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Robot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot" title="Link to this definition">¶</a></dt>
+<dd><p>ROS1 robot implementation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Robot.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Initialize ROS1 node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.disconnect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Robot.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.disconnect" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect from ROS1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.execute">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Command" title="agent_ros_bridge.gateway_v2.core.Command"><span class="pre">Command</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Robot.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.execute" title="Link to this definition">¶</a></dt>
+<dd><p>Execute command on ROS1 robot.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.subscribe">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">subscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AsyncIterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#agent_ros_bridge.gateway_v2.core.Telemetry" title="agent_ros_bridge.gateway_v2.core.Telemetry"><span class="pre">Telemetry</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Robot.subscribe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Robot.subscribe" title="Link to this definition">¶</a></dt>
+<dd><p>Subscribe to ROS1 topic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>topic</strong> – ROS topic name</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Service">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">ROS1Service</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Service"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Service" title="Link to this definition">¶</a></dt>
+<dd><p>ROS1 service information.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Topic">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">ROS1Topic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#ROS1Topic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.ROS1Topic" title="Link to this definition">¶</a></dt>
+<dd><p>ROS1 topic information.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.example">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">example</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#example"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.example" title="Link to this definition">¶</a></dt>
+<dd><p>Example ROS1 connector usage.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.connectors.ros1_connector.get_message_class">
+<span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.connectors.ros1_connector.</span></span><span class="sig-name descname"><span class="pre">get_message_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/connectors/ros1_connector.html#get_message_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.connectors.ros1_connector.get_message_class" title="Link to this definition">¶</a></dt>
+<dd><p>Dynamically import and return a ROS1 message class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>msg_type</strong> – ROS message type string (e.g., “geometry_msgs/Twist”)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Message class or None if not available</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-agent_ros_bridge.gateway_v2.transports.grpc_transport">gRPC transport for Agent ROS Bridge.</p>
+<p>Provides high-performance, type-safe communication for robot control.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.transports.grpc_transport.</span></span><span class="sig-name descname"><span class="pre">GRPCClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'localhost'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50051</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient" title="Link to this definition">¶</a></dt>
+<dd><p>gRPC client for connecting to bridge.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.connect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCClient.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.connect" title="Link to this definition">¶</a></dt>
+<dd><p>Connect to gRPC server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.disconnect">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCClient.disconnect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.disconnect" title="Link to this definition">¶</a></dt>
+<dd><p>Disconnect from server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.execute_command">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">execute_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCClient.execute_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCClient.execute_command" title="Link to this definition">¶</a></dt>
+<dd><p>Execute command via gRPC.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCServicer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.transports.grpc_transport.</span></span><span class="sig-name descname"><span class="pre">GRPCServicer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command_handler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authenticator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Authenticator</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCServicer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCServicer" title="Link to this definition">¶</a></dt>
+<dd><p>gRPC servicer for bridge commands.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCServicer.ExecuteCommand">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ExecuteCommand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCServicer.ExecuteCommand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCServicer.ExecuteCommand" title="Link to this definition">¶</a></dt>
+<dd><p>Execute a robot command via gRPC.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agent_ros_bridge.gateway_v2.transports.grpc_transport.</span></span><span class="sig-name descname"><span class="pre">GRPCTransport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport" title="Link to this definition">¶</a></dt>
+<dd><p>gRPC transport implementation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.broadcast">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">broadcast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport.broadcast"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.broadcast" title="Link to this definition">¶</a></dt>
+<dd><p>Broadcast to all connected clients (not implemented for gRPC).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.handle_command">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">handle_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport.handle_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.handle_command" title="Link to this definition">¶</a></dt>
+<dd><p>Handle incoming command.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.send">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport.send"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.send" title="Link to this definition">¶</a></dt>
+<dd><p>Send message to specific recipient (not implemented for gRPC).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.start">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport.start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.start" title="Link to this definition">¶</a></dt>
+<dd><p>Start gRPC server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.stop">
+<span class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agent_ros_bridge/gateway_v2/transports/grpc_transport.html#GRPCTransport.stop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agent_ros_bridge.gateway_v2.transports.grpc_transport.GRPCTransport.stop" title="Link to this definition">¶</a></dt>
+<dd><p>Stop gRPC server.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Agent ROS Bridge</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Agent ROS Bridge Team.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
