@@ -50,13 +50,19 @@ class TestRobotControllerNavigationDetailed:
 
     def test_navigate_goal_rejected(self):
         """Test navigation when goal is rejected."""
+        # Create proper mock for nav2_msgs.action with NavigateToPose class
+        mock_navigate_to_pose = MagicMock()
+        mock_navigate_to_pose.Goal = MagicMock
+        mock_nav2_action = MagicMock()
+        mock_nav2_action.NavigateToPose = mock_navigate_to_pose
+
         with patch.object(RobotController, "_connect"):
             with patch.dict(
                 "sys.modules",
                 {
                     "geometry_msgs.msg": MagicMock(),
                     "rclpy": MagicMock(),
-                    "nav2_msgs.action": MagicMock(),
+                    "nav2_msgs.action": mock_nav2_action,
                 },
             ):
                 robot = RobotController()
@@ -74,22 +80,30 @@ class TestRobotControllerNavigationDetailed:
                 result = robot.navigate_to(goal)
 
                 assert result.success is False
+                assert result.error_message is not None
                 assert "rejected" in result.error_message.lower()
 
     def test_navigate_server_not_available(self):
         """Test navigation when server not available."""
+        # Create proper mock for nav2_msgs.action with NavigateToPose class
+        mock_navigate_to_pose = MagicMock()
+        mock_navigate_to_pose.Goal = MagicMock
+        mock_nav2_action = MagicMock()
+        mock_nav2_action.NavigateToPose = mock_navigate_to_pose
+
         with patch.object(RobotController, "_connect"):
             with patch.dict(
                 "sys.modules",
                 {
                     "geometry_msgs.msg": MagicMock(),
                     "rclpy": MagicMock(),
-                    "nav2_msgs.action": MagicMock(),
+                    "nav2_msgs.action": mock_nav2_action,
                 },
             ):
                 robot = RobotController()
                 robot._connected = True
                 robot._nav_client = MagicMock()
+                robot._node = MagicMock()
 
                 # Server not available
                 robot._nav_client.wait_for_server = MagicMock(return_value=False)
@@ -98,6 +112,7 @@ class TestRobotControllerNavigationDetailed:
                 result = robot.navigate_to(goal)
 
                 assert result.success is False
+                assert result.error_message is not None
                 assert "not available" in result.error_message.lower()
 
 
