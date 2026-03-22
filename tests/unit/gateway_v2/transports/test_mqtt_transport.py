@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport, MQTT_AVAILABLE
+from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTT_AVAILABLE, MQTTTransport
 
 
 class TestMQTTTransportInit:
@@ -177,7 +177,7 @@ class TestMessageToMQTTConversion:
 
     def test_message_to_mqtt_command(self, transport):
         """Test converting Message with command."""
-        from agent_ros_bridge.gateway_v2.core import Header, Command, Message
+        from agent_ros_bridge.gateway_v2.core import Command, Header, Message
 
         message = Message(
             header=Header(
@@ -200,7 +200,7 @@ class TestMessageToMQTTConversion:
 
     def test_message_to_mqtt_telemetry(self, transport):
         """Test converting Message with telemetry."""
-        from agent_ros_bridge.gateway_v2.core import Header, Telemetry, Message
+        from agent_ros_bridge.gateway_v2.core import Header, Message, Telemetry
 
         message = Message(
             header=Header(
@@ -221,7 +221,7 @@ class TestMessageToMQTTConversion:
 
     def test_message_to_mqtt_event(self, transport):
         """Test converting Message with event."""
-        from agent_ros_bridge.gateway_v2.core import Header, Event, Message
+        from agent_ros_bridge.gateway_v2.core import Event, Header, Message
 
         message = Message(
             header=Header(
@@ -268,7 +268,7 @@ class TestMQTTMessageProcessing:
     @pytest.mark.asyncio
     async def test_process_messages_with_handler(self, transport):
         """Test message processing with message handler."""
-        from agent_ros_bridge.gateway_v2.core import Header, Message, Identity
+        from agent_ros_bridge.gateway_v2.core import Header, Identity, Message
 
         transport.running = True
         transport.message_handler = AsyncMock(return_value=None)
@@ -328,7 +328,7 @@ class TestMQTTSend:
     @pytest.mark.asyncio
     async def test_send_command(self, transport):
         """Test sending command message."""
-        from agent_ros_bridge.gateway_v2.core import Header, Command, Message
+        from agent_ros_bridge.gateway_v2.core import Command, Header, Message
 
         message = Message(
             header=Header(
@@ -352,7 +352,7 @@ class TestMQTTSend:
     @pytest.mark.asyncio
     async def test_send_telemetry(self, transport):
         """Test sending telemetry message."""
-        from agent_ros_bridge.gateway_v2.core import Header, Telemetry, Message
+        from agent_ros_bridge.gateway_v2.core import Header, Message, Telemetry
 
         message = Message(
             header=Header(

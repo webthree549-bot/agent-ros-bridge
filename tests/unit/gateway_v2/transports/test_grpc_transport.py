@@ -8,8 +8,8 @@ import pytest
 from agent_ros_bridge.gateway_v2.transports.grpc_transport import (
     GRPC_AVAILABLE,
     GRPCClient,
-    GRPCTransport,
     GRPCServicer,
+    GRPCTransport,
 )
 
 

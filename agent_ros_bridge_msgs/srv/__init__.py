@@ -21,7 +21,7 @@ class ParseIntentRequest:
     """Request for ParseIntent service."""
     utterance: str = ""
     robot_id: str = ""
-    context: List[ContextQuery] = field(default_factory=list)
+    context: list[ContextQuery] = field(default_factory=list)
     session_id: str = ""
     language: str = "en"
 
@@ -32,7 +32,7 @@ class ParseIntentResponse:
     intent: Intent = field(default_factory=Intent)
     success: bool = False
     error_message: str = ""
-    suggestions: List[str] = field(default_factory=list)
+    suggestions: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
 
 
