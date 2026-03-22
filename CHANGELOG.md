@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.3] - 2026-03-22
+
+### Added
+- **Python 3.14 Support** — Full compatibility with Python 3.14
+  - Suppressed `asyncio.get_event_loop_policy()` deprecation warning
+  - Added warnings filter in test configuration for forward compatibility
+  - Verified test suite passes without warnings on Python 3.14.3
+
+### Changed
+- Updated Python version classifiers to include 3.14
+
 ## [0.6.2] - 2026-03-18
 
 ### Fixed

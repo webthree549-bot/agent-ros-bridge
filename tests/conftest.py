@@ -11,9 +11,13 @@ import asyncio
 import os
 import sys
 import time
+import warnings
 from unittest import mock
 
 import pytest
+
+# Suppress deprecation warnings for asyncio.get_event_loop_policy (Python 3.14+)
+warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*get_event_loop_policy.*")
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -89,7 +93,9 @@ def pytest_collection_modifyitems(config, items):
 def event_loop_policy():
     """Set event loop policy for the test session."""
     # Use the default asyncio policy but ensure proper cleanup
-    original_policy = asyncio.get_event_loop_policy()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        original_policy = asyncio.get_event_loop_policy()
     yield original_policy
     # Cleanup any remaining tasks
     try:
