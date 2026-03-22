@@ -8,7 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- None
+- **Moonshot (Kimi) LLM Support** — Added Moonshot AI as LLM provider
+  - Support for Kimi K2.5, K1.5 models
+  - Uses OpenAI-compatible API with custom base URL
+  - Environment variable: `MOONSHOT_API_KEY`
+  - Demo script: `examples/demo_llm_moonshot.py`
 
 ### Changed
 - None

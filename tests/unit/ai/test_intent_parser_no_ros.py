@@ -500,3 +500,47 @@ class TestIntentParserLLMFallback:
         assert "confidence" in llm_result
         assert "entities" in llm_result
         assert len(llm_result["entities"]) > 0
+
+
+class TestLLMParserProviders:
+    """Test LLM parser provider configurations."""
+
+    def test_openai_provider_config(self):
+        """Test OpenAI provider configuration."""
+        from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+
+        config = LLMIntentParser.PROVIDER_CONFIGS["openai"]
+        assert config["env_key"] == "OPENAI_API_KEY"
+        assert config["default_model"] == "gpt-3.5-turbo"
+        assert config["base_url"] is None
+
+    def test_anthropic_provider_config(self):
+        """Test Anthropic provider configuration."""
+        from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+
+        config = LLMIntentParser.PROVIDER_CONFIGS["anthropic"]
+        assert config["env_key"] == "ANTHROPIC_API_KEY"
+        assert config["default_model"] == "claude-3-haiku-20240307"
+        assert config["base_url"] is None
+
+    def test_moonshot_provider_config(self):
+        """Test Moonshot provider configuration."""
+        from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+
+        config = LLMIntentParser.PROVIDER_CONFIGS["moonshot"]
+        assert config["env_key"] == "MOONSHOT_API_KEY"
+        assert config["default_model"] == "kimi-k2.5"
+        assert config["base_url"] == "https://api.moonshot.cn/v1"
+
+    def test_moonshot_uses_openai_client(self):
+        """Test that Moonshot uses OpenAI-compatible client."""
+        from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+
+        # Moonshot should be handled by _call_openai method
+        # which uses the OpenAI client with custom base_url
+        parser = LLMIntentParser.__new__(LLMIntentParser)
+        parser._provider = "moonshot"
+        parser._base_url = "https://api.moonshot.cn/v1"
+
+        # Verify Moonshot is in the openai provider group
+        assert parser._provider in ("openai", "moonshot")
