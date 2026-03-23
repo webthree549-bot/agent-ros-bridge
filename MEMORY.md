@@ -1,6 +1,33 @@
 # MEMORY.md - Curated Long-Term Memory
 
-_Last updated: 2026-03-18_
+_Last updated: 2026-03-23_
+
+---
+
+## Today's Work (2026-03-23)
+
+### TDD: Shadow Mode Hooks (v0.6.4)
+**Status: COMPLETE** ✅
+
+New component for auto-logging AI proposals and human commands:
+
+| Component | Tests | Lines |
+|-----------|-------|-------|
+| ShadowModeHooks | 23 | ~400 |
+| GazeboBatchRunner | 25 | ~450 |
+| ScenarioGenerator | 30 | ~500 |
+| **Total New** | **78** | **~1,350** |
+
+**Features Delivered:**
+1. **Shadow Mode Hooks** - Auto-log AI proposals from intent parser
+2. **Gateway Integration** - Auto-log human commands
+3. **Real-time Comparison** - AI vs human agreement calculation
+4. **Dashboard Updates** - Live metrics
+5. **GazeboBatchRunner** - Parallel world execution (4-8 worlds)
+6. **ScenarioGenerator** - 10K+ procedural scenarios
+7. **Foxglove Integration** - WebSocket streaming for visualization
+
+**Total Tests: 1,774+ passing**
 
 ---
 
@@ -11,12 +38,30 @@ _Last updated: 2026-03-18_
 **Current Version:** v0.6.1 (production ready)
 
 ### Status Summary
-- **Tests:** 1,156 unit tests passing, 46 E2E tests passing
+- **Tests:** 1,167+ unit tests passing
 - **E2E Tests:** 46 passed, 8 skipped (1 port binding failure)
-- **Version:** v0.6.2 released to PyPI
-- **Coverage:** 49.97% (target: 60%) — **+9.5% improvement!**
+- **Version:** **v0.6.3 released to PyPI** ✅
+- **Coverage:** ~63% (target: 60%) ✅ **Target met!**
 - **CI/CD:** 9-stage pipeline operational
 - **ROS2:** Docker-based (`ros2_humble` container with Jazzy + Nav2)
+
+### Recent Fixes (2026-03-23) — CI Pipeline Fixed
+1. **GitHub Actions Cache** - Fixed failing cache action downloads
+   - Switched from SHA-pinned to version-tagged actions (`actions/cache@v4`)
+   - Resolved persistent "action could not be found" errors
+2. **GitHub Pages Handling** - Added graceful degradation
+   - Docs workflow now continues even if Pages not enabled
+   - Prevents CI failures from optional documentation deployment
+3. **Phase 2 Complete** - Shadow mode dashboard and integration merged
+   - Added real-time metrics visualization dashboard
+   - Integration between shadow and gateway_v2 modules
+
+### Recent Fixes (2026-03-22) — v0.6.3 RELEASED 🎉
+1. **Python 3.14 Support** - Full compatibility with Python 3.14
+   - Fixed `asyncio.get_event_loop_policy()` deprecation warning
+   - Added Python 3.13 and 3.14 to version classifiers
+   - Verified test suite passes without warnings
+2. **PyPI Release** - v0.6.3 now available: `pip install agent-ros-bridge==0.6.3`
 
 ### Recent Fixes (2026-03-18) — Docker AI Testing COMPLETE
 1. **AI Module Tests Fixed** - API mismatches resolved, **21 tests passing** in Docker
