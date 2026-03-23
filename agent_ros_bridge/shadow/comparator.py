@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from .models import DecisionRecord, AIProposal, HumanAction
+from .models import AIProposal, DecisionRecord, HumanAction
 
 
 class DecisionComparator:

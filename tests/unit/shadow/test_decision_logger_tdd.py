@@ -7,7 +7,7 @@ Run these first - they should all FAIL.
 import json
 import os
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import pytest
 
@@ -15,10 +15,10 @@ import pytest
 from agent_ros_bridge.shadow import DecisionLogger
 from agent_ros_bridge.shadow.models import (
     AIProposal,
-    HumanAction,
     DecisionContext,
     DecisionOutcome,
     DecisionStatus,
+    HumanAction,
 )
 
 
@@ -189,5 +189,5 @@ class TestDecisionModelsTDD:
 
     def test_decision_context_has_timestamp(self):
         """RED: DecisionContext should have timestamp field."""
-        context = DecisionContext(timestamp=datetime.now(timezone.utc))
+        context = DecisionContext(timestamp=datetime.now(UTC))
         assert context.timestamp is not None

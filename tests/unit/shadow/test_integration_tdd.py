@@ -9,9 +9,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from agent_ros_bridge.shadow import DecisionLogger
+
 # These imports will fail until we implement the modules
 from agent_ros_bridge.shadow.integration import ShadowModeIntegration
-from agent_ros_bridge.shadow import DecisionLogger
 
 
 class TestShadowModeIntegrationTDD:

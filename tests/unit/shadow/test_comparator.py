@@ -1,16 +1,16 @@
 """Comprehensive tests for shadow mode decision comparator."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 import pytest
 
 from agent_ros_bridge.shadow import DecisionComparator
 from agent_ros_bridge.shadow.models import (
-    DecisionRecord,
     AIProposal,
-    HumanAction,
     DecisionContext,
     DecisionOutcome,
+    DecisionRecord,
+    HumanAction,
 )
 
 
@@ -32,7 +32,7 @@ class TestDecisionComparator:
             robot_pose={"x": 1.0, "y": 2.0, "theta": 0.0},
             battery_level=85.0,
             current_task="idle",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
     def test_exact_intent_match(self, comparator, sample_context):
@@ -40,7 +40,7 @@ class TestDecisionComparator:
         record = DecisionRecord(
             record_id="test1",
             robot_id="bot1",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             context=sample_context,
             ai_proposal=AIProposal(
                 intent_type="NAVIGATE",
@@ -62,7 +62,7 @@ class TestDecisionComparator:
         record = DecisionRecord(
             record_id="test1",
             robot_id="bot1",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             context=sample_context,
             ai_proposal=AIProposal(
                 intent_type="NAVIGATE",
@@ -84,7 +84,7 @@ class TestDecisionComparator:
         record = DecisionRecord(
             record_id="test1",
             robot_id="bot1",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             context=sample_context,
             ai_proposal=AIProposal(
                 intent_type="NAVIGATE",
@@ -106,7 +106,7 @@ class TestDecisionComparator:
             DecisionRecord(
                 record_id="test1",
                 robot_id="bot1",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 context=sample_context,
                 ai_proposal=AIProposal(
                     intent_type="NAVIGATE",
@@ -118,7 +118,7 @@ class TestDecisionComparator:
             DecisionRecord(
                 record_id="test2",
                 robot_id="bot2",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 context=sample_context,
                 ai_proposal=AIProposal(
                     intent_type="NAVIGATE",
@@ -147,7 +147,7 @@ class TestDecisionComparator:
         record = DecisionRecord(
             record_id="test1",
             robot_id="bot1",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             context=sample_context,
             ai_proposal=None,
             human_action=HumanAction(command="navigate", parameters={}),

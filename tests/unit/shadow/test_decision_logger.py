@@ -10,9 +10,9 @@ import pytest
 from agent_ros_bridge.shadow import DecisionLogger
 from agent_ros_bridge.shadow.models import (
     AIProposal,
-    HumanAction,
     DecisionContext,
     DecisionOutcome,
+    HumanAction,
 )
 
 

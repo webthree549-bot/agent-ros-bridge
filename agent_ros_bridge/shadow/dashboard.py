@@ -3,11 +3,11 @@
 Provides HTTP endpoints and WebSocket for real-time metrics.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Callable
 
-from .decision_logger import DecisionLogger
 from .comparator import DecisionComparator
+from .decision_logger import DecisionLogger
 
 
 class DashboardAPI:
@@ -49,7 +49,7 @@ class DashboardAPI:
             "agreement_rate": 0.0,
             "total_decisions": stats.get("total_logged", 0),
             "pending_count": stats.get("pending_count", 0),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def get_recent_decisions(self, limit: int = 10) -> list[dict[str, Any]]:
@@ -84,7 +84,7 @@ class DashboardAPI:
             "robot_id": robot_id,
             "decision_count": len(pending),
             "pending_count": len(pending),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def subscribe_to_updates(
@@ -138,6 +138,6 @@ class MetricsEndpoint:
 
         return {
             "status": 200,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "data": metrics,
         }

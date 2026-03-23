@@ -3,11 +3,11 @@
 import json
 import sqlite3
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .models import DecisionRecord, AIProposal, HumanAction, DecisionOutcome, DecisionContext
+from .models import AIProposal, DecisionContext, DecisionOutcome, DecisionRecord, HumanAction
 
 
 class DecisionLogger:
@@ -62,7 +62,7 @@ class DecisionLogger:
     ) -> str:
         """Log an AI proposal."""
         record_id = str(uuid.uuid4())
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
 
         if context is None:
             context = DecisionContext(timestamp=timestamp)
@@ -93,7 +93,7 @@ class DecisionLogger:
 
         if record is None:
             record_id = str(uuid.uuid4())
-            timestamp = datetime.now(timezone.utc)
+            timestamp = datetime.now(UTC)
             record = DecisionRecord(
                 record_id=record_id,
                 robot_id=robot_id,
@@ -156,7 +156,7 @@ class DecisionLogger:
 
     def expire_old_records(self) -> int:
         """Expire records that have been pending too long."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired = []
 
         for robot_id, record in list(self._pending.items()):

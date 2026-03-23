@@ -6,7 +6,7 @@ Connects shadow mode logging to existing system components.
 from typing import Any
 
 from .decision_logger import DecisionLogger
-from .models import AIProposal, HumanAction, DecisionOutcome
+from .models import AIProposal, DecisionOutcome, HumanAction
 
 
 class ShadowModeIntegration:

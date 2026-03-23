@@ -1,7 +1,7 @@
 """Data models for shadow mode decision tracking."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -110,7 +110,7 @@ class DecisionContext:
     battery_level: float = 0.0
     current_task: str = ""
     environment: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -125,7 +125,7 @@ class DecisionContext:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "DecisionContext":
         """Create from dictionary."""
-        ts = data.get("timestamp", datetime.now(timezone.utc).isoformat())
+        ts = data.get("timestamp", datetime.now(UTC).isoformat())
         if isinstance(ts, str):
             ts = datetime.fromisoformat(ts)
         return cls(
