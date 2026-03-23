@@ -333,7 +333,9 @@ class TestCheckpointResume:
             gen.checkpoint_file = Path(tmpdir) / "checkpoint.json"
             # Create completed files list with string paths
             completed_files = [f"scenario_{i}.yaml" for i in range(5000)]
-            gen.save_checkpoint(completed=5000, results=[{"success": True}] * 5000, completed_files=completed_files)
+            gen.save_checkpoint(
+                completed=5000, results=[{"success": True}] * 5000, completed_files=completed_files
+            )
 
             # Create all scenarios list with string paths
             all_scenarios = [f"scenario_{i}.yaml" for i in range(10000)]
