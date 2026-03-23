@@ -7,10 +7,10 @@ Integrates shadow mode logging with existing systems:
 - Automatic decision comparison
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 
 # =============================================================================
 # Phase 1: RED - Write failing tests
@@ -180,10 +180,11 @@ class TestAutomaticComparison:
 
     def test_tracks_decision_pair(self):
         """RED: Should track AI proposal and human decision as pair"""
+        from datetime import UTC, datetime
+        from unittest.mock import Mock
+
         from agent_ros_bridge.shadow.hooks import ShadowModeHooks
         from agent_ros_bridge.shadow.models import AIProposal, DecisionRecord
-        from unittest.mock import Mock
-        from datetime import datetime, UTC
 
         hooks = ShadowModeHooks()
 
@@ -230,10 +231,11 @@ class TestAutomaticComparison:
 
     def test_calculates_agreement_realtime(self):
         """RED: Should calculate agreement rate in real-time"""
+        from datetime import UTC, datetime
+        from unittest.mock import Mock
+
         from agent_ros_bridge.shadow.hooks import ShadowModeHooks
         from agent_ros_bridge.shadow.models import AIProposal, DecisionRecord
-        from unittest.mock import Mock
-        from datetime import datetime, UTC
 
         hooks = ShadowModeHooks()
 
@@ -279,10 +281,11 @@ class TestAutomaticComparison:
 
     def test_updates_dashboard_realtime(self):
         """RED: Should update dashboard metrics in real-time"""
-        from agent_ros_bridge.shadow.hooks import ShadowModeHooks
-        from agent_ros_bridge.shadow.models import AIProposal, DecisionRecord, DecisionContext
+        from datetime import UTC, datetime
         from unittest.mock import Mock
-        from datetime import datetime, UTC
+
+        from agent_ros_bridge.shadow.hooks import ShadowModeHooks
+        from agent_ros_bridge.shadow.models import AIProposal, DecisionContext, DecisionRecord
 
         hooks = ShadowModeHooks()
 

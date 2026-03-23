@@ -5,12 +5,12 @@ Generates 10,000+ unique scenarios for Gate 2 validation.
 Procedural generation from templates with parameter variation.
 """
 
-import pytest
-from pathlib import Path
-import tempfile
 import shutil
-import yaml
+import tempfile
+from pathlib import Path
 
+import pytest
+import yaml
 
 # =============================================================================
 # Phase 1: RED - Write failing tests
@@ -269,7 +269,7 @@ class TestFileOutput:
         scenario = generator.generate_scenario('navigation', seed=42)
         filepath = generator.save_scenario(scenario)
 
-        with open(filepath, 'r') as f:
+        with open(filepath) as f:
             loaded = yaml.safe_load(f)
 
         assert loaded['name'] == scenario['name']

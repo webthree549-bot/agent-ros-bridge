@@ -171,7 +171,7 @@ class Scenario10KGenerator:
                     self.save_checkpoint(
                         completed=self._completed,
                         results=results,
-                        completed_files=[f for f in scenario_files[:self._completed]],
+                        completed_files=list(scenario_files[:self._completed]),
                     )
         
         self._results = results
@@ -335,7 +335,7 @@ class Scenario10KGenerator:
             <div class="metric">
                 <h2>Gate 2 Status: {'✅ PASSED' if validation['gate2_passed'] else '❌ FAILED'}</h2>
                 <p class="{'pass' if validation['gate2_passed'] else 'fail'}">
-                    Success Rate: {validation['success_rate']*100:.2f}% 
+                    Success Rate: {validation['success_rate']*100:.2f}%
                     (Required: ≥95%)
                 </p>
                 <p class="{'pass' if validation['safety_passed'] else 'fail'}">
@@ -358,7 +358,7 @@ class Scenario10KGenerator:
             
             <div class="chart">
                 <!-- Placeholder for chart -->
-                <p>Success Rate Chart: {'█' * int(validation['success_rate'] * 50)} 
+                <p>Success Rate Chart: {'█' * int(validation['success_rate'] * 50)}
                 {validation['success_rate']*100:.1f}%</p>
             </div>
             

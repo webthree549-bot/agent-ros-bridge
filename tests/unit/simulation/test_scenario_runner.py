@@ -7,12 +7,12 @@ Following TDD: Red -> Green -> Refactor
 Goal: Run 10,000 scenarios for v0.6.2 Gate 2 validation
 """
 
-import pytest
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 from unittest.mock import Mock, patch
 
+import pytest
 
 # =============================================================================
 # Phase 1: RED - Write failing tests
@@ -53,7 +53,7 @@ class TestScenarioLoading:
 
     def test_load_scenario_returns_scenario_object(self):
         """RED: load_scenario should return a Scenario object"""
-        from agent_ros_bridge.simulation import ScenarioRunner, Scenario
+        from agent_ros_bridge.simulation import Scenario, ScenarioRunner
         runner = ScenarioRunner()
         # Use a mock scenario file
         scenario = runner.load_scenario("navigation_basic.yaml")
@@ -103,7 +103,7 @@ class TestScenarioExecution:
 
     def test_run_scenario_returns_result(self):
         """RED: run_scenario should return ScenarioResult"""
-        from agent_ros_bridge.simulation import ScenarioRunner, ScenarioResult
+        from agent_ros_bridge.simulation import ScenarioResult, ScenarioRunner
         runner = ScenarioRunner()
         result = runner.run_scenario("navigation_basic.yaml")
         assert isinstance(result, ScenarioResult)
@@ -151,7 +151,7 @@ class TestBatchExecution:
 
     def test_run_batch_returns_results_list(self):
         """RED: Should return list of ScenarioResult"""
-        from agent_ros_bridge.simulation import ScenarioRunner, ScenarioResult
+        from agent_ros_bridge.simulation import ScenarioResult, ScenarioRunner
         runner = ScenarioRunner()
         results = runner.run_batch(scenarios="nav_*.yaml")
         assert all(isinstance(r, ScenarioResult) for r in results)

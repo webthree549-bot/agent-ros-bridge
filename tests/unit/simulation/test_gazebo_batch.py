@@ -5,12 +5,12 @@ Parallel world execution for 10K scenario validation.
 Supports headless operation, Foxglove visualization via WebSocket.
 """
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 
 # =============================================================================
 # Phase 1: RED - Write failing tests
@@ -112,8 +112,9 @@ class TestScenarioExecution:
 
     def test_execute_spawns_robot(self):
         """RED: Should spawn robot with scenario config"""
-        from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
         from types import SimpleNamespace
+
+        from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
         runner = GazeboBatchRunner(num_worlds=1)
         runner.worlds = runner._configure_worlds()  # Initialize worlds
 
@@ -138,8 +139,9 @@ class TestScenarioExecution:
 
     def test_execute_monitors_completion(self):
         """RED: Should monitor until goal reached or timeout"""
-        from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
         from types import SimpleNamespace
+
+        from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
         runner = GazeboBatchRunner(num_worlds=1)
         runner.worlds = runner._configure_worlds()  # Initialize worlds
 
@@ -169,6 +171,7 @@ class TestBatchExecution:
     def test_run_batch_uses_all_worlds(self):
         """RED: Should distribute scenarios across worlds"""
         import time
+
         from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner, WorldResult
         runner = GazeboBatchRunner(num_worlds=4)
         runner.worlds = runner._configure_worlds()  # Initialize worlds without launching
@@ -190,6 +193,7 @@ class TestBatchExecution:
     def test_run_batch_reuses_worlds(self):
         """RED: Should reuse worlds after scenario completes"""
         import time
+
         from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner, WorldResult
         runner = GazeboBatchRunner(num_worlds=2)
         runner.worlds = runner._configure_worlds()  # Initialize worlds without launching
@@ -212,6 +216,7 @@ class TestBatchExecution:
     def test_run_batch_reports_progress(self):
         """RED: Should report progress for long batches"""
         import time
+
         from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner, WorldResult
         runner = GazeboBatchRunner(num_worlds=4)
         runner.worlds = runner._configure_worlds()  # Initialize worlds without launching
