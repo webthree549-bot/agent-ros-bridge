@@ -64,22 +64,37 @@ pip install agent-ros-bridge==0.6.4
 
 #### 🚀 NEW: Agentic Interface (High-Level)
 
+Works with **ANY** ROS device: mobile robots, drones, arms, humanoids, sensors
+
 ```python
 from agent_ros_bridge.agentic import RobotAgent
 
-# Create AI agent for your robot
+# Mobile Robot
 agent = RobotAgent(
-    robot_id='bot1',
-    llm_provider='moonshot',  # or 'openai', 'anthropic'
-    require_confirmation=True,  # Human-in-the-loop safety
+    device_id='bot1',
+    device_type='mobile_robot',  # or 'drone', 'manipulator', 'humanoid', 'sensor_array'
+    llm_provider='moonshot',
+    require_confirmation=True,
 )
-
-# Just say what you want - AI handles everything
 result = agent.execute("Go to the kitchen and pick up the red cup")
 
-print(result.message)
-# "Successfully navigated to kitchen and picked up red cup"
+# Drone
+agent = RobotAgent(device_id='drone1', device_type='drone')
+result = agent.execute("Take off to 10 meters and capture image of building")
 
+# Robot Arm
+agent = RobotAgent(device_id='arm1', device_type='manipulator')
+result = agent.execute("Move to position (0.5, 0.2, 0.3) and grasp with 0.5N force")
+
+# Humanoid
+agent = RobotAgent(device_id='digit1', device_type='humanoid')
+result = agent.execute("Walk forward 5 steps and pick up the box")
+
+# Sensor Array
+agent = RobotAgent(device_id='sensors1', device_type='sensor_array')
+result = agent.execute("Scan the area and detect all heat signatures")
+
+print(result.message)
 print(f"AI confidence: {result.ai_confidence:.2f}")
 print(f"Steps executed: {len(result.steps)}")
 print(f"Human approvals: {result.human_approvals}")
