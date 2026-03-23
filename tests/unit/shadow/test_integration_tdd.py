@@ -51,7 +51,9 @@ class TestShadowModeIntegrationTDD:
 
         mock_logger.log_ai_proposal.assert_called_once()
         call_args = mock_logger.log_ai_proposal.call_args
-        assert call_args[1]["robot_id"] == "bot1"
+        # call_args[0] is positional args, call_args[1] is kwargs
+        # robot_id is first positional arg
+        assert call_args[0][0] == "bot1"
 
     def test_log_human_decision_calls_logger(self, integration, mock_logger):
         """RED: log_human_decision() should call logger.log_human_action()."""
@@ -65,7 +67,8 @@ class TestShadowModeIntegrationTDD:
 
         mock_logger.log_human_action.assert_called_once()
         call_args = mock_logger.log_human_action.call_args
-        assert call_args[1]["robot_id"] == "bot1"
+        # robot_id is first positional arg
+        assert call_args[0][0] == "bot1"
 
     def test_log_outcome_calls_logger(self, integration, mock_logger):
         """RED: log_outcome() should call logger.log_outcome()."""
