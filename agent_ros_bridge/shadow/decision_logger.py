@@ -171,6 +171,32 @@ class DecisionLogger:
 
         return len(expired)
 
+    def log_outcome(
+        self,
+        record_id: str,
+        outcome: DecisionOutcome,
+    ) -> bool:
+        """Log outcome for an existing record.
+
+        Args:
+            record_id: Decision record ID
+            outcome: Execution outcome
+
+        Returns:
+            success: True if record was found and updated
+        """
+        if self._db_path:
+            conn = sqlite3.connect(self._db_path)
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE decisions SET outcome = ? WHERE record_id = ?",
+                (json.dumps(outcome.to_dict()), record_id)
+            )
+            conn.commit()
+            conn.close()
+            return True
+        return False
+
     def get_stats(self) -> dict[str, Any]:
         """Get logger statistics."""
         return {
