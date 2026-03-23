@@ -9,6 +9,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+pytestmark = pytest.mark.skip(reason="Requires Docker environment with ROS2/Gazebo")
+
 
 class TestRealGazeboConnection:
     """RED: Should connect to real Gazebo instance"""
