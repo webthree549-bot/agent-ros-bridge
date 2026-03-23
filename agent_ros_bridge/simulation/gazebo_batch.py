@@ -12,13 +12,11 @@ Supports:
 import os
 import subprocess
 import time
-import json
-import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Callable, Tuple
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import tempfile
+from typing import Any, Callable
+
 import yaml
 
 
@@ -30,8 +28,8 @@ class WorldConfig:
     gazebo_master_uri: str
     ros_namespace: str
     foxglove_namespace: str
-    log_file: Optional[str] = None
-    process: Optional[subprocess.Popen] = None
+    log_file: str | None = None
+    process: subprocess.Popen | None = None
     is_running: bool = False
 
 
@@ -43,11 +41,11 @@ class WorldResult:
     success: bool = False
     completed: bool = False
     duration_sec: float = 0.0
-    trajectory: List[Tuple[float, float, float]] = field(default_factory=list)
+    trajectory: list[tuple[float, float, float]] = field(default_factory=list)
     collision_count: int = 0
-    safety_violations: List[str] = field(default_factory=list)
+    safety_violations: list[str] = field(default_factory=list)
     max_deviation_m: float = 0.0
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class GazeboBatchRunner:
@@ -71,8 +69,8 @@ class GazeboBatchRunner:
         self,
         num_worlds: int = 4,
         headless: bool = True,
-        scenario_dir: Optional[str] = None,
-        world_template: Optional[str] = None,
+        scenario_dir: str | None = None,
+        world_template: str | None = None,
         enable_foxglove: bool = True,
         foxglove_port: int = 8765,
     ):
@@ -94,7 +92,7 @@ class GazeboBatchRunner:
         self.enable_foxglove = enable_foxglove
         self.foxglove_port = foxglove_port
         
-        self.worlds: List[WorldConfig] = []
+        self.worlds: list[WorldConfig] = []
         self.foxglove_server = None
         self.foxglove_clients: set = set()
         self._is_docker = self._detect_docker()
@@ -108,14 +106,14 @@ class GazeboBatchRunner:
         
         # Check cgroup for docker
         try:
-            with open('/proc/self/cgroup', 'r') as f:
+            with open('/proc/self/cgroup') as f:
                 return 'docker' in f.read()
-        except:
+        except Exception:
             pass
         
         return False
     
-    def _configure_worlds(self) -> List[WorldConfig]:
+    def _configure_worlds(self) -> list[WorldConfig]:
         """Configure world settings with unique ports/namespaces"""
         worlds = []
         
@@ -132,7 +130,7 @@ class GazeboBatchRunner:
         
         return worlds
     
-    def launch_worlds(self) -> List[WorldConfig]:
+    def launch_worlds(self) -> list[WorldConfig]:
         """
         Launch all Gazebo worlds.
         
@@ -219,7 +217,6 @@ class GazeboBatchRunner:
         Returns:
             WorldResult with execution metrics
         """
-        world = self.worlds[world_id]
         scenario_name = Path(scenario_path).stem
         
         result = WorldResult(
@@ -288,7 +285,7 @@ class GazeboBatchRunner:
         if not path.is_absolute():
             path = self.scenario_dir / path
         
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = yaml.safe_load(f)
         
         # Return as simple object with attributes
@@ -317,7 +314,7 @@ class GazeboBatchRunner:
         time.sleep(0.5)  # Minimal stabilization
         return True
     
-    def _spawn_robot(self, world_id: int, robot_config: Dict) -> str:
+    def _spawn_robot(self, world_id: int, robot_config: dict) -> str:
         """Spawn robot in world"""
         # TODO: Implement via ROS2/Gazebo spawn
         robot_name = f"robot_{world_id}"
@@ -327,7 +324,7 @@ class GazeboBatchRunner:
         self,
         world_id: int,
         robot_name: str,
-        goal: Dict,
+        goal: dict,
         timeout_sec: float = 60.0,
     ) -> bool:
         """Execute goal and return success status"""
@@ -340,13 +337,13 @@ class GazeboBatchRunner:
         self,
         world_id: int,
         duration: float,
-    ) -> List[Tuple[float, float, float]]:
+    ) -> list[tuple[float, float, float]]:
         """Collect robot pose trajectory over time"""
         # TODO: Sample poses from simulation
         # For GREEN phase, return mock trajectory
         return [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (2.0, 0.0, 0.0)]
     
-    def _get_robot_pose(self, world_id: int) -> Tuple[float, float, float]:
+    def _get_robot_pose(self, world_id: int) -> tuple[float, float, float]:
         """Get current robot pose (x, y, theta)"""
         # TODO: Query from Gazebo/ROS
         return (0.0, 0.0, 0.0)
@@ -369,15 +366,15 @@ class GazeboBatchRunner:
         # TODO: Query collision state
         return False
     
-    def _get_planned_path(self, world_id: int) -> List[Tuple[float, float]]:
+    def _get_planned_path(self, world_id: int) -> list[tuple[float, float]]:
         """Get planned path from motion planner"""
         # TODO: Get from Nav2
         return [(0, 0), (1, 0), (2, 0)]
     
     def _calculate_deviation(
         self,
-        planned_path: List[Tuple[float, float]],
-        actual_path: List[Tuple[float, float, float]],
+        planned_path: list[tuple[float, float]],
+        actual_path: list[tuple[float, float, float]],
     ) -> float:
         """Calculate maximum deviation from planned path"""
         if not planned_path or not actual_path:
@@ -398,9 +395,9 @@ class GazeboBatchRunner:
     
     def run_batch(
         self,
-        scenarios: List[str],
-        progress_callback: Optional[Callable[[int, int], None]] = None,
-    ) -> List[WorldResult]:
+        scenarios: list[str],
+        progress_callback: Callable[[int, int], None] | None = None,
+    ) -> list[WorldResult]:
         """
         Execute multiple scenarios across parallel worlds.
         
@@ -484,7 +481,7 @@ class GazeboBatchRunner:
     
     # Foxglove Integration
     
-    def start_foxglove_bridge(self, port: Optional[int] = None) -> None:
+    def start_foxglove_bridge(self, port: int | None = None) -> None:
         """
         Start WebSocket server for Foxglove visualization.
         
@@ -499,14 +496,14 @@ class GazeboBatchRunner:
         # Start WebSocket server
         self._start_websocket_server(port)
     
-    def _on_world_update(self, world_id: int, state: Dict[str, Any]) -> None:
+    def _on_world_update(self, world_id: int, state: dict[str, Any]) -> None:
         """Handle world state update, publish to Foxglove"""
         if not self.enable_foxglove:
             return
         
         self._publish_to_foxglove(world_id, state)
     
-    def _publish_to_foxglove(self, world_id: int, state: Dict[str, Any]) -> None:
+    def _publish_to_foxglove(self, world_id: int, state: dict[str, Any]) -> None:
         """Publish state to Foxglove WebSocket clients"""
         # TODO: Implement MCAP/WebSocket protocol
         pass

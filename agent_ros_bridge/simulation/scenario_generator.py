@@ -6,11 +6,11 @@ Supports navigation, manipulation, and safety-critical scenarios.
 """
 
 import random
-import yaml
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
-from dataclasses import dataclass, field
+from typing import Any
 
+import yaml
 
 # Built-in scenario templates
 DEFAULT_TEMPLATES = {
@@ -107,7 +107,7 @@ DIFFICULTY_PARAMS = {
 class GenerationConfig:
     """Configuration for scenario generation"""
     output_dir: Path
-    template_dir: Optional[Path] = None
+    template_dir: Path | None = None
     default_difficulty: str = 'medium'
     bounds_padding: float = 1.0  # Keep obstacles away from edges
     min_obstacle_distance: float = 0.5  # Min distance between obstacles
@@ -127,8 +127,8 @@ class ScenarioGenerator:
     
     def __init__(
         self,
-        output_dir: Union[str, Path] = "scenarios",
-        template_dir: Optional[Union[str, Path]] = None,
+        output_dir: str | Path = "scenarios",
+        template_dir: str | Path | None = None,
     ):
         """
         Initialize scenario generator.
@@ -145,7 +145,7 @@ class ScenarioGenerator:
         # Load templates
         self.templates = self._load_templates()
     
-    def _load_templates(self) -> Dict[str, Dict]:
+    def _load_templates(self) -> dict[str, dict]:
         """Load scenario templates from built-in and custom sources"""
         templates = DEFAULT_TEMPLATES.copy()
         
@@ -153,12 +153,12 @@ class ScenarioGenerator:
         if self.template_dir and self.template_dir.exists():
             for template_file in self.template_dir.glob('*.yaml'):
                 name = template_file.stem
-                with open(template_file, 'r') as f:
+                with open(template_file) as f:
                     templates[name] = yaml.safe_load(f)
         
         return templates
     
-    def load_template(self, template_name: str) -> Dict[str, Any]:
+    def load_template(self, template_name: str) -> dict[str, Any]:
         """
         Load a scenario template.
         
@@ -180,9 +180,9 @@ class ScenarioGenerator:
         self,
         template: str,
         seed: int,
-        difficulty: Optional[str] = None,
+        difficulty: str | None = None,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate a single scenario.
         
@@ -219,9 +219,9 @@ class ScenarioGenerator:
     
     def _generate_navigation_scenario(
         self,
-        scenario: Dict,
+        scenario: dict,
         rng: random.Random,
-        diff_params: Dict,
+        diff_params: dict,
     ) -> None:
         """Generate navigation-specific scenario elements"""
         bounds = scenario['environment']['bounds']
@@ -237,8 +237,7 @@ class ScenarioGenerator:
         # Generate goal pose (far from start)
         min_dist, max_dist = diff_params['goal_distance_range']
         goal_dist = rng.uniform(min_dist, max_dist)
-        goal_angle = rng.uniform(-3.14, 3.14)
-        
+
         scenario['goal']['pose'] = {
             'x': scenario['start_pose']['x'] + goal_dist * rng.uniform(0.5, 1.0),
             'y': scenario['start_pose']['y'] + goal_dist * rng.uniform(0.5, 1.0),
@@ -246,7 +245,7 @@ class ScenarioGenerator:
         }
         
         # Clip to bounds
-        scenario['goal']['pose']['x'] = max(padding, min(bounds['max_x'] - padding, 
+        scenario['goal']['pose']['x'] = max(padding, min(bounds['max_x'] - padding,
                                                         scenario['goal']['pose']['x']))
         scenario['goal']['pose']['y'] = max(padding, min(bounds['max_y'] - padding,
                                                         scenario['goal']['pose']['y']))
@@ -267,7 +266,7 @@ class ScenarioGenerator:
                 radius = rng.uniform(min_size, max_size) / 2
                 
                 # Check distance from start and goal
-                dist_to_start = ((x - scenario['start_pose']['x'])**2 + 
+                dist_to_start = ((x - scenario['start_pose']['x'])**2 +
                                (y - scenario['start_pose']['y'])**2)**0.5
                 dist_to_goal = ((x - scenario['goal']['pose']['x'])**2 +
                               (y - scenario['goal']['pose']['y'])**2)**0.5
@@ -293,9 +292,9 @@ class ScenarioGenerator:
     
     def _generate_manipulation_scenario(
         self,
-        scenario: Dict,
+        scenario: dict,
         rng: random.Random,
-        diff_params: Dict,
+        diff_params: dict,
     ) -> None:
         """Generate manipulation-specific scenario elements"""
         # Generate objects on table
@@ -331,9 +330,9 @@ class ScenarioGenerator:
     
     def _generate_safety_scenario(
         self,
-        scenario: Dict,
+        scenario: dict,
         rng: random.Random,
-        diff_params: Dict,
+        diff_params: dict,
     ) -> None:
         """Generate safety-critical scenario elements"""
         bounds = scenario['environment']['bounds']
@@ -402,8 +401,8 @@ class ScenarioGenerator:
         template: str,
         count: int,
         start_seed: int = 0,
-        difficulty: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        difficulty: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Generate a batch of scenarios.
         
@@ -430,8 +429,8 @@ class ScenarioGenerator:
     
     def save_scenario(
         self,
-        scenario: Dict[str, Any],
-        filepath: Optional[Union[str, Path]] = None,
+        scenario: dict[str, Any],
+        filepath: str | Path | None = None,
     ) -> str:
         """
         Save scenario to YAML file.
@@ -458,8 +457,8 @@ class ScenarioGenerator:
         template: str,
         count: int,
         start_seed: int = 0,
-        difficulty: Optional[str] = None,
-    ) -> List[str]:
+        difficulty: str | None = None,
+    ) -> list[str]:
         """
         Generate and save a batch of scenarios.
         
@@ -481,7 +480,7 @@ class ScenarioGenerator:
         
         return filepaths
     
-    def validate_scenario(self, scenario: Dict[str, Any]) -> bool:
+    def validate_scenario(self, scenario: dict[str, Any]) -> bool:
         """
         Validate scenario structure.
         
@@ -502,12 +501,9 @@ class ScenarioGenerator:
             return False
         
         # Validate environment
-        if 'bounds' not in scenario['environment'] and 'obstacles' not in scenario['environment']:
-            return False
-        
-        return True
+        return 'bounds' in scenario['environment'] or 'obstacles' in scenario['environment']
     
-    def validate_batch(self, scenarios: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def validate_batch(self, scenarios: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Validate a batch of scenarios.
         
@@ -543,7 +539,7 @@ def generate_10k_scenarios(
     output_dir: str = "scenarios/batch_10k",
     template: str = "navigation",
     difficulty: str = "medium",
-) -> List[str]:
+) -> list[str]:
     """
     Generate 10,000 scenarios for Gate 2 validation.
     

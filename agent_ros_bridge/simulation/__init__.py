@@ -18,15 +18,15 @@ import time
 class Scenario:
     """Represents a single simulation scenario"""
     name: str
-    robot_config: Dict[str, Any] = field(default_factory=dict)
-    environment: Dict[str, Any] = field(default_factory=dict)
-    goal: Dict[str, Any] = field(default_factory=dict)
+    robot_config: dict[str, Any] = field(default_factory=dict)
+    environment: dict[str, Any] = field(default_factory=dict)
+    goal: dict[str, Any] = field(default_factory=dict)
     
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> "Scenario":
+    def from_yaml(cls, path: str | Path) -> "Scenario":
         """Load scenario from YAML file"""
         path = Path(path)
-        with open(path, 'r') as f:
+        with open(path) as f:
             data = yaml.safe_load(f)
         
         return cls(
@@ -44,12 +44,12 @@ class ScenarioResult:
     success: bool = False
     completed: bool = False
     duration_ms: float = 0.0
-    trajectory: List[tuple] = field(default_factory=list)
-    safety_violations: List[str] = field(default_factory=list)
+    trajectory: list[tuple] = field(default_factory=list)
+    safety_violations: list[str] = field(default_factory=list)
     collision_count: int = 0
     max_deviation_m: float = 0.0
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert result to dictionary"""
         return {
             'scenario_name': self.scenario_name,
@@ -73,7 +73,7 @@ class ScenarioRunner:
     - 10,000+ scenario runs for Gate 2 validation
     """
     
-    def __init__(self, scenario_dir: Optional[str] = None):
+    def __init__(self, scenario_dir: str | None = None):
         """
         Initialize scenario runner.
         
@@ -83,7 +83,7 @@ class ScenarioRunner:
         self.scenario_dir = Path(scenario_dir) if scenario_dir else Path("scenarios")
         self._execution_count = 0
     
-    def load_scenario(self, path: Union[str, Path]) -> Scenario:
+    def load_scenario(self, path: str | Path) -> Scenario:
         """
         Load a scenario from a YAML file.
         
@@ -99,7 +99,7 @@ class ScenarioRunner:
         
         return Scenario.from_yaml(path)
     
-    def run_scenario(self, path: Union[str, Path]) -> ScenarioResult:
+    def run_scenario(self, path: str | Path) -> ScenarioResult:
         """
         Execute a single scenario.
         
@@ -130,7 +130,7 @@ class ScenarioRunner:
             max_deviation_m=result_data.get('max_deviation_m', 0.0),
         )
     
-    def _execute_scenario(self, scenario: Scenario) -> Dict[str, Any]:
+    def _execute_scenario(self, scenario: Scenario) -> dict[str, Any]:
         """
         Internal method to execute a scenario.
         
@@ -154,10 +154,10 @@ class ScenarioRunner:
     
     def run_batch(
         self,
-        scenarios: Union[str, List[str]],
+        scenarios: str | list[str],
         parallel: bool = True,
         max_workers: int = 4
-    ) -> List[ScenarioResult]:
+    ) -> list[ScenarioResult]:
         """
         Execute multiple scenarios.
         
@@ -189,9 +189,9 @@ class ScenarioRunner:
     
     def _run_parallel(
         self,
-        scenario_paths: List[str],
+        scenario_paths: list[str],
         max_workers: int
-    ) -> List[ScenarioResult]:
+    ) -> list[ScenarioResult]:
         """Run scenarios in parallel using process pool"""
         results = []
         
@@ -223,7 +223,7 @@ class ScenarioRunner:
         """Worker function for parallel execution"""
         return self.run_scenario(path)
     
-    def generate_report(self, results: List[ScenarioResult]) -> Dict[str, Any]:
+    def generate_report(self, results: list[ScenarioResult]) -> dict[str, Any]:
         """
         Generate summary report from batch execution results.
         
@@ -274,7 +274,7 @@ def run_scenarios(
     pattern: str,
     parallel: bool = True,
     max_workers: int = 4
-) -> List[ScenarioResult]:
+) -> list[ScenarioResult]:
     """Run multiple scenarios matching a pattern"""
     runner = ScenarioRunner()
     return runner.run_batch(pattern, parallel=parallel, max_workers=max_workers)
@@ -283,7 +283,7 @@ def run_scenarios(
 def validate_for_gate2(
     scenario_dir: str,
     min_scenarios: int = 10000
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Run Gate 2 validation: 10,000+ scenarios.
     
