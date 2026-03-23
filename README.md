@@ -28,7 +28,23 @@
 
 ### Overview
 
-Agent ROS Bridge enables natural language control of ROS-based robots through AI-powered intent parsing and human-in-the-loop validation. It provides a complete stack from natural language input to robot command execution, with safety validation and shadow mode learning.
+Agent ROS Bridge enables **natural language control of ROS-based robots** through AI-powered intent parsing and human-in-the-loop validation.
+
+**Why This Matters:**
+
+| Without Agent ROS Bridge | With Agent ROS Bridge |
+|--------------------------|----------------------|
+| Write complex ROS commands | Just say "Go to the kitchen" |
+| Manual safety checks | AI validates + human confirms |
+| No learning from operators | Learns from 200+ hours of decisions |
+| Fixed behaviors | Adapts to your preferences |
+| No simulation validation | 10K scenarios tested before deployment |
+
+**Value Proposition:**
+- 🎯 **Lower Barrier**: Non-technical users can control robots
+- 🛡️ **Safer**: AI proposes, human approves, system validates
+- 📈 **Self-Improving**: Learns from operator corrections
+- ✅ **Proven**: 95.93% success rate on 10K test scenarios
 
 **Key Features:**
 - 🗣️ **Natural Language Control** - Control robots with plain English/Chinese commands
@@ -46,22 +62,40 @@ pip install agent-ros-bridge==0.6.4
 
 ### Quick Start
 
+#### 🚀 NEW: Agentic Interface (High-Level)
+
+```python
+from agent_ros_bridge.agentic import RobotAgent
+
+# Create AI agent for your robot
+agent = RobotAgent(
+    robot_id='bot1',
+    llm_provider='moonshot',  # or 'openai', 'anthropic'
+    require_confirmation=True,  # Human-in-the-loop safety
+)
+
+# Just say what you want - AI handles everything
+result = agent.execute("Go to the kitchen and pick up the red cup")
+
+print(result.message)
+# "Successfully navigated to kitchen and picked up red cup"
+
+print(f"AI confidence: {result.ai_confidence:.2f}")
+print(f"Steps executed: {len(result.steps)}")
+print(f"Human approvals: {result.human_approvals}")
+```
+
+#### Low-Level API (Direct Control)
+
 ```python
 from agent_ros_bridge.gateway import AgentGateway
 
-# Initialize
+# Direct command sending (for advanced users)
 gateway = AgentGateway()
-
-# Send natural language command
 result = gateway.send_command(
     robot_id='bot1',
-    command={
-        'type': 'navigate_to',
-        'parameters': {'location': 'kitchen'}
-    }
+    command={'type': 'navigate_to', 'parameters': {'location': 'kitchen'}}
 )
-
-print(result)  # {'success': True, 'message': 'Command executed'}
 ```
 
 ### Gate 2 Validation Results ✅
@@ -210,7 +244,23 @@ MIT License - see [LICENSE](LICENSE) file
 
 ### 概述
 
-Agent ROS Bridge 通过 AI 驱动的意图解析和人机协同验证，实现对基于 ROS 的机器人的自然语言控制。它提供了从自然语言输入到机器人命令执行的完整技术栈，包含安全验证和影子模式学习。
+Agent ROS Bridge 通过 AI 驱动的意图解析和人机协同验证，实现对基于 ROS 的机器人的自然语言控制。
+
+**为什么重要：**
+
+| 没有 Agent ROS Bridge | 使用 Agent ROS Bridge |
+|----------------------|----------------------|
+| 编写复杂的 ROS 命令 | 只需说"去厨房" |
+| 手动安全检查 | AI 验证 + 人类确认 |
+| 无法从操作员学习 | 从 200+ 小时决策中学习 |
+| 固定行为 | 适应您的偏好 |
+| 无仿真验证 | 部署前测试 10K 场景 |
+
+**核心价值：**
+- 🎯 **降低门槛**：非技术用户可控制机器人
+- 🛡️ **更安全**：AI 提议、人类批准、系统验证
+- 📈 **自我改进**：从操作员纠正中学习
+- ✅ **已验证**：10K 测试场景成功率 95.93%
 
 **核心特性：**
 - 🗣️ **自然语言控制** - 使用简单的英语/中文命令控制机器人
@@ -228,22 +278,40 @@ pip install agent-ros-bridge==0.6.4
 
 ### 快速开始
 
+#### 🚀 新功能：智能体接口（高级）
+
+```python
+from agent_ros_bridge.agentic import RobotAgent
+
+# 为您的机器人创建 AI 智能体
+agent = RobotAgent(
+    robot_id='bot1',
+    llm_provider='moonshot',  # 或 'openai', 'anthropic'
+    require_confirmation=True,  # 人机协同安全
+)
+
+# 说出您的需求 - AI 处理一切
+result = agent.execute("去厨房并拿起红杯子")
+
+print(result.message)
+# "成功导航到厨房并拿起红杯子"
+
+print(f"AI 置信度: {result.ai_confidence:.2f}")
+print(f"执行步骤: {len(result.steps)}")
+print(f"人工确认: {result.human_approvals}")
+```
+
+#### 底层接口（直接控制）
+
 ```python
 from agent_ros_bridge.gateway import AgentGateway
 
-# 初始化
+# 直接命令发送（适合高级用户）
 gateway = AgentGateway()
-
-# 发送自然语言命令
 result = gateway.send_command(
     robot_id='bot1',
-    command={
-        'type': 'navigate_to',
-        'parameters': {'location': 'kitchen'}
-    }
+    command={'type': 'navigate_to', 'parameters': {'location': 'kitchen'}}
 )
-
-print(result)  # {'success': True, 'message': 'Command executed'}
 ```
 
 ### Gate 2 验证结果 ✅
