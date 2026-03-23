@@ -11,6 +11,8 @@ class DecisionStatus(Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     EXPIRED = "expired"
+    REJECTED = "rejected"
+    MODIFIED = "modified"
 
 
 @dataclass

@@ -197,6 +197,90 @@ class DecisionLogger:
             return True
         return False
 
+    def log_rejection(
+        self,
+        robot_id: str,
+        ai_proposal_id: str,
+        rejection_reason: str,
+        timestamp: float | None = None,
+    ) -> str:
+        """Log a human rejection of an AI proposal.
+
+        Args:
+            robot_id: Robot identifier
+            ai_proposal_id: ID of rejected proposal
+            rejection_reason: Why it was rejected
+            timestamp: Optional timestamp
+
+        Returns:
+            record_id: ID of the rejection record
+        """
+        record_id = str(uuid.uuid4())
+        ts = datetime.fromtimestamp(timestamp, UTC) if timestamp else datetime.now(UTC)
+
+        # Get pending record if exists
+        pending_record = self._pending.get(robot_id)
+        ai_proposal = pending_record.ai_proposal if pending_record else None
+
+        record = DecisionRecord(
+            record_id=record_id,
+            robot_id=robot_id,
+            timestamp=ts,
+            ai_proposal=ai_proposal,
+            status="rejected",
+        )
+
+        self._persist(record)
+        return record_id
+
+    def log_modification(
+        self,
+        robot_id: str,
+        ai_proposal_id: str,
+        original: dict[str, Any],
+        modified: dict[str, Any],
+        timestamp: float | None = None,
+    ) -> str:
+        """Log a human modification of an AI proposal.
+
+        Args:
+            robot_id: Robot identifier
+            ai_proposal_id: ID of original proposal
+            original: Original AI proposal parameters
+            modified: Human-modified parameters
+            timestamp: Optional timestamp
+
+        Returns:
+            record_id: ID of the modification record
+        """
+        record_id = str(uuid.uuid4())
+        ts = datetime.fromtimestamp(timestamp, UTC) if timestamp else datetime.now(UTC)
+
+        # Create action that represents the modification
+        params = dict(modified)
+        params["_original"] = original  # Store original in parameters
+        action = HumanAction(
+            command=modified.get("command", "unknown"),
+            parameters=params,
+            operator_id="human",
+        )
+
+        # Get pending record if exists
+        pending_record = self._pending.get(robot_id)
+        ai_proposal = pending_record.ai_proposal if pending_record else None
+
+        record = DecisionRecord(
+            record_id=record_id,
+            robot_id=robot_id,
+            timestamp=ts,
+            ai_proposal=ai_proposal,
+            human_action=action,
+            status="modified",
+        )
+
+        self._persist(record)
+        return record_id
+
     def get_stats(self) -> dict[str, Any]:
         """Get logger statistics."""
         return {
