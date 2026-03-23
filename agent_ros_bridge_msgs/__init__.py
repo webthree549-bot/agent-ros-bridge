@@ -46,8 +46,8 @@ class Intent:
     utterance: str = ""
     
     # Extracted entities
-    entities: List[Entity] = field(default_factory=list)
+    entities: list[Entity] = field(default_factory=list)
     
     # Additional parameters as key-value pairs
-    param_keys: List[str] = field(default_factory=list)
-    param_values: List[str] = field(default_factory=list)
+    param_keys: list[str] = field(default_factory=list)
+    param_values: list[str] = field(default_factory=list)

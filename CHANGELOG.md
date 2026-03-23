@@ -8,7 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- None
+- **Moonshot (Kimi) LLM Support** — Added Moonshot AI as LLM provider
+  - Support for Kimi K2.5, K1.5 models
+  - Uses OpenAI-compatible API with custom base URL
+  - Environment variable: `MOONSHOT_API_KEY`
+  - Demo script: `examples/demo_llm_moonshot.py`
+- **Shadow Mode Framework (Phase 1-2)** — AI-human decision comparison (TDD)
+  - `DecisionLogger`: SQLite/JSONL logging of AI proposals and human actions
+  - `DecisionComparator`: Agreement analysis between AI and human decisions
+  - `DashboardAPI`: HTTP API and WebSocket for real-time metrics
+  - `ShadowModeIntegration`: Integration hooks for existing systems
+  - Web Dashboard: HTML/JS interface for operators
+  - Support for 1000+ hour shadow mode operation
+  - Real-time metrics: agreement rate, confidence calibration
+  - Demo script: `examples/demo_shadow_mode.py`
+  - 43 unit tests, 100% passing (strict TDD)
 
 ### Changed
 - None
@@ -24,6 +38,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - None
+
+## [0.6.3] - 2026-03-22
+
+### Added
+- **Python 3.14 Support** — Full compatibility with Python 3.14
+  - Suppressed `asyncio.get_event_loop_policy()` deprecation warning
+  - Added warnings filter in test configuration for forward compatibility
+  - Verified test suite passes without warnings on Python 3.14.3
+
+### Changed
+- Updated Python version classifiers to include 3.14
 
 ## [0.6.2] - 2026-03-18
 

@@ -70,10 +70,29 @@ Rules:
 3. Use UNKNOWN only when truly uncertain
 4. Be concise in reasoning"""
 
+    # Provider configurations
+    PROVIDER_CONFIGS = {
+        "openai": {
+            "env_key": "OPENAI_API_KEY",
+            "base_url": None,
+            "default_model": "gpt-3.5-turbo",
+        },
+        "anthropic": {
+            "env_key": "ANTHROPIC_API_KEY",
+            "base_url": None,
+            "default_model": "claude-3-haiku-20240307",
+        },
+        "moonshot": {
+            "env_key": "MOONSHOT_API_KEY",
+            "base_url": "https://api.moonshot.cn/v1",
+            "default_model": "kimi-k2.5",
+        },
+    }
+
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "gpt-3.5-turbo",
+        model: str | None = None,
         provider: str = "openai",
         timeout_sec: float = 5.0,
         enable_cache: bool = True,
@@ -86,8 +105,8 @@ Rules:
 
         Args:
             api_key: API key for LLM provider (loaded from env if None)
-            model: Model name to use
-            provider: "openai" or "anthropic"
+            model: Model name to use (provider default if None)
+            provider: "openai", "anthropic", or "moonshot"
             timeout_sec: Timeout for LLM calls
             enable_cache: Whether to cache results
             cache_size: Maximum cache entries
@@ -105,13 +124,25 @@ Rules:
             self._use_security = False
             self._sanitize = lambda x, **kw: x
 
-        # Load API key securely if not provided
-        if api_key is None and self._use_security:
-            api_key = SecureConfig.get_api_key(provider)
+        # Normalize provider
+        self._provider = provider.lower()
+
+        # Get provider config
+        provider_config = self.PROVIDER_CONFIGS.get(self._provider, self.PROVIDER_CONFIGS["openai"])
+
+        # Load API key from environment if not provided
+        if api_key is None:
+            import os
+            env_key = provider_config["env_key"]
+            api_key = os.environ.get(env_key)
+
+        # Use provider default model if not specified
+        if model is None:
+            model = provider_config["default_model"]
 
         self._api_key = api_key
         self._model = model
-        self._provider = provider.lower()
+        self._base_url = provider_config.get("base_url")
         self._timeout_sec = timeout_sec
         self._enable_cache = enable_cache
         self._cache_size = cache_size
@@ -161,7 +192,7 @@ Rules:
         """Check if LLM parsing is available."""
         if not self._api_key:
             return False
-        if self._provider == "openai" and not self._openai_available:
+        if self._provider in ("openai", "moonshot") and not self._openai_available:
             return False
         return not (self._provider == "anthropic" and not self._anthropic_available)
 
@@ -245,7 +276,8 @@ Rules:
             return cached
 
         try:
-            if self._provider == "openai":
+            if self._provider in ("openai", "moonshot"):
+                # Moonshot uses OpenAI-compatible API
                 result = self._call_openai(utterance, context)
             elif self._provider == "anthropic":
                 result = self._call_anthropic(utterance, context)
@@ -266,10 +298,15 @@ Rules:
     def _call_openai(
         self, utterance: str, context: dict[str, Any] | None
     ) -> LLMIntentResult | None:
-        """Call OpenAI API."""
+        """Call OpenAI-compatible API (OpenAI, Moonshot, etc.)."""
         import openai
 
-        client = openai.OpenAI(api_key=self._api_key)
+        # Use base_url for providers like Moonshot
+        client_kwargs = {"api_key": self._api_key}
+        if self._base_url:
+            client_kwargs["base_url"] = self._base_url
+
+        client = openai.OpenAI(**client_kwargs)
 
         messages = [
             {"role": "system", "content": self.SYSTEM_PROMPT},
