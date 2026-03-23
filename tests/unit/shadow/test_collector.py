@@ -4,13 +4,14 @@ TDD Tests for ShadowModeCollector
 Tests the 200+ hour data collection service.
 """
 
-import pytest
-import tempfile
 import json
-from pathlib import Path
-from datetime import datetime
-from unittest.mock import patch, MagicMock
+import tempfile
 import time
+from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestShadowModeCollectorExists:

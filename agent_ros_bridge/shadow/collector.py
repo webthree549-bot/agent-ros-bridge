@@ -5,14 +5,13 @@ Deploys ShadowModeHooks to collect 200+ hours of AI vs human decision data.
 Runs continuously in the background, logging all decisions for analysis.
 """
 
-import time
+import json
 import signal
 import sys
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, Any, Optional
 import threading
-import json
+import time
+from datetime import datetime
+from pathlib import Path
 
 
 class ShadowModeCollector:
@@ -62,7 +61,7 @@ class ShadowModeCollector:
         # Control
         self._running = False
         self._shutdown_event = threading.Event()
-        self._collector_thread: Optional[threading.Thread] = None
+        self._collector_thread: threading.Thread | None = None
 
         # Load checkpoint if exists
         self._load_checkpoint()
@@ -91,7 +90,7 @@ class ShadowModeCollector:
         self._running = True
         self.stats["start_time"] = datetime.now().isoformat()
 
-        print(f"Starting shadow mode collection...")
+        print("Starting shadow mode collection...")
         print(f"Target: {self.target_hours} hours")
         print(f"Output: {self.output_dir}")
 
