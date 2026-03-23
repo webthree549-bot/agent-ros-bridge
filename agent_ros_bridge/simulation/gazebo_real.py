@@ -12,6 +12,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# Optional ROS2 imports
+try:
+    import rclpy
+    from rclpy.node import Node
+    ROS2_AVAILABLE = True
+except ImportError:
+    ROS2_AVAILABLE = False
+    rclpy = None
+    Node = None
+
 
 @dataclass
 class RealGazeboConfig:
@@ -78,29 +88,23 @@ class RealGazeboSimulator:
         
         # Initialize ROS2
         try:
-            import rclpy
-            from rclpy.node import Node
-            
-            # Initialize if not already
-            if not rclpy.ok():
-                rclpy.init()
-            
-            # Create node
-            self._ros_node = Node(
-                f'gazebo_sim_{self.world_id}',
-                namespace=self.ros_namespace,
-            )
-            
-            # Create Nav2 client
-            self._create_nav2_client()
-            
+            if ROS2_AVAILABLE and rclpy is not None:
+                # Initialize if not already
+                if not rclpy.ok():
+                    rclpy.init()
+
+                # Create node
+                self._ros_node = rclpy.node.Node(
+                    f'gazebo_sim_{self.world_id}',
+                    namespace=self.ros_namespace,
+                )
+
+                # Create Nav2 client
+                self._create_nav2_client()
+
             self._connected = True
             return True
-            
-        except ImportError:
-            print("Warning: ROS2 not available, using mock mode")
-            self._connected = True
-            return True
+
         except Exception as e:
             print(f"Error connecting: {e}")
             return False
@@ -353,9 +357,10 @@ class RealGazeboSimulator:
             
             # Send goal
             future = self._nav2_client.send_goal_async(goal_msg)
-            
+
             # Wait for result
-            rclpy.spin_until_future_complete(self._ros_node, future, timeout_sec=timeout)
+            if ROS2_AVAILABLE and rclpy is not None:
+                rclpy.spin_until_future_complete(self._ros_node, future, timeout_sec=timeout)
             
             return future.result() is not None
             
