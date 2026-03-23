@@ -6,6 +6,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+env:
+  # Opt into Node.js 24 for GitHub Actions
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   issues: write
   pull-requests: write
@@ -16,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639  # v9.1.0
+      - uses: actions/stale@v9
         with:
           # General settings
           repo-token: ${{ secrets.GITHUB_TOKEN }}
