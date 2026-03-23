@@ -102,18 +102,13 @@ class RobotAgent:
     
     def _init_intent_parser(self):
         """Initialize LLM intent parser"""
-        from agent_ros_bridge.ai.llm_parser import (
-            MoonshotParser, OpenAIParser, AnthropicParser
+        from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+        
+        # Use LLMIntentParser with provider-specific configuration
+        self.intent_parser = LLMIntentParser(
+            model=self.llm_provider,
+            api_key=None,  # Will use environment variable
         )
-        
-        parsers = {
-            'moonshot': MoonshotParser,
-            'openai': OpenAIParser,
-            'anthropic': AnthropicParser,
-        }
-        
-        parser_class = parsers.get(self.llm_provider, MoonshotParser)
-        self.intent_parser = parser_class()
     
     def _init_task_planner(self):
         """Initialize task planner"""
@@ -121,12 +116,11 @@ class RobotAgent:
     
     def _init_safety_validator(self):
         """Initialize safety validator"""
-        from agent_ros_bridge.safety.safety_validator import SafetyValidator
+        from agent_ros_bridge.safety.validator import SafetyValidatorNode
         # Use device-specific limits from profile
         limits = self.device.profile.limits if self.device else {}
-        self.safety_validator = SafetyValidator(
-            max_velocity=limits.get('max_velocity', 1.0),
-            max_acceleration=limits.get('max_acceleration', 0.5),
+        self.safety_validator = SafetyValidatorNode(
+            enable_cache=True,
         )
     
     def _create_default_profile(self):
@@ -243,7 +237,7 @@ class RobotAgent:
         # Step 1: Parse intent with LLM
         intent_result = self.intent_parser.parse(
             natural_language_command,
-            robot_id=self.robot_id,
+            robot_id=self.device_id,
             context=context,
         )
         
@@ -261,13 +255,19 @@ class RobotAgent:
         
         for step in task_plan.steps:
             # Validate safety
-            safety_result = self.safety_validator.validate(step.command)
-            if not safety_result['safe']:
+            # Convert command to trajectory format for validation
+            trajectory = {
+                'type': step.capability_name,
+                'parameters': step.parameters,
+            }
+            limits = self.device.profile.limits if self.device else {}
+            safety_result = self.safety_validator.validate_trajectory(trajectory, limits)
+            if not safety_result['approved']:
                 safety_violations += 1
                 executed_steps.append({
                     'step': step.name,
                     'status': 'rejected',
-                    'reason': f"Safety violation: {safety_result['violations']}",
+                    'reason': f"Safety violation",
                 })
                 continue
             
