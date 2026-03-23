@@ -13,13 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Uses OpenAI-compatible API with custom base URL
   - Environment variable: `MOONSHOT_API_KEY`
   - Demo script: `examples/demo_llm_moonshot.py`
-- **Shadow Mode Framework (Phase 1)** — AI-human decision comparison (TDD)
+- **Shadow Mode Framework (Phase 1-2)** — AI-human decision comparison (TDD)
   - `DecisionLogger`: SQLite/JSONL logging of AI proposals and human actions
   - `DecisionComparator`: Agreement analysis between AI and human decisions
+  - `DashboardAPI`: HTTP API and WebSocket for real-time metrics
+  - `ShadowModeIntegration`: Integration hooks for existing systems
+  - Web Dashboard: HTML/JS interface for operators
   - Support for 1000+ hour shadow mode operation
   - Real-time metrics: agreement rate, confidence calibration
   - Demo script: `examples/demo_shadow_mode.py`
-  - 23 unit tests, 100% passing (strict TDD)
+  - 43 unit tests, 100% passing (strict TDD)
 
 ### Changed
 - None
