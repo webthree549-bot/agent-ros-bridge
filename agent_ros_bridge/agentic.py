@@ -44,40 +44,61 @@ class RobotAgent:
     - Safety validation
     - Human confirmation
     - Execution monitoring
+    
+    Works with ANY ROS device: mobile robots, drones, manipulators, humanoids, sensors
     """
     
     def __init__(
         self,
-        robot_id: str,
+        device_id: str,
+        device_type: str = "mobile_robot",  # 'mobile_robot', 'drone', 'manipulator', 'humanoid', 'sensor_array'
         llm_provider: str = "moonshot",
         require_confirmation: bool = True,
         confidence_threshold: float = 0.8,
+        device_profile: Optional[Any] = None,
     ):
         """
         Initialize robot agent.
         
         Args:
-            robot_id: Robot identifier
+            device_id: Device identifier (e.g., 'bot1', 'drone1', 'arm1')
+            device_type: Type of device ('mobile_robot', 'drone', 'manipulator', 'humanoid', 'sensor_array')
             llm_provider: 'moonshot', 'openai', 'anthropic'
             require_confirmation: Whether to require human approval
             confidence_threshold: Auto-approve above this confidence
+            device_profile: Optional DeviceProfile for custom hardware
         """
-        self.robot_id = robot_id
+        self.device_id = device_id
+        self.device_type = device_type
         self.llm_provider = llm_provider
         self.require_confirmation = require_confirmation
         self.confidence_threshold = confidence_threshold
         
+        # Initialize hardware abstraction
+        self._init_hardware(device_profile)
+        
         # Initialize components
-        self._init_gateway()
         self._init_intent_parser()
         self._init_task_planner()
         self._init_safety_validator()
         self._init_shadow_hooks()
     
-    def _init_gateway(self):
-        """Initialize gateway connection"""
-        from agent_ros_bridge.gateway import AgentGateway
-        self.gateway = AgentGateway()
+    def _init_hardware(self, device_profile=None):
+        """Initialize hardware abstraction"""
+        from agent_ros_bridge.hardware import DeviceRegistry, DeviceProfile
+        
+        self.device_registry = DeviceRegistry()
+        
+        # Create or use provided profile
+        if device_profile is None:
+            device_profile = self._create_default_profile()
+        
+        # Create the device
+        self.device = self.device_registry.create_device(
+            self.device_id,
+            self.device_type,
+            device_profile,
+        )
     
     def _init_intent_parser(self):
         """Initialize LLM intent parser"""
@@ -101,7 +122,91 @@ class RobotAgent:
     def _init_safety_validator(self):
         """Initialize safety validator"""
         from agent_ros_bridge.safety.safety_validator import SafetyValidator
-        self.safety_validator = SafetyValidator()
+        # Use device-specific limits from profile
+        limits = self.device.profile.limits if self.device else {}
+        self.safety_validator = SafetyValidator(
+            max_velocity=limits.get('max_velocity', 1.0),
+            max_acceleration=limits.get('max_acceleration', 0.5),
+        )
+    
+    def _create_default_profile(self):
+        """Create default device profile based on device_type"""
+        from agent_ros_bridge.hardware import DeviceProfile, Capability
+        
+        profiles = {
+            'mobile_robot': DeviceProfile(
+                device_id=self.device_id,
+                device_type='mobile_robot',
+                manufacturer='Generic',
+                model='MobileRobot',
+                capabilities=[
+                    Capability('navigate_to', 'Navigate to location', {'x': float, 'y': float}, 'success'),
+                    Capability('rotate', 'Rotate in place', {'angle': float}, 'success'),
+                    Capability('stop', 'Stop immediately', {}, 'success'),
+                ],
+                sensors=['lidar', 'camera', 'imu'],
+                actuators=['wheels'],
+            ),
+            'drone': DeviceProfile(
+                device_id=self.device_id,
+                device_type='drone',
+                manufacturer='Generic',
+                model='Drone',
+                capabilities=[
+                    Capability('takeoff', 'Take off', {'altitude': float}, 'success'),
+                    Capability('land', 'Land', {}, 'success'),
+                    Capability('fly_to', 'Fly to coordinates', {'x': float, 'y': float, 'z': float}, 'success'),
+                    Capability('hover', 'Hover in place', {}, 'success'),
+                    Capability('capture_image', 'Capture aerial image', {}, 'image_path'),
+                ],
+                sensors=['camera', 'gps', 'imu'],
+                actuators=['rotors'],
+            ),
+            'manipulator': DeviceProfile(
+                device_id=self.device_id,
+                device_type='manipulator',
+                manufacturer='Generic',
+                model='RobotArm',
+                capabilities=[
+                    Capability('move_to', 'Move to position', {'x': float, 'y': float, 'z': float}, 'success'),
+                    Capability('grasp', 'Grasp object', {'force': float}, 'success'),
+                    Capability('release', 'Release grasp', {}, 'success'),
+                    Capability('follow_trajectory', 'Follow trajectory', {'waypoints': list}, 'success'),
+                ],
+                sensors=['camera', 'force_sensor'],
+                actuators=['joints', 'gripper'],
+            ),
+            'humanoid': DeviceProfile(
+                device_id=self.device_id,
+                device_type='humanoid',
+                manufacturer='Generic',
+                model='Humanoid',
+                capabilities=[
+                    Capability('walk', 'Walk', {'direction': str, 'steps': int}, 'success'),
+                    Capability('balance', 'Maintain balance', {}, 'success'),
+                    Capability('reach', 'Reach to target', {'target': list}, 'success'),
+                    Capability('climb', 'Climb surface', {'surface': str}, 'success'),
+                    Capability('manipulate', 'Manipulate object', {'object': str, 'action': str}, 'success'),
+                ],
+                sensors=['camera', 'imu', 'joint_encoders'],
+                actuators=['legs', 'arms', 'hands'],
+            ),
+            'sensor_array': DeviceProfile(
+                device_id=self.device_id,
+                device_type='sensor_array',
+                manufacturer='Generic',
+                model='SensorArray',
+                capabilities=[
+                    Capability('sense', 'Sense environment', {'modality': str}, 'data'),
+                    Capability('capture', 'Capture data', {'sensor': str}, 'data'),
+                    Capability('scan', 'Scan area', {'area': str}, 'data'),
+                ],
+                sensors=['camera', 'lidar', 'radar', 'thermal', 'microphone'],
+                actuators=[],
+            ),
+        }
+        
+        return profiles.get(self.device_type, profiles['mobile_robot'])
     
     def _init_shadow_hooks(self):
         """Initialize shadow mode hooks"""
@@ -167,7 +272,7 @@ class RobotAgent:
                 continue
             
             # Get human confirmation if needed
-            if self.require_confirmation:
+            if self.require_confirmation and intent_result.confidence < self.confidence_threshold:
                 approval = self._get_human_approval(
                     step=step,
                     confidence=intent_result.confidence,
@@ -183,11 +288,14 @@ class RobotAgent:
                     continue
                 
                 human_approvals += 1
+            else:
+                # Auto-approve high confidence
+                human_approvals += 1 if self.require_confirmation else 0
             
-            # Execute command
-            result = self.gateway.send_command(
-                robot_id=self.robot_id,
-                command=step.command,
+            # Execute capability on device
+            result = self.device.execute_capability(
+                capability_name=step.capability_name,
+                parameters=step.parameters,
             )
             
             executed_steps.append({
@@ -198,8 +306,9 @@ class RobotAgent:
             
             # Log to shadow mode
             self.shadow_hooks.on_human_command({
-                'robot_id': self.robot_id,
-                'command': step.command,
+                'robot_id': self.device_id,
+                'command': step.capability_name,
+                'parameters': step.parameters,
                 'ai_proposal': step.ai_proposal,
             })
         
@@ -221,20 +330,21 @@ class RobotAgent:
     
     def observe(self) -> AgentObservation:
         """
-        Get current environment observations.
+        Get current environment observations from device.
         
         Returns:
-            AgentObservation with robot state and environment
+            AgentObservation with device state and environment
         """
-        status = self.gateway.get_robot_status(self.robot_id)
+        state = self.device.get_state()
         
+        # Map device-specific state to generic observation
         return AgentObservation(
-            robot_position=status.get('position', (0, 0, 0)),
-            battery_level=status.get('battery', 100.0),
-            nearby_objects=status.get('nearby_objects', []),
-            current_task=status.get('current_task'),
-            recent_commands=status.get('recent_commands', []),
-            obstacles_detected=status.get('obstacles', []),
+            robot_position=state.get('position', (0, 0, 0)),
+            battery_level=state.get('battery', 100.0),
+            nearby_objects=state.get('nearby_objects', []),
+            current_task=state.get('current_task'),
+            recent_commands=state.get('recent_commands', []),
+            obstacles_detected=state.get('obstacles', []),
         )
     
     def think(self, observation: AgentObservation) -> str:
