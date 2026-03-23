@@ -290,7 +290,7 @@ class TestScenarioRunnerIntegration:
                 result = sim.run_scenario(scenario)
 
                 assert result.success is True
-                assert result.duration_sec > 0
+                assert result.duration_ms > 0
 
 
 class TestParallelWorlds:
