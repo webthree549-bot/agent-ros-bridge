@@ -21,6 +21,7 @@ from typing import Any
 @dataclass
 class Proposal:
     """Represents an AI proposal awaiting confirmation"""
+
     proposal_id: str
     robot_id: str
     intent_type: str
@@ -34,6 +35,7 @@ class Proposal:
 @dataclass
 class UIConfig:
     """Configuration for Confirmation UI"""
+
     port: int = 8080
     auto_approve_threshold: float = 1.0  # 1.0 = never auto-approve
     require_confirmation: bool = True
@@ -46,14 +48,14 @@ class UIConfig:
 class ConfirmationUI:
     """
     Human confirmation interface for AI proposals.
-    
+
     Provides:
     - Web interface for operators
     - REST API for integration
     - WebSocket for real-time updates
     - Integration with ShadowModeHooks
     """
-    
+
     def __init__(
         self,
         port: int = 8080,
@@ -64,7 +66,7 @@ class ConfirmationUI:
     ):
         """
         Initialize confirmation UI.
-        
+
         Args:
             port: Web server port
             shadow_hooks: ShadowModeHooks instance
@@ -79,7 +81,7 @@ class ConfirmationUI:
             require_confirmation=require_confirmation,
             timeout_seconds=timeout_seconds,
         )
-        
+
         self._shadow_hooks = shadow_hooks
         self._proposals: dict[str, Proposal] = {}
         self._server = None
@@ -89,80 +91,87 @@ class ConfirmationUI:
     def timeout_seconds(self) -> float:
         """Get timeout configuration"""
         return self.config.timeout_seconds
-    
+
     def _get_shadow_hooks(self):
         """Lazy init shadow hooks"""
         if self._shadow_hooks is None:
             from ..shadow.hooks import ShadowModeHooks
+
             self._shadow_hooks = ShadowModeHooks()
         return self._shadow_hooks
-    
+
     def receive_proposal(self, proposal_data: dict[str, Any]) -> str:
         """
         Receive a new AI proposal.
-        
+
         Args:
             proposal_data: Proposal from AI system
-            
+
         Returns:
             proposal_id: ID of the created proposal
         """
-        proposal_id = proposal_data.get('proposal_id', f"prop_{int(time.time()*1000)}")
-        
+        proposal_id = proposal_data.get("proposal_id", f"prop_{int(time.time()*1000)}")
+
         proposal = Proposal(
             proposal_id=proposal_id,
-            robot_id=proposal_data.get('robot_id', 'unknown'),
-            intent_type=proposal_data.get('intent_type', 'UNKNOWN'),
-            confidence=proposal_data.get('confidence', 0.0),
-            entities=proposal_data.get('entities', []),
-            reasoning=proposal_data.get('reasoning', ''),
+            robot_id=proposal_data.get("robot_id", "unknown"),
+            intent_type=proposal_data.get("intent_type", "UNKNOWN"),
+            confidence=proposal_data.get("confidence", 0.0),
+            entities=proposal_data.get("entities", []),
+            reasoning=proposal_data.get("reasoning", ""),
         )
-        
+
         self._proposals[proposal_id] = proposal
-        
+
         # Check auto-approve
-        if (proposal.confidence >= self.config.auto_approve_threshold and
-            not self.config.require_confirmation):
+        if (
+            proposal.confidence >= self.config.auto_approve_threshold
+            and not self.config.require_confirmation
+        ):
             self.approve_proposal(proposal_id)
         else:
             # Broadcast to connected clients
-            self._broadcast_update({
-                'type': 'new_proposal',
-                'proposal': self._proposal_to_dict(proposal),
-            })
-        
+            self._broadcast_update(
+                {
+                    "type": "new_proposal",
+                    "proposal": self._proposal_to_dict(proposal),
+                }
+            )
+
         return proposal_id
-    
+
     def display_proposal(self, proposal: dict[str, Any]) -> str:
         """
         Generate HTML for displaying a proposal.
-        
+
         Args:
             proposal: Proposal data
-            
+
         Returns:
             HTML string
         """
-        intent_type = proposal.get('intent_type', 'UNKNOWN')
-        confidence = proposal.get('confidence', 0.0)
-        robot_id = proposal.get('robot_id', 'unknown')
-        entities = proposal.get('entities', [])
-        reasoning = proposal.get('reasoning', '')
-        
+        intent_type = proposal.get("intent_type", "UNKNOWN")
+        confidence = proposal.get("confidence", 0.0)
+        robot_id = proposal.get("robot_id", "unknown")
+        entities = proposal.get("entities", [])
+        reasoning = proposal.get("reasoning", "")
+
         # Determine risk level
         risk_level = self._calculate_risk_level(confidence, intent_type)
         risk_class = f"risk-{risk_level.lower()}"
-        
+
         # Build entities HTML
         entities_html = ""
         for entity in entities:
-            entities_html += f"<span class='entity'>{entity.get('type')}: {entity.get('value')}</span>"
-        
+            entities_html += (
+                f"<span class='entity'>{entity.get('type')}: {entity.get('value')}</span>"
+            )
+
         # Warning for low confidence
         warning_html = ""
         if confidence < 0.7:
             warning_html = "<div class='warning'>⚠️ Low Confidence</div>"
-        
+
         html = f"""
         <div class="proposal {risk_class}" id="proposal-{proposal.get('proposal_id')}">
             <div class="proposal-header">
@@ -195,89 +204,93 @@ class ConfirmationUI:
             </div>
         </div>
         """
-        
+
         return html
-    
+
     def _calculate_risk_level(self, confidence: float, intent_type: str) -> str:
         """Calculate risk level for display"""
-        if intent_type in ['EMERGENCY_STOP', 'SAFETY']:
-            return 'HIGH'
+        if intent_type in ["EMERGENCY_STOP", "SAFETY"]:
+            return "HIGH"
         if confidence < 0.5:
-            return 'HIGH'
+            return "HIGH"
         if confidence < 0.7:
-            return 'MEDIUM'
-        return 'LOW'
-    
+            return "MEDIUM"
+        return "LOW"
+
     def _proposal_to_dict(self, proposal: Proposal) -> dict[str, Any]:
         """Convert proposal to dictionary"""
         return {
-            'proposal_id': proposal.proposal_id,
-            'robot_id': proposal.robot_id,
-            'intent_type': proposal.intent_type,
-            'confidence': proposal.confidence,
-            'entities': proposal.entities,
-            'reasoning': proposal.reasoning,
-            'timestamp': proposal.timestamp,
-            'status': proposal.status,
+            "proposal_id": proposal.proposal_id,
+            "robot_id": proposal.robot_id,
+            "intent_type": proposal.intent_type,
+            "confidence": proposal.confidence,
+            "entities": proposal.entities,
+            "reasoning": proposal.reasoning,
+            "timestamp": proposal.timestamp,
+            "status": proposal.status,
         }
-    
+
     def approve_proposal(self, proposal_id: str) -> dict[str, Any]:
         """
         Approve a proposal and execute the command.
-        
+
         Args:
             proposal_id: ID of proposal to approve
-            
+
         Returns:
             Result dict
         """
         if proposal_id not in self._proposals:
-            return {'success': False, 'error': 'Proposal not found'}
-        
+            return {"success": False, "error": "Proposal not found"}
+
         proposal = self._proposals[proposal_id]
-        proposal.status = 'approved'
-        
+        proposal.status = "approved"
+
         # Execute command
         result = self._execute_command(proposal)
-        
+
         # Log to shadow hooks
         if self._shadow_hooks:
-            self._shadow_hooks.on_human_command({
-                'robot_id': proposal.robot_id,
-                'command': proposal.intent_type.lower(),
-                'parameters': {'entities': proposal.entities},
-            })
-        
+            self._shadow_hooks.on_human_command(
+                {
+                    "robot_id": proposal.robot_id,
+                    "command": proposal.intent_type.lower(),
+                    "parameters": {"entities": proposal.entities},
+                }
+            )
+
         # Broadcast update
-        self._broadcast_update({
-            'type': 'proposal_approved',
-            'proposal_id': proposal_id,
-        })
-        
+        self._broadcast_update(
+            {
+                "type": "proposal_approved",
+                "proposal_id": proposal_id,
+            }
+        )
+
         self._broadcast_metrics()
-        
-        return {'success': True, 'result': result}
-    
-    def reject_proposal(self, proposal_id: str, reason: str = '') -> dict[str, Any]:
+
+        return {"success": True, "result": result}
+
+    def reject_proposal(self, proposal_id: str, reason: str = "") -> dict[str, Any]:
         """
         Reject a proposal.
-        
+
         Args:
             proposal_id: ID of proposal to reject
             reason: Rejection reason
-            
+
         Returns:
             Result dict
         """
         if not reason:
             raise ValueError("Rejection reason is required")
-        
+
         if proposal_id not in self._proposals:
-            return {'success': False, 'error': 'Proposal not found'}
-        
+            return {"success": False, "error": "Proposal not found"}
+
         proposal = self._proposals[proposal_id]
-        proposal.status = 'rejected'
-        
+        proposal.status = "rejected"
+
         # Log to shadow hooks
         if self._shadow_hooks:
             self._shadow_hooks.on_human_rejected(
@@ -285,18 +298,20 @@ class ConfirmationUI:
                 ai_proposal_id=proposal_id,
                 rejection_reason=reason,
             )
-        
+
         # Broadcast update
-        self._broadcast_update({
-            'type': 'proposal_rejected',
-            'proposal_id': proposal_id,
-            'reason': reason,
-        })
-        
+        self._broadcast_update(
+            {
+                "type": "proposal_rejected",
+                "proposal_id": proposal_id,
+                "reason": reason,
+            }
+        )
+
         self._broadcast_metrics()
-        
-        return {'success': True}
-    
+
+        return {"success": True}
+
     def modify_proposal(
         self,
         proposal_id: str,
@@ -305,24 +320,24 @@ class ConfirmationUI:
     ) -> dict[str, Any]:
         """
         Modify and execute a proposal.
-        
+
         Args:
             proposal_id: ID of proposal
             original: Original parameters
             modified: Modified parameters
-            
+
         Returns:
             Result dict
         """
         if proposal_id not in self._proposals:
-            return {'success': False, 'error': 'Proposal not found'}
-        
+            return {"success": False, "error": "Proposal not found"}
+
         proposal = self._proposals[proposal_id]
-        proposal.status = 'modified'
-        
+        proposal.status = "modified"
+
         # Execute modified command
         result = self._execute_command(proposal, modified_params=modified)
-        
+
         # Log to shadow hooks
         if self._shadow_hooks:
             self._shadow_hooks.on_human_modified(
@@ -331,17 +346,19 @@ class ConfirmationUI:
                 original=original,
                 modified=modified,
             )
-        
+
         # Broadcast update
-        self._broadcast_update({
-            'type': 'proposal_modified',
-            'proposal_id': proposal_id,
-        })
-        
+        self._broadcast_update(
+            {
+                "type": "proposal_modified",
+                "proposal_id": proposal_id,
+            }
+        )
+
         self._broadcast_metrics()
-        
-        return {'success': True, 'result': result}
-    
+
+        return {"success": True, "result": result}
+
     def _execute_command(
         self,
         proposal: Proposal,
@@ -351,57 +368,55 @@ class ConfirmationUI:
         # TODO: Integrate with actual robot control
         # For now, return mock result
         return {
-            'executed': True,
-            'command': proposal.intent_type,
-            'robot_id': proposal.robot_id,
-            'timestamp': time.time(),
+            "executed": True,
+            "command": proposal.intent_type,
+            "robot_id": proposal.robot_id,
+            "timestamp": time.time(),
         }
-    
+
     def get_pending_proposals(self) -> list[dict[str, Any]]:
         """Get all pending proposals"""
         return [
-            self._proposal_to_dict(p)
-            for p in self._proposals.values()
-            if p.status == 'pending'
+            self._proposal_to_dict(p) for p in self._proposals.values() if p.status == "pending"
         ]
-    
+
     def get_metrics(self) -> dict[str, Any]:
         """Get UI metrics"""
         if self._shadow_hooks:
             return self._shadow_hooks.get_stats()
-        
+
         # Fallback to local metrics
         total = len(self._proposals)
-        approved = sum(1 for p in self._proposals.values() if p.status == 'approved')
-        rejected = sum(1 for p in self._proposals.values() if p.status == 'rejected')
-        
+        approved = sum(1 for p in self._proposals.values() if p.status == "approved")
+        rejected = sum(1 for p in self._proposals.values() if p.status == "rejected")
+
         return {
-            'total_decisions': total,
-            'approved': approved,
-            'rejected': rejected,
-            'pending': total - approved - rejected,
+            "total_decisions": total,
+            "approved": approved,
+            "rejected": rejected,
+            "pending": total - approved - rejected,
         }
-    
+
     # API Endpoints (for web server integration)
-    
+
     def api_get_pending(self) -> list[dict[str, Any]]:
         """API: Get pending proposals"""
         return self.get_pending_proposals()
-    
+
     def api_approve(self, proposal_id: str) -> dict[str, Any]:
         """API: Approve proposal"""
         return self.approve_proposal(proposal_id)
-    
+
     def api_reject(self, proposal_id: str, reason: str) -> dict[str, Any]:
         """API: Reject proposal"""
         return self.reject_proposal(proposal_id, reason)
-    
+
     def api_get_metrics(self) -> dict[str, Any]:
         """API: Get metrics"""
         return self.get_metrics()
-    
+
     # Web Interface
-    
+
     def render_interface(self) -> str:
         """Render the full HTML interface"""
         html = """
@@ -469,24 +484,26 @@ class ConfirmationUI:
         </html>
         """
         return html
-    
+
     def start_server(self) -> None:
         """Start the web server (placeholder)"""
         # TODO: Implement actual web server (Flask/FastAPI)
         pass
-    
+
     def _broadcast_update(self, message: dict[str, Any]) -> None:
         """Broadcast update to WebSocket clients"""
         # TODO: Implement WebSocket broadcasting
         pass
-    
+
     def _broadcast_metrics(self) -> None:
         """Broadcast metrics update"""
         metrics = self.get_metrics()
-        self._broadcast_update({
-            'type': 'metrics_update',
-            'metrics': metrics,
-        })
+        self._broadcast_update(
+            {
+                "type": "metrics_update",
+                "metrics": metrics,
+            }
+        )
 
 
 # Convenience function
@@ -497,12 +514,12 @@ def create_confirmation_ui(
 ) -> ConfirmationUI:
     """
     Create and configure confirmation UI.
-    
+
     Args:
         port: Web server port
         shadow_hooks: ShadowModeHooks instance
         auto_approve_threshold: Auto-approve confidence threshold
-        
+
     Returns:
         Configured ConfirmationUI
     """

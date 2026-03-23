@@ -8,6 +8,7 @@ from typing import Any
 
 class DecisionStatus(Enum):
     """Status of a decision record."""
+
     PENDING = "pending"
     COMPLETED = "completed"
     EXPIRED = "expired"
@@ -18,6 +19,7 @@ class DecisionStatus(Enum):
 @dataclass
 class AIProposal:
     """AI-generated decision proposal."""
+
     intent_type: str
     confidence: float
     entities: list[dict[str, Any]] = field(default_factory=list)
@@ -52,6 +54,7 @@ class AIProposal:
 @dataclass
 class HumanAction:
     """Human-executed action."""
+
     command: str
     parameters: dict[str, Any] = field(default_factory=dict)
     source: str = "manual"
@@ -80,6 +83,7 @@ class HumanAction:
 @dataclass
 class DecisionOutcome:
     """Outcome of a decision execution."""
+
     success: bool
     execution_time_ms: float = 0.0
     error_message: str = ""
@@ -108,6 +112,7 @@ class DecisionOutcome:
 @dataclass
 class DecisionContext:
     """Context when decision was made."""
+
     robot_pose: dict[str, float] = field(default_factory=dict)
     battery_level: float = 0.0
     current_task: str = ""
@@ -142,6 +147,7 @@ class DecisionContext:
 @dataclass
 class DecisionRecord:
     """Complete record of an AI-human decision pair."""
+
     record_id: str
     robot_id: str
     timestamp: datetime

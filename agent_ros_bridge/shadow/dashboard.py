@@ -100,8 +100,10 @@ class DashboardAPI:
             The callback function (or a default if None)
         """
         if callback is None:
+
             def default_callback(data: dict) -> None:
                 pass
+
             callback = default_callback
 
         self._subscribers.append(callback)

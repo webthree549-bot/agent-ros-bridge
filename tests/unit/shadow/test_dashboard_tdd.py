@@ -52,7 +52,10 @@ class TestDashboardAPITDD:
         """RED: get_robot_metrics() should return per-robot metrics for active robots."""
         # First log a decision for the robot
         from agent_ros_bridge.shadow.models import AIProposal
-        dashboard._logger.log_ai_proposal("bot1", AIProposal(intent_type="NAVIGATE", confidence=0.95))
+
+        dashboard._logger.log_ai_proposal(
+            "bot1", AIProposal(intent_type="NAVIGATE", confidence=0.95)
+        )
 
         robot_metrics = dashboard.get_robot_metrics("bot1")
         assert isinstance(robot_metrics, dict)

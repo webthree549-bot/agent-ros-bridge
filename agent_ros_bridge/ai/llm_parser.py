@@ -133,6 +133,7 @@ Rules:
         # Load API key from environment if not provided
         if api_key is None:
             import os
+
             env_key = provider_config["env_key"]
             api_key = os.environ.get(env_key)
 

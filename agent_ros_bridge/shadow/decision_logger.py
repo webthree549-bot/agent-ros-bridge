@@ -138,7 +138,7 @@ class DecisionLogger:
                     record.status,
                     record.agreement,
                     record.agreement_score,
-                )
+                ),
             )
             conn.commit()
             conn.close()
@@ -190,7 +190,7 @@ class DecisionLogger:
             cursor = conn.cursor()
             cursor.execute(
                 "UPDATE decisions SET outcome = ? WHERE record_id = ?",
-                (json.dumps(outcome.to_dict()), record_id)
+                (json.dumps(outcome.to_dict()), record_id),
             )
             conn.commit()
             conn.close()

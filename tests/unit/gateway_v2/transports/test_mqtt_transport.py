@@ -446,11 +446,13 @@ class TestMQTTOnMessage:
         """Test on_message with valid JSON."""
         mock_msg = MagicMock()
         mock_msg.topic = "robots/commands"
-        mock_msg.payload = json.dumps({
-            "id": "msg123",
-            "timestamp": "2024-01-15T10:30:00",
-            "command": {"action": "move"},
-        }).encode()
+        mock_msg.payload = json.dumps(
+            {
+                "id": "msg123",
+                "timestamp": "2024-01-15T10:30:00",
+                "command": {"action": "move"},
+            }
+        ).encode()
 
         transport._on_message(None, None, mock_msg)
 
