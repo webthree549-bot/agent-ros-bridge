@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
 
+env:
+  # Opt into Node.js 24 for GitHub Actions
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
   pages: write
@@ -16,7 +20,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: actions/checkout@v4
       - name: Generate docs
         run: |
           pip install sphinx
