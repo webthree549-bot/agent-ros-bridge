@@ -1,0 +1,20 @@
+{
+  "total_scenarios": 10000,
+  "successful": 9593,
+  "failed": 407,
+  "success_rate": 0.9593,
+  "gate2_passed": true,
+  "safety_passed": true,
+  "total_safety_violations": 0,
+  "metrics": {
+    "avg_duration": 12.501555639683453,
+    "min_duration": 5.0010460540794135,
+    "max_duration": 19.999509970551784,
+    "total_collisions": 107,
+    "collision_rate": 0.0107,
+    "failure_reasons": {
+      "unknown": 407
+    }
+  },
+  "timestamp": 1774291881.2455852
+}
