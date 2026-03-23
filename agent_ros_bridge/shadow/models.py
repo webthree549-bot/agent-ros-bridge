@@ -1,24 +1,16 @@
 """Data models for shadow mode decision tracking."""
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 
-class DecisionSource(Enum):
-    """Source of a decision."""
-    AI = "ai"
-    HUMAN = "human"
-    AUTONOMOUS = "autonomous"  # For v0.7.0+
-
-
 class DecisionStatus(Enum):
     """Status of a decision record."""
-    PENDING = "pending"  # AI proposed, waiting for human
-    COMPLETED = "completed"  # Both AI and human recorded
-    EXPIRED = "expired"  # Timed out waiting for human
-    ERROR = "error"  # Error during processing
+    PENDING = "pending"
+    COMPLETED = "completed"
+    EXPIRED = "expired"
 
 
 @dataclass
@@ -60,7 +52,7 @@ class HumanAction:
     """Human-executed action."""
     command: str
     parameters: dict[str, Any] = field(default_factory=dict)
-    source: str = "manual"  # manual, script, external_system
+    source: str = "manual"
     operator_id: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -118,7 +110,7 @@ class DecisionContext:
     battery_level: float = 0.0
     current_task: str = ""
     environment: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -133,7 +125,7 @@ class DecisionContext:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "DecisionContext":
         """Create from dictionary."""
-        ts = data.get("timestamp", datetime.now(UTC).isoformat())
+        ts = data.get("timestamp", datetime.now(timezone.utc).isoformat())
         if isinstance(ts, str):
             ts = datetime.fromisoformat(ts)
         return cls(
@@ -155,9 +147,9 @@ class DecisionRecord:
     ai_proposal: AIProposal | None = None
     human_action: HumanAction | None = None
     outcome: DecisionOutcome | None = None
-    status: DecisionStatus = DecisionStatus.PENDING
-    agreement: bool | None = None  # True if AI and human match
-    agreement_score: float = 0.0  # 0.0-1.0 similarity
+    status: str = "pending"
+    agreement: bool | None = None
+    agreement_score: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -169,27 +161,7 @@ class DecisionRecord:
             "ai_proposal": self.ai_proposal.to_dict() if self.ai_proposal else None,
             "human_action": self.human_action.to_dict() if self.human_action else None,
             "outcome": self.outcome.to_dict() if self.outcome else None,
-            "status": self.status.value,
+            "status": self.status,
             "agreement": self.agreement,
             "agreement_score": self.agreement_score,
         }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "DecisionRecord":
-        """Create from dictionary."""
-        ts = data.get("timestamp", datetime.now(UTC).isoformat())
-        if isinstance(ts, str):
-            ts = datetime.fromisoformat(ts)
-
-        return cls(
-            record_id=data.get("record_id", ""),
-            robot_id=data.get("robot_id", ""),
-            timestamp=ts,
-            context=DecisionContext.from_dict(data.get("context", {})),
-            ai_proposal=AIProposal.from_dict(data["ai_proposal"]) if data.get("ai_proposal") else None,
-            human_action=HumanAction.from_dict(data["human_action"]) if data.get("human_action") else None,
-            outcome=DecisionOutcome.from_dict(data["outcome"]) if data.get("outcome") else None,
-            status=DecisionStatus(data.get("status", "pending")),
-            agreement=data.get("agreement"),
-            agreement_score=data.get("agreement_score", 0.0),
-        )
