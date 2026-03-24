@@ -397,12 +397,12 @@ class GazeboBatchRunner:
         """Execute navigation goal using Nav2 NavigateToPose action."""
         try:
             # Try Nav2 navigation
-            from nav2_simple_commander import RobotNavigator
+            from nav2_simple_commander.robot_navigator import BasicNavigator
             from geometry_msgs.msg import PoseStamped
             import rclpy
 
             namespace = f"/world_{world_id}/{robot_name}"
-            navigator = RobotNavigator(namespace=namespace)
+            navigator = BasicNavigator(namespace=namespace)
 
             # Build goal pose
             goal_pose = PoseStamped()
