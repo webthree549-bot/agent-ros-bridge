@@ -85,6 +85,145 @@ class RobotAgent:
         self._init_safety_validator()
         self._init_shadow_hooks()
 
+    @classmethod
+    def discover(
+        cls,
+        device_id: str,
+        llm_provider: str = "moonshot",
+        require_confirmation: bool = True,
+        confidence_threshold: float = 0.8,
+        enable_health_monitor: bool = True,
+        enable_self_healing: bool = True,
+    ) -> "RobotAgent":
+        """
+        Auto-discover device type and create RobotAgent.
+
+        This method introspects the ROS graph to automatically determine
+        the device type and capabilities, then creates an appropriately
+        configured RobotAgent.
+
+        Args:
+            device_id: Device identifier (e.g., 'bot1')
+            llm_provider: LLM provider for intent parsing
+            require_confirmation: Whether to require human approval
+            confidence_threshold: Auto-approve above this confidence
+            enable_health_monitor: Enable health monitoring
+            enable_self_healing: Enable self-healing capabilities
+
+        Returns:
+            Configured RobotAgent
+
+        Raises:
+            ValueError: If device type cannot be auto-discovered
+
+        Example:
+            >>> agent = RobotAgent.discover('bot1')
+            🔍 Discovered bot1 as mobile_robot
+               Capabilities: ['navigate_to', 'rotate', 'stop']
+               Health: healthy
+            >>> agent.execute("Go to the kitchen")
+        """
+        from agent_ros_bridge.discovery import (
+            ROSDiscovery,
+            ROSHealthMonitor,
+            SelfHealingController,
+            DeviceHealthStatus,
+        )
+
+        # Discover device type
+        discovery = ROSDiscovery()
+        device_type = discovery.infer_device_type(device_id)
+
+        if not device_type:
+            raise ValueError(
+                f"Could not auto-discover device type for '{device_id}'. "
+                f"Please specify device_type explicitly or ensure ROS is running."
+            )
+
+        print(f"🔍 Discovered {device_id} as {device_type}")
+
+        # Discover capabilities
+        capabilities = discovery.discover_capabilities(device_id)
+        if capabilities:
+            print(f"   Capabilities: {capabilities}")
+
+        # Create agent
+        agent = cls(
+            device_id=device_id,
+            device_type=device_type,
+            llm_provider=llm_provider,
+            require_confirmation=require_confirmation,
+            confidence_threshold=confidence_threshold,
+        )
+
+        # Optionally enable health monitoring
+        if enable_health_monitor:
+            health_monitor = ROSHealthMonitor(device_id)
+            health = health_monitor.check_health()
+            print(f"   Health: {health.status.value}")
+
+            # Attempt recovery if unhealthy
+            if enable_self_healing and health.status != DeviceHealthStatus.HEALTHY:
+                healer = SelfHealingController(device_id)
+                healer.attempt_recovery(health)
+
+        return agent
+
+    @classmethod
+    def discover_all(
+        cls,
+        llm_provider: str = "moonshot",
+        require_confirmation: bool = True,
+        confidence_threshold: float = 0.8,
+    ) -> list["RobotAgent"]:
+        """
+        Discover all ROS devices on the network and create RobotAgents.
+
+        This method scans the ROS graph for all potential devices,
+        identifies their types, and creates RobotAgent instances for each.
+
+        Args:
+            llm_provider: LLM provider for intent parsing
+            require_confirmation: Whether to require human approval
+            confidence_threshold: Auto-approve above this confidence
+
+        Returns:
+            List of configured RobotAgents
+
+        Example:
+            >>> robots = RobotAgent.discover_all()
+            🔍 Discovered 3 devices:
+               - bot1: mobile_robot
+               - arm1: manipulator
+               - drone1: drone
+            >>> for robot in robots:
+            ...     print(f"{robot.device_id}: {robot.device_type}")
+        """
+        from agent_ros_bridge.discovery import ROSDiscovery
+
+        discovery = ROSDiscovery()
+        devices = discovery.discover_all_devices()
+
+        print(f"🔍 Discovered {len(devices)} devices:")
+
+        agents = []
+        for dev in devices:
+            print(f"   - {dev['device_id']}: {dev['device_type']}")
+
+            try:
+                agent = cls(
+                    device_id=dev["device_id"],
+                    device_type=dev["device_type"],
+                    llm_provider=llm_provider,
+                    require_confirmation=require_confirmation,
+                    confidence_threshold=confidence_threshold,
+                )
+                agents.append(agent)
+            except Exception as e:
+                print(f"     Warning: Could not create agent: {e}")
+
+        return agents
+
     def _init_hardware(self, device_profile=None):
         """Initialize hardware abstraction"""
         from agent_ros_bridge.hardware import DeviceRegistry
