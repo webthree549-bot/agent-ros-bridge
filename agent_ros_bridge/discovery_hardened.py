@@ -8,7 +8,7 @@ validation, and safety mechanisms.
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 
 class DiscoveryConfidenceLevel(Enum):
@@ -437,7 +437,7 @@ class ValidatedDiscovery:
         device_id: str,
         min_confidence: float = 0.7,
         require_capability_verification: bool = True,
-        user_confirmation_callback: callable | None = None,
+        user_confirmation_callback: Callable | None = None,
     ) -> dict[str, Any]:
         """
         Discover device with full validation.
