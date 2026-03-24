@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
-## [0.6.4] - 2026-03-23
+## [0.6.4] - 2026-03-24
 
 ### Added
 - **Human Confirmation UI** — Web interface for operators to approve/reject AI suggestions
@@ -81,11 +81,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Applied Black formatting to 28 files
 
 ### Fixed
+- **Version mismatch** - `__init__.py` version now matches `pyproject.toml` (0.6.4)
+- **Python 3.16 deprecation** - Replaced deprecated `asyncio.iscoroutinefunction()` with `inspect.iscoroutinefunction()` in `gateway_v2/blueprint.py` and `gateway_v2/module.py`
+- **Type annotation** - Fixed `callable` → `Callable` in `discovery_hardened.py` (fixes CI on Python 3.11/3.12)
 - F821: Undefined name `rclpy` in GazeboReal (added module-level import)
 - C416: Unnecessary list comprehension in Scenario10KGenerator
 - W291: Trailing whitespace in HTML reports
 - I001: Import block sorting across multiple test files
 - UP015: Unnecessary mode argument in file operations
+
+### Documentation
+- **PROPOSAL_GREENFIELD_ADOPTION.md** - 12-page technical proposal for new deployments
+- **ROI_SUMMARY.md** - Executive ROI summary ($393K savings, 15 months faster)
+- **GAZEBO_TODOS_ROADMAP.md** - Implementation guide for 10 simulation TODOs
+- **TUTORIAL_FLEET_MANAGEMENT.md** - Complete fleet management API tutorial
+- **AUDIT_REPORT_2026-03-24.md** - Comprehensive project audit
+- **RELEASE_NOTES_v0.6.4.md** - Detailed release notes
+
+### Dependencies
+- Added upper version bounds for improved stability:
+  - `pydantic>=2.0.0,<3.0.0`
+  - `pyyaml>=6.0,<7.0`
+  - `websockets>=11.0,<17.0`
+  - `cryptography>=41.0.0,<47.0.0`
+  - `aiohttp>=3.8.0,<4.0.0`
+  - `aiosqlite>=0.19.0,<1.0.0`
+  - `redis>=4.5.0,<6.0.0`
+  - `pyjwt>=2.8.0,<3.0.0`
 
 ### Security
 - All security scans passing (CodeQL, Bandit, Trivy)
