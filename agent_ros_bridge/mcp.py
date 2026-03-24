@@ -448,6 +448,193 @@ class MCPAdapter:
             }
 
 
+class ClaudeDesktopIntegration:
+    """
+    Integration with Claude Desktop via MCP.
+    
+    Usage:
+        1. Install Claude Desktop
+        2. Add to claude_desktop_config.json
+        3. Start chatting with your robot!
+    """
+    
+    @staticmethod
+    def get_config(device_id: str = "bot1", device_type: str = "mobile_robot") -> Dict[str, Any]:
+        """
+        Get Claude Desktop configuration.
+        
+        Add this to your Claude Desktop config:
+        ~/Library/Application Support/Claude/claude_desktop_config.json
+        """
+        return {
+            "mcpServers": {
+                "agent-ros-bridge": {
+                    "command": "python",
+                    "args": [
+                        "-m",
+                        "agent_ros_bridge.mcp",
+                        device_id,
+                        device_type
+                    ],
+                    "env": {
+                        "PYTHONPATH": "${PYTHONPATH}"
+                    }
+                }
+            }
+        }
+    
+    @staticmethod
+    def print_setup_instructions():
+        """Print setup instructions for Claude Desktop"""
+        print("""
+🤖 Claude Desktop + Agent ROS Bridge Setup
+==========================================
+
+1. Install Claude Desktop from https://claude.ai/download
+
+2. Open Claude Desktop settings:
+   - Mac: Cmd + , (or Menu → Settings)
+   - Windows/Linux: Edit → Settings
+
+3. Click "Developer" → "Edit Config"
+
+4. Add this configuration:
+
+{
+  "mcpServers": {
+    "agent-ros-bridge": {
+      "command": "python",
+      "args": ["-m", "agent_ros_bridge.mcp", "bot1", "mobile_robot"]
+    }
+  }
+}
+
+5. Save and restart Claude Desktop
+
+6. Look for the 🔨 icon (tools) in Claude's interface
+
+7. Try these commands:
+   - "Navigate to the kitchen"
+   - "What's the robot's current status?"
+   - "Pick up the red cup from the table"
+   - "Emergency stop!"
+
+Claude will show you the AI proposal and ask for confirmation
+before executing (human-in-the-loop safety).
+
+==========================================
+        """)
+
+
+class OpenAIGPTIntegration:
+    """
+    Integration with OpenAI GPT via function calling.
+    
+    This integrates Agent ROS Bridge with GPT's tool use capabilities
+    while maintaining human confirmation for safety.
+    """
+    
+    def __init__(self, robot_agent: 'RobotAgent', api_key: str = None):
+        """
+        Initialize GPT integration.
+        
+        Args:
+            robot_agent: Configured RobotAgent instance
+            api_key: OpenAI API key (defaults to OPENAI_API_KEY env var)
+        """
+        import os
+        self.robot_agent = robot_agent
+        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
+        
+        if not self.api_key:
+            raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var.")
+        
+        self.tools = self._define_tools()
+    
+    def _define_tools(self) -> List[Dict[str, Any]]:
+        """Define tools in OpenAI function calling format"""
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "execute_robot_command",
+                    "description": "Execute a natural language command on the robot",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "command": {
+                                "type": "string",
+                                "description": "Natural language command (e.g., 'go to the kitchen')"
+                            }
+                        },
+                        "required": ["command"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_robot_status",
+                    "description": "Get current robot status and observations",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "navigate_to",
+                    "description": "Navigate robot to a specific location",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "Target location (e.g., 'kitchen', 'office')"
+                            }
+                        },
+                        "required": ["location"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "emergency_stop",
+                    "description": "Immediately stop the robot (use in emergencies)",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            }
+        ]
+
+
+class CustomMCPClient:
+    """
+    Example of a custom MCP client implementation.
+    
+    This shows how to build your own client that connects to
+    the Agent ROS Bridge MCP server.
+    """
+    
+    def __init__(self, server_command: List[str]):
+        """
+        Initialize custom MCP client.
+        
+        Args:
+            server_command: Command to start MCP server
+                           e.g., ["python", "-m", "agent_ros_bridge.mcp", "bot1"]
+        """
+        self.server_command = server_command
+        self.tools: List[Dict[str, Any]] = []
+        self.initialized = False
+        self.process = None
+
+
 class MCPServer:
     """
     Standalone MCP server for Agent ROS Bridge.
