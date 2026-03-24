@@ -12,6 +12,7 @@ from typing import Any
 @dataclass
 class TaskResult:
     """Result of an agentic task execution"""
+
     success: bool
     task: str
     steps: list[dict[str, Any]]
@@ -26,6 +27,7 @@ class TaskResult:
 @dataclass
 class AgentObservation:
     """What the AI agent observes about the environment"""
+
     robot_position: tuple
     battery_level: float
     nearby_objects: list[str]
@@ -37,17 +39,17 @@ class AgentObservation:
 class RobotAgent:
     """
     High-level agentic interface for robot control.
-    
+
     Provides natural language command execution with:
     - Intent parsing
     - Task planning
     - Safety validation
     - Human confirmation
     - Execution monitoring
-    
+
     Works with ANY ROS device: mobile robots, drones, manipulators, humanoids, sensors
     """
-    
+
     def __init__(
         self,
         device_id: str,
@@ -59,7 +61,7 @@ class RobotAgent:
     ):
         """
         Initialize robot agent.
-        
+
         Args:
             device_id: Device identifier (e.g., 'bot1', 'drone1', 'arm1')
             device_type: Type of device ('mobile_robot', 'drone', 'manipulator', 'humanoid', 'sensor_array')
@@ -73,138 +75,156 @@ class RobotAgent:
         self.llm_provider = llm_provider
         self.require_confirmation = require_confirmation
         self.confidence_threshold = confidence_threshold
-        
+
         # Initialize hardware abstraction
         self._init_hardware(device_profile)
-        
+
         # Initialize components
         self._init_intent_parser()
         self._init_task_planner()
         self._init_safety_validator()
         self._init_shadow_hooks()
-    
+
     def _init_hardware(self, device_profile=None):
         """Initialize hardware abstraction"""
         from agent_ros_bridge.hardware import DeviceRegistry
-        
+
         self.device_registry = DeviceRegistry()
-        
+
         # Create or use provided profile
         if device_profile is None:
             device_profile = self._create_default_profile()
-        
+
         # Create the device
         self.device = self.device_registry.create_device(
             self.device_id,
             self.device_type,
             device_profile,
         )
-    
+
     def _init_intent_parser(self):
         """Initialize LLM intent parser"""
         from agent_ros_bridge.ai.llm_parser import LLMIntentParser
-        
+
         # Use LLMIntentParser with provider-specific configuration
         self.intent_parser = LLMIntentParser(
             model=self.llm_provider,
             api_key=None,  # Will use environment variable
         )
-    
+
     def _init_task_planner(self):
         """Initialize task planner"""
         self.task_planner = TaskPlanner()
-    
+
     def _init_safety_validator(self):
         """Initialize safety validator"""
         from agent_ros_bridge.safety.validator import SafetyValidatorNode
+
         self.safety_validator = SafetyValidatorNode(
             enable_cache=True,
         )
-    
+
     def _create_default_profile(self):
         """Create default device profile based on device_type"""
         from agent_ros_bridge.hardware import Capability, DeviceProfile
-        
+
         profiles = {
-            'mobile_robot': DeviceProfile(
+            "mobile_robot": DeviceProfile(
                 device_id=self.device_id,
-                device_type='mobile_robot',
-                manufacturer='Generic',
-                model='MobileRobot',
+                device_type="mobile_robot",
+                manufacturer="Generic",
+                model="MobileRobot",
                 capabilities=[
-                    Capability('navigate_to', 'Navigate to location', {'x': float, 'y': float}, 'success'),
-                    Capability('rotate', 'Rotate in place', {'angle': float}, 'success'),
-                    Capability('stop', 'Stop immediately', {}, 'success'),
+                    Capability(
+                        "navigate_to", "Navigate to location", {"x": float, "y": float}, "success"
+                    ),
+                    Capability("rotate", "Rotate in place", {"angle": float}, "success"),
+                    Capability("stop", "Stop immediately", {}, "success"),
                 ],
-                sensors=['lidar', 'camera', 'imu'],
-                actuators=['wheels'],
+                sensors=["lidar", "camera", "imu"],
+                actuators=["wheels"],
             ),
-            'drone': DeviceProfile(
+            "drone": DeviceProfile(
                 device_id=self.device_id,
-                device_type='drone',
-                manufacturer='Generic',
-                model='Drone',
+                device_type="drone",
+                manufacturer="Generic",
+                model="Drone",
                 capabilities=[
-                    Capability('takeoff', 'Take off', {'altitude': float}, 'success'),
-                    Capability('land', 'Land', {}, 'success'),
-                    Capability('fly_to', 'Fly to coordinates', {'x': float, 'y': float, 'z': float}, 'success'),
-                    Capability('hover', 'Hover in place', {}, 'success'),
-                    Capability('capture_image', 'Capture aerial image', {}, 'image_path'),
+                    Capability("takeoff", "Take off", {"altitude": float}, "success"),
+                    Capability("land", "Land", {}, "success"),
+                    Capability(
+                        "fly_to",
+                        "Fly to coordinates",
+                        {"x": float, "y": float, "z": float},
+                        "success",
+                    ),
+                    Capability("hover", "Hover in place", {}, "success"),
+                    Capability("capture_image", "Capture aerial image", {}, "image_path"),
                 ],
-                sensors=['camera', 'gps', 'imu'],
-                actuators=['rotors'],
+                sensors=["camera", "gps", "imu"],
+                actuators=["rotors"],
             ),
-            'manipulator': DeviceProfile(
+            "manipulator": DeviceProfile(
                 device_id=self.device_id,
-                device_type='manipulator',
-                manufacturer='Generic',
-                model='RobotArm',
+                device_type="manipulator",
+                manufacturer="Generic",
+                model="RobotArm",
                 capabilities=[
-                    Capability('move_to', 'Move to position', {'x': float, 'y': float, 'z': float}, 'success'),
-                    Capability('grasp', 'Grasp object', {'force': float}, 'success'),
-                    Capability('release', 'Release grasp', {}, 'success'),
-                    Capability('follow_trajectory', 'Follow trajectory', {'waypoints': list}, 'success'),
+                    Capability(
+                        "move_to",
+                        "Move to position",
+                        {"x": float, "y": float, "z": float},
+                        "success",
+                    ),
+                    Capability("grasp", "Grasp object", {"force": float}, "success"),
+                    Capability("release", "Release grasp", {}, "success"),
+                    Capability(
+                        "follow_trajectory", "Follow trajectory", {"waypoints": list}, "success"
+                    ),
                 ],
-                sensors=['camera', 'force_sensor'],
-                actuators=['joints', 'gripper'],
+                sensors=["camera", "force_sensor"],
+                actuators=["joints", "gripper"],
             ),
-            'humanoid': DeviceProfile(
+            "humanoid": DeviceProfile(
                 device_id=self.device_id,
-                device_type='humanoid',
-                manufacturer='Generic',
-                model='Humanoid',
+                device_type="humanoid",
+                manufacturer="Generic",
+                model="Humanoid",
                 capabilities=[
-                    Capability('walk', 'Walk', {'direction': str, 'steps': int}, 'success'),
-                    Capability('balance', 'Maintain balance', {}, 'success'),
-                    Capability('reach', 'Reach to target', {'target': list}, 'success'),
-                    Capability('climb', 'Climb surface', {'surface': str}, 'success'),
-                    Capability('manipulate', 'Manipulate object', {'object': str, 'action': str}, 'success'),
+                    Capability("walk", "Walk", {"direction": str, "steps": int}, "success"),
+                    Capability("balance", "Maintain balance", {}, "success"),
+                    Capability("reach", "Reach to target", {"target": list}, "success"),
+                    Capability("climb", "Climb surface", {"surface": str}, "success"),
+                    Capability(
+                        "manipulate", "Manipulate object", {"object": str, "action": str}, "success"
+                    ),
                 ],
-                sensors=['camera', 'imu', 'joint_encoders'],
-                actuators=['legs', 'arms', 'hands'],
+                sensors=["camera", "imu", "joint_encoders"],
+                actuators=["legs", "arms", "hands"],
             ),
-            'sensor_array': DeviceProfile(
+            "sensor_array": DeviceProfile(
                 device_id=self.device_id,
-                device_type='sensor_array',
-                manufacturer='Generic',
-                model='SensorArray',
+                device_type="sensor_array",
+                manufacturer="Generic",
+                model="SensorArray",
                 capabilities=[
-                    Capability('sense', 'Sense environment', {'modality': str}, 'data'),
-                    Capability('capture', 'Capture data', {'sensor': str}, 'data'),
-                    Capability('scan', 'Scan area', {'area': str}, 'data'),
+                    Capability("sense", "Sense environment", {"modality": str}, "data"),
+                    Capability("capture", "Capture data", {"sensor": str}, "data"),
+                    Capability("scan", "Scan area", {"area": str}, "data"),
                 ],
-                sensors=['camera', 'lidar', 'radar', 'thermal', 'microphone'],
+                sensors=["camera", "lidar", "radar", "thermal", "microphone"],
                 actuators=[],
             ),
         }
-        
-        return profiles.get(self.device_type, profiles['mobile_robot'])
-    
+
+        return profiles.get(self.device_type, profiles["mobile_robot"])
+
     def _init_shadow_hooks(self):
         """Initialize shadow mode hooks"""
         from agent_ros_bridge.shadow.hooks import ShadowModeHooks
+
         self.shadow_hooks = ShadowModeHooks()
-    
+
     def execute(
         self,
         natural_language_command: str,
@@ -212,17 +232,17 @@ class RobotAgent:
     ) -> TaskResult:
         """
         Execute a natural language command with full AI pipeline.
-        
+
         This is the main agentic interface - just say what you want,
         and the AI handles everything.
-        
+
         Args:
             natural_language_command: Plain English/Chinese command
             context: Optional context (location, objects, etc.)
-            
+
         Returns:
             TaskResult with execution details
-            
+
         Example:
             >>> agent = RobotAgent('bot1')
             >>> result = agent.execute("Go to the kitchen and pick up the red cup")
@@ -230,90 +250,99 @@ class RobotAgent:
             "Successfully navigated to kitchen and picked up red cup"
         """
         import time
+
         start_time = time.time()
-        
+
         # Step 1: Parse intent with LLM
         intent_result = self.intent_parser.parse(
             natural_language_command,
             robot_id=self.device_id,
             context=context,
         )
-        
+
         # Step 2: Plan task breakdown
         task_plan = self.task_planner.plan(
             intent=intent_result,
             context=context,
         )
-        
+
         # Step 3: Execute with safety checks
         executed_steps = []
         human_approvals = 0
         human_rejections = 0
         safety_violations = 0
-        
+
         for step in task_plan.steps:
             # Validate safety
             # Convert command to trajectory format for validation
             trajectory = {
-                'type': step.capability_name,
-                'parameters': step.parameters,
+                "type": step.capability_name,
+                "parameters": step.parameters,
             }
             limits = self.device.profile.limits if self.device else {}
             safety_result = self.safety_validator.validate_trajectory(trajectory, limits)
-            if not safety_result['approved']:
+            if not safety_result["approved"]:
                 safety_violations += 1
-                executed_steps.append({
-                    'step': step.name,
-                    'status': 'rejected',
-                    'reason': "Safety violation",
-                })
+                executed_steps.append(
+                    {
+                        "step": step.name,
+                        "status": "rejected",
+                        "reason": "Safety violation",
+                    }
+                )
                 continue
-            
+
             # Get human confirmation if needed
             if self.require_confirmation and intent_result.confidence < self.confidence_threshold:
                 approval = self._get_human_approval(
                     step=step,
                     confidence=intent_result.confidence,
                 )
-                
+
                 if not approval:
                     human_rejections += 1
-                    executed_steps.append({
-                        'step': step.name,
-                        'status': 'rejected',
-                        'reason': 'Human rejection',
-                    })
+                    executed_steps.append(
+                        {
+                            "step": step.name,
+                            "status": "rejected",
+                            "reason": "Human rejection",
+                        }
+                    )
                     continue
-                
+
                 human_approvals += 1
             else:
                 # Auto-approve high confidence
                 human_approvals += 1 if self.require_confirmation else 0
-            
+
             # Execute capability on device
             result = self.device.execute_capability(
                 capability_name=step.capability_name,
                 parameters=step.parameters,
             )
-            
-            executed_steps.append({
-                'step': step.name,
-                'status': 'success' if result['success'] else 'failed',
-                'result': result,
-            })
-            
+
+            executed_steps.append(
+                {
+                    "step": step.name,
+                    "status": "success" if result["success"] else "failed",
+                    "result": result,
+                }
+            )
+
             # Log to shadow mode
-            self.shadow_hooks.on_human_command({
-                'robot_id': self.device_id,
-                'command': step.capability_name,
-                'parameters': step.parameters,
-                'ai_proposal': step.ai_proposal,
-            })
-        
+            self.shadow_hooks.on_human_command(
+                {
+                    "robot_id": self.device_id,
+                    "command": step.capability_name,
+                    "parameters": step.parameters,
+                    "ai_proposal": step.ai_proposal,
+                }
+            )
+
         # Calculate results
-        success = all(s['status'] == 'success' for s in executed_steps)
+        success = all(s["status"] == "success" for s in executed_steps)
         duration = time.time() - start_time
-        
+
         return TaskResult(
             success=success,
             task=natural_language_command,
@@ -325,30 +354,30 @@ class RobotAgent:
             safety_violations=safety_violations,
             message=self._generate_result_message(executed_steps),
         )
-    
+
     def observe(self) -> AgentObservation:
         """
         Get current environment observations from device.
-        
+
         Returns:
             AgentObservation with device state and environment
         """
         state = self.device.get_state()
-        
+
         # Map device-specific state to generic observation
         return AgentObservation(
-            robot_position=state.get('position', (0, 0, 0)),
-            battery_level=state.get('battery', 100.0),
-            nearby_objects=state.get('nearby_objects', []),
-            current_task=state.get('current_task'),
-            recent_commands=state.get('recent_commands', []),
-            obstacles_detected=state.get('obstacles', []),
+            robot_position=state.get("position", (0, 0, 0)),
+            battery_level=state.get("battery", 100.0),
+            nearby_objects=state.get("nearby_objects", []),
+            current_task=state.get("current_task"),
+            recent_commands=state.get("recent_commands", []),
+            obstacles_detected=state.get("obstacles", []),
         )
-    
+
     def think(self, observation: AgentObservation) -> str:
         """
         AI reasoning about current situation.
-        
+
         Returns:
             AI's thoughts as text
         """
@@ -364,9 +393,9 @@ class RobotAgent:
         
         Provide reasoning:
         """
-        
+
         return self.intent_parser.llm.generate(prompt)
-    
+
     def plan_multi_step(
         self,
         goal: str,
@@ -374,11 +403,11 @@ class RobotAgent:
     ) -> list[dict[str, Any]]:
         """
         Create a multi-step plan to achieve a goal.
-        
+
         Args:
             goal: High-level goal
             max_steps: Maximum steps in plan
-            
+
         Returns:
             List of planned steps
         """
@@ -387,7 +416,7 @@ class RobotAgent:
             observation=self.observe(),
             max_steps=max_steps,
         )
-    
+
     def _get_human_approval(
         self,
         step: Any,
@@ -397,17 +426,17 @@ class RobotAgent:
         # Auto-approve high confidence
         if confidence >= self.confidence_threshold:
             return True
-        
+
         # Otherwise, require explicit approval
         # This would integrate with ConfirmationUI
         # For now, simulate
         return True  # In real implementation, wait for UI response
-    
+
     def _generate_result_message(self, steps: list[dict]) -> str:
         """Generate human-readable result message"""
-        successful = [s for s in steps if s['status'] == 'success']
-        failed = [s for s in steps if s['status'] == 'failed']
-        
+        successful = [s for s in steps if s["status"] == "success"]
+        failed = [s for s in steps if s["status"] == "failed"]
+
         if not failed:
             return f"Successfully completed all {len(successful)} steps"
         elif successful:
@@ -418,49 +447,49 @@ class RobotAgent:
 
 class TaskPlanner:
     """Plans multi-step tasks from intents"""
-    
+
     def plan(self, intent, context=None):
         """Create task plan from intent"""
         # This would use LLM for complex planning
         # Simplified version:
         from dataclasses import dataclass
-        
+
         @dataclass
         class TaskPlan:
             steps: list[Any]
-        
+
         @dataclass
         class TaskStep:
             name: str
             command: dict[str, Any]
             ai_proposal: Any
-        
+
         # Parse compound commands
-        if 'and' in intent.raw_text.lower():
+        if "and" in intent.raw_text.lower():
             # Break into subtasks
             steps = [
                 TaskStep(
-                    name='navigate',
-                    command={'type': 'navigate_to', 'location': 'kitchen'},
+                    name="navigate",
+                    command={"type": "navigate_to", "location": "kitchen"},
                     ai_proposal=intent,
                 ),
                 TaskStep(
-                    name='pick',
-                    command={'type': 'pick_object', 'object': 'red_cup'},
+                    name="pick",
+                    command={"type": "pick_object", "object": "red_cup"},
                     ai_proposal=intent,
                 ),
             ]
         else:
             steps = [
                 TaskStep(
-                    name='execute',
+                    name="execute",
                     command=intent.to_command(),
                     ai_proposal=intent,
                 ),
             ]
-        
+
         return TaskPlan(steps=steps)
-    
+
     def create_plan(self, goal, observation, max_steps=10):
         """Create multi-step plan"""
         # TODO: Use LLM to generate plan based on goal and observation
@@ -475,15 +504,15 @@ if __name__ == "__main__":
     print("🤖 ROBOT AGENT - Agentic AI Interface Demo")
     print("=" * 70)
     print()
-    
+
     # Create agent
     agent = RobotAgent(
-        robot_id='bot1',
-        llm_provider='moonshot',
+        robot_id="bot1",
+        llm_provider="moonshot",
         require_confirmation=True,
         confidence_threshold=0.8,
     )
-    
+
     # Example 1: Simple command
     print("Example 1: Simple navigation")
     print("-" * 70)
@@ -494,7 +523,7 @@ if __name__ == "__main__":
     print(f"Duration: {result.duration_seconds:.2f}s")
     print(f"Message: {result.message}")
     print()
-    
+
     # Example 2: Compound command
     print("Example 2: Compound task")
     print("-" * 70)
@@ -506,7 +535,7 @@ if __name__ == "__main__":
         print(f"  - {step['step']}: {step['status']}")
     print(f"Human approvals: {result.human_approvals}")
     print()
-    
+
     # Example 3: AI reasoning
     print("Example 3: AI observation and reasoning")
     print("-" * 70)
@@ -515,7 +544,7 @@ if __name__ == "__main__":
     print(f"Battery: {observation.battery_level}%")
     print(f"Nearby objects: {observation.nearby_objects}")
     print()
-    
+
     print("=" * 70)
     print("✅ Agentic interface demo complete!")
     print("=" * 70)
