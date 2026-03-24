@@ -5,6 +5,7 @@ Modules are the primary units of deployment, running in parallel with streams an
 """
 
 import asyncio
+import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, Generic, TypeVar
@@ -47,7 +48,7 @@ class Stream(Generic[T]):
         # Notify subscribers
         for callback in self._subscribers:
             try:
-                if asyncio.iscoroutinefunction(callback):
+                if inspect.iscoroutinefunction(callback):
                     asyncio.create_task(callback(msg))
                 else:
                     callback(msg)

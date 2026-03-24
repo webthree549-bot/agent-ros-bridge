@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-03-24T06:49:02.019348",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "results": [
+    {
+      "name": "navigation_basic",
+      "passed": true,
+      "duration_sec": 0.0076067447662353516,
+      "details": {
+        "intent": {
+          "action": "navigate",
+          "target": "kitchen"
+        },
+        "intent_parsed": true,
+        "fallback_used": true,
+        "safety_approved": true,
+        "safety_fallback": true,
+        "bridge_connected": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T06:49:02.018924"
+    },
+    {
+      "name": "fault_recovery",
+      "passed": true,
+      "duration_sec": 5.412101745605469e-05,
+      "details": {
+        "faults_tested": [
+          {
+            "type": "timeout",
+            "detected": true
+          },
+          {
+            "type": "connection_lost",
+            "detected": true
+          },
+          {
+            "type": "sensor_degradation",
+            "detected": true
+          }
+        ],
+        "recovery_available": true,
+        "using_real_detector": false
+      },
+      "error": null,
+      "timestamp": "2026-03-24T06:49:02.019227"
+    }
+  ]
+}

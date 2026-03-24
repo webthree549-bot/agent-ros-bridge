@@ -1,0 +1,108 @@
+{
+  "timestamp": "2026-03-24T05:21:00.597955",
+  "total": 5,
+  "passed": 3,
+  "failed": 2,
+  "results": [
+    {
+      "name": "navigation_basic",
+      "passed": true,
+      "duration_sec": 0.010313034057617188,
+      "details": {
+        "intent": {
+          "action": "navigate",
+          "target": "kitchen"
+        },
+        "intent_parsed": true,
+        "fallback_used": true,
+        "safety_approved": true,
+        "safety_fallback": true,
+        "bridge_connected": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:21:00.531059"
+    },
+    {
+      "name": "fault_recovery",
+      "passed": true,
+      "duration_sec": 4.982948303222656e-05,
+      "details": {
+        "faults_tested": [
+          {
+            "type": "timeout",
+            "detected": true
+          },
+          {
+            "type": "connection_lost",
+            "detected": true
+          },
+          {
+            "type": "sensor_degradation",
+            "detected": true
+          }
+        ],
+        "recovery_available": true,
+        "using_real_detector": false
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:21:00.531136"
+    },
+    {
+      "name": "transport_stress",
+      "passed": true,
+      "duration_sec": 0.06329011917114258,
+      "details": {
+        "messages_sent": 100,
+        "errors": 0,
+        "success_rate": 1.0
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:21:00.594435"
+    },
+    {
+      "name": "context_awareness",
+      "passed": false,
+      "duration_sec": 1.2159347534179688e-05,
+      "details": {},
+      "error": "'ContextAwareParser' object has no attribute 'parse_with_context'",
+      "timestamp": "2026-03-24T05:21:00.594469"
+    },
+    {
+      "name": "multi_language",
+      "passed": false,
+      "duration_sec": 0.003165006637573242,
+      "details": {
+        "languages_tested": [
+          {
+            "language": "en",
+            "phrase": "go to the kitchen",
+            "intent": "{'intent_type': 'NAVIGATE', 'confidence': 0.95, 'entities': [{'type': 'LOCATION', 'value': 'kitchen', 'confidence': 0.95}], 'language': 'en', 'language_name': 'English'}",
+            "success": false
+          },
+          {
+            "language": "es",
+            "phrase": "ve a la cocina",
+            "intent": "{'intent_type': 'NAVIGATE', 'confidence': 0.95, 'entities': [{'type': 'LOCATION', 'value': 'cocina', 'confidence': 0.95}], 'language': 'es', 'language_name': 'Spanish'}",
+            "success": false
+          },
+          {
+            "language": "fr",
+            "phrase": "va \u00e0 la cuisine",
+            "intent": "{'intent_type': 'NAVIGATE', 'confidence': 0.95, 'entities': [{'type': 'LOCATION', 'value': 'la', 'confidence': 0.95}], 'language': 'fr', 'language_name': 'French'}",
+            "success": false
+          },
+          {
+            "language": "de",
+            "phrase": "geh in die k\u00fcche",
+            "intent": "{'intent_type': 'NAVIGATE', 'confidence': 0.95, 'entities': [{'type': 'LOCATION', 'value': 'in', 'confidence': 0.95}], 'language': 'de', 'language_name': 'German'}",
+            "success": false
+          }
+        ],
+        "success_rate": 0.0,
+        "using_real_parser": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:21:00.597645"
+    }
+  ]
+}

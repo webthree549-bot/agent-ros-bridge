@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-03-24T05:19:20.952073",
+  "total": 3,
+  "passed": 1,
+  "failed": 2,
+  "results": [
+    {
+      "name": "navigation_basic",
+      "passed": false,
+      "duration_sec": 0.05451083183288574,
+      "details": {},
+      "error": "No module named 'rclpy'",
+      "timestamp": "2026-03-24T05:19:20.882703"
+    },
+    {
+      "name": "fault_recovery",
+      "passed": false,
+      "duration_sec": 0.0001819133758544922,
+      "details": {},
+      "error": "No module named 'agent_ros_bridge.resilience'",
+      "timestamp": "2026-03-24T05:19:20.883610"
+    },
+    {
+      "name": "transport_stress",
+      "passed": true,
+      "duration_sec": 0.06776285171508789,
+      "details": {
+        "messages_sent": 100,
+        "errors": 0,
+        "success_rate": 1.0
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:19:20.951908"
+    }
+  ]
+}

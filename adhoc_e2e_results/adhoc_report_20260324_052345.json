@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-03-24T05:23:45.369825",
+  "total": 5,
+  "passed": 5,
+  "failed": 0,
+  "results": [
+    {
+      "name": "navigation_basic",
+      "passed": true,
+      "duration_sec": 0.0072519779205322266,
+      "details": {
+        "intent": {
+          "action": "navigate",
+          "target": "kitchen"
+        },
+        "intent_parsed": true,
+        "fallback_used": true,
+        "safety_approved": true,
+        "safety_fallback": true,
+        "bridge_connected": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:23:45.303042"
+    },
+    {
+      "name": "fault_recovery",
+      "passed": true,
+      "duration_sec": 3.695487976074219e-05,
+      "details": {
+        "faults_tested": [
+          {
+            "type": "timeout",
+            "detected": true
+          },
+          {
+            "type": "connection_lost",
+            "detected": true
+          },
+          {
+            "type": "sensor_degradation",
+            "detected": true
+          }
+        ],
+        "recovery_available": true,
+        "using_real_detector": false
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:23:45.303095"
+    },
+    {
+      "name": "transport_stress",
+      "passed": true,
+      "duration_sec": 0.06445884704589844,
+      "details": {
+        "messages_sent": 100,
+        "errors": 0,
+        "success_rate": 1.0
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:23:45.367563"
+    },
+    {
+      "name": "context_awareness",
+      "passed": true,
+      "duration_sec": 2.002716064453125e-05,
+      "details": {
+        "parsed": [
+          {
+            "input": "place it on the table",
+            "resolved": "place cup on the table"
+          },
+          {
+            "input": "go there",
+            "resolved": "go there"
+          },
+          {
+            "input": "turn off the lights",
+            "resolved": "turn off the lights"
+          }
+        ],
+        "context_used": true,
+        "using_real_parser": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:23:45.367598"
+    },
+    {
+      "name": "multi_language",
+      "passed": true,
+      "duration_sec": 0.0020341873168945312,
+      "details": {
+        "languages_tested": [
+          {
+            "language": "en",
+            "phrase": "go to the kitchen",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "es",
+            "phrase": "ve a la cocina",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "fr",
+            "phrase": "va \u00e0 la cuisine",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "de",
+            "phrase": "geh in die k\u00fcche",
+            "intent": "NAVIGATE",
+            "success": true
+          }
+        ],
+        "success_rate": 1.0,
+        "using_real_parser": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T05:23:45.369639"
+    }
+  ]
+}

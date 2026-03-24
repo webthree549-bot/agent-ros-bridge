@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-03-24T06:49:53.947473",
+  "total": 2,
+  "passed": 2,
+  "failed": 0,
+  "results": [
+    {
+      "name": "context_awareness",
+      "passed": true,
+      "duration_sec": 0.010789871215820312,
+      "details": {
+        "parsed": [
+          {
+            "input": "place it on the table",
+            "resolved": "place cup on the table"
+          },
+          {
+            "input": "go there",
+            "resolved": "go there"
+          },
+          {
+            "input": "turn off the lights",
+            "resolved": "turn off the lights"
+          }
+        ],
+        "context_used": true,
+        "using_real_parser": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T06:49:38.682733"
+    },
+    {
+      "name": "multi_language",
+      "passed": true,
+      "duration_sec": 0.0038878917694091797,
+      "details": {
+        "languages_tested": [
+          {
+            "language": "en",
+            "phrase": "go to the kitchen",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "es",
+            "phrase": "ve a la cocina",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "fr",
+            "phrase": "va \u00e0 la cuisine",
+            "intent": "NAVIGATE",
+            "success": true
+          },
+          {
+            "language": "de",
+            "phrase": "geh in die k\u00fcche",
+            "intent": "NAVIGATE",
+            "success": true
+          }
+        ],
+        "success_rate": 1.0,
+        "using_real_parser": true
+      },
+      "error": null,
+      "timestamp": "2026-03-24T06:49:46.973247"
+    }
+  ]
+}
