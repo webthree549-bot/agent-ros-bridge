@@ -4,9 +4,9 @@ Agentic AI Interface for Agent ROS Bridge
 High-level, agentic API that provides real value beyond basic command sending.
 """
 
-from typing import List, Dict, Any, Optional, Callable
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -14,7 +14,7 @@ class TaskResult:
     """Result of an agentic task execution"""
     success: bool
     task: str
-    steps: List[Dict[str, Any]]
+    steps: list[dict[str, Any]]
     duration_seconds: float
     ai_confidence: float
     human_approvals: int
@@ -28,10 +28,10 @@ class AgentObservation:
     """What the AI agent observes about the environment"""
     robot_position: tuple
     battery_level: float
-    nearby_objects: List[str]
-    current_task: Optional[str]
-    recent_commands: List[str]
-    obstacles_detected: List[str]
+    nearby_objects: list[str]
+    current_task: str | None
+    recent_commands: list[str]
+    obstacles_detected: list[str]
 
 
 class RobotAgent:
@@ -55,7 +55,7 @@ class RobotAgent:
         llm_provider: str = "moonshot",
         require_confirmation: bool = True,
         confidence_threshold: float = 0.8,
-        device_profile: Optional[Any] = None,
+        device_profile: Any | None = None,
     ):
         """
         Initialize robot agent.
@@ -85,7 +85,7 @@ class RobotAgent:
     
     def _init_hardware(self, device_profile=None):
         """Initialize hardware abstraction"""
-        from agent_ros_bridge.hardware import DeviceRegistry, DeviceProfile
+        from agent_ros_bridge.hardware import DeviceRegistry
         
         self.device_registry = DeviceRegistry()
         
@@ -117,15 +117,13 @@ class RobotAgent:
     def _init_safety_validator(self):
         """Initialize safety validator"""
         from agent_ros_bridge.safety.validator import SafetyValidatorNode
-        # Use device-specific limits from profile
-        limits = self.device.profile.limits if self.device else {}
         self.safety_validator = SafetyValidatorNode(
             enable_cache=True,
         )
     
     def _create_default_profile(self):
         """Create default device profile based on device_type"""
-        from agent_ros_bridge.hardware import DeviceProfile, Capability
+        from agent_ros_bridge.hardware import Capability, DeviceProfile
         
         profiles = {
             'mobile_robot': DeviceProfile(
@@ -210,7 +208,7 @@ class RobotAgent:
     def execute(
         self,
         natural_language_command: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> TaskResult:
         """
         Execute a natural language command with full AI pipeline.
@@ -267,7 +265,7 @@ class RobotAgent:
                 executed_steps.append({
                     'step': step.name,
                     'status': 'rejected',
-                    'reason': f"Safety violation",
+                    'reason': "Safety violation",
                 })
                 continue
             
@@ -373,7 +371,7 @@ class RobotAgent:
         self,
         goal: str,
         max_steps: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Create a multi-step plan to achieve a goal.
         
@@ -392,7 +390,7 @@ class RobotAgent:
     
     def _get_human_approval(
         self,
-        step: 'TaskStep',
+        step: Any,
         confidence: float,
     ) -> bool:
         """Get human approval for a step"""
@@ -405,7 +403,7 @@ class RobotAgent:
         # For now, simulate
         return True  # In real implementation, wait for UI response
     
-    def _generate_result_message(self, steps: List[Dict]) -> str:
+    def _generate_result_message(self, steps: list[dict]) -> str:
         """Generate human-readable result message"""
         successful = [s for s in steps if s['status'] == 'success']
         failed = [s for s in steps if s['status'] == 'failed']
@@ -429,12 +427,12 @@ class TaskPlanner:
         
         @dataclass
         class TaskPlan:
-            steps: List[Any]
+            steps: list[Any]
         
         @dataclass
         class TaskStep:
             name: str
-            command: Dict[str, Any]
+            command: dict[str, Any]
             ai_proposal: Any
         
         # Parse compound commands
@@ -465,15 +463,9 @@ class TaskPlanner:
     
     def create_plan(self, goal, observation, max_steps=10):
         """Create multi-step plan"""
-        # Use LLM to generate plan
-        prompt = f"""
-        Goal: {goal}
-        Current observation: {observation}
-        
-        Create a plan with up to {max_steps} steps.
-        Return as JSON list of steps.
-        """
-        # Would use LLM here
+        # TODO: Use LLM to generate plan based on goal and observation
+        # This would construct a prompt and call the LLM
+        # For now, return empty plan as placeholder
         return []
 
 
@@ -496,7 +488,7 @@ if __name__ == "__main__":
     print("Example 1: Simple navigation")
     print("-" * 70)
     result = agent.execute("Go to the kitchen")
-    print(f"Task: Go to the kitchen")
+    print("Task: Go to the kitchen")
     print(f"Success: {result.success}")
     print(f"Confidence: {result.ai_confidence:.2f}")
     print(f"Duration: {result.duration_seconds:.2f}s")
@@ -507,7 +499,7 @@ if __name__ == "__main__":
     print("Example 2: Compound task")
     print("-" * 70)
     result = agent.execute("Go to the kitchen and pick up the red cup")
-    print(f"Task: Go to the kitchen and pick up the red cup")
+    print("Task: Go to the kitchen and pick up the red cup")
     print(f"Success: {result.success}")
     print(f"Steps executed: {len(result.steps)}")
     for step in result.steps:
