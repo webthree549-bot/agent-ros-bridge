@@ -94,56 +94,141 @@ class RobotAgent:
         confidence_threshold: float = 0.8,
         enable_health_monitor: bool = True,
         enable_self_healing: bool = True,
+        verify_capabilities: bool = True,
+        user_confirmation_callback: Any = None,
     ) -> "RobotAgent":
         """
-        Auto-discover device type and create RobotAgent.
+        Auto-discover device type and create RobotAgent with confidence scoring.
 
-        This method introspects the ROS graph to automatically determine
-        the device type and capabilities, then creates an appropriately
-        configured RobotAgent.
+        This method uses hardened auto-discovery with confidence scoring,
+        capability verification, and optional user confirmation for
+        production-safe operation.
 
         Args:
             device_id: Device identifier (e.g., 'bot1')
             llm_provider: LLM provider for intent parsing
             require_confirmation: Whether to require human approval
-            confidence_threshold: Auto-approve above this confidence
+            confidence_threshold: Minimum confidence to proceed without user confirmation
             enable_health_monitor: Enable health monitoring
             enable_self_healing: Enable self-healing capabilities
+            verify_capabilities: Test that discovered capabilities actually work
+            user_confirmation_callback: Optional callback for user confirmation
+                Function signature: callback(device_type, confidence, evidence) -> bool
 
         Returns:
             Configured RobotAgent
 
         Raises:
-            ValueError: If device type cannot be auto-discovered
+            ValueError: If device type cannot be auto-discovered with sufficient confidence
+            DiscoveryError: If discovery validation fails
 
         Example:
+            >>> # Simple discovery (will prompt if uncertain)
             >>> agent = RobotAgent.discover('bot1')
-            🔍 Discovered bot1 as mobile_robot
+            🔍 Discovered bot1 as mobile_robot (confidence: 0.92)
                Capabilities: ['navigate_to', 'rotate', 'stop']
                Health: healthy
             >>> agent.execute("Go to the kitchen")
+
+            >>> # With custom confirmation callback
+            >>> def confirm(dtype, conf, evidence):
+            ...     return input(f"Accept {dtype} (confidence: {conf:.2f})? ") == 'y'
+            >>> agent = RobotAgent.discover('bot1', user_confirmation_callback=confirm)
         """
         from agent_ros_bridge.discovery import (
-            ROSDiscovery,
+            DeviceHealthStatus,
             ROSHealthMonitor,
             SelfHealingController,
-            DeviceHealthStatus,
+        )
+        from agent_ros_bridge.discovery_hardened import (
+            CapabilityVerifier,
+            HardenedROSDiscovery,
         )
 
-        # Discover device type
-        discovery = ROSDiscovery()
-        device_type = discovery.infer_device_type(device_id)
+        # Step 1: Discover with confidence scoring
+        discovery = HardenedROSDiscovery()
+        result = discovery.discover_with_confidence(device_id)
 
-        if not device_type:
+        if not result.device_type:
             raise ValueError(
-                f"Could not auto-discover device type for '{device_id}'. "
-                f"Please specify device_type explicitly or ensure ROS is running."
+                f"Could not auto-discover device type for '{device_id}'.\n"
+                f"Discovery confidence too low ({result.confidence:.2f}).\n"
+                f"Please specify device_type explicitly:\n"
+                f"  agent = RobotAgent(device_id='{device_id}', device_type='mobile_robot')"
             )
 
-        print(f"🔍 Discovered {device_id} as {device_type}")
+        # Step 2: Check confidence threshold
+        if result.confidence < confidence_threshold:
+            # Low confidence - need user confirmation
+            print(
+                f"\n⚠️  Discovery confidence low ({result.confidence:.2f} < {confidence_threshold})"
+            )
+            print(f"   Inferred device type: {result.device_type}")
+            print(
+                f"   Evidence: {result.evidence.required_topics_found}/{result.evidence.required_topics_total} required topics found"
+            )
 
-        # Discover capabilities
-        capabilities = discovery.discover_capabilities(device_id)
+            if result.alternatives:
+                print("\n   Alternative possibilities:")
+                for alt in result.alternatives[:3]:
+                    print(f"     - {alt['device_type']}: {alt['confidence']:.2f} confidence")
+
+            confirmed = False
+            if user_confirmation_callback:
+                confirmed = user_confirmation_callback(
+                    result.device_type, result.confidence, result.evidence
+                )
+            else:
+                # Interactive confirmation
+                try:
+                    response = (
+                        input(f"\n   Proceed with '{result.device_type}'? (y/n/switch): ")
+                        .strip()
+                        .lower()
+                    )
+                    if response == "y":
+                        confirmed = True
+                    elif response == "switch" and result.alternatives:
+                        print("   Available alternatives:")
+                        for i, alt in enumerate(result.alternatives[:3], 1):
+                            print(f"     {i}. {alt['device_type']} ({alt['confidence']:.2f})")
+                        choice = input("   Select alternative (number) or 'n' to cancel: ").strip()
+                        if choice.isdigit() and 1 <= int(choice) <= len(result.alternatives[:3]):
+                            result.device_type = result.alternatives[int(choice) - 1]["device_type"]
+                            confirmed = True
+                except (EOFError, KeyboardInterrupt):
+                    pass
+
+            if not confirmed:
+                raise ValueError(
+                    f"Discovery rejected by user.\n"
+                    f"To use explicit configuration:\n"
+                    f"  agent = RobotAgent(device_id='{device_id}', device_type='mobile_robot')"
+                )
+
+        device_type = result.device_type
+        print(f"🔍 Discovered {device_id} as {device_type} (confidence: {result.confidence:.2f})")
+
+        # Step 3: Discover capabilities
+        from agent_ros_bridge.discovery import ROSDiscovery
+
+        ros_discovery = ROSDiscovery()
+        capabilities = ros_discovery.discover_capabilities(device_id)
+
+        # Step 4: Verify capabilities
+        if verify_capabilities and capabilities:
+            verifier = CapabilityVerifier(device_id)
+            verified_caps = verifier.verify_capabilities(capabilities)
+
+            # Filter to only working capabilities
+            working_caps = [cap for cap, works in verified_caps.items() if works]
+            failed_caps = [cap for cap, works in verified_caps.items() if not works]
+
+            if failed_caps:
+                print(f"   ⚠️  {len(failed_caps)} capabilities not verified: {failed_caps}")
+
+            capabilities = working_caps
+
         if capabilities:
             print(f"   Capabilities: {capabilities}")
 
