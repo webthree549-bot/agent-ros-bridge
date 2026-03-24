@@ -88,9 +88,9 @@ class TestDeviceTypeInference:
         graph = {
             "nodes": ["/drone1/mavros"],
             "topics": [
-                {"name": "/mavros/state", "types": ["mavros_msgs/State"]},
+                {"name": "/drone1/mavros/state", "types": ["mavros_msgs/State"]},
                 {
-                    "name": "/mavros/local_position/pose",
+                    "name": "/drone1/mavros/local_position/pose",
                     "types": ["geometry_msgs/PoseStamped"],
                 },
             ],
