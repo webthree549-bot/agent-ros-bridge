@@ -3,16 +3,15 @@ Universal ROS Hardware Support
 
 Makes Agent ROS Bridge work with ANY ROS device:
 - Sensors (cameras, lidars, IMUs, etc.)
-- Actuators (arms, grippers, wheels, etc.)  
+- Actuators (arms, grippers, wheels, etc.)
 - Drones (quadcopters, fixed-wing)
 - Humanoids (bipedal robots)
 - Custom hardware
 """
 
-from typing import Dict, List, Any, Optional, Callable, Type
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-import json
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -20,7 +19,7 @@ class Capability:
     """A capability that a ROS device can perform"""
     name: str  # e.g., "move", "grasp", "fly", "sense"
     description: str
-    parameters: Dict[str, Any]  # Expected parameters
+    parameters: dict[str, Any]  # Expected parameters
     return_type: str  # What the action returns
     safety_critical: bool = False  # Requires extra validation
 
@@ -32,13 +31,13 @@ class DeviceProfile:
     device_type: str  # 'mobile_robot', 'drone', 'manipulator', 'humanoid', etc.
     manufacturer: str
     model: str
-    capabilities: List[Capability] = field(default_factory=list)
-    sensors: List[str] = field(default_factory=list)  # camera, lidar, imu, etc.
-    actuators: List[str] = field(default_factory=list)  # wheels, arms, rotors, etc.
-    ros_topics: Dict[str, str] = field(default_factory=dict)  # topic mappings
-    ros_services: Dict[str, str] = field(default_factory=dict)  # service mappings
-    action_servers: List[str] = field(default_factory=list)  # available actions
-    limits: Dict[str, Any] = field(default_factory=dict)  # safety limits
+    capabilities: list[Capability] = field(default_factory=list)
+    sensors: list[str] = field(default_factory=list)  # camera, lidar, imu, etc.
+    actuators: list[str] = field(default_factory=list)  # wheels, arms, rotors, etc.
+    ros_topics: dict[str, str] = field(default_factory=dict)  # topic mappings
+    ros_services: dict[str, str] = field(default_factory=dict)  # service mappings
+    action_servers: list[str] = field(default_factory=list)  # available actions
+    limits: dict[str, Any] = field(default_factory=dict)  # safety limits
 
 
 class ROSDevice(ABC):
@@ -72,8 +71,8 @@ class ROSDevice(ABC):
     def execute_capability(
         self,
         capability_name: str,
-        parameters: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        parameters: dict[str, Any],
+    ) -> dict[str, Any]:
         """
         Execute a capability on the device.
         
@@ -87,11 +86,11 @@ class ROSDevice(ABC):
         pass
     
     @abstractmethod
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get current device state"""
         pass
     
-    def get_capabilities(self) -> List[Capability]:
+    def get_capabilities(self) -> list[Capability]:
         """Get list of supported capabilities"""
         return self.profile.capabilities
     
@@ -111,7 +110,7 @@ class MobileRobot(ROSDevice):
     def disconnect(self) -> None:
         self._connected = False
     
-    def execute_capability(self, capability_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         if capability_name == "navigate_to":
             return self._navigate(parameters)
         elif capability_name == "rotate":
@@ -121,17 +120,17 @@ class MobileRobot(ROSDevice):
         else:
             return {'success': False, 'error': f'Unknown capability: {capability_name}'}
     
-    def _navigate(self, params: Dict) -> Dict[str, Any]:
+    def _navigate(self, params: dict) -> dict[str, Any]:
         # Publish to /cmd_vel or use Nav2
         return {'success': True, 'message': 'Navigating'}
     
-    def _rotate(self, params: Dict) -> Dict[str, Any]:
+    def _rotate(self, params: dict) -> dict[str, Any]:
         return {'success': True, 'message': 'Rotating'}
     
-    def _stop(self) -> Dict[str, Any]:
+    def _stop(self) -> dict[str, Any]:
         return {'success': True, 'message': 'Stopped'}
     
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return {
             'position': [0, 0, 0],
             'battery': 100,
@@ -150,7 +149,7 @@ class Drone(ROSDevice):
     def disconnect(self) -> None:
         self._connected = False
     
-    def execute_capability(self, capability_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         if capability_name == "takeoff":
             return self._takeoff(parameters)
         elif capability_name == "land":
@@ -164,24 +163,24 @@ class Drone(ROSDevice):
         else:
             return {'success': False, 'error': f'Unknown capability: {capability_name}'}
     
-    def _takeoff(self, params: Dict) -> Dict[str, Any]:
+    def _takeoff(self, params: dict) -> dict[str, Any]:
         altitude = params.get('altitude', 2.0)
         return {'success': True, 'message': f'Taking off to {altitude}m'}
     
-    def _land(self) -> Dict[str, Any]:
+    def _land(self) -> dict[str, Any]:
         return {'success': True, 'message': 'Landing'}
     
-    def _fly_to(self, params: Dict) -> Dict[str, Any]:
+    def _fly_to(self, params: dict) -> dict[str, Any]:
         x, y, z = params.get('x', 0), params.get('y', 0), params.get('z', 5)
         return {'success': True, 'message': f'Flying to ({x}, {y}, {z})'}
     
-    def _hover(self) -> Dict[str, Any]:
+    def _hover(self) -> dict[str, Any]:
         return {'success': True, 'message': 'Hovering'}
     
-    def _capture_image(self, params: Dict) -> Dict[str, Any]:
+    def _capture_image(self, params: dict) -> dict[str, Any]:
         return {'success': True, 'message': 'Image captured', 'image_path': '/tmp/image.jpg'}
     
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return {
             'position': [0, 0, 5],
             'battery': 85,
@@ -200,7 +199,7 @@ class Manipulator(ROSDevice):
     def disconnect(self) -> None:
         self._connected = False
     
-    def execute_capability(self, capability_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         if capability_name == "move_to":
             return self._move_to(parameters)
         elif capability_name == "grasp":
@@ -212,22 +211,22 @@ class Manipulator(ROSDevice):
         else:
             return {'success': False, 'error': f'Unknown capability: {capability_name}'}
     
-    def _move_to(self, params: Dict) -> Dict[str, Any]:
+    def _move_to(self, params: dict) -> dict[str, Any]:
         x, y, z = params.get('x', 0), params.get('y', 0), params.get('z', 0)
         return {'success': True, 'message': f'Moving to ({x}, {y}, {z})'}
     
-    def _grasp(self, params: Dict) -> Dict[str, Any]:
+    def _grasp(self, params: dict) -> dict[str, Any]:
         force = params.get('force', 0.5)
         return {'success': True, 'message': f'Grasping with {force}N force'}
     
-    def _release(self) -> Dict[str, Any]:
+    def _release(self) -> dict[str, Any]:
         return {'success': True, 'message': 'Released'}
     
-    def _follow_trajectory(self, params: Dict) -> Dict[str, Any]:
+    def _follow_trajectory(self, params: dict) -> dict[str, Any]:
         waypoints = params.get('waypoints', [])
         return {'success': True, 'message': f'Following {len(waypoints)} waypoints'}
     
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return {
             'joint_positions': [0, 0, 0, 0, 0, 0],
             'end_effector_position': [0.5, 0, 0.3],
@@ -245,7 +244,7 @@ class Humanoid(ROSDevice):
     def disconnect(self) -> None:
         self._connected = False
     
-    def execute_capability(self, capability_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         if capability_name == "walk":
             return self._walk(parameters)
         elif capability_name == "balance":
@@ -259,28 +258,28 @@ class Humanoid(ROSDevice):
         else:
             return {'success': False, 'error': f'Unknown capability: {capability_name}'}
     
-    def _walk(self, params: Dict) -> Dict[str, Any]:
+    def _walk(self, params: dict) -> dict[str, Any]:
         direction = params.get('direction', 'forward')
         steps = params.get('steps', 1)
         return {'success': True, 'message': f'Walking {direction} {steps} steps'}
     
-    def _balance(self) -> Dict[str, Any]:
+    def _balance(self) -> dict[str, Any]:
         return {'success': True, 'message': 'Balancing'}
     
-    def _reach(self, params: Dict) -> Dict[str, Any]:
+    def _reach(self, params: dict) -> dict[str, Any]:
         target = params.get('target', [0, 0, 0])
         return {'success': True, 'message': f'Reaching to {target}'}
     
-    def _climb(self, params: Dict) -> Dict[str, Any]:
+    def _climb(self, params: dict) -> dict[str, Any]:
         surface = params.get('surface', 'stairs')
         return {'success': True, 'message': f'Climbing {surface}'}
     
-    def _manipulate(self, params: Dict) -> Dict[str, Any]:
+    def _manipulate(self, params: dict) -> dict[str, Any]:
         object_name = params.get('object', 'unknown')
         action = params.get('action', 'grasp')
         return {'success': True, 'message': f'{action} {object_name}'}
     
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return {
             'position': [0, 0, 1.7],  # Standing height
             'balance': 'stable',
@@ -298,7 +297,7 @@ class SensorArray(ROSDevice):
     def disconnect(self) -> None:
         self._connected = False
     
-    def execute_capability(self, capability_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_capability(self, capability_name: str, parameters: dict[str, Any]) -> dict[str, Any]:
         if capability_name == "sense":
             return self._sense(parameters)
         elif capability_name == "capture":
@@ -308,19 +307,19 @@ class SensorArray(ROSDevice):
         else:
             return {'success': False, 'error': f'Unknown capability: {capability_name}'}
     
-    def _sense(self, params: Dict) -> Dict[str, Any]:
+    def _sense(self, params: dict) -> dict[str, Any]:
         modality = params.get('modality', 'all')
         return {'success': True, 'message': f'Sensing {modality}', 'data': {}}
     
-    def _capture(self, params: Dict) -> Dict[str, Any]:
+    def _capture(self, params: dict) -> dict[str, Any]:
         sensor = params.get('sensor', 'camera')
         return {'success': True, 'message': f'Capturing from {sensor}'}
     
-    def _scan(self, params: Dict) -> Dict[str, Any]:
+    def _scan(self, params: dict) -> dict[str, Any]:
         area = params.get('area', 'surroundings')
         return {'success': True, 'message': f'Scanning {area}'}
     
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return {
             'active_sensors': ['camera', 'lidar', 'imu'],
             'data_rate': 30,
@@ -331,8 +330,8 @@ class DeviceRegistry:
     """Registry for managing all connected ROS devices"""
     
     def __init__(self):
-        self._devices: Dict[str, ROSDevice] = {}
-        self._device_types: Dict[str, Type[ROSDevice]] = {
+        self._devices: dict[str, ROSDevice] = {}
+        self._device_types: dict[str, type[ROSDevice]] = {
             'mobile_robot': MobileRobot,
             'drone': Drone,
             'manipulator': Manipulator,
@@ -343,7 +342,7 @@ class DeviceRegistry:
     def register_device_type(
         self,
         device_type: str,
-        device_class: Type[ROSDevice],
+        device_class: type[ROSDevice],
     ) -> None:
         """Register a new device type"""
         self._device_types[device_type] = device_class
@@ -364,15 +363,15 @@ class DeviceRegistry:
         self._devices[device_id] = device
         return device
     
-    def get_device(self, device_id: str) -> Optional[ROSDevice]:
+    def get_device(self, device_id: str) -> ROSDevice | None:
         """Get a device by ID"""
         return self._devices.get(device_id)
     
-    def list_devices(self) -> List[str]:
+    def list_devices(self) -> list[str]:
         """List all connected device IDs"""
         return list(self._devices.keys())
     
-    def get_devices_by_capability(self, capability: str) -> List[ROSDevice]:
+    def get_devices_by_capability(self, capability: str) -> list[ROSDevice]:
         """Find all devices that support a capability"""
         return [
             device for device in self._devices.values()

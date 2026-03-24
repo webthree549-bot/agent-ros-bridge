@@ -4,16 +4,17 @@ TDD Tests for MCP Client Integration Examples
 Tests that MCP client integrations work correctly.
 """
 
-import pytest
 import json
 import os
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from agent_ros_bridge.mcp import (
-    MCPAdapter,
     ClaudeDesktopIntegration,
-    OpenAIGPTIntegration,
     CustomMCPClient,
+    MCPAdapter,
+    OpenAIGPTIntegration,
 )
 
 

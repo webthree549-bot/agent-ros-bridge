@@ -7,11 +7,10 @@ Competes with ros-mcp-server while maintaining our unique features.
 MCP: https://modelcontextprotocol.io/
 """
 
-import json
 import asyncio
-from typing import Any, Dict, List, Optional, Callable
+import json
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
+from typing import Any, Callable
 
 
 @dataclass
@@ -19,7 +18,7 @@ class MCPTool:
     """MCP Tool definition"""
     name: str
     description: str
-    input_schema: Dict[str, Any]
+    input_schema: dict[str, Any]
     handler: Callable
 
 
@@ -36,7 +35,7 @@ class MCPAdapter:
         await adapter.serve()  # Start MCP server
     """
     
-    def __init__(self, robot_agent: 'RobotAgent'):
+    def __init__(self, robot_agent: Any):
         """
         Initialize MCP adapter.
         
@@ -44,7 +43,7 @@ class MCPAdapter:
             robot_agent: Configured RobotAgent instance
         """
         self.robot_agent = robot_agent
-        self.tools: Dict[str, MCPTool] = {}
+        self.tools: dict[str, MCPTool] = {}
         self._register_default_tools()
     
     def _register_default_tools(self):
@@ -160,7 +159,7 @@ class MCPAdapter:
         self,
         name: str,
         description: str,
-        input_schema: Dict[str, Any],
+        input_schema: dict[str, Any],
         handler: Callable
     ):
         """Register a new MCP tool"""
@@ -171,7 +170,7 @@ class MCPAdapter:
             handler=handler
         )
     
-    def get_tools(self) -> List[Dict[str, Any]]:
+    def get_tools(self) -> list[dict[str, Any]]:
         """Get list of tools in MCP format"""
         return [
             {
@@ -182,7 +181,7 @@ class MCPAdapter:
             for tool in self.tools.values()
         ]
     
-    async def call_tool(self, name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         """
         Execute an MCP tool call.
         
@@ -230,7 +229,7 @@ class MCPAdapter:
     
     # Tool handlers
     
-    async def _handle_execute_command(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_execute_command(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle execute_robot_command tool"""
         command = args.get("command", "")
         require_confirmation = args.get("require_confirmation", True)
@@ -255,7 +254,7 @@ class MCPAdapter:
         finally:
             self.robot_agent.require_confirmation = original_setting
     
-    async def _handle_get_status(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_get_status(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle get_robot_status tool"""
         obs = self.robot_agent.observe()
         device = self.robot_agent.device
@@ -271,7 +270,7 @@ class MCPAdapter:
             ] if device else []
         }
     
-    async def _handle_list_capabilities(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_list_capabilities(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle list_robot_capabilities tool"""
         device = self.robot_agent.device
         
@@ -290,7 +289,7 @@ class MCPAdapter:
             ]
         }
     
-    async def _handle_navigate(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_navigate(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle navigate_to tool"""
         location = args.get("location", "")
         coordinates = args.get("coordinates")
@@ -309,7 +308,7 @@ class MCPAdapter:
             "human_approvals_required": result.human_approvals > 0
         }
     
-    async def _handle_pick_object(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_pick_object(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle pick_object tool"""
         obj = args.get("object", "")
         location = args.get("location", "")
@@ -327,7 +326,7 @@ class MCPAdapter:
             "safety_violations": result.safety_violations
         }
     
-    async def _handle_move_arm(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_move_arm(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle move_manipulator tool"""
         x, y, z = args.get("x", 0), args.get("y", 0), args.get("z", 0)
         
@@ -340,7 +339,7 @@ class MCPAdapter:
             "message": result.message
         }
     
-    async def _handle_emergency_stop(self, args: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_emergency_stop(self, args: dict[str, Any]) -> dict[str, Any]:
         """Handle emergency_stop tool"""
         # Execute stop capability if available
         device = self.robot_agent.device
@@ -398,7 +397,7 @@ class MCPAdapter:
                     "id": None
                 }), flush=True)
     
-    async def _handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Handle MCP JSON-RPC request"""
         method = request.get("method", "")
         params = request.get("params", {})
@@ -459,7 +458,7 @@ class ClaudeDesktopIntegration:
     """
     
     @staticmethod
-    def get_config(device_id: str = "bot1", device_type: str = "mobile_robot") -> Dict[str, Any]:
+    def get_config(device_id: str = "bot1", device_type: str = "mobile_robot") -> dict[str, Any]:
         """
         Get Claude Desktop configuration.
         
@@ -534,7 +533,7 @@ class OpenAIGPTIntegration:
     while maintaining human confirmation for safety.
     """
     
-    def __init__(self, robot_agent: 'RobotAgent', api_key: str = None):
+    def __init__(self, robot_agent: Any, api_key: str = None):
         """
         Initialize GPT integration.
         
@@ -551,7 +550,7 @@ class OpenAIGPTIntegration:
         
         self.tools = self._define_tools()
     
-    def _define_tools(self) -> List[Dict[str, Any]]:
+    def _define_tools(self) -> list[dict[str, Any]]:
         """Define tools in OpenAI function calling format"""
         return [
             {
@@ -621,7 +620,7 @@ class CustomMCPClient:
     the Agent ROS Bridge MCP server.
     """
     
-    def __init__(self, server_command: List[str]):
+    def __init__(self, server_command: list[str]):
         """
         Initialize custom MCP client.
         
@@ -630,7 +629,7 @@ class CustomMCPClient:
                            e.g., ["python", "-m", "agent_ros_bridge.mcp", "bot1"]
         """
         self.server_command = server_command
-        self.tools: List[Dict[str, Any]] = []
+        self.tools: list[dict[str, Any]] = []
         self.initialized = False
         self.process = None
 

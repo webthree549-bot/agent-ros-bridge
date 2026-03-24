@@ -4,18 +4,19 @@ TDD Tests for Universal Hardware Support
 Tests define expected behavior of ROSDevice abstraction.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
 from agent_ros_bridge.hardware import (
-    ROSDevice,
-    DeviceProfile,
     Capability,
+    DeviceProfile,
     DeviceRegistry,
-    MobileRobot,
     Drone,
-    Manipulator,
     Humanoid,
+    Manipulator,
+    MobileRobot,
+    ROSDevice,
     SensorArray,
 )
 

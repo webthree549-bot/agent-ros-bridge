@@ -4,14 +4,15 @@ TDD Tests for Agentic Interface
 Tests define expected behavior of RobotAgent high-level API.
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from agent_ros_bridge.agentic import (
-    RobotAgent,
-    TaskResult,
     AgentObservation,
+    RobotAgent,
     TaskPlanner,
+    TaskResult,
 )
 
 
