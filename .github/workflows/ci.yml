@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.12'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   # Opt into Node.js 24 for GitHub Actions (fixes deprecation warnings)
@@ -73,7 +73,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.12', '3.13']
     services:
       postgres:
         image: postgres:15-alpine
