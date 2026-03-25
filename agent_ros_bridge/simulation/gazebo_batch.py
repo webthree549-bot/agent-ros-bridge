@@ -329,8 +329,8 @@ class GazeboBatchRunner:
 
         try:
             # Try ROS2 spawn entity service
+            import rclpy  # noqa: F401
             from gazebo_msgs.srv import SpawnEntity
-            import rclpy
 
             # Create temporary node for service call
             node_name = f"spawn_client_{world_id}_{int(time.time() * 1000)}"
@@ -397,9 +397,9 @@ class GazeboBatchRunner:
         """Execute navigation goal using Nav2 NavigateToPose action."""
         try:
             # Try Nav2 navigation
-            from nav2_simple_commander.robot_navigator import BasicNavigator
+            import rclpy  # noqa: F401
             from geometry_msgs.msg import PoseStamped
-            import rclpy
+            from nav2_simple_commander.robot_navigator import BasicNavigator
 
             namespace = f"/world_{world_id}/{robot_name}"
             navigator = BasicNavigator(namespace=namespace)
@@ -467,8 +467,8 @@ class GazeboBatchRunner:
         """Get current robot pose (x, y, theta) from AMCL or ground truth."""
         try:
             # Try AMCL pose first
+            import rclpy  # noqa: F401
             from geometry_msgs.msg import PoseWithCovarianceStamped
-            import rclpy
 
             namespace = f"/world_{world_id}"
             robot_name = f"robot_{world_id}"
@@ -483,7 +483,7 @@ class GazeboBatchRunner:
                 nonlocal pose_result
                 pose_result = msg.pose.pose
 
-            subscription = node.create_subscription(
+            _ = node.create_subscription(
                 PoseWithCovarianceStamped, topic, pose_callback, 10
             )
 
@@ -519,8 +519,8 @@ class GazeboBatchRunner:
     def _get_ground_truth_pose(self, world_id: int) -> tuple[float, float, float]:
         """Get ground truth pose from Gazebo."""
         try:
+            import rclpy  # noqa: F401
             from gazebo_msgs.msg import ModelStates
-            import rclpy
 
             node_name = f"gt_query_{world_id}_{int(time.time() * 1000)}"
             node = rclpy.create_node(node_name)
@@ -531,7 +531,7 @@ class GazeboBatchRunner:
                 nonlocal model_states
                 model_states = msg
 
-            subscription = node.create_subscription(
+            _ = node.create_subscription(
                 ModelStates, "/gazebo/model_states", states_callback, 10
             )
 
@@ -583,8 +583,8 @@ class GazeboBatchRunner:
         """Check if robot is currently in collision using ROS2 contact sensors."""
         try:
             # Try ROS2 contact sensor subscription
+            import rclpy  # noqa: F401
             from gazebo_msgs.msg import ContactsState
-            import rclpy
 
             namespace = f"/world_{world_id}"
             robot_name = f"robot_{world_id}"
@@ -605,7 +605,7 @@ class GazeboBatchRunner:
                             collision_detected = True
 
             # Subscribe to contact sensor
-            subscription = node.create_subscription(
+            _ = node.create_subscription(
                 ContactsState, topic, contact_callback, 10
             )
 
@@ -629,8 +629,8 @@ class GazeboBatchRunner:
     def _get_planned_path(self, world_id: int) -> list[tuple[float, float]]:
         """Get planned path from Nav2 global planner."""
         try:
+            import rclpy  # noqa: F401
             from nav_msgs.msg import Path
-            import rclpy
 
             namespace = f"/world_{world_id}"
             topic = f"{namespace}/plan"  # Nav2 publishes plan here
@@ -644,7 +644,7 @@ class GazeboBatchRunner:
                 nonlocal path_msg
                 path_msg = msg
 
-            subscription = node.create_subscription(Path, topic, path_callback, 10)
+            _ = node.create_subscription(Path, topic, path_callback, 10)
 
             start_time = time.time()
             while path_msg is None and time.time() - start_time < 2.0:
