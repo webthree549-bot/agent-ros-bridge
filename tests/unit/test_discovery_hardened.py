@@ -232,15 +232,11 @@ class TestValidatedDiscovery:
             recommended_action="proceed",
         )
 
-        with patch.object(
-            validated.discovery, "discover_with_confidence", return_value=mock_result
-        ):
-            # Skip capability verification by returning empty list
-            with patch(
-                "agent_ros_bridge.discovery.ROSDiscovery.discover_capabilities",
-                return_value=[],
-            ):
-                result = validated.discover_and_validate("bot1")
+        # Direct mock assignment - works in CI
+        validated.discovery.discover_with_confidence = Mock(return_value=mock_result)
+        validated.discovery.discover_capabilities = Mock(return_value=[])
+
+        result = validated.discover_and_validate("bot1")
 
         assert isinstance(result, dict)
         assert "success" in result
@@ -269,10 +265,10 @@ class TestValidatedDiscovery:
             recommended_action="confirm",
         )
 
-        with patch.object(
-            validated.discovery, "discover_with_confidence", return_value=mock_result
-        ):
-            result = validated.discover_and_validate("bot1", min_confidence=0.7)
+        # Direct mock assignment - works in CI
+        validated.discovery.discover_with_confidence = Mock(return_value=mock_result)
+
+        result = validated.discover_and_validate("bot1", min_confidence=0.7)
 
         assert result["success"] is False
         assert (

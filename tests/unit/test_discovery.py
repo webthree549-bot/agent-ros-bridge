@@ -211,10 +211,9 @@ class TestDiscoverAllDevices:
             "services": [],
         }
 
-        # Use explicit mock to ensure return value is correct type
-        mock_get_graph = Mock(return_value=graph)
-        with patch.object(discovery, "get_ros_graph", mock_get_graph):
-            devices = discovery.discover_all_devices()
+        # Direct mock assignment - works in CI
+        discovery.get_ros_graph = Mock(return_value=graph)
+        devices = discovery.discover_all_devices()
 
         assert len(devices) >= 1  # At least one device found
 
@@ -231,10 +230,9 @@ class TestDiscoverAllDevices:
             "services": [],
         }
 
-        # Use explicit mock to ensure return value is correct type
-        mock_get_graph = Mock(return_value=graph)
-        with patch.object(discovery, "get_ros_graph", mock_get_graph):
-            devices = discovery.discover_all_devices()
+        # Direct mock assignment - works in CI
+        discovery.get_ros_graph = Mock(return_value=graph)
+        devices = discovery.discover_all_devices()
 
         assert len(devices) > 0
 
@@ -414,14 +412,14 @@ class TestDiscoverAndCreateAgent:
 
     def test_discover_raises_if_device_unknown(self):
         """Red: Must raise if cannot discover device type"""
-        # Create discovery instance with mocked method
-        discovery = ROSDiscovery()
-        discovery.infer_device_type = Mock(return_value=None)
+        # Patch where it's used, not where it's defined
+        with patch("agent_ros_bridge.discovery.ROSDiscovery") as mock_discovery_class:
+            # Configure the mock instance that will be created
+            mock_instance = Mock()
+            mock_instance.infer_device_type.return_value = None  # Unknown device
+            mock_instance.discover_capabilities.return_value = []
+            mock_discovery_class.return_value = mock_instance
 
-        with patch(
-            "agent_ros_bridge.discovery.ROSDiscovery",
-            return_value=discovery,
-        ):
             with pytest.raises(ValueError) as exc_info:
                 discover_and_create_agent("unknown_device")
 
@@ -433,19 +431,21 @@ class TestDiscoverAndCreateAgent:
         """Red: Must create agent for discovered device"""
         from agent_ros_bridge.agentic import RobotAgent
 
-        # Create discovery instance with mocked methods
-        discovery = ROSDiscovery()
-        discovery.infer_device_type = Mock(return_value="mobile_robot")
-        discovery.discover_capabilities = Mock(return_value=["navigate_to", "rotate"])
+        # Patch where it's used, not where it's defined
+        with patch("agent_ros_bridge.discovery.ROSDiscovery") as mock_discovery_class:
+            with patch("agent_ros_bridge.discovery.ROSHealthMonitor") as mock_monitor_class:
+                # Configure the mock discovery instance
+                mock_discovery = Mock()
+                mock_discovery.infer_device_type.return_value = "mobile_robot"
+                mock_discovery.discover_capabilities.return_value = ["navigate_to", "rotate"]
+                mock_discovery_class.return_value = mock_discovery
 
-        with patch(
-            "agent_ros_bridge.discovery.ROSDiscovery",
-            return_value=discovery,
-        ):
-            with patch("agent_ros_bridge.discovery.ROSHealthMonitor") as mock_monitor:
-                mock_monitor.return_value.check_health.return_value = MagicMock(
-                    status=DeviceHealthStatus.HEALTHY
-                )
+                # Configure the mock health monitor
+                mock_health = Mock()
+                mock_health.status = DeviceHealthStatus.HEALTHY
+                mock_monitor = Mock()
+                mock_monitor.check_health.return_value = mock_health
+                mock_monitor_class.return_value = mock_monitor
 
                 agent = discover_and_create_agent("bot1")
 
