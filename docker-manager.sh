@@ -13,8 +13,8 @@
 set -e
 
 # Configuration
-CONTAINER_NAME="ros2_humble"
-IMAGE_NAME="osrf/ros:humble-desktop"
+CONTAINER_NAME="ros2_jazzy"
+IMAGE_NAME="osrf/ros:jazzy-desktop"
 WORKSPACE_DIR="$(pwd)"
 DOCKER_NETWORK="ros2-network"
 
@@ -62,7 +62,7 @@ setup() {
     
     # Pull image if not exists
     if ! docker image inspect "$IMAGE_NAME" &> /dev/null; then
-        log_info "Pulling ROS2 Humble image (this may take a while)..."
+        log_info "Pulling ROS2 Jazzy image (this may take a while)..."
         docker pull "$IMAGE_NAME"
     fi
     
@@ -118,7 +118,7 @@ start() {
         # Run container with all necessary mounts
         docker run -d \
             --name "$CONTAINER_NAME" \
-            --hostname ros2-humble \
+            --hostname ros2-jazzy \
             --network "$DOCKER_NETWORK" \
             --privileged \
             --restart unless-stopped \
@@ -131,7 +131,7 @@ start() {
             $GPU_ARGS \
             "$IMAGE_NAME" \
             bash -c "
-                echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc
+                echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc
                 echo 'export ROS_DOMAIN_ID=0' >> ~/.bashrc
                 tail -f /dev/null
             "
@@ -140,7 +140,7 @@ start() {
     # Wait for container to be ready
     log_info "Waiting for container to be ready..."
     for i in {1..30}; do
-        if docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/humble/setup.bash && ros2 --version" &> /dev/null; then
+        if docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/jazzy/setup.bash && ros2 --version" &> /dev/null; then
             break
         fi
         sleep 1
@@ -158,15 +158,15 @@ install_packages() {
     log_info "Checking for additional packages..."
     
     # Check if Nav2 is installed
-    if ! docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/humble/setup.bash && ros2 pkg list | grep -q nav2_bringup" 2>/dev/null; then
+    if ! docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/jazzy/setup.bash && ros2 pkg list | grep -q nav2_bringup" 2>/dev/null; then
         log_info "Installing Nav2 packages..."
         docker exec "$CONTAINER_NAME" bash -c "
             apt-get update && \
             apt-get install -y \
-                ros-humble-nav2-bringup \
-                ros-humble-nav2-simple-commander \
-                ros-humble-turtlebot3-gazebo \
-                ros-humble-turtlebot3-navigation2 \
+                ros-jazzy-nav2-bringup \
+                ros-jazzy-nav2-simple-commander \
+                ros-jazzy-turtlebot3-gazebo \
+                ros-jazzy-turtlebot3-navigation2 \
                 python3-pip
         " || log_warn "Failed to install some packages (may require manual installation)"
     fi
@@ -194,9 +194,9 @@ show_status() {
         echo ""
         
         # Show ROS2 topics if available
-        if docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/humble/setup.bash && ros2 topic list" &> /dev/null; then
+        if docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/jazzy/setup.bash && ros2 topic list" &> /dev/null; then
             echo "Active ROS2 Topics:"
-            docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/humble/setup.bash && ros2 topic list" 2>/dev/null | head -10
+            docker exec "$CONTAINER_NAME" bash -c "source /opt/ros/jazzy/setup.bash && ros2 topic list" 2>/dev/null | head -10
         fi
         echo ""
     else
@@ -225,7 +225,7 @@ run_tests() {
     log_info "Running tests inside container..."
     docker exec -it "$CONTAINER_NAME" bash -c "
         cd /workspace && \
-        source /opt/ros/humble/setup.bash && \
+        source /opt/ros/jazzy/setup.bash && \
         pip3 install -e '.[dev]' && \
         python3 -m pytest tests/ -v --tb=short
     "
@@ -236,7 +236,7 @@ ci_mode() {
     log_info "Running in CI mode..."
     
     # Use lighter base image for CI
-    CI_IMAGE="osrf/ros:humble-ros-base"
+    CI_IMAGE="osrf/ros:jazzy-ros-base"
     
     # Pull image
     if ! docker image inspect "$CI_IMAGE" &> /dev/null; then
@@ -270,9 +270,9 @@ ci_mode() {
             python3-pip \
             python3-pytest \
             python3-coverage \
-            ros-humble-geometry-msgs \
-            ros-humble-sensor-msgs \
-            ros-humble-nav-msgs
+            ros-jazzy-geometry-msgs \
+            ros-jazzy-sensor-msgs \
+            ros-jazzy-nav-msgs
     "
     
     log_success "CI container ready"

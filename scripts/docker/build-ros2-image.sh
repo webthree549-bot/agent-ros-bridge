@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 IMAGE_NAME="agent-ros-bridge"
-TAG="ros2-humble"
+TAG="ros2-jazzy"
 
 # Colors
 RED='\033[0;31m'
@@ -24,24 +24,24 @@ if [ ! -f "${PROJECT_ROOT}/docker/Dockerfile.ros2" ]; then
     echo -e "${YELLOW}Dockerfile not found, creating minimal ROS2 image...${NC}"
     mkdir -p "${PROJECT_ROOT}/docker"
     cat > "${PROJECT_ROOT}/docker/Dockerfile.ros2" << 'EOF'
-FROM ros:humble-ros-base
+FROM ros:jazzy-ros-base
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    ros-humble-nav2-bringup \
-    ros-humble-nav2-simple-commander \
-    ros-humble-turtlebot3-gazebo \
-    ros-humble-demo-nodes-cpp \
-    ros-humble-demo-nodes-py \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-simple-commander \
+    ros-jazzy-turtlebot3-gazebo \
+    ros-jazzy-demo-nodes-cpp \
+    ros-jazzy-demo-nodes-py \
     python3-pip \
     python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
 # Source ROS2 in bashrc
-RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 
 # Set environment
-ENV ROS_DISTRO=humble
+ENV ROS_DISTRO=jazzy
 ENV DEBIAN_FRONTEND=noninteractive
 
 CMD ["bash"]
