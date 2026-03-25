@@ -6,8 +6,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-CONTAINER_NAME="ros2_humble"
-IMAGE_NAME="agent-ros-bridge:ros2-humble"
+CONTAINER_NAME="ros2_jazzy"
+IMAGE_NAME="agent-ros-bridge:ros2-jazzy"
 
 # Colors
 RED='\033[0;31m'
