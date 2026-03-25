@@ -416,6 +416,7 @@ class GazeboBatchRunner:
             theta = goal.get("theta", 0.0)
             try:
                 from tf_transformations import quaternion_from_euler
+
                 q = quaternion_from_euler(0, 0, theta)
                 goal_pose.pose.orientation.x = q[0]
                 goal_pose.pose.orientation.y = q[1]
@@ -483,9 +484,7 @@ class GazeboBatchRunner:
                 nonlocal pose_result
                 pose_result = msg.pose.pose
 
-            _ = node.create_subscription(
-                PoseWithCovarianceStamped, topic, pose_callback, 10
-            )
+            _ = node.create_subscription(PoseWithCovarianceStamped, topic, pose_callback, 10)
 
             # Wait for pose with timeout
             start_time = time.time()
@@ -501,7 +500,8 @@ class GazeboBatchRunner:
                 q = pose_result.orientation
                 try:
                     from tf_transformations import euler_from_quaternion
-                    (_, _, theta) = euler_from_quaternion([q.x, q.y, q.z, q.w])
+
+                    _, _, theta = euler_from_quaternion([q.x, q.y, q.z, q.w])
                 except ImportError:
                     # Approximate theta from quaternion
                     theta = 2.0 * (q.w * q.z)
@@ -531,9 +531,7 @@ class GazeboBatchRunner:
                 nonlocal model_states
                 model_states = msg
 
-            _ = node.create_subscription(
-                ModelStates, "/gazebo/model_states", states_callback, 10
-            )
+            _ = node.create_subscription(ModelStates, "/gazebo/model_states", states_callback, 10)
 
             start_time = time.time()
             while model_states is None and time.time() - start_time < 1.0:
@@ -551,7 +549,8 @@ class GazeboBatchRunner:
                     q = pose.orientation
                     try:
                         from tf_transformations import euler_from_quaternion
-                        (_, _, theta) = euler_from_quaternion([q.x, q.y, q.z, q.w])
+
+                        _, _, theta = euler_from_quaternion([q.x, q.y, q.z, q.w])
                     except ImportError:
                         theta = 0.0
                     return (x, y, theta)
@@ -605,9 +604,7 @@ class GazeboBatchRunner:
                             collision_detected = True
 
             # Subscribe to contact sensor
-            _ = node.create_subscription(
-                ContactsState, topic, contact_callback, 10
-            )
+            _ = node.create_subscription(ContactsState, topic, contact_callback, 10)
 
             # Spin briefly to check for collisions
             start_time = time.time()
