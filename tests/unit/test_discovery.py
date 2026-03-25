@@ -211,8 +211,8 @@ class TestDiscoverAllDevices:
             "services": [],
         }
 
-        # Direct mock assignment - works in CI
-        discovery.get_ros_graph = Mock(return_value=graph)
+        # Use lambda to avoid Mock issues in CI
+        discovery.get_ros_graph = lambda: graph
         devices = discovery.discover_all_devices()
 
         assert len(devices) >= 1  # At least one device found
@@ -230,8 +230,8 @@ class TestDiscoverAllDevices:
             "services": [],
         }
 
-        # Direct mock assignment - works in CI
-        discovery.get_ros_graph = Mock(return_value=graph)
+        # Use lambda to avoid Mock issues in CI
+        discovery.get_ros_graph = lambda: graph
         devices = discovery.discover_all_devices()
 
         assert len(devices) > 0
@@ -257,10 +257,10 @@ class TestROSHealthMonitor:
         """Red: Must return DeviceHealth"""
         monitor = ROSHealthMonitor("bot1")
 
-        # Mock the internal checks with explicit Mock objects
-        monitor._check_responsiveness = Mock(return_value=True)
-        monitor._check_required_topics = Mock(return_value=[])
-        monitor._check_diagnostics = Mock(return_value=(0, 0, []))
+        # Use lambdas to avoid Mock issues in CI
+        monitor._check_responsiveness = lambda: True
+        monitor._check_required_topics = lambda: []
+        monitor._check_diagnostics = lambda: (0, 0, [])
 
         health = monitor.check_health()
 
@@ -273,9 +273,9 @@ class TestROSHealthMonitor:
         """Red: Responsive with no issues = HEALTHY"""
         monitor = ROSHealthMonitor("bot1")
 
-        monitor._check_responsiveness = Mock(return_value=True)
-        monitor._check_required_topics = Mock(return_value=[])
-        monitor._check_diagnostics = Mock(return_value=(0, 0, []))
+        monitor._check_responsiveness = lambda: True
+        monitor._check_required_topics = lambda: []
+        monitor._check_diagnostics = lambda: (0, 0, [])
 
         health = monitor.check_health()
 
@@ -285,9 +285,9 @@ class TestROSHealthMonitor:
         """Red: Non-responsive = OFFLINE"""
         monitor = ROSHealthMonitor("bot1")
 
-        monitor._check_responsiveness = Mock(return_value=False)
-        monitor._check_required_topics = Mock(return_value=[])
-        monitor._check_diagnostics = Mock(return_value=(0, 0, []))
+        monitor._check_responsiveness = lambda: False
+        monitor._check_required_topics = lambda: []
+        monitor._check_diagnostics = lambda: (0, 0, [])
 
         health = monitor.check_health()
 
@@ -297,9 +297,9 @@ class TestROSHealthMonitor:
         """Red: Missing topics = DEGRADED"""
         monitor = ROSHealthMonitor("bot1")
 
-        monitor._check_responsiveness = Mock(return_value=True)
-        monitor._check_required_topics = Mock(return_value=["/cmd_vel"])
-        monitor._check_diagnostics = Mock(return_value=(0, 0, []))
+        monitor._check_responsiveness = lambda: True
+        monitor._check_required_topics = lambda: ["/cmd_vel"]
+        monitor._check_diagnostics = lambda: (0, 0, [])
 
         health = monitor.check_health()
 
@@ -310,9 +310,9 @@ class TestROSHealthMonitor:
         """Red: Errors present = UNHEALTHY"""
         monitor = ROSHealthMonitor("bot1")
 
-        monitor._check_responsiveness = Mock(return_value=True)
-        monitor._check_required_topics = Mock(return_value=[])
-        monitor._check_diagnostics = Mock(return_value=(3, 0, ["Error 1"]))
+        monitor._check_responsiveness = lambda: True
+        monitor._check_required_topics = lambda: []
+        monitor._check_diagnostics = lambda: (3, 0, ["Error 1"])
 
         health = monitor.check_health()
 
@@ -324,9 +324,9 @@ class TestROSHealthMonitor:
         monitor = ROSHealthMonitor("bot1")
 
         # Set up mocks
-        monitor._check_responsiveness = Mock(return_value=True)
-        monitor._check_required_topics = Mock(return_value=[])
-        monitor._check_diagnostics = Mock(return_value=(0, 0, []))
+        monitor._check_responsiveness = lambda: True
+        monitor._check_required_topics = lambda: []
+        monitor._check_diagnostics = lambda: (0, 0, [])
 
         # Perform multiple checks
         for _ in range(5):
@@ -359,10 +359,10 @@ class TestSelfHealingController:
             missing_topics=["/cmd_vel"],
         )
 
-        # Mock recovery strategies to fail with explicit Mock objects
-        healer._restart_missing_nodes = Mock(return_value=False)
-        healer._reinitialize_connection = Mock(return_value=False)
-        healer._clear_error_state = Mock(return_value=False)
+        # Use lambdas to avoid Mock issues in CI - accept all possible args
+        healer._restart_missing_nodes = lambda *args, **kwargs: False
+        healer._reinitialize_connection = lambda *args, **kwargs: False
+        healer._clear_error_state = lambda *args, **kwargs: False
 
         success = healer.attempt_recovery(health)
 
@@ -398,8 +398,8 @@ class TestSelfHealingController:
             missing_topics=["/cmd_vel"],
         )
 
-        # Mock successful restart
-        healer._restart_missing_nodes = Mock(return_value=True)
+        # Use lambda to avoid Mock issues in CI - accept all possible args
+        healer._restart_missing_nodes = lambda *args, **kwargs: True
 
         success = healer.attempt_recovery(health)
 
@@ -412,14 +412,16 @@ class TestDiscoverAndCreateAgent:
 
     def test_discover_raises_if_device_unknown(self):
         """Red: Must raise if cannot discover device type"""
-        # Patch where it's used, not where it's defined
-        with patch("agent_ros_bridge.discovery.ROSDiscovery") as mock_discovery_class:
-            # Configure the mock instance that will be created
-            mock_instance = Mock()
-            mock_instance.infer_device_type.return_value = None  # Unknown device
-            mock_instance.discover_capabilities.return_value = []
-            mock_discovery_class.return_value = mock_instance
 
+        # Create a simple mock class that returns None for device type
+        class MockDiscovery:
+            def infer_device_type(self, device_id):
+                return None
+
+            def discover_capabilities(self, device_id):
+                return []
+
+        with patch("agent_ros_bridge.discovery.ROSDiscovery", MockDiscovery):
             with pytest.raises(ValueError) as exc_info:
                 discover_and_create_agent("unknown_device")
 
@@ -431,22 +433,26 @@ class TestDiscoverAndCreateAgent:
         """Red: Must create agent for discovered device"""
         from agent_ros_bridge.agentic import RobotAgent
 
-        # Patch where it's used, not where it's defined
-        with patch("agent_ros_bridge.discovery.ROSDiscovery") as mock_discovery_class:
-            with patch("agent_ros_bridge.discovery.ROSHealthMonitor") as mock_monitor_class:
-                # Configure the mock discovery instance
-                mock_discovery = Mock()
-                mock_discovery.infer_device_type.return_value = "mobile_robot"
-                mock_discovery.discover_capabilities.return_value = ["navigate_to", "rotate"]
-                mock_discovery_class.return_value = mock_discovery
+        # Create simple mock classes
+        class MockDiscovery:
+            def infer_device_type(self, device_id):
+                return "mobile_robot"
 
-                # Configure the mock health monitor
-                mock_health = Mock()
-                mock_health.status = DeviceHealthStatus.HEALTHY
-                mock_monitor = Mock()
-                mock_monitor.check_health.return_value = mock_health
-                mock_monitor_class.return_value = mock_monitor
+            def discover_capabilities(self, device_id):
+                return ["navigate_to", "rotate"]
 
+        class MockHealth:
+            status = DeviceHealthStatus.HEALTHY
+
+        class MockHealthMonitor:
+            def __init__(self, device_id, ros_version="ros2"):
+                self.device_id = device_id
+
+            def check_health(self):
+                return MockHealth()
+
+        with patch("agent_ros_bridge.discovery.ROSDiscovery", MockDiscovery):
+            with patch("agent_ros_bridge.discovery.ROSHealthMonitor", MockHealthMonitor):
                 agent = discover_and_create_agent("bot1")
 
         assert isinstance(agent, RobotAgent)

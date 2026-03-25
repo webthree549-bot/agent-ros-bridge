@@ -232,9 +232,9 @@ class TestValidatedDiscovery:
             recommended_action="proceed",
         )
 
-        # Direct mock assignment - works in CI
-        validated.discovery.discover_with_confidence = Mock(return_value=mock_result)
-        validated.discovery.discover_capabilities = Mock(return_value=[])
+        # Use lambdas to avoid Mock issues in CI
+        validated.discovery.discover_with_confidence = lambda *args, **kwargs: mock_result
+        validated.discovery.discover_capabilities = lambda *args, **kwargs: []
 
         result = validated.discover_and_validate("bot1")
 
@@ -265,8 +265,8 @@ class TestValidatedDiscovery:
             recommended_action="confirm",
         )
 
-        # Direct mock assignment - works in CI
-        validated.discovery.discover_with_confidence = Mock(return_value=mock_result)
+        # Use lambda to avoid Mock issues in CI
+        validated.discovery.discover_with_confidence = lambda *args, **kwargs: mock_result
 
         result = validated.discover_and_validate("bot1", min_confidence=0.7)
 
