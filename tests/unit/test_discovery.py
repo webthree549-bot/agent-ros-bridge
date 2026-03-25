@@ -417,7 +417,7 @@ class TestDiscoverAndCreateAgent:
         # Create discovery instance with mocked method
         discovery = ROSDiscovery()
         discovery.infer_device_type = Mock(return_value=None)
-        
+
         with patch(
             "agent_ros_bridge.discovery.ROSDiscovery",
             return_value=discovery,
@@ -425,7 +425,9 @@ class TestDiscoverAndCreateAgent:
             with pytest.raises(ValueError) as exc_info:
                 discover_and_create_agent("unknown_device")
 
-            assert "Could not auto-discover" in str(exc_info.value) or "Unknown device type" in str(exc_info.value)
+            assert "Could not auto-discover" in str(exc_info.value) or "Unknown device type" in str(
+                exc_info.value
+            )
 
     def test_discover_creates_agent_for_known_device(self):
         """Red: Must create agent for discovered device"""
@@ -435,7 +437,7 @@ class TestDiscoverAndCreateAgent:
         discovery = ROSDiscovery()
         discovery.infer_device_type = Mock(return_value="mobile_robot")
         discovery.discover_capabilities = Mock(return_value=["navigate_to", "rotate"])
-        
+
         with patch(
             "agent_ros_bridge.discovery.ROSDiscovery",
             return_value=discovery,

@@ -75,6 +75,7 @@ class TestGazeboSimulatorStart:
         # Mock _start_gazebo to fail - needs to return a coroutine since it's async
         async def mock_start_gazebo():
             return False
+
         simulator._start_gazebo = mock_start_gazebo
 
         result = await simulator.start()

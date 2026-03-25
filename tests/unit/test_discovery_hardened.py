@@ -275,7 +275,11 @@ class TestValidatedDiscovery:
             result = validated.discover_and_validate("bot1", min_confidence=0.7)
 
         assert result["success"] is False
-        assert "confidence" in result["error"].lower() or "below" in result["error"].lower() or "low" in result["error"].lower()
+        assert (
+            "confidence" in result["error"].lower()
+            or "below" in result["error"].lower()
+            or "low" in result["error"].lower()
+        )
 
 
 class TestConfidenceScoringCalculation:
