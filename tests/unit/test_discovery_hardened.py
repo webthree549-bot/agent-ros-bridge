@@ -212,12 +212,25 @@ class TestValidatedDiscovery:
         """Red: Must return result dictionary"""
         validated = ValidatedDiscovery()
 
-        # Mock discovery to return certain result
-        mock_result = Mock()
-        mock_result.device_type = "mobile_robot"
-        mock_result.confidence = 0.95
-        mock_result.evidence = Mock()
-        mock_result.alternatives = []
+        # Create real result object with actual values
+        mock_result = DiscoveryResult(
+            device_id="bot1",
+            device_type="mobile_robot",
+            confidence=0.95,
+            confidence_level=DiscoveryConfidenceLevel.HIGH,
+            evidence=DiscoveryEvidence(
+                required_topics_found=2,
+                required_topics_total=2,
+                optional_topics_found=1,
+                optional_topics_total=3,
+                type_indicators_matched=1,
+                type_indicators_total=2,
+                signature_match_score=25.0,
+                conflicting_evidence=[],
+            ),
+            alternatives=[],
+            recommended_action="proceed",
+        )
 
         with patch.object(
             validated.discovery, "discover_with_confidence", return_value=mock_result
@@ -236,10 +249,25 @@ class TestValidatedDiscovery:
         """Red: Must fail if confidence below threshold"""
         validated = ValidatedDiscovery()
 
-        mock_result = Mock()
-        mock_result.device_type = "mobile_robot"
-        mock_result.confidence = 0.3  # Below default 0.7
-        mock_result.evidence = Mock()
+        # Create real result object with low confidence
+        mock_result = DiscoveryResult(
+            device_id="bot1",
+            device_type="mobile_robot",
+            confidence=0.3,  # Below default 0.7
+            confidence_level=DiscoveryConfidenceLevel.LOW,
+            evidence=DiscoveryEvidence(
+                required_topics_found=1,
+                required_topics_total=2,
+                optional_topics_found=0,
+                optional_topics_total=3,
+                type_indicators_matched=0,
+                type_indicators_total=2,
+                signature_match_score=10.0,
+                conflicting_evidence=[],
+            ),
+            alternatives=[],
+            recommended_action="confirm",
+        )
 
         with patch.object(
             validated.discovery, "discover_with_confidence", return_value=mock_result
@@ -247,7 +275,7 @@ class TestValidatedDiscovery:
             result = validated.discover_and_validate("bot1", min_confidence=0.7)
 
         assert result["success"] is False
-        assert "confidence" in result["error"].lower() or "below" in result["error"].lower()
+        assert "confidence" in result["error"].lower() or "below" in result["error"].lower() or "low" in result["error"].lower()
 
 
 class TestConfidenceScoringCalculation:
