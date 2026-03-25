@@ -22,8 +22,8 @@
 
 ### Software Requirements
 
-- Python 3.9+
-- ROS2 Humble (optional, for ROS integration)
+- Python 3.11+
+- ROS2 Jazzy (optional, for ROS integration)
 - Docker 20.10+ (for containerized deployment)
 - Git
 

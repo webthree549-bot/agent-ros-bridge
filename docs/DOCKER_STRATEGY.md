@@ -4,6 +4,8 @@
 
 This project uses Docker for ROS2 integration testing. E2E tests require a local Docker setup and are **skipped in CI** by design.
 
+**Note:** As of v0.6.5, the project uses **ROS2 Jazzy** (not Humble). All Docker infrastructure has been standardized on Jazzy.
+
 ## Philosophy
 
 - **Unit Tests**: Run everywhere (local, CI) - no Docker required
@@ -18,21 +20,21 @@ This project uses Docker for ROS2 integration testing. E2E tests require a local
 ./scripts/docker/build-ros2-image.sh
 ```
 
-This creates a fixed `agent-ros-bridge:ros2-humble` image with:
-- ROS2 Humble base
+This creates a fixed `agent-ros-bridge:ros2-jazzy` image with:
+- ROS2 Jazzy base (Ubuntu 24.04)
 - Nav2 navigation stack
 - Required message packages
 
 ### 2. Start the ROS2 Container
 
 ```bash
-./scripts/docker/start-ros2.sh
+./scripts/docker/docker-manager.sh start
 ```
 
-Or use the Docker manager:
+Or use the legacy wrapper (deprecated):
 
 ```bash
-./scripts/docker-manager.sh start
+./docker-manager.sh start  # redirects to new location
 ```
 
 ### 3. Run E2E Tests
@@ -57,12 +59,12 @@ python -m pytest tests/e2e/test_agent_ros_bridge_e2e.py -v
 
 We use a **fixed base image** approach:
 
-1. **Base Image**: `agent-ros-bridge:ros2-humble-base`
+1. **Base Image**: `agent-ros-bridge:ros2-jazzy-base`
    - Built once, cached in CI
-   - Contains ROS2 Humble + Nav2
+   - Contains ROS2 Jazzy + Nav2
    - Rarely changes
 
-2. **Dev Image**: `agent-ros-bridge:ros2-humble-dev`
+2. **Dev Image**: `agent-ros-bridge:ros2-jazzy-dev`
    - Extends base image
    - Mounts source code as volume
    - Used for development
@@ -71,10 +73,10 @@ We use a **fixed base image** approach:
 
 ```bash
 # Build base image (rarely needed)
-docker build -f docker/Dockerfile.ros2-base -t agent-ros-bridge:ros2-humble-base .
+docker build -f docker/Dockerfile.ros2.jazzy -t agent-ros-bridge:ros2-jazzy-base .
 
 # Build dev image
-docker build -f docker/Dockerfile.ros2-dev -t agent-ros-bridge:ros2-humble-dev .
+docker build -f docker/Dockerfile.dev -t agent-ros-bridge:ros2-jazzy-dev .
 ```
 
 ## CI/CD Strategy
@@ -135,7 +137,7 @@ pytest tests/e2e/test_navigation_e2e.py -v -k test_nav2
 docker ps
 
 # Check logs
-docker logs ros2_humble
+docker logs ros2_jazzy
 
 # Rebuild image
 ./scripts/docker/build-ros2-image.sh --no-cache
@@ -145,7 +147,7 @@ docker logs ros2_humble
 
 ```bash
 # Enter container and check
-docker exec -it ros2_humble bash
+docker exec -it ros2_jazzy bash
 ros2 pkg list | grep nav2
 
 # If missing, rebuild image
@@ -156,18 +158,19 @@ ros2 pkg list | grep nav2
 
 ```bash
 # Check container status
-docker ps --filter name=ros2_humble
+docker ps --filter name=ros2_jazzy
 
 # Verify Nav2 installation
-docker exec ros2_humble bash -c "ros2 pkg list | grep nav2"
+docker exec ros2_jazzy bash -c "ros2 pkg list | grep nav2"
 ```
 
 ## File Structure
 
 ```
 docker/
-├── Dockerfile.ros2-base      # Fixed base image
-├── Dockerfile.ros2-dev       # Development image
+├── Dockerfile.ros2.jazzy     # Jazzy desktop-full image
+├── Dockerfile.ros2.humble    # Legacy Humble (deprecated)
+├── Dockerfile.dev            # Development image
 └── docker-compose.yml        # Multi-container setup
 
 scripts/
@@ -191,12 +194,12 @@ tests/
 
 ### Custom ROS2 Packages
 
-Add packages to `docker/Dockerfile.ros2-base`:
+Add packages to `docker/Dockerfile.ros2.jazzy`:
 
 ```dockerfile
 RUN apt-get install -y \
-    ros-humble-your-package \
-    ros-humble-another-package
+    ros-jazzy-your-package \
+    ros-jazzy-another-package
 ```
 
 Then rebuild:
@@ -243,7 +246,7 @@ This starts multiple ROS2 containers for multi-robot testing.
 ./scripts/docker-manager.sh stop
 
 # Remove image
-docker rmi agent-ros-bridge:ros2-humble-base
+docker rmi agent-ros-bridge:ros2-jazzy
 
 # Clean all
 docker system prune -a
