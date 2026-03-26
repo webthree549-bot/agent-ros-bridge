@@ -507,6 +507,11 @@ class RealGazeboSimulator:
         """Wait for navigation result (mock for testing)"""
         return {"success": True}
 
+    @property
+    def connected(self) -> bool:
+        """Check if simulator is connected."""
+        return self._connected
+
     def cleanup(self) -> None:
         """Cleanup after scenario"""
         self._delete_entity(self._robot_name)
