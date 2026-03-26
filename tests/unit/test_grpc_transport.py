@@ -46,10 +46,9 @@ class TestGRPCServicer:
         context.invocation_metadata = Mock(return_value=[("authorization", "Bearer valid_token")])
 
         # When
-        # response = await servicer.ExecuteCommand(request, context)
+        await servicer.ExecuteCommand(request, context)
 
         # Then
-        # assert response.success is True
         mock_handler.assert_called_once()
 
     @pytest.mark.asyncio
