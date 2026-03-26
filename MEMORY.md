@@ -1,6 +1,18 @@
 # MEMORY.md - Curated Long-Term Memory
 
-_Last updated: 2026-03-23_
+_Last updated: 2026-03-26_
+
+---
+
+## Docker Setup Update (2026-03-26)
+
+**Unified Docker infrastructure deployed:**
+- New `agent-ros-bridge:jazzy-with-nav2` image (ROS2 Jazzy + Nav2 + Gazebo Harmonic)
+- Reorganized scripts into `scripts/docker/` with unified `docker-manager.sh`
+- Added `quickstart-docker.sh` for one-command container startup
+- Added `build-docker-image.sh` with 3 build options (official image, Dockerfile, existing container)
+- Container renamed from `ros2_humble` → `ros2_jazzy`
+- Updated ports: 8765 (WebSocket), 11311 (ROS), 9090 (rosbridge)
 
 ---
 
@@ -141,10 +153,38 @@ _Last updated: 2026-03-23_
 4. **Demo Nodes** - Added to Docker image for E2E tests
 5. **Dependency Workflow** - Fixed invalid GitHub Action reference
 
-### Docker Strategy
-- **Image:** `agent-ros-bridge:ros2-humble` (ROS2 Jazzy + demo nodes + Nav2, 5GB)
-- **E2E Tests:** Run locally with `./scripts/test-e2e.sh`
-- **CI Behavior:** E2E tests skip if container not running
+### Docker Strategy (Updated 2026-03-25)
+
+**New unified Docker setup with ROS2 Jazzy:**
+
+| Component | Old | New |
+|-----------|-----|-----|
+| ROS2 Version | Humble | **Jazzy** (Ubuntu 24.04) |
+| Image Name | `agent-ros-bridge:ros2-humble` | `agent-ros-bridge:jazzy-with-nav2` |
+| Container | `ros2_humble` | `ros2_jazzy` |
+| Scripts | Scattered | Unified in `scripts/docker/` |
+
+**Image Features:**
+- ROS2 Jazzy (Ubuntu 24.04)
+- Nav2 navigation stack
+- Gazebo Harmonic simulation
+- TurtleBot3 robot models
+- Size: ~8-10 GB
+
+**Scripts:**
+```bash
+./scripts/quickstart-docker.sh           # Quick start with pre-built image
+./scripts/build-docker-image.sh          # Build jazzy-with-nav2 image
+./scripts/docker/docker-manager.sh       # Unified manager (start/stop/shell/status)
+```
+
+**Ports:**
+- `8765` - WebSocket/HTTP
+- `11311` - ROS master
+- `9090` - rosbridge
+
+**E2E Tests:** Run locally with `./scripts/test-e2e.sh`
+**CI Behavior:** E2E tests skip if container not running
 
 ### Key Decisions
 1. **Docker-first testing** — No local ROS2 fallback
@@ -180,6 +220,8 @@ _Last updated: 2026-03-23_
 
 | Date | Milestone | Tests | Coverage | Version |
 |------|-----------|-------|----------|---------|
+| 2026-03-26 | **Docker: Unified Jazzy setup** | 1956 | ~65% | v0.6.4 |
+| 2026-03-23 | **Gate 2 PASSED + MCP + Paper** | 1956 | ~65% | v0.6.4 |
 | 2026-03-22 | **Coverage: 62.9%** | 1529 | 62.94% | v0.6.2 |
 | 2026-03-22 | **Coverage: 62.4%** | 1501 | 62.42% | v0.6.2 |
 | 2026-03-21 | **Coverage: 62%** | 1485 | 61.96% | v0.6.2 |
@@ -200,12 +242,23 @@ _Last updated: 2026-03-23_
 
 ## Quick Reference
 
-### Docker Commands
+### Docker Commands (Updated)
 ```bash
-./scripts/docker-manager.sh start    # Start ROS2 container
-./scripts/docker-manager.sh stop     # Stop container
-./scripts/docker-manager.sh shell    # Interactive shell
+# Quick start (recommended)
+./scripts/quickstart-docker.sh       # Start with pre-built image
+
+# Unified manager
+./scripts/docker/docker-manager.sh start    # Start ROS2 Jazzy container
+./scripts/docker/docker-manager.sh stop     # Stop container
+./scripts/docker/docker-manager.sh shell    # Interactive shell
+./scripts/docker/docker-manager.sh status   # Check status
+
+# Build image
+./scripts/build-docker-image.sh      # Build jazzy-with-nav2 image
+
+# E2E tests
 ./scripts/test-e2e.sh                # Run E2E tests
+./scripts/test_real_gazebo_integration.py   # Real Gazebo tests
 ```
 
 ### Test Commands
