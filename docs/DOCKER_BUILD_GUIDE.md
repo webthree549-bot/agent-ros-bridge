@@ -2,6 +2,24 @@
 
 ## Quick Start (Recommended)
 
+### Option 0: Use Pre-built Image (Fastest - If Available)
+
+If you or someone on your team has already built the image with Nav2 installed:
+
+```bash
+# Quick start with pre-built image
+./scripts/quickstart-docker.sh
+
+# Or manually:
+docker run -d \
+  --name ros2_jazzy \
+  --privileged \
+  -p 8765:8765 \
+  -v $(pwd):/workspace:rw \
+  agent-ros-bridge:jazzy-with-nav2 \
+  bash -c "source /opt/ros/jazzy/setup.bash && tail -f /dev/null"
+```
+
 ### Option 1: Use Official ROS2 Image (Fastest)
 
 ```bash
@@ -28,7 +46,10 @@ docker exec -it ros2_jazzy bash
 apt-get update
 apt-get install -y ros-jazzy-nav2-bringup ros-jazzy-nav2-simple-commander ros-jazzy-turtlebot3-gazebo
 
-# 5. Test
+# 5. Save for later (optional but recommended)
+docker commit ros2_jazzy agent-ros-bridge:jazzy-with-nav2
+
+# 6. Test
 source /opt/ros/jazzy/setup.bash
 python3 /workspace/scripts/test_real_gazebo_integration.py
 ```
@@ -162,6 +183,36 @@ python3 /workspace/scripts/test_real_gazebo_integration.py
 ```
 
 ---
+
+## Saving Your Container
+
+After installing packages inside the container, save it as an image to avoid reinstalling:
+
+```bash
+# 1. Exit container (keep it running)
+exit
+
+# 2. Commit container to new image
+docker commit ros2_jazzy agent-ros-bridge:jazzy-with-nav2
+
+# 3. Verify
+docker images | grep agent-ros-bridge
+
+# 4. Stop old container
+docker stop ros2_jazzy
+docker rm ros2_jazzy
+
+# 5. Use saved image anytime
+docker run -d \
+  --name ros2_jazzy \
+  --privileged \
+  -p 8765:8765 \
+  -v /Users/webthree/.openclaw/workspace/agent-ros-bridge:/workspace:rw \
+  agent-ros-bridge:jazzy-with-nav2 \
+  bash -c "source /opt/ros/jazzy/setup.bash && tail -f /dev/null"
+```
+
+This saves ~30 minutes of package installation every time!
 
 ## Troubleshooting
 

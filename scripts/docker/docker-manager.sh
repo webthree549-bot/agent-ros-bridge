@@ -11,7 +11,9 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # Configuration
 CONTAINER_NAME="${CONTAINER_NAME:-ros2_jazzy}"
-IMAGE_NAME="${IMAGE_NAME:-agent-ros-bridge:ros2-jazzy}"
+# Using pre-built image with Nav2 and Gazebo pre-installed
+# To build from scratch instead, use: agent-ros-bridge:ros2-jazzy
+IMAGE_NAME="${IMAGE_NAME:-agent-ros-bridge:jazzy-with-nav2}"
 DOCKER_NETWORK="${DOCKER_NETWORK:-ros2-network}"
 
 # Colors
