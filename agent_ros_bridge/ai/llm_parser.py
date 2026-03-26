@@ -198,8 +198,8 @@ Rules:
         return not (self._provider == "anthropic" and not self._anthropic_available)
 
     def _compute_hash(self, utterance: str) -> str:
-        """Compute hash for utterance."""
-        return hashlib.md5(utterance.lower().strip().encode()).hexdigest()
+        """Compute hash for utterance (cache key, not cryptographic)."""
+        return hashlib.md5(utterance.lower().strip().encode()).hexdigest()  # nosec B324
 
     def _get_cached(self, utterance_hash: str) -> LLMIntentResult | None:
         """Get cached result if available."""

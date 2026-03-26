@@ -314,7 +314,7 @@ class SafetyValidator:
         else:
             data = str(obj)
 
-        return hashlib.md5(data.encode()).hexdigest()
+        return hashlib.md5(data.encode()).hexdigest()  # nosec B324 - cache key, not crypto
 
 
 class Nav2Integration:

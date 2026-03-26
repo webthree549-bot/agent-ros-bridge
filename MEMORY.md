@@ -220,7 +220,7 @@ _Last updated: 2026-03-26_
 
 | Date | Milestone | Tests | Coverage | Version |
 |------|-----------|-------|----------|---------|
-| 2026-03-26 | **Docker: Unified Jazzy setup** | 1956 | ~65% | v0.6.4 |
+| 2026-03-26 | **Docker: Unified Jazzy setup** | 2021 | ~65% | v0.6.5 |
 | 2026-03-23 | **Gate 2 PASSED + MCP + Paper** | 1956 | ~65% | v0.6.4 |
 | 2026-03-22 | **Coverage: 62.9%** | 1529 | 62.94% | v0.6.2 |
 | 2026-03-22 | **Coverage: 62.4%** | 1501 | 62.42% | v0.6.2 |
