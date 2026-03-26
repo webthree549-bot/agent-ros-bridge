@@ -2,6 +2,8 @@
 
 ## Quick Start (Recommended)
 
+**Note:** Replace `/path/to/agent-ros-bridge` with your actual path (e.g., `/Users/webthree/.openclaw/workspace/agent-ros-bridge`)
+
 ### Option 0: Use Pre-built Image (Fastest - If Available)
 
 If you or someone on your team has already built the image with Nav2 installed:
@@ -10,12 +12,12 @@ If you or someone on your team has already built the image with Nav2 installed:
 # Quick start with pre-built image
 ./scripts/quickstart-docker.sh
 
-# Or manually:
+# Or manually (use absolute path, not $(pwd)):
 docker run -d \
   --name ros2_jazzy \
   --privileged \
   -p 8765:8765 \
-  -v $(pwd):/workspace:rw \
+  -v /path/to/agent-ros-bridge:/workspace:rw \
   agent-ros-bridge:jazzy-with-nav2 \
   bash -c "source /opt/ros/jazzy/setup.bash && tail -f /dev/null"
 ```
@@ -26,7 +28,7 @@ docker run -d \
 # 1. Pull the official image (~8 GB download)
 docker pull osrf/ros:jazzy-desktop-full
 
-# 2. Run container
+# 2. Run container (use absolute path, not $(pwd))
 docker run -d \
   --name ros2_jazzy \
   --hostname ros2-jazzy \
@@ -34,7 +36,7 @@ docker run -d \
   -p 8765:8765 \
   -p 11311:11311 \
   -p 9090:9090 \
-  -v $(pwd):/workspace:rw \
+  -v /path/to/agent-ros-bridge:/workspace:rw \
   -v /dev/shm:/dev/shm \
   osrf/ros:jazzy-desktop-full \
   bash -c "echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc && tail -f /dev/null"
@@ -202,12 +204,12 @@ docker images | grep agent-ros-bridge
 docker stop ros2_jazzy
 docker rm ros2_jazzy
 
-# 5. Use saved image anytime
+# 5. Use saved image anytime (use absolute path, not $(pwd))
 docker run -d \
   --name ros2_jazzy \
   --privileged \
   -p 8765:8765 \
-  -v /Users/webthree/.openclaw/workspace/agent-ros-bridge:/workspace:rw \
+  -v /path/to/agent-ros-bridge:/workspace:rw \
   agent-ros-bridge:jazzy-with-nav2 \
   bash -c "source /opt/ros/jazzy/setup.bash && tail -f /dev/null"
 ```

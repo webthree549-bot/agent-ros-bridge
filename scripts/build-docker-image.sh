@@ -4,8 +4,8 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# Use absolute path to avoid $(pwd) confusion
+PROJECT_ROOT="/Users/webthree/.openclaw/workspace/agent-ros-bridge"
 
 IMAGE_NAME="agent-ros-bridge"
 TAG="ros2-jazzy"
