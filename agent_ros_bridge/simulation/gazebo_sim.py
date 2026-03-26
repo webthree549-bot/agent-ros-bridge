@@ -147,6 +147,11 @@ class GazeboSimulator:
         # For GREEN phase, create mock
         self._ros_node = True
 
+    @property
+    def connected(self) -> bool:
+        """Check if simulator is connected to Gazebo."""
+        return self._connected
+
     def disconnect(self) -> None:
         """Disconnect from Gazebo and cleanup"""
         self._connected = False
