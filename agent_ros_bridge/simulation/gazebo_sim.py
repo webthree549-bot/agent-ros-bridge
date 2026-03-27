@@ -128,25 +128,22 @@ class GazeboSimulator:
 
         Returns:
             success: True if connected
+
+        Raises:
+            RuntimeError: If Gazebo is not running
         """
-        try:
-            # Initialize ROS2
-            self._init_ros_node()
+        # Initialize ROS2
+        self._init_ros_node()
 
-            # Connect to Gazebo transport
-            self._connect_transport()
+        # Connect to Gazebo transport
+        self._connect_transport()
 
-            # Check if Gazebo is running
-            if not self._check_gazebo_running():
-                print(f"Warning: Gazebo not detected on port {self.gzserver_port}")
-                # Don't fail - Gazebo might start later
+        # Check if Gazebo is running
+        if not self._check_gazebo_running():
+            raise RuntimeError(f"Gazebo is not running on port {self.gzserver_port}")
 
-            self._connected = True
-            return True
-
-        except Exception as e:
-            print(f"Error connecting to Gazebo: {e}")
-            return False
+        self._connected = True
+        return True
 
     def _connect_transport(self) -> None:
         """
@@ -452,15 +449,15 @@ class GazeboSimulator:
 
         try:
             # Send goal to Nav2
-            success = self._send_nav2_goal(goal)
+            self._send_nav2_goal(goal)
 
-            duration = time.time() - start_time
+            # Wait for result
+            result = self._wait_for_result()
 
-            return {
-                "success": success,
-                "duration": duration,
-                "error": None,
-            }
+            # Update duration
+            result["duration"] = time.time() - start_time
+
+            return result
 
         except Exception as e:
             return {
@@ -547,9 +544,35 @@ class GazeboSimulator:
             return False
 
     def _wait_for_result(self) -> dict[str, Any]:
-        """Wait for navigation result"""
-        # This is handled in _send_nav2_goal now
-        return {"success": True, "duration": 10.0}
+        """
+        Wait for navigation result from Nav2.
+
+        Returns:
+            Result dict with success, error
+        """
+        if not ROS2_AVAILABLE or self._ros_node is None or self._nav2_client is None:
+            # Mock mode - simulate navigation time
+            time.sleep(0.5)
+            return {"success": True}
+
+        try:
+            # Wait for navigation to complete with timeout
+            start_time = time.time()
+
+            # Poll for result (simplified - in real implementation would use action result)
+            while time.time() - start_time < self.timeout_seconds:
+                # Check if navigation is complete
+                # This is a simplified check - real implementation would check action status
+                time.sleep(0.1)
+
+            # If we reach timeout, return timeout error
+            if time.time() - start_time >= self.timeout_seconds:
+                return {"success": False, "error": "timeout"}
+
+            return {"success": True}
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
     def get_robot_pose(self) -> tuple[float, float, float]:
         """

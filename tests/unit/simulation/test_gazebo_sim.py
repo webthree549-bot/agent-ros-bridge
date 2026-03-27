@@ -58,9 +58,10 @@ class TestWorldConnection:
 
         sim = GazeboSimulator(world_id=0)
 
-        with patch.object(sim, "_connect_transport") as mock_connect:
-            sim.connect()
-            mock_connect.assert_called_once()
+        with patch.object(sim, "_check_gazebo_running", return_value=True):
+            with patch.object(sim, "_connect_transport") as mock_connect:
+                sim.connect()
+                mock_connect.assert_called_once()
 
     def test_connects_to_ros2(self):
         """RED: Should initialize ROS2 node"""
@@ -68,9 +69,10 @@ class TestWorldConnection:
 
         sim = GazeboSimulator(world_id=0, ros_namespace="world_0")
 
-        with patch.object(sim, "_init_ros_node") as mock_ros:
-            sim.connect()
-            mock_ros.assert_called_once()
+        with patch.object(sim, "_check_gazebo_running", return_value=True):
+            with patch.object(sim, "_init_ros_node") as mock_ros:
+                sim.connect()
+                mock_ros.assert_called_once()
 
     def test_disconnect_method_exists(self):
         """RED: Should have disconnect method"""
