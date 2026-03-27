@@ -17,11 +17,13 @@ from typing import Any
 try:
     import rclpy
     from rclpy.node import Node
+
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
     rclpy = None
     Node = None
+
 
 @dataclass
 class GazeboConfig:
@@ -149,7 +151,7 @@ class GazeboSimulator:
     def _connect_transport(self) -> None:
         """
         Connect to Gazebo transport.
-        
+
         Uses gz CLI for Gazebo Harmonic/Ignition Gazebo.
         Verifies connection by checking world info.
         """
@@ -171,7 +173,7 @@ class GazeboSimulator:
     def _check_gazebo_running(self) -> bool:
         """
         Check if Gazebo is running.
-        
+
         Uses pgrep to check for gz sim process.
         """
         try:
@@ -187,7 +189,7 @@ class GazeboSimulator:
     def _init_ros_node(self) -> None:
         """
         Initialize ROS2 node.
-        
+
         Creates a ROS2 node for this simulator instance if ROS2 is available.
         """
         if not ROS2_AVAILABLE or rclpy is None:
@@ -250,7 +252,7 @@ class GazeboSimulator:
     def _load_world_file(self, world_file: str) -> None:
         """
         Load world file into Gazebo.
-        
+
         Uses gz service to load world from SDF file.
         """
         if not Path(world_file).exists():
@@ -284,10 +286,10 @@ class GazeboSimulator:
     def _spawn_robot(self, robot_config: dict[str, Any]) -> bool:
         """
         Spawn robot in Gazebo using ROS2 spawn service.
-        
+
         Args:
             robot_config: Dict with 'model', 'x', 'y', 'z', 'yaw'
-            
+
         Returns:
             True if robot spawned successfully
         """
@@ -318,8 +320,8 @@ class GazeboSimulator:
                 "5000",
                 "--req",
                 f'sdf: "{sdf_xml}" name: "{model_name}" '
-                f'pose: {{position: {{x: {x}, y: {y}, z: {z}}}, '
-                f'orientation: {{z: {math.sin(yaw/2)}, w: {math.cos(yaw/2)}}}}}',
+                f"pose: {{position: {{x: {x}, y: {y}, z: {z}}}, "
+                f"orientation: {{z: {math.sin(yaw/2)}, w: {math.cos(yaw/2)}}}}}",
             ]
 
             result = subprocess.run(
@@ -348,10 +350,10 @@ class GazeboSimulator:
     def _get_robot_sdf(self, model_name: str) -> str:
         """
         Get robot SDF XML or file path.
-        
+
         Args:
             model_name: Name of robot model
-            
+
         Returns:
             SDF XML string or model URI
         """
@@ -370,7 +372,7 @@ class GazeboSimulator:
     def _spawn_obstacle(self, obstacle: dict[str, Any]) -> None:
         """
         Spawn obstacle in Gazebo.
-        
+
         Args:
             obstacle: Dict with 'type', 'x', 'y', 'z', 'size'
         """
@@ -382,7 +384,7 @@ class GazeboSimulator:
 
         # Create simple SDF for obstacle
         if obs_type == "box":
-            sdf = f'''<sdf version="1.6">
+            sdf = f"""<sdf version="1.6">
                 <model name="obstacle_{x}_{y}">
                     <static>true</static>
                     <link name="link">
@@ -394,9 +396,9 @@ class GazeboSimulator:
                         </visual>
                     </link>
                 </model>
-            </sdf>'''
+            </sdf>"""
         elif obs_type == "cylinder":
-            sdf = f'''<sdf version="1.6">
+            sdf = f"""<sdf version="1.6">
                 <model name="obstacle_{x}_{y}">
                     <static>true</static>
                     <link name="link">
@@ -408,7 +410,7 @@ class GazeboSimulator:
                         </visual>
                     </link>
                 </model>
-            </sdf>'''
+            </sdf>"""
         else:
             return
 
@@ -470,10 +472,10 @@ class GazeboSimulator:
     def _send_nav2_goal(self, goal: dict[str, float]) -> bool:
         """
         Send navigation goal to Nav2 via ROS2 action client.
-        
+
         Args:
             goal: Dict with 'x', 'y', 'theta'
-            
+
         Returns:
             True if navigation succeeded
         """
@@ -561,7 +563,7 @@ class GazeboSimulator:
     def _query_gazebo_pose(self) -> tuple[float, float, float]:
         """
         Query robot pose from Gazebo via gz service.
-        
+
         Returns:
             (x, y, theta) tuple
         """
@@ -575,7 +577,7 @@ class GazeboSimulator:
                     "gz",
                     "service",
                     "-s",
-                    f"/world/default/state",
+                    "/world/default/state",
                     "--reqtype",
                     "gz.msgs.Entity",
                     "--reptype",
@@ -653,7 +655,7 @@ class GazeboSimulator:
     def _check_collision(self) -> bool:
         """
         Check if robot is in collision via Gazebo contacts.
-        
+
         Returns:
             True if robot is in collision
         """
