@@ -172,9 +172,7 @@ class TestGRPCTransportHandleCommand:
     async def test_handle_command(self, transport, caplog):
         """Test handle_command."""
         with caplog.at_level("DEBUG"):
-            result = await transport.handle_command(
-                {"action": "move", "parameters": {"x": 1.0}}
-            )
+            result = await transport.handle_command({"action": "move", "parameters": {"x": 1.0}})
             assert result["success"] is True
             assert "data" in result
 

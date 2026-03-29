@@ -1,11 +1,11 @@
 # Agent ROS Bridge - Full Simulation Environment
-# ROS2 Humble + Gazebo + Nav2 + TurtleBot3
+# ROS2 Jazzy + Gazebo + Nav2 + TurtleBot3
 
-FROM osrf/ros:humble-desktop-full
+FROM osrf/ros:jazzy-desktop-full
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
-ENV ROS_DISTRO=humble
+ENV ROS_DISTRO=jazzy
 ENV TURTLEBOT3_MODEL=burger
 
 # Install essential tools and dependencies
@@ -21,23 +21,23 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-rosdep \
     python3-vcstool \
     # Gazebo and simulation
-    ros-humble-gazebo-ros-pkgs \
-    ros-humble-gazebo-ros2-control \
-    # TurtleBot3 packages
-    ros-humble-turtlebot3 \
-    ros-humble-turtlebot3-gazebo \
-    ros-humble-turtlebot3-navigation2 \
-    ros-humble-turtlebot3-cartographer \
+    ros-jazzy-gazebo-ros-pkgs \
+    ros-jazzy-gazebo-ros2-control \
+    # TurtleBot3 packages (may need alternative for Jazzy)
+    ros-jazzy-turtlebot3 \
+    ros-jazzy-turtlebot3-gazebo \
+    ros-jazzy-turtlebot3-navigation2 \
+    ros-jazzy-turtlebot3-cartographer \
     # Nav2 packages
-    ros-humble-nav2-bringup \
-    ros-humble-nav2-simple-commander \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-simple-commander \
     # Additional message types
-    ros-humble-geometry-msgs \
-    ros-humble-sensor-msgs \
-    ros-humble-nav-msgs \
-    ros-humble-std-msgs \
-    ros-humble-action-msgs \
-    ros-humble-tf2-ros \
+    ros-jazzy-geometry-msgs \
+    ros-jazzy-sensor-msgs \
+    ros-jazzy-nav-msgs \
+    ros-jazzy-std-msgs \
+    ros-jazzy-action-msgs \
+    ros-jazzy-tf2-ros \
     # Python dependencies
     python3-numpy \
     python3-yaml \
@@ -50,10 +50,10 @@ WORKDIR /ros2_ws
 RUN rosdep init 2>/dev/null || true && rosdep update
 
 # Source ROS2 in bashrc
-RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash 2>/dev/null || true" >> /root/.bashrc && \
     echo "export TURTLEBOT3_MODEL=burger" >> /root/.bashrc && \
-    echo "export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:/opt/ros/humble/share/turtlebot3_gazebo/models" >> /root/.bashrc
+    echo "export GAZEBO_MODEL_PATH=\$GAZEBO_MODEL_PATH:/opt/ros/jazzy/share/turtlebot3_gazebo/models" >> /root/.bashrc
 
 # Copy agent-ros-bridge code
 COPY . /ros2_ws/src/agent-ros-bridge/
@@ -64,7 +64,7 @@ RUN pip3 install --no-cache-dir -e . 2>/dev/null || true
 
 # Build the workspace
 WORKDIR /ros2_ws
-RUN /bin/bash -c "source /opt/ros/humble/setup.bash && \
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && \
     rosdep install --from-paths src --ignore-src -y 2>/dev/null || true && \
     colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release 2>&1 | tail -10 || true"
 

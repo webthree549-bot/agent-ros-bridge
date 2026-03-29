@@ -42,6 +42,7 @@ class TestDecisionLoggerAdvanced:
         logger.log_ai_proposal("bot1", proposal)
 
         import sqlite3
+
         conn = sqlite3.connect(temp_db)
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM decisions")

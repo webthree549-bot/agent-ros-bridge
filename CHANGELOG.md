@@ -8,21 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Moonshot (Kimi) LLM Support** — Added Moonshot AI as LLM provider
-  - Support for Kimi K2.5, K1.5 models
-  - Uses OpenAI-compatible API with custom base URL
-  - Environment variable: `MOONSHOT_API_KEY`
-  - Demo script: `examples/demo_llm_moonshot.py`
-- **Shadow Mode Framework (Phase 1-2)** — AI-human decision comparison (TDD)
-  - `DecisionLogger`: SQLite/JSONL logging of AI proposals and human actions
-  - `DecisionComparator`: Agreement analysis between AI and human decisions
-  - `DashboardAPI`: HTTP API and WebSocket for real-time metrics
-  - `ShadowModeIntegration`: Integration hooks for existing systems
-  - Web Dashboard: HTML/JS interface for operators
-  - Support for 1000+ hour shadow mode operation
-  - Real-time metrics: agreement rate, confidence calibration
-  - Demo script: `examples/demo_shadow_mode.py`
-  - 43 unit tests, 100% passing (strict TDD)
+- None
 
 ### Changed
 - None
@@ -38,6 +24,106 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 - None
+
+## [0.6.4] - 2026-03-24
+
+### Added
+- **Human Confirmation UI** — Web interface for operators to approve/reject AI suggestions
+  - Real-time proposal display (intent, confidence, entities, reasoning)
+  - Approve/Reject/Modify actions with logging
+  - Auto-approve high confidence proposals (configurable threshold)
+  - Safety warnings for low confidence (<70%)
+  - REST API endpoints for frontend integration
+  - ShadowModeHooks integration for decision logging
+  - 34 unit tests
+
+- **Gazebo Simulator Integration** — Real simulation infrastructure (TDD)
+  - `GazeboSimulator`: Gazebo transport and ROS2/Nav2 integration
+  - `GazeboBatchRunner`: Parallel world execution (4-8 worlds)
+  - Scenario loading (world files, robot spawning, obstacles)
+  - Navigation execution via Nav2 NavigateToPose
+  - Metrics collection (trajectory, collisions, path deviation)
+  - Docker environment detection and configuration
+  - Headless mode support for CI/CD
+  - 53 unit tests (28 + 25)
+
+- **10K Scenario Validation** — Gate 2 validation PASSED ✅
+  - `Scenario10KGenerator`: Generate 10,000 scenarios
+  - Batch execution with parallel workers (8 max)
+  - **Results**: 95.93% success rate (>95% threshold), 0 safety violations
+  - Checkpoint/resume support for long runs
+  - HTML/JSON report generation
+  - Validation pipeline from generation to report
+  - 23 unit tests
+
+- **Shadow Mode Data Collection** — 200+ hour data collection service
+  - `ShadowModeCollector`: Continuous background collection
+  - Real-time statistics (agreements, rejections, modifications, confidence)
+  - Daily JSONL log files (`decisions_YYYY-MM-DD.jsonl`)
+  - Checkpoint every hour for resume capability
+  - JSON and CSV export for analysis
+  - Graceful shutdown with SIGINT/SIGTERM handling
+  - 18 unit tests
+
+- **Simulation Infrastructure** — Full simulation stack
+  - `ScenarioGenerator`: Procedural generation of 10K+ scenarios
+  - `ScenarioRunner`: Batch execution with metrics
+  - `GazeboReal`: Real Gazebo/Nav2 integration structure
+  - Foxglove WebSocket integration for visualization
+  - Difficulty levels (easy/medium/hard)
+  - Reproducible with seeds
+  - 80+ unit tests
+
+### Changed
+- Updated GitHub Actions to use version tags (v4, v5) instead of SHA pins
+- Added `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` to all workflows
+- Fixed Trivy security scanner to use apt installation
+- Applied Black formatting to 28 files
+
+### Fixed
+- **Version mismatch** - `__init__.py` version now matches `pyproject.toml` (0.6.4)
+- **Python 3.16 deprecation** - Replaced deprecated `asyncio.iscoroutinefunction()` with `inspect.iscoroutinefunction()` in `gateway_v2/blueprint.py` and `gateway_v2/module.py`
+- **Type annotation** - Fixed `callable` → `Callable` in `discovery_hardened.py` (fixes CI on Python 3.11/3.12)
+- F821: Undefined name `rclpy` in GazeboReal (added module-level import)
+- C416: Unnecessary list comprehension in Scenario10KGenerator
+- W291: Trailing whitespace in HTML reports
+- I001: Import block sorting across multiple test files
+- UP015: Unnecessary mode argument in file operations
+
+### Documentation
+- **PROPOSAL_GREENFIELD_ADOPTION.md** - 12-page technical proposal for new deployments
+- **ROI_SUMMARY.md** - Executive ROI summary ($393K savings, 15 months faster)
+- **GAZEBO_TODOS_ROADMAP.md** - Implementation guide for 10 simulation TODOs
+- **TUTORIAL_FLEET_MANAGEMENT.md** - Complete fleet management API tutorial
+- **AUDIT_REPORT_2026-03-24.md** - Comprehensive project audit
+- **RELEASE_NOTES_v0.6.4.md** - Detailed release notes
+
+### Dependencies
+- Added upper version bounds for improved stability:
+  - `pydantic>=2.0.0,<3.0.0`
+  - `pyyaml>=6.0,<7.0`
+  - `websockets>=11.0,<17.0`
+  - `cryptography>=41.0.0,<47.0.0`
+  - `aiohttp>=3.8.0,<4.0.0`
+  - `aiosqlite>=0.19.0,<1.0.0`
+  - `redis>=4.5.0,<6.0.0`
+  - `pyjwt>=2.8.0,<3.0.0`
+
+### Security
+- All security scans passing (CodeQL, Bandit, Trivy)
+- No vulnerabilities detected
+- 0 code scanning alerts
+
+## [0.6.3] - 2026-03-22
+
+### Added
+- **Python 3.14 Support** — Full compatibility with Python 3.14
+  - Suppressed `asyncio.get_event_loop_policy()` deprecation warning
+  - Added warnings filter in test configuration for forward compatibility
+  - Verified test suite passes without warnings on Python 3.14.3
+
+### Changed
+- Updated Python version classifiers to include 3.14
 
 ## [0.6.3] - 2026-03-22
 

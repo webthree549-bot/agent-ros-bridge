@@ -38,10 +38,7 @@ class DecisionComparator:
         entity_score = self._compare_entities(record.ai_proposal, record.human_action)
         total_score = (intent_score * 0.6) + (entity_score * 0.4)
 
-        agrees = (
-            intent_score >= self._intent_threshold
-            and entity_score >= self._entity_threshold
-        )
+        agrees = intent_score >= self._intent_threshold and entity_score >= self._entity_threshold
 
         return agrees, total_score
 

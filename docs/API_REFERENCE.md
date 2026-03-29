@@ -1,646 +1,609 @@
-# Agent ROS Bridge - API Reference
+# API Documentation
 
-Complete API reference for developers.
+## Agent ROS Bridge v0.6.4
+
+Complete API reference for all modules.
+
+---
 
 ## Table of Contents
 
-1. [Core Classes](#core-classes)
-2. [Transports](#transports)
-3. [Connectors](#connectors)
-4. [Plugins](#plugins)
-5. [Fleet Management](#fleet-management)
-6. [Actions](#actions)
-7. [Metrics](#metrics)
-8. [Authentication](#authentication)
+- [Core Gateway](#core-gateway)
+- [Shadow Mode](#shadow-mode)
+- [Simulation](#simulation)
+- [AI/LLM](#aillm)
+- [Safety](#safety)
+- [UI](#ui)
 
 ---
 
-## Core Classes
+## Core Gateway
 
-### Bridge
+### Gateway
 
-Main gateway class that manages transports, connectors, and plugins.
+Main entry point for robot control.
 
 ```python
-from agent_ros_bridge import Bridge
+from agent_ros_bridge.gateway import AgentGateway
 
-bridge = Bridge()
+gateway = AgentGateway()
+gateway.start()
 ```
 
 #### Methods
 
-##### `register_transport(transport: Transport)`
-Register a transport endpoint.
+##### `send_command(robot_id: str, command: dict) -> dict`
 
+Send command to robot.
+
+**Parameters:**
+- `robot_id` (str): Robot identifier
+- `command` (dict): Command with 'type' and 'parameters'
+
+**Returns:**
+- `dict`: Result with 'success' and 'message'
+
+**Example:**
 ```python
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
-
-ws_transport = WebSocketTransport({'port': 8765})
-bridge.transport_manager.register(ws_transport)
-```
-
-##### `register_connector(connector: Connector)`
-Register a robot connector.
-
-```python
-from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
-
-ros2_connector = ROS2Connector({'auto_discover': True})
-bridge.connector_registry.register(ros2_connector)
-```
-
-##### `async start()`
-Start the bridge and all registered components.
-
-```python
-await bridge.start()
-```
-
-##### `async stop()`
-Stop the bridge gracefully.
-
-```python
-await bridge.stop()
-```
-
-### Message
-
-Unified message format for all communications.
-
-```python
-from agent_ros_bridge import Message, Header, Command, Telemetry
-
-msg = Message(
-    header=Header(),
-    command=Command(action="move", parameters={"x": 1.0}),
-    telemetry=Telemetry(topic="/odom", data={"x": 0.5})
-)
-```
-
-#### Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `header` | Header | Message metadata |
-| `command` | Optional[Command] | Robot command |
-| `telemetry` | Optional[Telemetry] | Sensor data |
-| `event` | Optional[Event] | System event |
-| `metadata` | Dict[str, Any] | Additional data |
-
-### Identity
-
-Authenticated identity for connections.
-
-```python
-from agent_ros_bridge import Identity
-
-identity = Identity(
-    id="user_123",
-    name="Operator",
-    roles=["operator"],
-    metadata={"department": "warehouse"}
-)
-```
-
----
-
-## Transports
-
-### WebSocketTransport
-
-WebSocket server for real-time bidirectional communication.
-
-```python
-from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
-
-transport = WebSocketTransport({
-    'host': '0.0.0.0',
-    'port': 8765,
-    'auth': {
-        'enabled': True,
-        'jwt_secret': 'secret-key'
-    }
-})
-```
-
-#### Configuration
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `host` | str | '0.0.0.0' | Bind address |
-| `port` | int | 8765 | Listen port |
-| `tls_cert` | Optional[str] | None | TLS certificate path |
-| `tls_key` | Optional[str] | None | TLS key path |
-| `auth.enabled` | bool | False | Enable JWT auth |
-| `auth.jwt_secret` | Optional[str] | None | JWT secret key |
-
-### MQTTTransport
-
-MQTT client for IoT sensor integration.
-
-```python
-from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
-
-transport = MQTTTransport({
-    'host': 'localhost',
-    'port': 1883,
-    'username': 'user',
-    'password': 'pass',
-    'subscriptions': ['robots/#', 'sensors/#']
-})
-```
-
-#### Configuration
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `host` | str | 'localhost' | MQTT broker host |
-| `port` | int | 1883 | MQTT broker port |
-| `username` | Optional[str] | None | Auth username |
-| `password` | Optional[str] | None | Auth password |
-| `tls` | bool | False | Enable TLS |
-| `subscriptions` | List[str] | ['#'] | Topics to subscribe |
-
----
-
-## Connectors
-
-### ROS2Connector
-
-Connects to ROS2 robots via rclpy.
-
-```python
-from agent_ros_bridge.gateway_v2.connectors.ros2_connector import ROS2Connector
-
-connector = ROS2Connector({
-    'auto_discover': True,
-    'domain_id': 0
-})
-```
-
-#### Configuration
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `auto_discover` | bool | True | Auto-discover robots |
-| `domain_id` | int | 0 | ROS_DOMAIN_ID |
-| `namespace` | str | '' | Robot namespace |
-
-#### Methods
-
-##### `async discover() -> List[RobotEndpoint]`
-Discover available ROS2 robots.
-
-##### `async connect(endpoint: RobotEndpoint) -> Robot`
-Connect to a specific robot.
-
-### ROS1Connector
-
-Connects to ROS1 robots via rospy.
-
-```python
-from agent_ros_bridge.gateway_v2.connectors.ros1_connector import ROS1Connector
-
-connector = ROS1Connector({
-    'auto_discover': True,
-    'master_uri': 'http://localhost:11311'
-})
-```
-
----
-
-## Plugins
-
-### Creating Custom Plugins
-
-```python
-from agent_ros_bridge import Plugin, Message, Identity
-
-class MyPlugin(Plugin):
-    name = "my_plugin"
-    version = "1.0.0"
-    
-    async def initialize(self, gateway: Bridge) -> bool:
-        """Called when plugin is loaded"""
-        self.gateway = gateway
-        return True
-    
-    async def shutdown(self) -> None:
-        """Called when plugin is unloaded"""
-        pass
-    
-    async def handle_message(self, message: Message, 
-                            identity: Identity) -> Optional[Message]:
-        """Handle incoming messages"""
-        if message.command and message.command.action == "my_action":
-            # Process command
-            return Message(telemetry=...)
-        return None
-```
-
-### Loading Plugins
-
-```python
-from agent_ros_bridge.plugins.my_plugin import MyPlugin
-
-plugin = MyPlugin()
-await bridge.plugin_manager.load_plugin(plugin)
-```
-
-### ArmRobotPlugin
-
-Plugin for controlling robot arms.
-
-```python
-from agent_ros_bridge.plugins.arm_robot import ArmRobotPlugin
-
-arm = ArmRobotPlugin(
-    arm_type="ur",  # or "xarm", "franka"
-    ros_version="ros2",
-    namespace=""
-)
-
-await arm.initialize(bridge)
-
-# Control commands
-result = await arm.handle_command("arm.move_joints", {
-    "joints": [0, -1.57, 0, -1.57, 0, 0]
-})
-```
-
-#### Available Commands
-
-| Command | Parameters | Description |
-|---------|------------|-------------|
-| `arm.move_joints` | `joints: List[float]` | Move to joint positions |
-| `arm.move_cartesian` | `x, y, z, qx, qy, qz, qw` | Move to cartesian pose |
-| `arm.get_state` | None | Get current state |
-| `arm.gripper` | `position: float` | Control gripper (0-1) |
-| `arm.stop` | None | Emergency stop |
-
----
-
-## Fleet Management
-
-### FleetOrchestrator
-
-Manages multi-robot fleets with task allocation.
-
-```python
-from agent_ros_bridge.fleet import FleetOrchestrator, FleetRobot, Task
-
-orchestrator = FleetOrchestrator()
-await orchestrator.start()
-
-# Add robot
-robot = FleetRobot(
-    robot_id="tb4_001",
-    name="TurtleBot4-Alpha",
-    capabilities=RobotCapability(
-        can_navigate=True,
-        max_payload_kg=5.0
-    )
-)
-await orchestrator.add_robot(robot)
-
-# Submit task
-task = Task(
-    type="navigate",
-    target_location="zone_a",
-    priority=5
-)
-task_id = await orchestrator.submit_task(task)
-```
-
-#### Task Types
-
-| Type | Description | Required Capabilities |
-|------|-------------|---------------------|
-| `navigate` | Move to location | `can_navigate` |
-| `transport` | Carry payload | `can_navigate`, payload capacity |
-| `manipulate` | Arm operation | `can_manipulate` |
-| `charge` | Go to charger | `can_navigate` |
-
-#### Methods
-
-##### `async add_robot(robot: FleetRobot) -> bool`
-Add a robot to the fleet.
-
-##### `async remove_robot(robot_id: str) -> bool`
-Remove a robot from the fleet.
-
-##### `async submit_task(task: Task) -> str`
-Submit a task to the queue. Returns task ID.
-
-##### `async cancel_task(task_id: str) -> bool`
-Cancel a pending or executing task.
-
-##### `get_metrics() -> FleetMetrics`
-Get fleet performance metrics.
-
-##### `get_fleet_status() -> Dict`
-Get complete fleet status for dashboards.
-
----
-
-## Actions
-
-### ROS Actions
-
-For long-running tasks with feedback.
-
-```python
-from agent_ros_bridge.actions import create_action_client, ActionFeedback
-
-# Create client
-client = create_action_client(
-    action_name="navigate_to_pose",
-    action_type="nav2_msgs/action/NavigateToPose",
-    ros_version="ros2"
-)
-
-await client.connect()
-
-# Register callbacks
-def on_feedback(feedback: ActionFeedback):
-    print(f"Distance remaining: {feedback.feedback_data['distance_remaining']}")
-
-def on_result(result):
-    print(f"Navigation {'succeeded' if result.success else 'failed'}")
-
-client.register_feedback_callback(on_feedback)
-client.register_result_callback(on_result)
-
-# Send goal
-result = await client.send_goal(
-    goal_data={"pose": {"x": 5.0, "y": 3.0, "theta": 1.57}},
-    timeout_sec=60.0
-)
-```
-
-#### ActionClient Methods
-
-##### `async connect() -> bool`
-Connect to action server.
-
-##### `async send_goal(goal_data, timeout_sec=30.0) -> ActionResult`
-Send goal and wait for result.
-
-##### `async cancel_goal() -> bool`
-Cancel current goal.
-
-##### `register_feedback_callback(callback)`
-Register callback for feedback updates.
-
-##### `register_result_callback(callback)`
-Register callback for results.
-
----
-
-## Metrics
-
-### MetricsCollector
-
-Collects and exposes Prometheus metrics.
-
-```python
-from agent_ros_bridge.metrics import get_metrics
-
-metrics = get_metrics()
-
-# Record metrics
-metrics.record_message_sent("websocket", size_bytes=1024)
-metrics.record_task_completed(task_type="navigate", duration_sec=5.2)
-metrics.set_robots_online(4)
-
-# Get snapshot
-snapshot = metrics.get_snapshot()
-print(f"Robots: {snapshot.robots_online}/{snapshot.robots_total}")
-```
-
-#### Recording Methods
-
-##### `record_message_sent(transport, size_bytes=0)`
-Record a sent message.
-
-##### `record_message_received(transport, size_bytes=0)`
-Record a received message.
-
-##### `record_task_completed(task_type, duration_sec)`
-Record task completion with duration.
-
-##### `record_task_failed(task_type)`
-Record task failure.
-
-##### `set_robots_online(count)`
-Set number of online robots.
-
-##### `set_active_connections(count, transport)`
-Set active connection count.
-
-### MetricsServer
-
-HTTP server for Prometheus scraping.
-
-```python
-from agent_ros_bridge.metrics import MetricsServer
-
-server = MetricsServer(port=9090)
-await server.start()
-
-# Metrics available at http://localhost:9090/metrics
-```
-
----
-
-## Authentication
-
-### Authenticator
-
-JWT and API key authentication.
-
-```python
-from agent_ros_bridge.gateway_v2.auth import Authenticator, AuthConfig
-
-config = AuthConfig(
-    enabled=True,
-    jwt_secret="your-secret-key",
-    jwt_expiry_hours=24,
-    api_keys={
-        "ak_123456": {
-            "user_id": "operator",
-            "roles": ["operator"]
-        }
+result = gateway.send_command(
+    robot_id='bot1',
+    command={
+        'type': 'navigate_to',
+        'parameters': {'x': 5.0, 'y': 5.0}
     }
 )
-
-auth = Authenticator(config)
-
-# Create token
-token = auth.create_token("user_123", roles=["operator"])
-
-# Verify token
-payload = auth.verify_token(token)
-if payload:
-    print(f"User: {payload['sub']}, Roles: {payload['roles']}")
 ```
 
-### Role-Based Access Control
+##### `get_robot_status(robot_id: str) -> dict`
 
-```python
-from agent_ros_bridge.gateway_v2.auth import RoleBasedAccessControl
+Get current robot status.
 
-rbac = RoleBasedAccessControl()
+**Parameters:**
+- `robot_id` (str): Robot identifier
 
-# Check permission
-if rbac.can_execute(roles=["operator"], action="move"):
-    # Allow action
-    pass
-```
-
-#### Default Roles
-
-| Role | Permissions |
-|------|-------------|
-| `admin` | All actions |
-| `operator` | list_robots, get_state, move, publish |
-| `viewer` | list_robots, get_state, subscribe |
-| `anonymous` | list_robots only |
+**Returns:**
+- `dict`: Status with position, velocity, battery, etc.
 
 ---
 
-## WebSocket Protocol
+## Shadow Mode
 
-### Connection
+### ShadowModeCollector
 
+Collect AI vs human decision data.
+
+```python
+from agent_ros_bridge.shadow.collector import ShadowModeCollector
+
+collector = ShadowModeCollector(
+    output_dir="shadow_data",
+    target_hours=200.0
+)
+collector.start_collection()
 ```
-ws://host:port?token=JWT_TOKEN
+
+#### Methods
+
+##### `on_ai_proposal(robot_id, intent_type, confidence, entities, reasoning)`
+
+Log an AI proposal.
+
+**Parameters:**
+- `robot_id` (str): Robot identifier
+- `intent_type` (str): Type of intent (e.g., 'NAVIGATE')
+- `confidence` (float): AI confidence (0-1)
+- `entities` (list): Extracted entities
+- `reasoning` (str): AI reasoning
+
+**Example:**
+```python
+collector.on_ai_proposal(
+    robot_id='bot1',
+    intent_type='NAVIGATE',
+    confidence=0.95,
+    entities=[{'type': 'LOCATION', 'value': 'kitchen'}],
+    reasoning='User wants to go to kitchen'
+)
 ```
 
-### Message Format
+##### `on_human_decision(robot_id, command, parameters, matched_ai_proposal)`
+
+Log a human decision.
+
+**Parameters:**
+- `robot_id` (str): Robot identifier
+- `command` (str): Command executed
+- `parameters` (dict): Command parameters
+- `matched_ai_proposal` (bool): Whether it matched AI proposal
+
+**Example:**
+```python
+collector.on_human_decision(
+    robot_id='bot1',
+    command='navigate_to',
+    parameters={'location': 'kitchen'},
+    matched_ai_proposal=True
+)
+```
+
+##### `get_status() -> dict`
+
+Get collection status.
+
+**Returns:**
+```python
+{
+    'total_decisions': 1000,
+    'ai_proposals': 500,
+    'human_decisions': 500,
+    'agreements': 450,
+    'agreement_rate': 0.9,
+    'hours_elapsed': 50.0,
+    'hours_remaining': 150.0,
+    'percent_complete': 25.0,
+    'is_running': True
+}
+```
+
+##### `export_data(format='json') -> Path`
+
+Export collected data.
+
+**Parameters:**
+- `format` (str): 'json' or 'csv'
+
+**Returns:**
+- `Path`: Path to exported file
+
+### ShadowModeHooks
+
+Hooks for auto-logging decisions.
+
+```python
+from agent_ros_bridge.shadow.hooks import ShadowModeHooks, enable_shadow_mode
+
+# Enable on existing components
+hooks = enable_shadow_mode(
+    intent_parser=my_parser,
+    gateway=my_gateway
+)
+```
+
+#### Methods
+
+##### `on_intent_parsed(robot_id, intent_result)`
+
+Hook for intent parsing.
+
+##### `on_human_command(command)`
+
+Hook for human commands.
+
+##### `get_stats() -> dict`
+
+Get statistics.
+
+**Returns:**
+```python
+{
+    'total_decisions': 100,
+    'agreement_rate': 0.85,
+    'avg_confidence': 0.92
+}
+```
+
+---
+
+## Simulation
+
+### ScenarioGenerator
+
+Generate scenarios for validation.
+
+```python
+from agent_ros_bridge.simulation.scenario_generator import ScenarioGenerator
+
+gen = ScenarioGenerator(output_dir="scenarios")
+```
+
+#### Methods
+
+##### `generate_scenario(template, seed, difficulty) -> dict`
+
+Generate single scenario.
+
+**Parameters:**
+- `template` (str): 'navigation', 'manipulation', 'safety'
+- `seed` (int): Random seed for reproducibility
+- `difficulty` (str): 'easy', 'medium', 'hard'
+
+**Returns:**
+```python
+{
+    'name': 'navigation_000042_medium',
+    'robot_config': {...},
+    'environment': {...},
+    'goal': {...}
+}
+```
+
+##### `generate_batch(template, count, difficulty) -> list`
+
+Generate multiple scenarios.
+
+**Parameters:**
+- `template` (str): Template name
+- `count` (int): Number of scenarios
+- `difficulty` (str): Difficulty level
+
+**Returns:**
+- `list`: List of scenario dicts
+
+### GazeboBatchRunner
+
+Run scenarios in parallel Gazebo worlds.
+
+```python
+from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
+
+runner = GazeboBatchRunner(
+    num_worlds=8,
+    headless=True
+)
+```
+
+#### Methods
+
+##### `run_batch(scenarios, progress_callback) -> list`
+
+Execute scenarios in parallel.
+
+**Parameters:**
+- `scenarios` (list): List of scenario file paths
+- `progress_callback` (callable): Called with (completed, total)
+
+**Returns:**
+- `list`: List of WorldResult objects
+
+**Example:**
+```python
+def progress(completed, total):
+    print(f"{completed}/{total} ({completed/total*100:.1f}%)")
+
+results = runner.run_batch(
+    scenario_files=['s1.yaml', 's2.yaml', ...],
+    progress_callback=progress
+)
+```
+
+### Scenario10KGenerator
+
+Validate Gate 2 with 10K scenarios.
+
+```python
+from agent_ros_bridge.validation.scenario_10k import Scenario10KGenerator
+
+gen = Scenario10KGenerator()
+validation = gen.run_full_validation(count=10000)
+```
+
+#### Methods
+
+##### `run_full_validation(count, progress_callback) -> dict`
+
+Run complete validation.
+
+**Parameters:**
+- `count` (int): Number of scenarios (default: 10000)
+- `progress_callback` (callable): Progress callback
+
+**Returns:**
+```python
+{
+    'total_scenarios': 10000,
+    'successful': 9593,
+    'failed': 407,
+    'success_rate': 0.9593,
+    'gate2_passed': True,
+    'total_safety_violations': 0
+}
+```
+
+---
+
+## AI/LLM
+
+### IntentParser
+
+Parse natural language to robot commands.
+
+```python
+from agent_ros_bridge.ai.intent_parser import IntentParser
+
+parser = IntentParser()
+```
+
+#### Methods
+
+##### `parse(text, robot_id) -> dict`
+
+Parse intent from text.
+
+**Parameters:**
+- `text` (str): Natural language input
+- `robot_id` (str): Robot identifier
+
+**Returns:**
+```python
+{
+    'intent_type': 'NAVIGATE',
+    'confidence': 0.95,
+    'entities': [{'type': 'LOCATION', 'value': 'kitchen'}],
+    'reasoning': 'User wants to navigate to kitchen'
+}
+```
+
+### LLMParser
+
+LLM-based intent parsing.
+
+```python
+from agent_ros_bridge.ai.llm_parser import OpenAIParser, MoonshotParser
+
+# OpenAI
+parser = OpenAIParser(api_key='your-key')
+
+# Moonshot (Kimi)
+parser = MoonshotParser(api_key='your-key')
+```
+
+#### Methods
+
+##### `parse(text, robot_id) -> dict`
+
+Parse with LLM.
+
+---
+
+## Safety
+
+### SafetyValidator
+
+Validate commands for safety.
+
+```python
+from agent_ros_bridge.safety.safety_validator import SafetyValidator
+
+validator = SafetyValidator(
+    max_velocity=1.0,
+    max_acceleration=0.5
+)
+```
+
+#### Methods
+
+##### `validate(command) -> dict`
+
+Validate command.
+
+**Parameters:**
+- `command` (dict): Command to validate
+
+**Returns:**
+```python
+{
+    'safe': True,
+    'violations': []
+}
+```
+
+---
+
+## UI
+
+### ConfirmationUI
+
+Web interface for human confirmation.
+
+```python
+from agent_ros_bridge.ui.confirmation import ConfirmationUI
+
+ui = ConfirmationUI(port=8080)
+ui.start_server()
+```
+
+#### Methods
+
+##### `receive_proposal(proposal_data) -> str`
+
+Receive AI proposal for confirmation.
+
+**Parameters:**
+- `proposal_data` (dict): Proposal details
+
+**Returns:**
+- `str`: Proposal ID
+
+##### `approve_proposal(proposal_id) -> dict`
+
+Approve proposal.
+
+**Parameters:**
+- `proposal_id` (str): Proposal ID
+
+**Returns:**
+- `dict`: Result
+
+##### `reject_proposal(proposal_id, reason) -> dict`
+
+Reject proposal.
+
+**Parameters:**
+- `proposal_id` (str): Proposal ID
+- `reason` (str): Rejection reason
+
+##### `modify_proposal(proposal_id, original, modified) -> dict`
+
+Modify and approve proposal.
+
+**Parameters:**
+- `proposal_id` (str): Proposal ID
+- `original` (dict): Original parameters
+- `modified` (dict): Modified parameters
+
+### REST API Endpoints
+
+#### GET `/api/pending`
+
+Get pending proposals.
+
+**Response:**
+```json
+[
+  {
+    "proposal_id": "prop_123",
+    "robot_id": "bot1",
+    "intent_type": "NAVIGATE",
+    "confidence": 0.95
+  }
+]
+```
+
+#### POST `/api/approve/{proposal_id}`
+
+Approve a proposal.
+
+**Response:**
+```json
+{
+  "success": true
+}
+```
+
+#### POST `/api/reject/{proposal_id}`
+
+Reject a proposal.
 
 **Request:**
 ```json
 {
-  "header": {
-    "message_id": "uuid",
-    "timestamp": "2025-01-01T00:00:00Z"
-  },
-  "command": {
-    "action": "action_name",
-    "parameters": {
-      "key": "value"
-    }
-  }
+  "reason": "unsafe"
 }
 ```
 
 **Response:**
 ```json
 {
-  "header": {
-    "message_id": "response_uuid",
-    "correlation_id": "request_uuid",
-    "timestamp": "2025-01-01T00:00:01Z"
-  },
-  "telemetry": {
-    "topic": "response",
-    "data": {
-      "result": "..."
-    },
-    "quality": 1.0
-  }
+  "success": true
 }
 ```
 
-### Error Response
+#### GET `/api/metrics`
 
+Get current metrics.
+
+**Response:**
 ```json
 {
-  "header": {...},
-  "event": {
-    "event_type": "error",
-    "severity": "error",
-    "data": {
-      "error": "Error message",
-      "code": "ERROR_CODE"
-    }
-  }
+  "total_decisions": 100,
+  "agreement_rate": 0.85,
+  "avg_confidence": 0.92
 }
 ```
 
 ---
 
-## Constants
+## Configuration
 
-### QoS Levels
+### Environment Variables
 
-```python
-from agent_ros_bridge import QoS
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ROS_DOMAIN_ID` | ROS2 domain ID | `0` |
+| `GAZEBO_MASTER_URI` | Gazebo master URI | `http://localhost:11345` |
+| `OPENAI_API_KEY` | OpenAI API key | - |
+| `ANTHROPIC_API_KEY` | Anthropic API key | - |
+| `MOONSHOT_API_KEY` | Moonshot API key | - |
+| `SHADOW_DATA_DIR` | Shadow data directory | `./shadow_data` |
+| `SHADOW_TARGET_HOURS` | Target collection hours | `200` |
+| `LOG_LEVEL` | Logging level | `INFO` |
 
-QoS.BEST_EFFORT     # Fire and forget
-QoS.AT_LEAST_ONCE   # Retry until ack
-QoS.EXACTLY_ONCE    # Deduplication guaranteed
-```
+### Configuration File
 
-### Default Ports
+YAML configuration at `/etc/agent-ros-bridge/config.yaml`:
 
-| Service | Port |
-|---------|------|
-| WebSocket | 8765 |
-| MQTT | 1883 |
-| gRPC | 50051 |
-| Metrics | 9090 |
-| Dashboard | 8080 |
+```yaml
+gateway:
+  host: "0.0.0.0"
+  port: 8080
 
----
+shadow_mode:
+  enabled: true
+  confidence_threshold: 0.7
+  require_confirmation: true
 
-## Type Definitions
+simulation:
+  enabled: true
+  num_worlds: 4
+  headless: true
 
-```python
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
-
-# Message types
-CommandData = Dict[str, Any]
-TelemetryData = Dict[str, Any]
-EventData = Dict[str, Any]
-
-# Robot types
-RobotID = str
-TaskID = str
-
-# Configuration
-ConfigDict = Dict[str, Any]
+llm:
+  default_provider: "moonshot"
 ```
 
 ---
 
-## Exceptions
+## Examples
+
+### Complete Workflow
 
 ```python
-class BridgeError(Exception):
-    """Base bridge exception"""
-    pass
+from agent_ros_bridge.gateway import AgentGateway
+from agent_ros_bridge.shadow.collector import ShadowModeCollector
+from agent_ros_bridge.ui.confirmation import ConfirmationUI
 
-class ConnectionError(BridgeError):
-    """Connection failed"""
-    pass
+# Initialize components
+gateway = AgentGateway()
+collector = ShadowModeCollector(output_dir="shadow_data")
+ui = ConfirmationUI(port=8080)
 
-class AuthenticationError(BridgeError):
-    """Authentication failed"""
-    pass
+# Start collection
+collector.start_collection()
+ui.start_server()
 
-class TaskError(BridgeError):
-    """Task execution failed"""
-    pass
+# Handle AI proposal
+proposal_id = ui.receive_proposal({
+    'robot_id': 'bot1',
+    'intent_type': 'NAVIGATE',
+    'confidence': 0.95,
+    'entities': [{'type': 'LOCATION', 'value': 'kitchen'}]
+})
+
+# Log to collector
+collector.on_ai_proposal(
+    robot_id='bot1',
+    intent_type='NAVIGATE',
+    confidence=0.95,
+    entities=[...],
+    reasoning='...'
+)
+
+# Operator approves via UI
+ui.approve_proposal(proposal_id)
+
+# Log human decision
+collector.on_human_decision(
+    robot_id='bot1',
+    command='navigate_to',
+    parameters={'location': 'kitchen'},
+    matched_ai_proposal=True
+)
 ```
 
 ---
 
-## See Also
+## Support
 
-- [User Manual](USER_MANUAL.md) - Complete user guide
-- [Architecture](ARCHITECTURE.md) - System design
-- [Native ROS](NATIVE_ROS.md) - ROS installation
-- [Multi-ROS](MULTI_ROS.md) - Fleet management
+- **Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
+- **Documentation**: https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
+- **PyPI**: https://pypi.org/project/agent-ros-bridge/

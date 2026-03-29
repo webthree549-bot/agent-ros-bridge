@@ -1,0 +1,18 @@
+{
+  "metadata": {
+    "export_date": "2026-03-23T13:47:16.782737",
+    "total_decisions": 0,
+    "collection_stats": {
+      "start_time": "2026-03-23T13:45:08.287330",
+      "total_decisions": 0,
+      "ai_proposals": 0,
+      "human_decisions": 0,
+      "agreements": 0,
+      "rejections": 0,
+      "modifications": 0,
+      "avg_confidence": 0.0,
+      "agreement_rate": 0.0
+    }
+  },
+  "decisions": []
+}

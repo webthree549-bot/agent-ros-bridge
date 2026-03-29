@@ -1,0 +1,104 @@
+======================================================================
+🎯 GATE 2 VALIDATION - REAL GAZEBO EDITION
+======================================================================
+
+⚠️  This will run scenarios in REAL Gazebo with physics!
+   Each scenario may take 30-60 seconds to complete.
+
+🔧 Setting up Real Gazebo Simulator...
+  Starting Gazebo...
+  ✅ Gazebo started
+  Spawning turtlebot3_burger...
+  ✅ turtlebot3_burger spawned
+  Starting Nav2...
+  ✅ Nav2 ready
+  ✅ ROS2 node initialized
+✅ Simulator ready!
+
+🚀 Running 10 scenarios in Real Gazebo...
+   Batch size: 5
+
+📋 Generating scenarios...
+   Generated 10 scenarios
+
+▶️  Scenario 1/10: nav_0001
+   ✅ PASS in 15.3s
+
+▶️  Scenario 2/10: nav_0002
+   ✅ PASS in 12.7s
+
+▶️  Scenario 3/10: nav_0003
+   ✅ PASS in 18.1s
+
+▶️  Scenario 4/10: nav_0004
+   ✅ PASS in 14.5s
+
+▶️  Scenario 5/10: nav_0005
+   ⚠️  1 collisions
+   ❌ FAIL in 8.2s
+
+📊 Progress Report:
+   Completed: 5/10
+   Success Rate: 80.0% (target: 95%)
+   Collision Rate: 20.0% (max: 5%)
+   Avg Time: 13.8s per scenario
+   Est. Remaining: 1.2 minutes
+
+▶️  Scenario 6/10: nav_0006
+   ✅ PASS in 11.4s
+
+▶️  Scenario 7/10: nav_0007
+   ✅ PASS in 16.8s
+
+▶️  Scenario 8/10: nav_0008
+   ✅ PASS in 13.2s
+
+▶️  Scenario 9/10: nav_0009
+   ✅ PASS in 14.9s
+
+▶️  Scenario 10/10: nav_0010
+   ✅ PASS in 12.1s
+
+📊 Progress Report:
+   Completed: 10/10
+   Success Rate: 90.0% (target: 95%)
+   Collision Rate: 10.0% (max: 5%)
+   Avg Time: 13.7s per scenario
+   Est. Remaining: 0.0 minutes
+
+✅ Validation complete in 2.3 minutes
+
+======================================================================
+📊 GATE 2 VALIDATION REPORT - REAL GAZEBO
+======================================================================
+
+Total Scenarios: 10
+
+Results:
+  ✅ Success Rate: 90.00%
+     (Threshold: ≥95%)
+
+  ⚠️  Collision Rate: 10.00%
+     (Threshold: ≤5%)
+
+  🛡️  Safety Violations: 0
+     (Threshold: 0)
+
+  ⏱️  Avg Time: 13.7s
+  📏 Avg Path: 5.2m
+
+❌ GATE 2 FAILED. Review failures and re-run.
+
+📁 Results saved to: gate2_real_results
+======================================================================
+
+NOTE: This is a SAMPLE OUTPUT showing what running Gate 2 validation
+would look like with 10 scenarios. For actual validation:
+
+1. Install Nav2 in Docker:
+   ./scripts/setup_nav2_docker.sh
+
+2. Run full validation (10,000 scenarios):
+   ./scripts/run_gate2_real_gazebo.py --num-scenarios 10000
+
+3. Expected runtime: ~150-300 minutes (2.5-5 hours) for 10K scenarios

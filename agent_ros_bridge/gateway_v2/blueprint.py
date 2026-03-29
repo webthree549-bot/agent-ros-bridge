@@ -5,6 +5,7 @@ Blueprints provide a declarative way to compose modules and define their connect
 """
 
 import asyncio
+import inspect
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -182,7 +183,7 @@ class Blueprint:
         # Start modules
         for _name, instance in self._instances.items():
             if hasattr(instance, "start"):
-                if asyncio.iscoroutinefunction(instance.start):
+                if inspect.iscoroutinefunction(instance.start):
                     await instance.start()
                 else:
                     instance.start()
@@ -200,7 +201,7 @@ class Blueprint:
 
         for _name, instance in self._instances.items():
             if hasattr(instance, "stop"):
-                if asyncio.iscoroutinefunction(instance.stop):
+                if inspect.iscoroutinefunction(instance.stop):
                     await instance.stop()
                 else:
                     instance.stop()

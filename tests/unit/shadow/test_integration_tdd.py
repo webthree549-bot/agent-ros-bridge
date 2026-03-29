@@ -113,5 +113,5 @@ class TestShadowModeIntegrationTDD:
 
     def test_integration_has_logger_property(self, integration):
         """RED: Integration should expose logger property."""
-        assert hasattr(integration, 'logger')
+        assert hasattr(integration, "logger")
         assert integration.logger is not None

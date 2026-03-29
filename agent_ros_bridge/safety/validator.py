@@ -64,7 +64,7 @@ class SafetyValidatorNode:
         # Create deterministic string representation
         data = {"trajectory": trajectory, "limits": limits}
         data_str = json.dumps(data, sort_keys=True)
-        return hashlib.md5(data_str.encode()).hexdigest()
+        return hashlib.md5(data_str.encode()).hexdigest()  # nosec B324 - cache key, not crypto
 
     def _get_cached_result(self, traj_hash: str) -> dict[str, Any] | None:
         """Get cached validation result if available and not expired."""
