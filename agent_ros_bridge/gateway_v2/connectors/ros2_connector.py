@@ -182,7 +182,7 @@ class ROS2Robot(Robot):
         else:
             raise ValueError(f"Unknown ROS2 command: {action}")
 
-    async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:
+    async def subscribe(self, topic: str) -> AsyncIterator[Telemetry]:  # type: ignore[override]
         """Subscribe to ROS2 topic.
 
         Args:

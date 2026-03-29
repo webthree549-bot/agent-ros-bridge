@@ -148,8 +148,7 @@ async def main() -> int:
             grpc_config = config.transports["grpc"]
             if grpc_config.port > 0:
                 transport = GRPCTransport(
-                    "grpc",
-                    {"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options},
+                    config={"host": grpc_config.host, "port": grpc_config.port, **grpc_config.options}
                 )
                 bridge.transport_manager.register(transport)
                 logger.info(f"gRPC transport registered on {grpc_config.host}:{grpc_config.port}")
@@ -158,7 +157,7 @@ async def main() -> int:
         mqtt_config = config.transports["mqtt"]
         if mqtt_config.port > 0:
             transport = MQTTTransport(
-                "mqtt", {"host": mqtt_config.host, "port": mqtt_config.port, **mqtt_config.options}
+                config={"host": mqtt_config.host, "port": mqtt_config.port, **mqtt_config.options}
             )
             bridge.transport_manager.register(transport)
             logger.info(f"MQTT transport registered on {mqtt_config.host}:{mqtt_config.port}")
@@ -168,7 +167,7 @@ async def main() -> int:
         if ROS2Connector is None:
             logger.warning("ROS2 connector requested but rclpy not installed")
         else:
-            connector = ROS2Connector("ros2", config.connectors["ros2"].options)
+            connector = ROS2Connector(domain_id=config.connectors["ros2"].options.get("domain_id", 0))
             bridge.connector_registry.register(connector)
             logger.info("ROS2 connector registered")
 

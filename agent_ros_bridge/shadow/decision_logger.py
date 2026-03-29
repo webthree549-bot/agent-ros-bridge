@@ -226,6 +226,7 @@ class DecisionLogger:
             record_id=record_id,
             robot_id=robot_id,
             timestamp=ts,
+            context=DecisionContext(timestamp=ts),
             ai_proposal=ai_proposal,
             status="rejected",
         )
@@ -273,6 +274,7 @@ class DecisionLogger:
             record_id=record_id,
             robot_id=robot_id,
             timestamp=ts,
+            context=DecisionContext(timestamp=ts),
             ai_proposal=ai_proposal,
             human_action=action,
             status="modified",

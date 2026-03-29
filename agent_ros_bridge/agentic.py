@@ -731,7 +731,7 @@ if __name__ == "__main__":
 
     # Create agent
     agent = RobotAgent(
-        robot_id="bot1",
+        device_id="bot1",
         llm_provider="moonshot",
         require_confirmation=True,
         confidence_threshold=0.8,
