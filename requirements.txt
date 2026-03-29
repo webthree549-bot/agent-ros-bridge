@@ -1,5 +1,5 @@
 # Agent ROS Bridge - Core Dependencies
-cryptography==46.0.5
+cryptography==46.0.6
 # Generated from pyproject.toml
 # Install with: pip install -r requirements.txt
 
