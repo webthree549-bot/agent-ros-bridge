@@ -13,6 +13,18 @@ import glob
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import time
 
+# Import types
+from .gazebo_types import WorldConfig, WorldResult, BatchConfig, ExecutionMetrics
+
+# Import metrics
+from .gazebo_metrics import MetricsCollector
+
+# Import batch runner (with compatibility for old imports)
+try:
+    from .gazebo_batch_runner import GazeboBatchRunner
+except ImportError:
+    GazeboBatchRunner = None  # type: ignore
+
 
 @dataclass
 class Scenario:
