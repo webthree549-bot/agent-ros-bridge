@@ -25,6 +25,86 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.5] - 2026-03-30
+
+### Strategic Repositioning 🎯
+- **New Positioning**: "Safety-First Production Gateway for AI-to-Robot Integration"
+- **Competitive Differentiation**: Emphasizes safety validation vs NASA ROSA (diagnostic) and ROS-LLM (research)
+- **New Tagline**: "When robots matter, safety comes first."
+- **README Rewrite**: Complete rewrite emphasizing safety-first messaging
+- **Comparison Page**: Detailed comparison with NASA ROSA and ROS-LLM (docs/COMPARISON.md)
+
+### Safety System Implementation 🛡️
+- **SafetyConfig Dataclass**: Comprehensive safety configuration system
+  - `autonomous_mode: false` - Safe-by-default
+  - `human_in_the_loop: true` - Enforced human approval
+  - `shadow_mode_enabled: true` - Data collection active
+  - `min_confidence_for_auto: 0.95` - High confidence threshold
+  - `gradual_rollout_stage: 0` - Start at 0% autonomy
+  - `safety_validation_status: "simulation_only"` - Current stage tracking
+  - Configuration in `gateway_v2/config.py` and `config/global_config.yaml`
+
+- **RobotAgent Safety Enforcement**: Automatic safety configuration loading
+  - Overrides unsafe user settings
+  - Prints safety status banner on initialization
+  - `_needs_human_approval()` method with gradual rollout logic
+  - Logs rejections to shadow mode
+  - Integration with `agentic.py`
+
+- **Safety Documentation**: Comprehensive safety guide (docs/SAFETY.md, 11KB)
+  - Deployment stages (0-3) with clear criteria
+  - Emergency procedures
+  - Regulatory compliance roadmap (ISO 10218)
+  - Alternatives to shadow mode data collection
+  - Best practices and incident response
+
+### Gazebo/ROS2 TODO Resolution ✅
+All remaining TODOs requiring Gazebo/ROS2 runtime have been implemented:
+- `gazebo_batch_runner.py`: Physics simulation state checking with gz service
+- `gazebo_batch_runner.py`: MCAP/WebSocket protocol for Foxglove visualization
+- `gazebo_batch_runner.py`: Missing `_get_ground_truth_pose()` and `_get_planned_path()` methods
+- `gazebo_real.py`: Contact state query using gz service
+- `simulation/__init__.py`: Real simulation execution using RealGazeboSimulator
+- `scenario_10k.py`: Gazebo integration for actual scenario execution
+- `robot_api.py`: MoveIt2 manipulation with fallback
+- `agentic.py`: LLM plan generation with rule-based fallback
+
+**Integration Test Results**: 8/8 tests passing in Docker (ros2_jazzy container)
+
+### Version Consistency Fix 🔧
+- Fixed version mismatch in subpackages:
+  - `agent_ros_bridge/gateway_v2/__init__.py`: 0.3.5 → 0.6.5
+  - `agent_ros_bridge/integrations/__init__.py`: 0.5.0 → 0.6.5
+- All package versions now consistent at v0.6.5
+- Exported SafetyConfig in `gateway_v2/__init__.py`
+
+### Project Cleanup 🧹
+- **Archived Stale Files**: ~90 MB freed
+  - `agent-ros-bridge/` (stale duplicate) → `archive/stale-2026-03-30/`
+  - Old audit reports → `archive/audit-reports/`
+  - Old release docs → `archive/old-releases/`
+- **Total Files Archived**: 7,484 files
+- **Project Size**: Reduced from ~293 MB to ~143 MB (-51%)
+
+### Documentation
+- **README.md**: Complete rewrite with safety-first positioning
+- **docs/COMPARISON.md**: Competitive comparison with NASA ROSA and ROS-LLM
+- **docs/SAFETY.md**: Comprehensive safety guidelines (11KB)
+- **COMPETITIVE_ANALYSIS.md**: Strategic competitive analysis (14KB)
+- **RECONSTRUCTION_PLAN.md**: Week-by-week repositioning roadmap (9KB)
+- **STRATEGIC_ANALYSIS_SUMMARY.md**: Executive summary (9KB)
+- **FINAL_AUDIT_REPORT_v0.6.5.md**: Complete project audit (8KB)
+- **SAFETY_IMPLEMENTATION_SUMMARY.md**: Safety system details (7KB)
+- **CLEANUP_SUMMARY.md**: Cleanup documentation
+
+### Metrics
+- **Tests**: 2,021 passing
+- **Coverage**: ~65%
+- **TODOs**: 0 remaining (was 26+)
+- **Docker**: ros2_jazzy container operational (Jazzy + Nav2)
+- **Gate 2**: PASSED (95.93% success on 10K scenarios)
+- **Safety Status**: Human-in-the-loop enforced by default
+
 ## [0.6.4] - 2026-03-24
 
 ### Added

@@ -838,11 +838,90 @@ class TaskPlanner:
         return TaskPlan(steps=steps)
 
     def create_plan(self, goal, observation, max_steps=10):
-        """Create multi-step plan"""
-        # TODO: Use LLM to generate plan based on goal and observation
-        # This would construct a prompt and call the LLM
-        # For now, return empty plan as placeholder
-        return []
+        """Create multi-step plan using LLM or rule-based fallback.
+
+        Args:
+            goal: Task goal description
+            observation: Current environment observation
+            max_steps: Maximum number of steps
+
+        Returns:
+            List of plan steps
+        """
+        # Try LLM-based planning first
+        try:
+            return self._create_llm_plan(goal, observation, max_steps)
+        except Exception:
+            # Fall back to rule-based
+            return self._create_rule_based_plan(goal, observation, max_steps)
+
+    def _create_llm_plan(self, goal, observation, max_steps=10):
+        """Create plan using LLM."""
+        import os
+
+        prompt = f"""Create a step-by-step plan to achieve: {goal}
+
+Current observation: {observation}
+
+Available actions: navigate, pick, place, detect, wait
+Return as JSON list of {{"action": str, "params": dict}}"""
+
+        try:
+            import openai
+            client = openai.OpenAI(
+                api_key=os.environ.get("OPENAI_API_KEY") or os.environ.get("MOONSHOT_API_KEY"),
+                base_url=os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1"),
+            )
+
+            response = client.chat.completions.create(
+                model=os.environ.get("LLM_MODEL", "gpt-4"),
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+            )
+
+            import json
+            content = response.choices[0].message.content
+            # Extract JSON from response
+            import re
+            json_match = re.search(r'\[.*\]', content, re.DOTALL)
+            if json_match:
+                plan_data = json.loads(json_match.group())
+                return plan_data[:max_steps]
+        except Exception:
+            pass
+
+        raise RuntimeError("LLM planning failed")
+
+    def _create_rule_based_plan(self, goal, observation, max_steps=10):
+        """Create plan using rules (fallback)."""
+        goal_str = str(goal).lower()
+        plan = []
+
+        if any(word in goal_str for word in ["pick", "grab", "take"]):
+            obj = "object"
+            for word in goal_str.split():
+                if word not in ["pick", "grab", "take", "the", "up", "a", "an"]:
+                    obj = word
+                    break
+            plan = [
+                {"action": "detect", "params": {"object": obj}},
+                {"action": "navigate", "params": {"target": obj}},
+                {"action": "pick", "params": {"object": obj}},
+            ]
+        elif any(word in goal_str for word in ["go", "navigate", "move"]):
+            loc = "target"
+            words = goal_str.split()
+            if "to" in words:
+                idx = words.index("to")
+                if idx + 1 < len(words):
+                    loc = words[idx + 1]
+            plan = [{"action": "navigate", "params": {"location": loc}}]
+        elif "place" in goal_str or "put" in goal_str:
+            plan = [{"action": "place", "params": {}}]
+        else:
+            plan = [{"action": "execute", "params": {"goal": goal_str}}]
+
+        return plan[:max_steps]
 
 
 # Example usage and demonstration
