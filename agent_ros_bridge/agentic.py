@@ -58,6 +58,7 @@ class RobotAgent:
         require_confirmation: bool = True,
         confidence_threshold: float = 0.8,
         device_profile: Any | None = None,
+        safety_config: Any | None = None,
     ):
         """
         Initialize robot agent.
@@ -69,12 +70,30 @@ class RobotAgent:
             require_confirmation: Whether to require human approval
             confidence_threshold: Auto-approve above this confidence
             device_profile: Optional DeviceProfile for custom hardware
+            safety_config: Optional SafetyConfig (loads from config if None)
         """
         self.device_id = device_id
         self.device_type = device_type
         self.llm_provider = llm_provider
-        self.require_confirmation = require_confirmation
-        self.confidence_threshold = confidence_threshold
+        self.device_profile = device_profile
+
+        # Load safety configuration
+        self.safety = safety_config or self._load_safety_config()
+
+        # ENFORCE SAFETY: Override confirmation settings based on safety config
+        # If human_in_the_loop is required by safety config, force require_confirmation=True
+        if self.safety.human_in_the_loop:
+            if not require_confirmation:
+                print("⚠️  SAFETY: require_confirmation forced to True (human_in_the_loop required)")
+            self.require_confirmation = True
+            # Use stricter confidence threshold from safety config if available
+            self.confidence_threshold = max(confidence_threshold, self.safety.min_confidence_for_auto)
+        else:
+            self.require_confirmation = require_confirmation
+            self.confidence_threshold = confidence_threshold
+
+        # Safety status banner
+        self._print_safety_status()
 
         # Initialize hardware abstraction
         self._init_hardware(device_profile)
@@ -84,6 +103,41 @@ class RobotAgent:
         self._init_task_planner()
         self._init_safety_validator()
         self._init_shadow_hooks()
+
+    def _load_safety_config(self):
+        """Load safety configuration from config files."""
+        try:
+            from agent_ros_bridge.gateway_v2.config import ConfigLoader, SafetyConfig
+            config = ConfigLoader.from_file_or_env()
+            return config.safety
+        except Exception:
+            # Fallback to safe defaults if config loading fails
+            return SafetyConfig()
+
+    def _print_safety_status(self):
+        """Print safety status banner on initialization."""
+        print("\n" + "=" * 60)
+        print("🛡️  SAFETY STATUS")
+        print("=" * 60)
+        print(f"Device: {self.device_id} ({self.device_type})")
+        print(f"Autonomous Mode: {self.safety.autonomous_mode} {'⚠️' if self.safety.autonomous_mode else '✅'}")
+        print(f"Human-in-the-Loop: {self.safety.human_in_the_loop} {'✅' if self.safety.human_in_the_loop else '⚠️'}")
+        print(f"Shadow Mode: {self.safety.shadow_mode_enabled} {'✅' if self.safety.shadow_mode_enabled else '⚠️'}")
+        print(f"Validation Status: {self.safety.safety_validation_status}")
+        print(f"Confidence Threshold: {self.confidence_threshold:.2f}")
+
+        if not self.safety.autonomous_mode:
+            print("\n✅ SAFE MODE: Human approval required for all actions")
+        else:
+            print(f"\n⚠️  AUTONOMOUS MODE: AI may execute without approval (confidence > {self.safety.min_confidence_for_auto:.2f})")
+
+        if self.safety.safety_validation_status in ["simulation_only", "supervised"]:
+            hours = self.safety.shadow_mode_hours_collected
+            required = self.safety.required_shadow_hours
+            print(f"\n📊 Shadow Mode: {hours:.1f}/{required:.0f} hours collected")
+            print(f"   Agreement Rate: {self.safety.shadow_mode_agreement_rate:.1%}")
+
+        print("=" * 60 + "\n")
 
     @classmethod
     def discover(
@@ -449,6 +503,69 @@ class RobotAgent:
 
         self.shadow_hooks = ShadowModeHooks()
 
+    def _needs_human_approval(self, confidence: float, step) -> bool:
+        """Determine if human approval is required based on safety configuration.
+
+        Args:
+            confidence: AI confidence score (0.0-1.0)
+            step: Task step being executed
+
+        Returns:
+            True if human approval is required
+        """
+        # SAFETY: If human_in_the_loop is required, always need approval
+        if self.safety.human_in_the_loop:
+            return True
+
+        # SAFETY: If autonomous_mode is disabled, always need approval
+        if not self.safety.autonomous_mode:
+            return True
+
+        # SAFETY: Check gradual rollout stage
+        # If rollout is not at 100%, only allow autonomy for a percentage of decisions
+        import random
+        if self.safety.gradual_rollout_stage < 100:
+            # Only allow autonomy for rollout_stage% of decisions
+            if random.randint(1, 100) > self.safety.gradual_rollout_stage:
+                return True
+
+        # SAFETY: Check confidence threshold
+        if confidence < self.safety.min_confidence_for_auto:
+            return True
+
+        # All safety checks passed - can execute autonomously
+        return False
+
+    def _log_rejection(self, step, confidence: float, reason: str):
+        """Log human rejection to shadow mode for analysis.
+
+        Args:
+            step: The rejected step
+            confidence: AI confidence when rejected
+            reason: Rejection reason
+        """
+        try:
+            if hasattr(self, 'shadow_hooks') and self.safety.shadow_mode_enabled:
+                # Create a record of the AI proposal that was rejected
+                proposal_data = {
+                    "robot_id": self.device_id,
+                    "step_name": step.name,
+                    "capability": getattr(step, 'capability_name', 'unknown'),
+                    "confidence": confidence,
+                    "rejection_reason": reason,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+                # Log via shadow hooks if available
+                if hasattr(self.shadow_hooks, 'on_human_rejected'):
+                    self.shadow_hooks.on_human_rejected(
+                        robot_id=self.device_id,
+                        ai_proposal_id=getattr(step, 'ai_proposal_id', 'unknown'),
+                        rejection_reason=reason,
+                    )
+        except Exception as e:
+            # Don't let logging failures stop execution
+            print(f"Warning: Could not log rejection: {e}")
+
     def execute(
         self,
         natural_language_command: str,
@@ -516,8 +633,11 @@ class RobotAgent:
                 )
                 continue
 
-            # Get human confirmation if needed
-            if self.require_confirmation and intent_result.confidence < self.confidence_threshold:
+            # SAFETY CHECK: Determine if human approval is required
+            # This enforces the safety configuration
+            needs_human_approval = self._needs_human_approval(intent_result.confidence, step)
+
+            if needs_human_approval:
                 approval = self._get_human_approval(
                     step=step,
                     confidence=intent_result.confidence,
@@ -532,12 +652,15 @@ class RobotAgent:
                             "reason": "Human rejection",
                         }
                     )
+                    # Log rejection to shadow mode
+                    self._log_rejection(step, intent_result.confidence, "human_rejection")
                     continue
 
                 human_approvals += 1
             else:
-                # Auto-approve high confidence
-                human_approvals += 1 if self.require_confirmation else 0
+                # Auto-execute (autonomous mode with high confidence)
+                human_approvals += 0  # No human involved
+                print(f"🤖 AUTONOMOUS: Executing {step.name} (confidence: {intent_result.confidence:.2f})")
 
             # Execute capability on device
             result = self.device.execute_capability(

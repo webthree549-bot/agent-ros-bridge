@@ -73,6 +73,42 @@ class SecurityConfig:
 
 
 @dataclass
+class SafetyConfig:
+    """Safety configuration for autonomous operation.
+
+    CRITICAL: System requires human-in-the-loop until shadow mode validation completes.
+    See: docs/SAFETY.md for full safety requirements and deployment guidelines.
+
+    Attributes:
+        autonomous_mode: Whether AI can operate without human approval.
+            WARNING: Only enable after 200+ hours of shadow mode data collection
+            and >95% agreement rate demonstrated.
+        human_in_the_loop: Require human approval for all AI proposals.
+            Default: True (safe default until validation complete)
+        shadow_mode_enabled: Enable shadow mode data collection.
+            Should be True during all supervised operation to collect data.
+        min_confidence_for_auto: Minimum AI confidence for autonomous execution.
+            Only used when autonomous_mode=True.
+        gradual_rollout_stage: Current rollout stage (0-100).
+            0 = 100% human approval required
+            100 = Full autonomous (after validation)
+        safety_validation_status: Current validation status.
+            'simulation_only' -> 'supervised' -> 'validated' -> 'autonomous'
+    """
+
+    autonomous_mode: bool = False  # SAFE DEFAULT: Human approval required
+    human_in_the_loop: bool = True  # Always true until shadow validation
+    shadow_mode_enabled: bool = True  # Collect data during operation
+    min_confidence_for_auto: float = 0.95  # High confidence threshold
+    gradual_rollout_stage: int = 0  # Start at 0% autonomous
+    safety_validation_status: str = "simulation_only"  # Current validation stage
+    shadow_mode_hours_collected: float = 0.0  # Hours of data collected
+    shadow_mode_agreement_rate: float = 0.0  # AI-human agreement %
+    required_shadow_hours: float = 200.0  # Target for validation
+    min_agreement_rate: float = 0.95  # Required agreement for autonomy
+
+
+@dataclass
 class PluginConfig:
     """Plugin configuration."""
 
@@ -108,6 +144,9 @@ class BridgeConfig:
 
     # Security
     security: SecurityConfig = field(default_factory=SecurityConfig)
+
+    # Safety (CRITICAL: See docs/SAFETY.md)
+    safety: SafetyConfig = field(default_factory=SafetyConfig)
 
     # Plugins
     plugins: list[PluginConfig] = field(default_factory=list)
@@ -217,6 +256,7 @@ class ConfigLoader:
             transports=cls._parse_transports(data.get("transports", {})),
             connectors=cls._parse_connectors(data.get("connectors", {})),
             security=cls._parse_security(data.get("security", {})),
+            safety=cls._parse_safety(data.get("safety", {})),
             plugins=cls._parse_plugins(data.get("plugins", [])),
             discovery=data.get("discovery", {"enabled": True}),
             telemetry=data.get("telemetry", {"enabled": True}),
@@ -260,6 +300,22 @@ class ConfigLoader:
             tls_key=data.get("tls_key"),
             mtls_enabled=data.get("mtls_enabled", False),
             ca_cert=data.get("ca_cert"),
+        )
+
+    @classmethod
+    def _parse_safety(cls, data: dict[str, Any]) -> SafetyConfig:
+        """Parse safety configuration."""
+        return SafetyConfig(
+            autonomous_mode=data.get("autonomous_mode", False),
+            human_in_the_loop=data.get("human_in_the_loop", True),
+            shadow_mode_enabled=data.get("shadow_mode_enabled", True),
+            min_confidence_for_auto=data.get("min_confidence_for_auto", 0.95),
+            gradual_rollout_stage=data.get("gradual_rollout_stage", 0),
+            safety_validation_status=data.get("safety_validation_status", "simulation_only"),
+            shadow_mode_hours_collected=data.get("shadow_mode_hours_collected", 0.0),
+            shadow_mode_agreement_rate=data.get("shadow_mode_agreement_rate", 0.0),
+            required_shadow_hours=data.get("required_shadow_hours", 200.0),
+            min_agreement_rate=data.get("min_agreement_rate", 0.95),
         )
 
     @classmethod
@@ -368,6 +424,42 @@ security:
     - jwt
   jwt_secret: ${JWT_SECRET}
 
+# SAFETY CONFIGURATION - CRITICAL FOR PRODUCTION
+# See docs/SAFETY.md for complete safety guidelines
+safety:
+  # AUTONOMOUS MODE - DANGEROUS IF ENABLED PREMATURELY
+  # Default: false (requires human approval)
+  # Only enable after:
+  #   - 200+ hours shadow mode data collected
+  #   - >95% AI-human agreement demonstrated
+  #   - Safety validation complete
+  autonomous_mode: false
+
+  # Human-in-the-loop: Require approval for all AI proposals
+  # Should remain true until shadow validation complete
+  human_in_the_loop: true
+
+  # Shadow mode: Enable data collection during operation
+  # Should be true during all supervised operation
+  shadow_mode_enabled: true
+
+  # Minimum confidence for autonomous execution (0.0-1.0)
+  # Only applies when autonomous_mode=true
+  min_confidence_for_auto: 0.95
+
+  # Gradual rollout stage (0-100)
+  # 0 = 100% human approval
+  # 100 = Full autonomous (after validation)
+  gradual_rollout_stage: 0
+
+  # Current validation status
+  # simulation_only -> supervised -> validated -> autonomous
+  safety_validation_status: "simulation_only"
+
+  # Shadow mode metrics (updated automatically)
+  shadow_mode_hours_collected: 0.0
+  shadow_mode_agreement_rate: 0.0
+
 plugins:
   - name: greenhouse
     enabled: true
@@ -410,3 +502,11 @@ if __name__ == "__main__":
     print(f"WebSocket port: {config.transports.get('websocket', TransportConfig()).port}")
     print(f"gRPC port: {config.transports.get('grpc', TransportConfig()).port}")
     print(f"Plugins: {[p.name for p in config.plugins]}")
+
+    # Safety status
+    print(f"\n🛡️  Safety Configuration:")
+    print(f"  Autonomous mode: {config.safety.autonomous_mode} ⚠️")
+    print(f"  Human-in-the-loop: {config.safety.human_in_the_loop}")
+    print(f"  Shadow mode enabled: {config.safety.shadow_mode_enabled}")
+    print(f"  Validation status: {config.safety.safety_validation_status}")
+    print(f"  Shadow hours collected: {config.safety.shadow_mode_hours_collected:.1f}/{config.safety.required_shadow_hours:.0f}")

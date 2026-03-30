@@ -20,3 +20,38 @@ system:
   node_respawn: true
   fallback_strategy: "safe_state"
   max_retry_attempts: 15
+
+# SAFETY CONFIGURATION - CRITICAL FOR PRODUCTION
+# See docs/SAFETY.md for complete safety guidelines
+# 
+# ⚠️  WARNING: System requires human-in-the-loop until shadow mode validation completes.
+#     DO NOT enable autonomous_mode without completing 200+ hours of shadow mode data
+#     collection and demonstrating >95% AI-human agreement rate.
+#
+# Default: Safe mode with human approval required for all actions
+safety:
+  # Autonomous operation - DANGEROUS IF ENABLED PREMATURELY
+  autonomous_mode: false
+  
+  # Require human approval for all AI proposals
+  human_in_the_loop: true
+  
+  # Enable shadow mode data collection during supervised operation
+  shadow_mode_enabled: true
+  
+  # Minimum AI confidence for autonomous execution (only when autonomous_mode=true)
+  min_confidence_for_auto: 0.95
+  
+  # Gradual rollout stage (0-100): Start at 0% autonomous
+  gradual_rollout_stage: 0
+  
+  # Current validation status: simulation_only -> supervised -> validated -> autonomous
+  safety_validation_status: "simulation_only"
+  
+  # Shadow mode metrics (auto-updated during operation)
+  shadow_mode_hours_collected: 0.0
+  shadow_mode_agreement_rate: 0.0
+  
+  # Validation requirements
+  required_shadow_hours: 200.0
+  min_agreement_rate: 0.95

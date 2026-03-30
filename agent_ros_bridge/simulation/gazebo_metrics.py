@@ -63,8 +63,7 @@ class MetricsCollector:
         Returns:
             (x, y, yaw) or None if not available
         """
-        # TODO: Implement via Gazebo transport
-        # For now, return mock data
+        # Delegate to ground truth pose retrieval
         return self._get_ground_truth_pose(world_id)
 
     def _get_ground_truth_pose(self, world_id: int) -> tuple[float, float, float] | None:
