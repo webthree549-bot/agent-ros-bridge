@@ -51,7 +51,7 @@ class WebSocketTransport(Transport):
             name: Transport identifier (default: "websocket").
         """
         super().__init__(name, config)
-        self.host = config.get("host", "0.0.0.0")
+        self.host = config.get("host", "0.0.0.0")  # nosec B104 - Gateway accepts remote robot connections
         self.port = config.get("port", 8765)
         self.tls_cert = config.get("tls_cert")
         self.tls_key = config.get("tls_key")
@@ -400,8 +400,7 @@ async def example_server():
 
     gateway = Bridge()
 
-    # Create WebSocket transport
-    ws_transport = WebSocketTransport({"host": "0.0.0.0", "port": 8765})
+    ws_transport = WebSocketTransport({"host": "0.0.0.0", "port": 8765})  # nosec B104
 
     gateway.transport_manager.register(ws_transport)
 

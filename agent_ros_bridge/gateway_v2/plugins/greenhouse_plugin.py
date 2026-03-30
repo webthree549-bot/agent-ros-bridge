@@ -212,8 +212,7 @@ async def example():
     # Create gateway
     gateway = Bridge()
 
-    # Register WebSocket transport
-    ws_transport = WebSocketTransport({"host": "0.0.0.0", "port": 8765})
+    ws_transport = WebSocketTransport({"host": "0.0.0.0", "port": 8765})  # nosec B104
     gateway.transport_manager.register(ws_transport)
 
     # Load greenhouse plugin

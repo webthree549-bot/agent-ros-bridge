@@ -341,7 +341,7 @@ class MetricsServer:
 
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", self.port)
+        site = web.TCPSite(runner, "0.0.0.0", self.port)  # nosec B104 - Metrics server requires external access
         await site.start()
 
         logger.info(f"📊 Custom metrics server started on port {self.port}")

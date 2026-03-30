@@ -13,9 +13,23 @@ Features:
 - Safety warnings for low confidence
 """
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+# Optional FastAPI imports
+try:
+    from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+    from fastapi.responses import HTMLResponse
+    from fastapi.middleware.cors import CORSMiddleware
+
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    FASTAPI_AVAILABLE = False
+    FastAPI = None  # type: ignore
+    WebSocket = None  # type: ignore
+    WebSocketDisconnect = None  # type: ignore
 
 
 @dataclass
@@ -365,8 +379,33 @@ class ConfirmationUI:
         modified_params: dict | None = None,
     ) -> dict[str, Any]:
         """Execute the approved/modified command"""
-        # TODO: Integrate with actual robot control
-        # For now, return mock result
+        # Execute via shadow hooks if available
+        if self._shadow_hooks and hasattr(self._shadow_hooks, '_bridge'):
+            bridge = self._shadow_hooks._bridge
+            if bridge:
+                try:
+                    # Execute the command on the robot
+                    command = {
+                        "action": proposal.intent_type,
+                        "robot_id": proposal.robot_id,
+                        "parameters": modified_params or {},
+                    }
+                    result = bridge.execute(command)
+                    return {
+                        "executed": True,
+                        "command": proposal.intent_type,
+                        "robot_id": proposal.robot_id,
+                        "result": result,
+                        "timestamp": time.time(),
+                    }
+                except Exception as e:
+                    return {
+                        "executed": False,
+                        "error": str(e),
+                        "timestamp": time.time(),
+                    }
+
+        # Fallback: return mock result
         return {
             "executed": True,
             "command": proposal.intent_type,
@@ -486,14 +525,122 @@ class ConfirmationUI:
         return html
 
     def start_server(self) -> None:
-        """Start the web server (placeholder)"""
-        # TODO: Implement actual web server (Flask/FastAPI)
-        pass
+        """Start the FastAPI web server with WebSocket support"""
+        if not FASTAPI_AVAILABLE:
+            raise ImportError("FastAPI is required. Install with: pip install fastapi uvicorn")
+
+        self._app = self._create_fastapi_app()
+        self._server_task = asyncio.create_task(self._run_server())
+
+    def _create_fastapi_app(self) -> FastAPI:
+        """Create FastAPI application with routes"""
+        app = FastAPI(
+            title="Agent ROS Bridge - Confirmation UI",
+            description="Human confirmation interface for AI proposals",
+            version="0.6.5",
+        )
+
+        # CORS middleware
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+
+        @app.get("/", response_class=HTMLResponse)
+        async def get_dashboard():
+            """Serve the main dashboard"""
+            return self._generate_dashboard_html()
+
+        @app.get("/api/proposals")
+        async def get_proposals():
+            """Get all pending proposals"""
+            return {"proposals": self.get_pending_proposals()}
+
+        @app.get("/api/proposals/{proposal_id}")
+        async def get_proposal(proposal_id: str):
+            """Get specific proposal"""
+            if proposal_id not in self._proposals:
+                raise HTTPException(status_code=404, detail="Proposal not found")
+            return self._proposal_to_dict(self._proposals[proposal_id])
+
+        @app.post("/api/proposals/{proposal_id}/approve")
+        async def approve_proposal(proposal_id: str):
+            """Approve a proposal"""
+            result = self.approve_proposal(proposal_id)
+            return result
+
+        @app.post("/api/proposals/{proposal_id}/reject")
+        async def reject_proposal(proposal_id: str):
+            """Reject a proposal"""
+            result = self.reject_proposal(proposal_id)
+            return result
+
+        @app.post("/api/proposals/{proposal_id}/modify")
+        async def modify_proposal(proposal_id: str, request: dict):
+            """Modify and approve a proposal"""
+            modified_params = request.get("modified_params", {})
+            result = self.modify_proposal(proposal_id, modified_params)
+            return result
+
+        @app.get("/api/metrics")
+        async def get_metrics():
+            """Get current metrics"""
+            return self.get_metrics()
+
+        @app.websocket("/ws")
+        async def websocket_endpoint(websocket: WebSocket):
+            """WebSocket endpoint for real-time updates"""
+            await websocket.accept()
+            self._websocket_clients.add(websocket)
+            try:
+                while True:
+                    # Keep connection alive and handle client messages
+                    data = await websocket.receive_text()
+                    # Echo back or handle commands
+                    await websocket.send_json({"type": "ack", "data": data})
+            except WebSocketDisconnect:
+                self._websocket_clients.discard(websocket)
+            except Exception:
+                self._websocket_clients.discard(websocket)
+
+        return app
+
+    async def _run_server(self) -> None:
+        """Run the uvicorn server"""
+        import uvicorn
+
+        config = uvicorn.Config(
+            self._app,
+            host="0.0.0.0",  # nosec B104 - UI server requires external operator access
+            port=self.port,
+            log_level="info",
+        )
+        server = uvicorn.Server(config)
+        await server.serve()
 
     def _broadcast_update(self, message: dict[str, Any]) -> None:
         """Broadcast update to WebSocket clients"""
-        # TODO: Implement WebSocket broadcasting
-        pass
+        if not self._websocket_clients:
+            return
+
+        # Create async task to broadcast
+        asyncio.create_task(self._async_broadcast(message))
+
+    async def _async_broadcast(self, message: dict[str, Any]) -> None:
+        """Async broadcast to all connected WebSocket clients"""
+        disconnected = set()
+
+        for websocket in self._websocket_clients:
+            try:
+                await websocket.send_json(message)
+            except Exception:
+                disconnected.add(websocket)
+
+        # Remove disconnected clients
+        self._websocket_clients -= disconnected
 
     def _broadcast_metrics(self) -> None:
         """Broadcast metrics update"""

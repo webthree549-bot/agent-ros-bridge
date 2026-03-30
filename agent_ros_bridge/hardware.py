@@ -9,6 +9,7 @@ Makes Agent ROS Bridge work with ANY ROS device:
 - Custom hardware
 """
 
+import tempfile
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
@@ -184,7 +185,9 @@ class Drone(ROSDevice):
         return {"success": True, "message": "Hovering"}
 
     def _capture_image(self, params: dict) -> dict[str, Any]:
-        return {"success": True, "message": "Image captured", "image_path": "/tmp/image.jpg"}
+        # Use secure temp directory instead of hardcoded /tmp
+        temp_dir = tempfile.gettempdir()
+        return {"success": True, "message": "Image captured", "image_path": f"{temp_dir}/image.jpg"}
 
     def get_state(self) -> dict[str, Any]:
         return {

@@ -21,7 +21,7 @@ class TransportConfig:
     """Transport configuration."""
 
     enabled: bool = True
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # nosec B104 - Robot gateway requires binding to all interfaces for remote robot access
     port: int = 0  # 0 means disabled
     tls_cert: str | None = None
     tls_key: str | None = None
@@ -230,7 +230,7 @@ class ConfigLoader:
         for name, cfg in data.items():
             transports[name] = TransportConfig(
                 enabled=cfg.get("enabled", True),
-                host=cfg.get("host", "0.0.0.0"),
+                host=cfg.get("host", "0.0.0.0"),  # nosec B104 - Allow external robot connections
                 port=cfg.get("port", 0),
                 tls_cert=cfg.get("tls_cert"),
                 tls_key=cfg.get("tls_key"),
