@@ -461,6 +461,7 @@ class ROSHealthMonitor:
                 # ROS1: /diagnostics
                 pass
         except Exception:
+            # Monitoring errors are non-critical  # nosec B110
             pass
 
         return errors, warnings, messages

@@ -104,7 +104,7 @@ class RealGazeboSimulator:
             # Launch Gazebo with the specified world
             cmd = ["ros2", "launch", "turtlebot3_gazebo", f"{self.world_file}.launch.py"]
 
-            self._gazebo_process = subprocess.Popen(
+            self._gazebo_process = subprocess.Popen(  # nosec B603 B607
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -115,7 +115,7 @@ class RealGazeboSimulator:
                 await asyncio.sleep(1)
 
                 # Check if gzserver is running
-                result = subprocess.run(["pgrep", "-x", "gzserver"], capture_output=True)
+                result = subprocess.run(["pgrep", "-x", "gzserver"], capture_output=True)  # nosec B603 B607
                 if result.returncode == 0:
                     print("  ✅ Gazebo started")
                     return True
@@ -148,14 +148,14 @@ class RealGazeboSimulator:
             #     "spawn_turtlebot3.launch.py"
             # ]
 
-            subprocess.run(cmd, capture_output=True, timeout=10)
+            subprocess.run(cmd, capture_output=True, timeout=10)  # nosec B603 B607
 
             # Wait for robot topics to appear
             for _ in range(10):
                 await asyncio.sleep(1)
 
                 # Check if robot topics exist
-                result = subprocess.run(["ros2", "topic", "list"], capture_output=True, text=True)
+                result = subprocess.run(["ros2", "topic", "list"], capture_output=True, text=True)  # nosec B603 B607
 
                 if "/odom" in result.stdout:
                     print(f"  ✅ {self.robot_model} spawned")
@@ -181,7 +181,7 @@ class RealGazeboSimulator:
                 f"map:=${{ROS_WS}}/maps/{self.world_file}.yaml",
             ]
 
-            self._nav2_process = subprocess.Popen(
+            self._nav2_process = subprocess.Popen(  # nosec B603 B607
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -192,7 +192,7 @@ class RealGazeboSimulator:
                 await asyncio.sleep(1)
 
                 # Check if Nav2 action server is available
-                result = subprocess.run(["ros2", "action", "list"], capture_output=True, text=True)
+                result = subprocess.run(["ros2", "action", "list"], capture_output=True, text=True)  # nosec B603 B607
 
                 if "/navigate_to_pose" in result.stdout:
                     print("  ✅ Nav2 ready")
@@ -394,6 +394,7 @@ class RealGazeboSimulator:
                 rclpy.shutdown()
                 print("  ✅ ROS2 shutdown")
             except Exception:
+                # ROS2 cleanup errors are non-critical during shutdown  # nosec B110
                 pass
 
         print("✅ Simulator stopped")

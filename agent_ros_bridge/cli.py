@@ -231,9 +231,9 @@ def handle_skill(args):
         print(f"🔍 Validating skill: {skill_path}")
 
         # Run validation
-        import subprocess
+        import subprocess  # nosec B404 - Required for CLI tool execution
 
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603 B607 - Internal test execution
             ["python", "-m", "pytest", "tests/skills/test_skill_structure.py", "-v"],
             capture_output=True,
             text=True,

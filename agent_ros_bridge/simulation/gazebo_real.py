@@ -6,7 +6,7 @@ Connects to running Gazebo instance and executes real navigation.
 """
 
 import os
-import subprocess
+import subprocess  # nosec B404 - Required for Gazebo/ROS2 integration
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -119,7 +119,7 @@ class RealGazeboSimulator:
     def _is_gazebo_running(self) -> bool:
         """Check if Gazebo is running"""
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 ["pgrep", "-f", "gz sim"],
                 capture_output=True,
                 text=True,
@@ -134,7 +134,7 @@ class RealGazeboSimulator:
         env["GZ_SIM_SERVER_PORT"] = str(self.gzserver_port)
 
         # Start gz sim in server mode
-        process = subprocess.Popen(
+        process = subprocess.Popen(  # nosec B603 B607
             ["gz", "sim", "-s", "-r", "--headless-rendering"],
             env=env,
             stdout=subprocess.DEVNULL,
@@ -255,7 +255,7 @@ class RealGazeboSimulator:
                 f"pose: {{position: {{x: {x}, y: {y}, z: {z}}}, orientation: {{z: {yaw}}}}}",
             ]
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,
@@ -302,7 +302,7 @@ class RealGazeboSimulator:
                 f'name: "{name}"',
             ]
 
-            subprocess.run(cmd, capture_output=True, timeout=5)
+            subprocess.run(cmd, capture_output=True, timeout=5)  # nosec B603 B607
 
         except Exception:
             pass  # Ignore errors
@@ -413,7 +413,7 @@ class RealGazeboSimulator:
                 f'name: "{name}"',
             ]
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,

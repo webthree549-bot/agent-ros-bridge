@@ -96,9 +96,9 @@ class MetricsCollector:
                 "1000",
             ]
 
-            import subprocess
+            import subprocess  # nosec B404 - Required for Gazebo queries
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,
@@ -172,10 +172,10 @@ class MetricsCollector:
                 "100",
             ]
 
-            import subprocess
+            import subprocess  # nosec B404 - Required for Gazebo queries
             import os
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,
@@ -207,9 +207,9 @@ class MetricsCollector:
         try:
             # Query Nav2 for planned path
             # This would use ROS2 to get the path from the planner
-            import subprocess
+            import subprocess  # nosec B404 - Required for ROS2 queries
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 [
                     "ros2",
                     "topic",

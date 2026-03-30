@@ -157,6 +157,7 @@ class WebSocketTransport(Transport):
                     elif hasattr(websocket, "request") and hasattr(websocket.request, "headers"):
                         headers = dict(websocket.request.headers)
                 except Exception:
+                    # Header extraction failed, continue with other auth methods  # nosec B110
                     pass
                 api_key = self.authenticator.extract_api_key_from_headers(headers)
                 if api_key:

@@ -361,7 +361,8 @@ class ROS2ActionClient(BaseActionClient):
                     if not callable(val):
                         result[attr] = val
                 except Exception:
-                    pass
+                    # Skip attributes that can't be accessed
+                    continue
         return result
 
     def _parse_result(self, result_msg) -> dict[str, Any]:

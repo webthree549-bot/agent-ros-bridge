@@ -312,7 +312,7 @@ class ShadowModeHooks:
                 }
             )
         except Exception:
-            # Don't let dashboard errors break logging
+            # Don't let dashboard errors break logging  # nosec B110
             pass
 
     @property

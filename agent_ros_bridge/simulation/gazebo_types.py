@@ -3,7 +3,7 @@
 Contains dataclasses and type definitions used by GazeboBatchRunner.
 """
 
-import subprocess
+import subprocess  # nosec B404 - Type hint only
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any

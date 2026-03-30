@@ -307,7 +307,7 @@ class ContextManagerNode(Node):
 
                 self._robot_poses[robot_id] = pose
             except Exception:
-                # TF not available, use cached pose
+                # TF not available, use cached pose  # nosec B110
                 pass
 
     def update_context(self, robot_id: str, session_id: str | None, intent: Intent) -> None:

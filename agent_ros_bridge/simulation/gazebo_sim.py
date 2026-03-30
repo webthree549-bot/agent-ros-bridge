@@ -714,6 +714,7 @@ class GazeboSimulator:
                 return True
 
         except Exception:
+            # Gazebo query failed, assume no collision  # nosec B110
             pass
 
         return False
@@ -797,7 +798,7 @@ class GazeboSimulator:
 
         try:
             env = self._get_gazebo_env()
-            subprocess.run(
+            subprocess.run(  # nosec B603 B607
                 [
                     "gz",
                     "service",

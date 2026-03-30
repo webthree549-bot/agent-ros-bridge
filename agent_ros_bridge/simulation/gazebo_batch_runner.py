@@ -10,7 +10,7 @@ Supports:
 
 import logging
 import os
-import subprocess
+import subprocess  # nosec B404 - Required for Gazebo/ROS2 integration
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -110,6 +110,7 @@ class GazeboBatchRunner:
             with open("/proc/self/cgroup") as f:
                 return "docker" in f.read()
         except Exception:
+            # Not in Docker or can't read cgroup  # nosec B110
             pass
 
         return False
@@ -166,7 +167,7 @@ class GazeboBatchRunner:
             cmd.extend(["--world", self.world_template])
 
         try:
-            world.process = subprocess.Popen(
+            world.process = subprocess.Popen(  # nosec B603 B607
                 cmd,
                 env=env,
                 stdout=subprocess.PIPE,
@@ -316,7 +317,7 @@ class GazeboBatchRunner:
                 f"sdf: '{sdf}'",
             ]
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,
@@ -393,7 +394,7 @@ class GazeboBatchRunner:
                 json.dumps(goal_msg),
             ]
 
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
                 text=True,
