@@ -6,14 +6,14 @@ New code should import directly from gazebo_batch_runner, gazebo_types, or gazeb
 
 # Re-export from new locations for backward compatibility
 from .gazebo_batch_runner import GazeboBatchRunner
-from .gazebo_types import WorldConfig, WorldResult, BatchConfig, ExecutionMetrics
 from .gazebo_metrics import MetricsCollector
+from .gazebo_types import BatchConfig, ExecutionMetrics, WorldConfig, WorldResult
 
 __all__ = [
-    "GazeboBatchRunner",
-    "WorldConfig",
-    "WorldResult",
     "BatchConfig",
     "ExecutionMetrics",
+    "GazeboBatchRunner",
     "MetricsCollector",
+    "WorldConfig",
+    "WorldResult",
 ]

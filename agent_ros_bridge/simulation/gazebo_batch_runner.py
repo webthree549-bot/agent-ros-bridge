@@ -230,7 +230,7 @@ class GazeboBatchRunner:
 
             # Spawn robot
             robot_config = scenario.get("robot", {})
-            robot_id = self._spawn_robot(world_id, robot_config)
+            self._spawn_robot(world_id, robot_config)
 
             # Wait for stabilization
             if not self._wait_for_stable(world_id, timeout=5.0):
@@ -296,8 +296,8 @@ class GazeboBatchRunner:
         Returns:
             True if simulation stabilized, False if timeout
         """
-        world = self._get_world(world_id)
-        if not world or not world.is_running:
+        world_obj = self._get_world(world_id)
+        if not world_obj or not world_obj.is_running:
             time.sleep(0.1)
             return True
 

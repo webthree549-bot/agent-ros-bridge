@@ -5,6 +5,9 @@ Handles trajectory tracking, collision detection, and deviation calculation.
 
 import logging
 import math
+import os
+import subprocess  # nosec B404 - Required for Gazebo/ROS2 queries
+import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -40,8 +43,6 @@ class MetricsCollector:
         Returns:
             List of (x, y, yaw) poses
         """
-        import time
-
         trajectory = []
         num_samples = int(duration_sec * sample_rate_hz)
         sample_interval = 1.0 / sample_rate_hz
@@ -95,8 +96,6 @@ class MetricsCollector:
                 "1000",
             ]
 
-            import subprocess  # nosec B404 - Required for Gazebo queries
-
             result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
@@ -130,8 +129,6 @@ class MetricsCollector:
         Returns:
             Number of collisions detected
         """
-        import time
-
         collision_count = 0
         check_interval = 0.1  # 10 Hz
         num_checks = int(duration / check_interval)
@@ -171,9 +168,6 @@ class MetricsCollector:
                 "100",
             ]
 
-            import subprocess  # nosec B404 - Required for Gazebo queries
-            import os
-
             result = subprocess.run(  # nosec B603 B607
                 cmd,
                 capture_output=True,
@@ -206,8 +200,6 @@ class MetricsCollector:
         try:
             # Query Nav2 for planned path
             # This would use ROS2 to get the path from the planner
-            import subprocess  # nosec B404 - Required for ROS2 queries
-
             result = subprocess.run(  # nosec B603 B607
                 [
                     "ros2",
