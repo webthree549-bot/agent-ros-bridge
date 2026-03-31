@@ -369,16 +369,21 @@ Rules:
             json_end = response.rfind("}") + 1
 
             if json_start == -1 or json_end == 0:
+                print(f"Debug: No JSON found in response: {response[:100]}...")
                 return None
 
             json_str = response[json_start:json_end]
             data = json.loads(json_str)
+
+            # Debug: print parsed data
+            print(f"Debug: Parsed data: {data}")
 
             # Validate required fields
             intent_type = data.get("intent_type")
             if not intent_type or intent_type == "UNKNOWN":
                 # Empty or unknown intent - treat as parse failure
                 if not data.get("entities") and not data.get("reasoning"):
+                    print(f"Debug: Unknown intent with no entities/reasoning")
                     return None
 
             return LLMIntentResult(
@@ -392,6 +397,7 @@ Rules:
 
         except json.JSONDecodeError as e:
             print(f"Failed to parse LLM response: {e}")
+            print(f"Raw response: {response[:200]}...")  # Debug: show raw response
             self._errors += 1
             return None
 
