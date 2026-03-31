@@ -504,7 +504,7 @@ if __name__ == "__main__":
     print(f"Plugins: {[p.name for p in config.plugins]}")
 
     # Safety status
-    print(f"\n🛡️  Safety Configuration:")
+    print("\n🛡️  Safety Configuration:")
     print(f"  Autonomous mode: {config.safety.autonomous_mode} ⚠️")
     print(f"  Human-in-the-loop: {config.safety.human_in_the_loop}")
     print(f"  Shadow mode enabled: {config.safety.shadow_mode_enabled}")

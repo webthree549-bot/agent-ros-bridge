@@ -355,7 +355,7 @@ class GazeboBatchRunner:
             # Return robot name for mock fallback
             return robot_config.get("name", f"robot_{world_id}")
 
-        world = self.worlds[world_id]
+        world_obj = self.worlds[world_id]
         robot_name = robot_config.get("name", f"robot_{world_id}")
         robot_type = robot_config.get("type", "turtlebot3")
         x, y, yaw = robot_config.get("pose", [0.0, 0.0, 0.0])
@@ -536,7 +536,7 @@ class GazeboBatchRunner:
                             # Fallback for tests expecting positional args
                             progress_callback(completed, len(scenarios))
 
-                except Exception as e:
+                except Exception:
                     logger.exception(f"Scenario {scenario_path} failed")
                     failed += 1
 
@@ -631,8 +631,8 @@ class GazeboBatchRunner:
             port: WebSocket server port
         """
         try:
-            import threading
             import json
+            import threading
 
             def handle_client(websocket, path):
                 """Handle WebSocket client connection."""

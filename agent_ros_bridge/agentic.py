@@ -6,6 +6,7 @@ High-level, agentic API that provides real value beyond basic command sending.
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -546,15 +547,6 @@ class RobotAgent:
         """
         try:
             if hasattr(self, 'shadow_hooks') and self.safety.shadow_mode_enabled:
-                # Create a record of the AI proposal that was rejected
-                proposal_data = {
-                    "robot_id": self.device_id,
-                    "step_name": step.name,
-                    "capability": getattr(step, 'capability_name', 'unknown'),
-                    "confidence": confidence,
-                    "rejection_reason": reason,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                }
                 # Log via shadow hooks if available
                 if hasattr(self.shadow_hooks, 'on_human_rejected'):
                     self.shadow_hooks.on_human_rejected(

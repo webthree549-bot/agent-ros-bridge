@@ -286,8 +286,8 @@ class RobotController:
 
         try:
             # Try to use MoveIt2 for manipulation
+            from geometry_msgs.msg import Pose
             from moveit_commander import MoveGroupCommander
-            from geometry_msgs.msg import Pose, PoseStamped
 
             # Initialize move group
             move_group = MoveGroupCommander("manipulator")
