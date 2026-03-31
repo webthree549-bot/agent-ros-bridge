@@ -314,11 +314,15 @@ Rules:
             {"role": "user", "content": f"Parse this utterance: '{utterance}'"},
         ]
 
+        # Determine temperature based on provider
+        # Moonshot/Kimi requires temperature=1.0, others use 0.0 for determinism
+        temperature = 1.0 if self._provider == "moonshot" else 0.0
+
         try:
             response = client.chat.completions.create(
                 model=self._model,
                 messages=messages,
-                temperature=0.0,  # Deterministic
+                temperature=temperature,
                 max_tokens=200,
                 timeout=self._timeout_sec,
             )

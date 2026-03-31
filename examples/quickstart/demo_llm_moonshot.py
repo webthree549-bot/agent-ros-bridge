@@ -81,7 +81,7 @@ def main():
 
     print("\n" + "=" * 60)
     print("\nStatistics:")
-    stats = parser.get_stats()
+    stats = parser.get_statistics()
     print(f"  Total calls: {stats['calls']}")
     print(f"  Cache hits: {stats['cache_hits']}")
     print(f"  Errors: {stats['errors']}")
