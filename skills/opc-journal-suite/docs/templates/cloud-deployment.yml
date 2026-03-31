@@ -1,0 +1,144 @@
+# OPC Journal Suite - Cloud Deployment Configuration Template
+# Version: 2.3.0
+# Use this template for cloud-hosted deployments
+
+# IMPORTANT: Cloud deployment requires additional security considerations
+# - All data must be encrypted at rest and in transit
+# - Customer isolation is critical
+# - Audit logging must be enabled
+
+deployment:
+  mode: "cloud_hosted"
+  version: "2.3.0"
+  
+  # Container configuration
+  container:
+    image: "opc200/opc-journal-suite:2.3.0"
+    resources:
+      cpu: "2"
+      memory: "4Gi"
+    
+  # Storage configuration
+  storage:
+    type: "encrypted_s3"  # or "encrypted_gcs", "encrypted_azure_blob"
+    encryption:
+      type: "kms"
+      key_rotation: "90d"
+    
+    # Per-customer isolation
+    path_pattern: "customers/{customer_id}/"
+    isolation: "strict"  # Each customer gets separate prefix
+    
+  # Database configuration
+  database:
+    type: "postgres"
+    encryption: "tls"
+    connection_pool:
+      min: 5
+      max: 20
+    
+    # Schema isolation
+    schema_per_customer: true
+    
+  # Network configuration
+  network:
+    tls:
+      enabled: true
+      min_version: "1.3"
+    
+    # No outbound connections except to essential services
+    egress:
+      allowed:
+        - "*.amazonaws.com"  # If using AWS
+        - "monitoring.internal"
+      blocked:
+        - "*"
+
+# Security settings
+security:
+  # Data retention
+  retention:
+    journal_entries: "365d"
+    audit_logs: "2555d"  # 7 years
+    
+  # Access control
+  access_control:
+    require_authentication: true
+    session_timeout: "30m"
+    mfa_required: true
+    
+  # Audit logging
+  audit:
+    enabled: true
+    log_all_reads: false
+    log_all_writes: true
+    log_admin_actions: true
+    
+  # Privacy settings
+  privacy:
+    default_level: "vault"  # Maximum privacy by default
+    anonymize_after: "365d"
+    right_to_deletion: true
+
+# Feature flags for cloud mode
+features:
+  # Local-only features that must be disabled in cloud
+  local_file_access: false
+  
+  # Cloud-specific features
+  multi_region_replication: true
+  automatic_backups: true
+  disaster_recovery: true
+  
+  # Restricted features
+  cron_scheduler:
+    enabled: true
+    max_schedules_per_customer: 10
+    
+  pattern_recognition:
+    enabled: true
+    cross_customer_analytics: false  # Never share data between customers
+    
+  milestone_tracker:
+    enabled: true
+    share_anonymized: false  # No data sharing
+
+# Monitoring and alerting
+monitoring:
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+    
+  health_checks:
+    enabled: true
+    interval: "30s"
+    
+  alerts:
+    channels:
+      - type: "pagerduty"
+        severity: "critical"
+      - type: "slack"
+        severity: "warning"
+    
+    conditions:
+      - name: "high_error_rate"
+        threshold: "5%"
+        window: "5m"
+      - name: "storage_full"
+        threshold: "80%"
+      - name: "unauthorized_access"
+        action: "block_and_alert"
+
+# Compliance
+compliance:
+  gdpr:
+    enabled: true
+    data_processor_agreement: true
+    
+  soc2:
+    enabled: true
+    type: "type2"
+    
+  audit_schedule:
+    internal: "quarterly"
+    external: "annual"

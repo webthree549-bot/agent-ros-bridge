@@ -24,6 +24,10 @@
     "Proactivity": {
       "version": "1.0.1",
       "installedAt": 1773294905238
+    },
+    "opc-journal-suite": {
+      "version": "2.3.0",
+      "installedAt": 1774928541308
     }
   }
 }

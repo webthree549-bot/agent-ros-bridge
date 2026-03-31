@@ -1,0 +1,92 @@
+# OPC Journal Suite - Edge Deployment Configuration Template
+# Version: 2.3.0
+# For edge nodes with intermittent connectivity
+
+deployment:
+  mode: "edge_node"
+  version: "2.3.0"
+  
+  # Edge-specific: Handle intermittent connectivity
+  connectivity:
+    mode: "intermittent"  # or "always_on"
+    
+    # Sync configuration
+    sync:
+      strategy: "eventual_consistency"
+      conflict_resolution: "timestamp_wins"
+      
+      # When to sync
+      triggers:
+        - "on_connectivity_restore"
+        - "scheduled: 0 */6 * * *"  # Every 6 hours
+        - "manual"
+      
+      # What to sync
+      scope:
+        - "journal_entries"
+        - "config_changes"
+        - "skill_updates"
+      
+      # Queued when offline
+      offline_queue:
+        max_size: "1000"
+        ttl: "7d"
+  
+  # Storage: Hybrid local + cloud
+  storage:
+    local:
+      type: "filesystem"
+      path: "/var/opc200/local/"
+      priority: "high"  # Always available
+      
+    remote:
+      type: "s3_compatible"
+      endpoint: "${S3_ENDPOINT}"
+      bucket: "opc200-edge"
+      priority: "low"  # Sync when possible
+      
+    cache:
+      strategy: "lru"
+      size: "10GB"
+      ttl: "24h"
+
+# Feature configuration
+features:
+  # Edge-optimized features
+  journal_core:
+    offline_mode: true
+    local_storage_priority: true
+    
+  pattern_recognition:
+    # Run analysis locally, upload summaries only
+    local_analysis: true
+    upload_granularity: "summary_only"
+    
+  cron_scheduler:
+    # Adapt to connectivity
+    skip_if_offline: false  # Run locally even if offline
+    queue_if_offline: true
+    
+  milestone_tracker:
+    # Batch milestone sync
+    batch_sync: true
+    sync_interval: "1h"
+
+# Security for edge
+security:
+  # Local encryption
+  encryption:
+    at_rest: true
+    algorithm: "aes-256-gcm"
+    key_derivation: "argon2id"
+    
+  # Secure sync
+  sync_security:
+    tls: true
+    certificate_pinning: true
+    mutual_tls: true
+    
+  # Tamper detection
+  integrity:
+    checksums: true
+    signature_verification: true

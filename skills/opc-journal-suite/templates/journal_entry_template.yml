@@ -1,0 +1,39 @@
+# Journal Entry Template
+# Created: {{ timestamp }}
+# Entry ID: {{ entry_id }}
+
+---
+id: {{ entry_id }}
+date: {{ date }}
+type: journal_entry
+tags:
+  - {{ primary_tag }}
+mood: {{ mood }}
+---
+
+## 今日回顾
+
+{{ content }}
+
+## 关键决策
+
+- Decision: 
+- Rationale: 
+- Alternatives considered: 
+
+## 明日计划
+
+- [ ] 
+- [ ] 
+
+## 关联条目
+
+{{ related_entries }}
+
+## 元数据
+
+```yaml
+session_id: {{ session_id }}
+agents_involved: {{ agents }}
+tasks_created: {{ tasks }}
+```
