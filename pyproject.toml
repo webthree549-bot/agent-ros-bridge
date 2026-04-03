@@ -189,7 +189,6 @@ per-file-ignores = [
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
-asyncio_mode = "auto"
 addopts = [
     "-v",
     "--strict-markers",
@@ -199,8 +198,11 @@ addopts = [
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "asyncio: Async tests",
     "slow: Slow tests",
     "ros: ROS-dependent tests",
+    "safety: Safety-critical tests",
 ]
 
 [tool.coverage.run]

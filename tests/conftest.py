@@ -5,6 +5,7 @@ This conftest provides:
 - Automatic test isolation
 - Parallel test support
 - Performance optimizations
+- Async test support
 """
 
 import asyncio
@@ -15,6 +16,13 @@ import warnings
 from unittest import mock
 
 import pytest
+
+# Configure pytest-asyncio
+try:
+    import pytest_asyncio
+    pytest_plugins = ('pytest_asyncio',)
+except ImportError:
+    pass
 
 # Suppress deprecation warnings for asyncio.get_event_loop_policy (Python 3.14+)
 warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*get_event_loop_policy.*")

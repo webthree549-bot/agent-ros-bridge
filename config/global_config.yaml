@@ -21,6 +21,22 @@ system:
   fallback_strategy: "safe_state"
   max_retry_attempts: 15
 
+# TRANSPORTS CONFIGURATION
+transports:
+  websocket:
+    enabled: true
+    host: "0.0.0.0"
+    port: 8765
+  http:
+    enabled: true
+    host: "0.0.0.0"
+    port: 8080
+    dashboard_enabled: true
+  grpc:
+    enabled: true
+    host: "0.0.0.0"
+    port: 50051
+
 # SAFETY CONFIGURATION - CRITICAL FOR PRODUCTION
 # See docs/SAFETY.md for complete safety guidelines
 # 

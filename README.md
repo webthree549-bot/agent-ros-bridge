@@ -224,6 +224,61 @@ AI Agents ─┬─ WebSocket ─┐
 
 ---
 
+## Web Dashboard
+
+Agent ROS Bridge includes a modern web dashboard for robot control and monitoring.
+
+### Features
+
+- **🎮 Robot Control** - D-pad interface, natural language commands
+- **📊 Real-time Telemetry** - Position, velocity, battery, sensors
+- **🧠 Shadow Mode Metrics** - AI-human agreement tracking
+- **🛡️ Safety Status** - Validation gates, deployment readiness
+- **🚁 Fleet Management** - Multi-robot coordination
+
+### Quick Start
+
+#### Option 1: Docker (Recommended)
+```bash
+# Start bridge + web dashboard
+docker-compose --profile web up -d
+
+# Access dashboard
+open http://localhost:8081
+```
+
+#### Option 2: Host (Development)
+```bash
+# Start bridge
+agent-ros-bridge --websocket-port 8765
+
+# In another terminal, serve dashboard
+cd agent_ros_bridge/web
+python3 -m http.server 8081
+
+# Access dashboard
+open http://localhost:8081
+```
+
+### Dashboard URLs
+
+| Dashboard | URL | Purpose |
+|-----------|-----|---------|
+| **Control Dashboard** | http://localhost:8081 | Robot control + shadow metrics |
+| **3D Visualization** | http://localhost:8080 | Gazebo/3D view (in ros2_jazzy) |
+| **Grafana** | http://localhost:3000 | System monitoring |
+
+### WebSocket Connection
+
+The dashboard connects to the bridge via WebSocket:
+- **URL**: `ws://localhost:8765`
+- **Protocol**: JSON messages
+- **Auth**: JWT token (if enabled)
+
+[Full Dashboard Guide →](agent_ros_bridge/web/README.md)
+
+---
+
 ## Installation
 
 ### Prerequisites

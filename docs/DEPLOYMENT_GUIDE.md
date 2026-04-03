@@ -1,381 +1,436 @@
 # Deployment Guide
 
-## Agent ROS Bridge v0.6.4
+Production deployment guide for Agent ROS Bridge.
 
-Complete deployment guide for production environments.
+## Deployment Options
 
----
-
-## Quick Start
-
-### Installation
-
-```bash
-# From PyPI (recommended)
-pip install agent-ros-bridge==0.6.4
-
-# Or install with all extras
-pip install agent-ros-bridge[all]==0.6.4
-
-# Verify installation
-python -c "from agent_ros_bridge import __version__; print(__version__)"
-```
-
-### Docker
-
-```bash
-# Pull image (when available)
-docker pull ghcr.io/webthree549-bot/agent-ros-bridge:v0.6.4
-
-# Run with ROS2
-docker run -it --rm \
-  --network host \
-  ghcr.io/webthree549-bot/agent-ros-bridge:v0.6.4
-```
+| Environment | Method | Complexity | Best For |
+|-------------|--------|------------|----------|
+| Local Dev | Docker Compose | Low | Development |
+| Single Server | Docker Compose | Low | Small fleets (<100) |
+| Production | Kubernetes | Medium | Large fleets (1000+) |
+| Enterprise | Kubernetes + Cloud | High | Mission-critical |
 
 ---
 
-## Production Deployment
+## Quick Start (Docker Compose)
 
-### 1. Environment Setup
-
-#### Requirements
-- Python 3.11, 3.12, 3.13, or 3.14
-- ROS2 Humble or Jazzy (for robot integration)
-- Gazebo 11 or Gazebo Sim (for simulation)
-- 4GB RAM minimum, 8GB recommended
-- 10GB disk space
-
-#### System Dependencies
+### 1. Prerequisites
 
 ```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y \
-  python3-pip \
-  python3-venv \
-  ros-humble-ros-base \
-  gazebo11 \
-  libgazebo11-dev
+# Docker 24.0+
+docker --version
 
-# macOS
-brew install python@3.11
-# Note: ROS2/Gazebo not fully supported on macOS
+# Docker Compose 2.20+
+docker-compose --version
+
+# 4+ CPU cores, 8GB RAM available
 ```
 
-### 2. Virtual Environment
+### 2. Configuration
+
+Create `.env` file:
 
 ```bash
-# Create virtual environment
-python3 -m venv /opt/agent-ros-bridge/venv
-source /opt/agent-ros-bridge/venv/bin/activate
+# Security (REQUIRED for production)
+JWT_SECRET=$(openssl rand -base64 32)
 
-# Install package
-pip install agent-ros-bridge==0.6.4
-```
+# Database (optional - defaults to SQLite)
+# DATABASE_URL=postgresql://user:pass@localhost/bridge
 
-### 3. Configuration
-
-#### Environment Variables
-
-```bash
-# Required
-export ROS_DOMAIN_ID=0
-export GAZEBO_MODEL_PATH=/opt/agent-ros-bridge/models:$GAZEBO_MODEL_PATH
-
-# Optional - LLM providers
-export OPENAI_API_KEY="your-key-here"
-export ANTHROPIC_API_KEY="your-key-here"
-export MOONSHOT_API_KEY="your-key-here"
-
-# Optional - Shadow mode
-export SHADOW_DATA_DIR=/var/lib/agent-ros-bridge/shadow_data
-export SHADOW_TARGET_HOURS=200
-
-# Optional - Logging
-export LOG_LEVEL=INFO
-export LOG_FILE=/var/log/agent-ros-bridge/app.log
-```
-
-#### Configuration File
-
-Create `/etc/agent-ros-bridge/config.yaml`:
-
-```yaml
-# Agent ROS Bridge Configuration
-
-# Gateway settings
-gateway:
-  host: "0.0.0.0"
-  port: 8080
-  max_connections: 100
-
-# Safety settings
-safety:
-  validator_enabled: true
-  emergency_stop_timeout_ms: 50
-  max_velocity: 1.0
-  max_acceleration: 0.5
-
-# Shadow mode settings
-shadow_mode:
-  enabled: true
-  confidence_threshold: 0.7
-  require_confirmation: true
-  data_dir: "/var/lib/agent-ros-bridge/shadow_data"
-  target_hours: 200
-
-# Simulation settings
-simulation:
-  enabled: true
-  num_worlds: 4
-  headless: true
-  timeout_seconds: 60
-
-# LLM settings
-llm:
-  default_provider: "moonshot"
-  providers:
-    moonshot:
-      model: "kimi-k2.5"
-      temperature: 0.7
-    openai:
-      model: "gpt-4"
-      temperature: 0.7
+# Redis (optional - for large fleets)
+# REDIS_URL=redis://localhost:6379/0
 
 # Logging
-logging:
-  level: "INFO"
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  handlers:
-    - file
-    - console
+LOG_LEVEL=INFO
+
+# Ports
+WEBSOCKET_PORT=8765
+GRPC_PORT=50051
+DASHBOARD_PORT=8081
 ```
 
-### 4. Systemd Service
-
-Create `/etc/systemd/system/agent-ros-bridge.service`:
-
-```ini
-[Unit]
-Description=Agent ROS Bridge
-After=network.target ros2.target
-
-[Service]
-Type=simple
-User=agent-ros-bridge
-Group=agent-ros-bridge
-WorkingDirectory=/opt/agent-ros-bridge
-Environment=ROS_DOMAIN_ID=0
-Environment=PYTHONPATH=/opt/agent-ros-bridge/venv/lib/python3.11/site-packages
-Environment=PATH=/opt/agent-ros-bridge/venv/bin:/usr/local/bin:/usr/bin:/bin
-
-ExecStart=/opt/agent-ros-bridge/venv/bin/python -m agent_ros_bridge.gateway
-ExecReload=/bin/kill -HUP $MAINPID
-KillMode=mixed
-KillSignal=SIGTERM
-TimeoutStopSec=30
-
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start service:
+### 3. Deploy
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable agent-ros-bridge
-sudo systemctl start agent-ros-bridge
-sudo systemctl status agent-ros-bridge
+# Clone repository
+git clone https://github.com/webthree549-bot/agent-ros-bridge.git
+cd agent-ros-bridge
+
+# Start services
+docker-compose --profile web up -d
+
+# Verify
+docker-compose ps
+curl http://localhost:8765/health
 ```
 
-### 5. Shadow Mode Data Collection
+### 4. Access
 
-Start collecting 200+ hours of AI vs human decision data:
+- **Dashboard**: http://localhost:8081
+- **API**: http://localhost:8765
+- **WebSocket**: ws://localhost:8765
+
+---
+
+## Production Deployment (Kubernetes)
+
+### 1. Prerequisites
 
 ```bash
-# Create data directory
-sudo mkdir -p /var/lib/agent-ros-bridge/shadow_data
-sudo chown agent-ros-bridge:agent-ros-bridge /var/lib/agent-ros-bridge/shadow_data
+# Kubernetes 1.28+
+kubectl version --client
 
-# Start collection
-sudo -u agent-ros-bridge /opt/agent-ros-bridge/venv/bin/python \
-  /opt/agent-ros-bridge/venv/lib/python3.11/site-packages/agent_ros_bridge/shadow/collector.py
+# Helm 3.13+
+helm version
 
-# Or use the deployment script
-/opt/agent-ros-bridge/venv/bin/python scripts/deploy_shadow_collection.py
+# cert-manager (for TLS)
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
 ```
 
-Monitor progress:
+### 2. Namespace
 
 ```bash
-# View checkpoint
-cat /var/lib/agent-ros-bridge/shadow_data/checkpoint.json
-
-# View recent decisions
-tail -f /var/lib/agent-ros-bridge/shadow_data/decisions_$(date +%Y-%m-%d).jsonl
+kubectl create namespace agent-ros-bridge
+kubectl config set-context --current --namespace=agent-ros-bridge
 ```
 
-### 6. Human Confirmation UI
-
-Start the web interface:
+### 3. Secrets
 
 ```bash
-# Start UI server
-python -m agent_ros_bridge.ui.confirmation --port 8080
-
-# Or in code
-from agent_ros_bridge.ui.confirmation import ConfirmationUI
-
-ui = ConfirmationUI(port=8080)
-ui.start_server()
+# Generate secrets
+kubectl create secret generic bridge-secrets \
+  --from-literal=JWT_SECRET=$(openssl rand -base64 32) \
+  --from-literal=DATABASE_URL=$(echo -n 'postgresql://...' | base64)
 ```
 
-Access the UI at `http://localhost:8080`
-
-### 7. Simulation (Optional)
-
-Run 10K scenario validation:
+### 4. Deploy with Helm
 
 ```bash
-# Generate and validate 10K scenarios
-python -c "
-from agent_ros_bridge.validation.scenario_10k import run_gate2_validation
+# Add Helm repo (when published)
+helm repo add agent-ros-bridge https://charts.agent-ros-bridge.ai
 
-result = run_gate2_validation(
-    output_dir='/var/lib/agent-ros-bridge/validation',
-    count=10000
-)
+# Install
+helm install bridge agent-ros-bridge/bridge \
+  --namespace agent-ros-bridge \
+  --values values-production.yaml
+```
 
-print(f'Success rate: {result[\"success_rate\"]*100:.2f}%')
-print(f'Gate 2 passed: {result[\"gate2_passed\"]}')
-"
+Or use raw manifests:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/ingress.yaml
+```
+
+### 5. Verify
+
+```bash
+# Check pods
+kubectl get pods
+
+# Check services
+kubectl get svc
+
+# Check ingress
+kubectl get ingress
+
+# View logs
+kubectl logs -f deployment/bridge
 ```
 
 ---
 
-## Docker Compose Deployment
+## Cloud Deployment
 
-Create `docker-compose.yml`:
+### AWS
 
-```yaml
-version: '3.8'
-
-services:
-  agent-ros-bridge:
-    image: ghcr.io/webthree549-bot/agent-ros-bridge:v0.6.4
-    container_name: agent-ros-bridge
-    restart: unless-stopped
-    
-    environment:
-      - ROS_DOMAIN_ID=0
-      - SHADOW_DATA_DIR=/data/shadow
-      - LOG_LEVEL=INFO
-    
-    volumes:
-      - ./config:/etc/agent-ros-bridge:ro
-      - shadow_data:/data/shadow
-      - ./logs:/var/log/agent-ros-bridge
-    
-    ports:
-      - "8080:8080"
-    
-    networks:
-      - ros2-network
-    
-    # Required for ROS2
-    ipc: host
-    pid: host
-    network_mode: host
-
-  # Optional: Gazebo simulation
-  gazebo:
-    image: ghcr.io/webthree549-bot/agent-ros-bridge:ros2-humble
-    container_name: gazebo
-    restart: unless-stopped
-    
-    environment:
-      - DISPLAY=:1
-      - GAZEBO_MASTER_URI=http://localhost:11345
-    
-    volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    
-    command: gz sim -s -r --headless-rendering
-    
-    network_mode: host
-
-volumes:
-  shadow_data:
-    driver: local
-
-networks:
-  ros2-network:
-    driver: bridge
-```
-
-Deploy:
+#### EKS (Recommended)
 
 ```bash
-docker-compose up -d
+# Create EKS cluster
+eksctl create cluster \
+  --name agent-ros-bridge \
+  --region us-west-2 \
+  --node-type m6i.2xlarge \
+  --nodes 3
+
+# Deploy
+kubectl apply -f k8s/
+```
+
+#### ECS (Alternative)
+
+```bash
+# Using AWS Copilot
+copilot init --app bridge --svc api --dockerfile Dockerfile
+copilot deploy
+```
+
+### Google Cloud
+
+#### GKE
+
+```bash
+# Create cluster
+gcloud container clusters create bridge-cluster \
+  --zone us-central1-a \
+  --machine-type n2-standard-4 \
+  --num-nodes 3
+
+# Deploy
+kubectl apply -f k8s/
+```
+
+### Azure
+
+#### AKS
+
+```bash
+# Create cluster
+az aks create \
+  --resource-group myResourceGroup \
+  --name bridge-cluster \
+  --node-count 3 \
+  --generate-ssh-keys
+
+# Deploy
+kubectl apply -f k8s/
+```
+
+---
+
+## High Availability
+
+### Architecture
+
+```
+                    ┌─────────────────┐
+                    │   Load Balancer │
+                    │   (Cloudflare)  │
+                    └────────┬────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+     ┌──────▼──────┐  ┌──────▼──────┐  ┌──────▼──────┐
+     │  Bridge-1   │  │  Bridge-2   │  │  Bridge-3   │
+     │  (Primary)  │  │  (Replica)  │  │  (Replica)  │
+     └──────┬──────┘  └──────┬──────┘  └──────┬──────┘
+            │                │                │
+            └────────────────┼────────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │    Redis        │
+                    │  (Session Store)│
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   PostgreSQL    │
+                    │   (Primary)     │
+                    └─────────────────┘
+```
+
+### Configuration
+
+```yaml
+# values-production.yaml
+replicaCount: 3
+
+resources:
+  requests:
+    cpu: 2000m
+    memory: 4Gi
+  limits:
+    cpu: 4000m
+    memory: 8Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
+redis:
+  enabled: true
+  replicaCount: 3
+
+postgresql:
+  enabled: true
+  replication:
+    enabled: true
+    readReplicas: 2
+```
+
+---
+
+## Security Hardening
+
+### TLS/SSL
+
+```bash
+# Generate certificates
+certbot certonly --standalone -d robots.example.com
+
+# Create Kubernetes secret
+kubectl create secret tls bridge-tls \
+  --cert=/etc/letsencrypt/live/robots.example.com/fullchain.pem \
+  --key=/etc/letsencrypt/live/robots.example.com/privkey.pem
+```
+
+### Network Policies
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bridge-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: bridge
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: frontend
+    ports:
+    - protocol: TCP
+      port: 8765
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+```
+
+### Pod Security
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
 ```
 
 ---
 
 ## Monitoring
 
-### Health Checks
+### Prometheus + Grafana
 
 ```bash
-# Check service status
-sudo systemctl status agent-ros-bridge
+# Install kube-prometheus-stack
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install monitoring prometheus-community/kube-prometheus-stack
 
-# Check logs
-sudo journalctl -u agent-ros-bridge -f
-
-# Check shadow data collection
-python -c "
-from agent_ros_bridge.shadow.collector import ShadowModeCollector
-c = ShadowModeCollector(output_dir='/var/lib/agent-ros-bridge/shadow_data')
-print(c.get_status())
-"
+# Access Grafana
+kubectl port-forward svc/monitoring-grafana 3000:80
 ```
 
-### Metrics
+### Key Metrics
 
-Key metrics to monitor:
+| Metric | Warning | Critical |
+|--------|---------|----------|
+| CPU Usage | >70% | >90% |
+| Memory Usage | >80% | >95% |
+| Latency P99 | >100ms | >500ms |
+| Error Rate | >0.1% | >1% |
+| Disk Usage | >80% | >95% |
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Agreement Rate | >80% | <70% |
-| Safety Violations | 0 | >0 |
-| Response Time | <100ms | >500ms |
-| CPU Usage | <70% | >90% |
-| Memory Usage | <80% | >95% |
+### Alerts
 
-### Prometheus/Grafana (Optional)
+```yaml
+# alerts.yaml
+groups:
+- name: bridge-alerts
+  rules:
+  - alert: HighErrorRate
+    expr: rate(bridge_errors_total[5m]) > 0.01
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High error rate detected"
+      
+  - alert: RobotDisconnected
+    expr: bridge_robots_connected < 1
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "All robots disconnected"
+```
 
-Export metrics for monitoring:
+---
 
-```python
-from agent_ros_bridge.shadow.hooks import ShadowModeHooks
-from prometheus_client import start_http_server, Gauge
+## Backup & Recovery
 
-# Start metrics server
-start_http_server(9090)
+### Database Backup
 
-# Create gauges
-agreement_rate = Gauge('shadow_agreement_rate', 'AI-human agreement rate')
-total_decisions = Gauge('shadow_total_decisions', 'Total decisions logged')
+```bash
+# Automated backup (CronJob)
+kubectl apply -f k8s/backup-cronjob.yaml
 
-# Update metrics
-hooks = ShadowModeHooks()
-stats = hooks.get_stats()
-agreement_rate.set(stats['agreement_rate'])
-total_decisions.set(stats['total_decisions'])
+# Manual backup
+kubectl exec -it postgres-0 -- pg_dump -U bridge bridge > backup.sql
+
+# Restore
+kubectl exec -i postgres-0 -- psql -U bridge bridge < backup.sql
+```
+
+### Configuration Backup
+
+```bash
+# Export all manifests
+kubectl get all -o yaml > backup-manifests.yaml
+
+# Export secrets (encrypted)
+kubectl get secrets -o yaml > backup-secrets.yaml
+```
+
+---
+
+## Scaling
+
+### Vertical Scaling
+
+```bash
+# Increase CPU/memory
+kubectl patch deployment bridge -p '{"spec":{"template":{"spec":{"containers":[{"name":"bridge","resources":{"requests":{"cpu":"4","memory":"8Gi"}}}]}}}}'
+```
+
+### Horizontal Scaling
+
+```bash
+# Manual scaling
+kubectl scale deployment bridge --replicas=5
+
+# Enable HPA
+kubectl autoscale deployment bridge --min=3 --max=10 --cpu-percent=70
+```
+
+### Geographic Scaling
+
+Deploy in multiple regions:
+```
+us-west-2: 3 replicas (primary)
+us-east-1: 3 replicas (backup)
+eu-west-1: 3 replicas (EU users)
 ```
 
 ---
@@ -384,120 +439,116 @@ total_decisions.set(stats['total_decisions'])
 
 ### Common Issues
 
-#### Issue: Cannot connect to ROS2
-
-**Solution:**
+#### Pods Not Starting
 ```bash
-# Check ROS2 environment
-source /opt/ros/humble/setup.bash
-echo $ROS_DOMAIN_ID
+# Check events
+kubectl describe pod bridge-xxx
 
-# Verify ROS2 is running
-ros2 topic list
+# Check logs
+kubectl logs bridge-xxx --previous
 ```
 
-#### Issue: Gazebo not found
-
-**Solution:**
+#### Connection Refused
 ```bash
-# Install Gazebo
-sudo apt-get install gazebo11 libgazebo11-dev
+# Check service
+kubectl get svc bridge
+kubectl get endpoints bridge
 
-# Check installation
-which gz
-gz --version
+# Check network policy
+kubectl get networkpolicies
 ```
 
-#### Issue: Permission denied on shadow data
-
-**Solution:**
+#### High Memory Usage
 ```bash
-# Fix permissions
-sudo chown -R agent-ros-bridge:agent-ros-bridge /var/lib/agent-ros-bridge/shadow_data
-sudo chmod 755 /var/lib/agent-ros-bridge/shadow_data
+# Check metrics
+kubectl top pods
+
+# Enable profiling
+kubectl exec -it bridge-xxx -- python -m memory_profiler app.py
 ```
 
-#### Issue: LLM API errors
+### Debug Commands
 
-**Solution:**
 ```bash
-# Check API keys
-export OPENAI_API_KEY="your-key"
-export MOONSHOT_API_KEY="your-key"
+# Shell into pod
+kubectl exec -it bridge-xxx -- /bin/sh
 
-# Test connection
-python -c "
-from agent_ros_bridge.ai.llm_parser import MoonshotParser
-p = MoonshotParser(api_key='your-key')
-print(p.test_connection())
-"
+# Port forward for local debugging
+kubectl port-forward pod/bridge-xxx 8765:8765
+
+# View all resources
+kubectl get all -o wide
 ```
 
 ---
 
-## Security
+## Maintenance
 
-### Best Practices
-
-1. **Use environment variables** for secrets (API keys)
-2. **Run as non-root user** (`agent-ros-bridge`)
-3. **Enable safety validator** in production
-4. **Regular backups** of shadow data
-5. **Network isolation** for ROS2 topics
-
-### Firewall Rules
+### Updates
 
 ```bash
-# Allow only necessary ports
-sudo ufw allow 8080/tcp  # Confirmation UI
-sudo ufw allow 11345/tcp # Gazebo (if needed)
-sudo ufw enable
+# Rolling update
+kubectl set image deployment/bridge bridge=agentrosbridge/bridge:v0.7.0
+
+# Watch rollout
+kubectl rollout status deployment/bridge
+
+# Rollback if needed
+kubectl rollout undo deployment/bridge
 ```
 
----
-
-## Backup and Recovery
-
-### Backup Script
+### Health Checks
 
 ```bash
+# Daily check script
 #!/bin/bash
-# /opt/agent-ros-bridge/scripts/backup.sh
+echo "=== Bridge Health Check ==="
+date
 
-BACKUP_DIR=/backup/agent-ros-bridge/$(date +%Y%m%d)
-mkdir -p $BACKUP_DIR
+# Pod status
+kubectl get pods
 
-# Backup shadow data
-tar czf $BACKUP_DIR/shadow_data.tar.gz /var/lib/agent-ros-bridge/shadow_data
+# Resource usage
+kubectl top nodes
+kubectl top pods
 
-# Backup config
-cp /etc/agent-ros-bridge/config.yaml $BACKUP_DIR/
+# Logs check
+kubectl logs deployment/bridge --tail=100 | grep ERROR || echo "No errors"
 
-# Backup logs
-tar czf $BACKUP_DIR/logs.tar.gz /var/log/agent-ros-bridge
-
-echo "Backup complete: $BACKUP_DIR"
+# API health
+curl -sf http://localhost:8765/health && echo "✅ Healthy" || echo "❌ Unhealthy"
 ```
 
-### Recovery
+---
 
-```bash
-# Restore from backup
-tar xzf backup/20260323/shadow_data.tar.gz -C /
-cp backup/20260323/config.yaml /etc/agent-ros-bridge/
-sudo systemctl restart agent-ros-bridge
-```
+## Production Checklist
+
+- [ ] TLS certificates configured
+- [ ] Secrets stored securely (not in Git)
+- [ ] Network policies enabled
+- [ ] Resource limits set
+- [ ] Health checks configured
+- [ ] Monitoring enabled
+- [ ] Alerts configured
+- [ ] Backups scheduled
+- [ ] Disaster recovery tested
+- [ ] Security audit passed
+- [ ] Load testing completed
+- [ ] Documentation updated
+- [ ] Runbook created
+- [ ] On-call rotation established
 
 ---
 
 ## Support
 
-- **Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
-- **Documentation**: https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
-- **Changelog**: https://github.com/webthree549-bot/agent-ros-bridge/blob/main/CHANGELOG.md
+**Documentation**: https://docs.agent-ros-bridge.ai  
+**Issues**: https://github.com/agent-ros-bridge/issues  
+**Slack**: https://agent-ros-bridge.slack.com  
+**Email**: support@agent-ros-bridge.ai
 
 ---
 
 ## License
 
-MIT License - See LICENSE file for details.
+MIT License - See [LICENSE](../LICENSE)

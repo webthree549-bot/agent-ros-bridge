@@ -1,609 +1,520 @@
-# API Documentation
+# API Reference
 
-## Agent ROS Bridge v0.6.4
+Complete API documentation for Agent ROS Bridge.
 
-Complete API reference for all modules.
-
----
-
-## Table of Contents
-
-- [Core Gateway](#core-gateway)
-- [Shadow Mode](#shadow-mode)
-- [Simulation](#simulation)
-- [AI/LLM](#aillm)
-- [Safety](#safety)
-- [UI](#ui)
+**Version**: 0.6.5  
+**Base URL**: `ws://localhost:8765` (WebSocket)  
+**REST API**: `http://localhost:8765/api`
 
 ---
 
-## Core Gateway
+## WebSocket API
 
-### Gateway
+### Connection
 
-Main entry point for robot control.
+```javascript
+const ws = new WebSocket('ws://localhost:8765?token=JWT_TOKEN');
 
-```python
-from agent_ros_bridge.gateway import AgentGateway
-
-gateway = AgentGateway()
-gateway.start()
+ws.onopen = () => console.log('Connected');
+ws.onmessage = (event) => console.log(JSON.parse(event.data));
+ws.onerror = (error) => console.error('Error:', error);
+ws.onclose = () => console.log('Disconnected');
 ```
 
-#### Methods
+### Authentication
 
-##### `send_command(robot_id: str, command: dict) -> dict`
+Include JWT token in connection URL:
+```
+ws://localhost:8765?token=eyJhbGciOiJSUzI1NiIs...
+```
 
-Send command to robot.
+Or send authentication message:
+```json
+{
+  "type": "auth",
+  "token": "eyJhbGciOiJSUzI1NiIs..."
+}
+```
 
-**Parameters:**
-- `robot_id` (str): Robot identifier
-- `command` (dict): Command with 'type' and 'parameters'
+### Message Format
 
-**Returns:**
-- `dict`: Result with 'success' and 'message'
+All messages are JSON with a `type` field:
 
-**Example:**
-```python
-result = gateway.send_command(
-    robot_id='bot1',
-    command={
-        'type': 'navigate_to',
-        'parameters': {'x': 5.0, 'y': 5.0}
+```json
+{
+  "type": "command",
+  "...": "..."
+}
+```
+
+---
+
+## Commands
+
+### List Robots
+
+Request:
+```json
+{
+  "type": "get_robots"
+}
+```
+
+Response:
+```json
+{
+  "type": "robot_list",
+  "robots": [
+    {
+      "id": "bot_001",
+      "name": "Warehouse Bot 1",
+      "type": "TurtleBot3",
+      "status": "online",
+      "battery": 85,
+      "location": "Zone A"
     }
-)
-```
-
-##### `get_robot_status(robot_id: str) -> dict`
-
-Get current robot status.
-
-**Parameters:**
-- `robot_id` (str): Robot identifier
-
-**Returns:**
-- `dict`: Status with position, velocity, battery, etc.
-
----
-
-## Shadow Mode
-
-### ShadowModeCollector
-
-Collect AI vs human decision data.
-
-```python
-from agent_ros_bridge.shadow.collector import ShadowModeCollector
-
-collector = ShadowModeCollector(
-    output_dir="shadow_data",
-    target_hours=200.0
-)
-collector.start_collection()
-```
-
-#### Methods
-
-##### `on_ai_proposal(robot_id, intent_type, confidence, entities, reasoning)`
-
-Log an AI proposal.
-
-**Parameters:**
-- `robot_id` (str): Robot identifier
-- `intent_type` (str): Type of intent (e.g., 'NAVIGATE')
-- `confidence` (float): AI confidence (0-1)
-- `entities` (list): Extracted entities
-- `reasoning` (str): AI reasoning
-
-**Example:**
-```python
-collector.on_ai_proposal(
-    robot_id='bot1',
-    intent_type='NAVIGATE',
-    confidence=0.95,
-    entities=[{'type': 'LOCATION', 'value': 'kitchen'}],
-    reasoning='User wants to go to kitchen'
-)
-```
-
-##### `on_human_decision(robot_id, command, parameters, matched_ai_proposal)`
-
-Log a human decision.
-
-**Parameters:**
-- `robot_id` (str): Robot identifier
-- `command` (str): Command executed
-- `parameters` (dict): Command parameters
-- `matched_ai_proposal` (bool): Whether it matched AI proposal
-
-**Example:**
-```python
-collector.on_human_decision(
-    robot_id='bot1',
-    command='navigate_to',
-    parameters={'location': 'kitchen'},
-    matched_ai_proposal=True
-)
-```
-
-##### `get_status() -> dict`
-
-Get collection status.
-
-**Returns:**
-```python
-{
-    'total_decisions': 1000,
-    'ai_proposals': 500,
-    'human_decisions': 500,
-    'agreements': 450,
-    'agreement_rate': 0.9,
-    'hours_elapsed': 50.0,
-    'hours_remaining': 150.0,
-    'percent_complete': 25.0,
-    'is_running': True
+  ]
 }
 ```
 
-##### `export_data(format='json') -> Path`
+### Execute Command
 
-Export collected data.
-
-**Parameters:**
-- `format` (str): 'json' or 'csv'
-
-**Returns:**
-- `Path`: Path to exported file
-
-### ShadowModeHooks
-
-Hooks for auto-logging decisions.
-
-```python
-from agent_ros_bridge.shadow.hooks import ShadowModeHooks, enable_shadow_mode
-
-# Enable on existing components
-hooks = enable_shadow_mode(
-    intent_parser=my_parser,
-    gateway=my_gateway
-)
-```
-
-#### Methods
-
-##### `on_intent_parsed(robot_id, intent_result)`
-
-Hook for intent parsing.
-
-##### `on_human_command(command)`
-
-Hook for human commands.
-
-##### `get_stats() -> dict`
-
-Get statistics.
-
-**Returns:**
-```python
-{
-    'total_decisions': 100,
-    'agreement_rate': 0.85,
-    'avg_confidence': 0.92
-}
-```
-
----
-
-## Simulation
-
-### ScenarioGenerator
-
-Generate scenarios for validation.
-
-```python
-from agent_ros_bridge.simulation.scenario_generator import ScenarioGenerator
-
-gen = ScenarioGenerator(output_dir="scenarios")
-```
-
-#### Methods
-
-##### `generate_scenario(template, seed, difficulty) -> dict`
-
-Generate single scenario.
-
-**Parameters:**
-- `template` (str): 'navigation', 'manipulation', 'safety'
-- `seed` (int): Random seed for reproducibility
-- `difficulty` (str): 'easy', 'medium', 'hard'
-
-**Returns:**
-```python
-{
-    'name': 'navigation_000042_medium',
-    'robot_config': {...},
-    'environment': {...},
-    'goal': {...}
-}
-```
-
-##### `generate_batch(template, count, difficulty) -> list`
-
-Generate multiple scenarios.
-
-**Parameters:**
-- `template` (str): Template name
-- `count` (int): Number of scenarios
-- `difficulty` (str): Difficulty level
-
-**Returns:**
-- `list`: List of scenario dicts
-
-### GazeboBatchRunner
-
-Run scenarios in parallel Gazebo worlds.
-
-```python
-from agent_ros_bridge.simulation.gazebo_batch import GazeboBatchRunner
-
-runner = GazeboBatchRunner(
-    num_worlds=8,
-    headless=True
-)
-```
-
-#### Methods
-
-##### `run_batch(scenarios, progress_callback) -> list`
-
-Execute scenarios in parallel.
-
-**Parameters:**
-- `scenarios` (list): List of scenario file paths
-- `progress_callback` (callable): Called with (completed, total)
-
-**Returns:**
-- `list`: List of WorldResult objects
-
-**Example:**
-```python
-def progress(completed, total):
-    print(f"{completed}/{total} ({completed/total*100:.1f}%)")
-
-results = runner.run_batch(
-    scenario_files=['s1.yaml', 's2.yaml', ...],
-    progress_callback=progress
-)
-```
-
-### Scenario10KGenerator
-
-Validate Gate 2 with 10K scenarios.
-
-```python
-from agent_ros_bridge.validation.scenario_10k import Scenario10KGenerator
-
-gen = Scenario10KGenerator()
-validation = gen.run_full_validation(count=10000)
-```
-
-#### Methods
-
-##### `run_full_validation(count, progress_callback) -> dict`
-
-Run complete validation.
-
-**Parameters:**
-- `count` (int): Number of scenarios (default: 10000)
-- `progress_callback` (callable): Progress callback
-
-**Returns:**
-```python
-{
-    'total_scenarios': 10000,
-    'successful': 9593,
-    'failed': 407,
-    'success_rate': 0.9593,
-    'gate2_passed': True,
-    'total_safety_violations': 0
-}
-```
-
----
-
-## AI/LLM
-
-### IntentParser
-
-Parse natural language to robot commands.
-
-```python
-from agent_ros_bridge.ai.intent_parser import IntentParser
-
-parser = IntentParser()
-```
-
-#### Methods
-
-##### `parse(text, robot_id) -> dict`
-
-Parse intent from text.
-
-**Parameters:**
-- `text` (str): Natural language input
-- `robot_id` (str): Robot identifier
-
-**Returns:**
-```python
-{
-    'intent_type': 'NAVIGATE',
-    'confidence': 0.95,
-    'entities': [{'type': 'LOCATION', 'value': 'kitchen'}],
-    'reasoning': 'User wants to navigate to kitchen'
-}
-```
-
-### LLMParser
-
-LLM-based intent parsing.
-
-```python
-from agent_ros_bridge.ai.llm_parser import OpenAIParser, MoonshotParser
-
-# OpenAI
-parser = OpenAIParser(api_key='your-key')
-
-# Moonshot (Kimi)
-parser = MoonshotParser(api_key='your-key')
-```
-
-#### Methods
-
-##### `parse(text, robot_id) -> dict`
-
-Parse with LLM.
-
----
-
-## Safety
-
-### SafetyValidator
-
-Validate commands for safety.
-
-```python
-from agent_ros_bridge.safety.safety_validator import SafetyValidator
-
-validator = SafetyValidator(
-    max_velocity=1.0,
-    max_acceleration=0.5
-)
-```
-
-#### Methods
-
-##### `validate(command) -> dict`
-
-Validate command.
-
-**Parameters:**
-- `command` (dict): Command to validate
-
-**Returns:**
-```python
-{
-    'safe': True,
-    'violations': []
-}
-```
-
----
-
-## UI
-
-### ConfirmationUI
-
-Web interface for human confirmation.
-
-```python
-from agent_ros_bridge.ui.confirmation import ConfirmationUI
-
-ui = ConfirmationUI(port=8080)
-ui.start_server()
-```
-
-#### Methods
-
-##### `receive_proposal(proposal_data) -> str`
-
-Receive AI proposal for confirmation.
-
-**Parameters:**
-- `proposal_data` (dict): Proposal details
-
-**Returns:**
-- `str`: Proposal ID
-
-##### `approve_proposal(proposal_id) -> dict`
-
-Approve proposal.
-
-**Parameters:**
-- `proposal_id` (str): Proposal ID
-
-**Returns:**
-- `dict`: Result
-
-##### `reject_proposal(proposal_id, reason) -> dict`
-
-Reject proposal.
-
-**Parameters:**
-- `proposal_id` (str): Proposal ID
-- `reason` (str): Rejection reason
-
-##### `modify_proposal(proposal_id, original, modified) -> dict`
-
-Modify and approve proposal.
-
-**Parameters:**
-- `proposal_id` (str): Proposal ID
-- `original` (dict): Original parameters
-- `modified` (dict): Modified parameters
-
-### REST API Endpoints
-
-#### GET `/api/pending`
-
-Get pending proposals.
-
-**Response:**
+Request:
 ```json
-[
-  {
-    "proposal_id": "prop_123",
-    "robot_id": "bot1",
-    "intent_type": "NAVIGATE",
-    "confidence": 0.95
+{
+  "type": "command",
+  "robot_id": "bot_001",
+  "command": {
+    "action": "move",
+    "parameters": {
+      "direction": "forward",
+      "distance": 2.0,
+      "speed": 0.5
+    }
   }
-]
-```
-
-#### POST `/api/approve/{proposal_id}`
-
-Approve a proposal.
-
-**Response:**
-```json
-{
-  "success": true
 }
 ```
 
-#### POST `/api/reject/{proposal_id}`
-
-Reject a proposal.
-
-**Request:**
+Response:
 ```json
 {
-  "reason": "unsafe"
+  "type": "command_result",
+  "success": true,
+  "robot_id": "bot_001",
+  "action": "move",
+  "duration": 4.2,
+  "timestamp": "2024-04-02T10:30:00Z"
 }
 ```
 
-**Response:**
+### Natural Language Command
+
+Request:
 ```json
 {
-  "success": true
+  "type": "natural_language",
+  "robot_id": "bot_001",
+  "text": "Move forward 2 meters slowly"
 }
 ```
 
-#### GET `/api/metrics`
-
-Get current metrics.
-
-**Response:**
+Response:
 ```json
 {
-  "total_decisions": 100,
-  "agreement_rate": 0.85,
-  "avg_confidence": 0.92
+  "type": "command_result",
+  "success": true,
+  "response": "Moving forward 2 meters at 0.3 m/s",
+  "parsed_intent": "move",
+  "confidence": 0.94,
+  "action": "natural_language"
+}
+```
+
+### Get Telemetry
+
+Request:
+```json
+{
+  "type": "get_telemetry",
+  "robot_id": "bot_001"
+}
+```
+
+Response:
+```json
+{
+  "type": "telemetry",
+  "robot_id": "bot_001",
+  "data": {
+    "position": {
+      "x": 1.5,
+      "y": 2.3,
+      "z": 0.0
+    },
+    "orientation": 0.785,
+    "linear_velocity": 0.5,
+    "angular_velocity": 0.1,
+    "battery": 85,
+    "obstacle_distance": 1.2,
+    "timestamp": "2024-04-02T10:30:00Z"
+  }
+}
+```
+
+### Emergency Stop
+
+Request:
+```json
+{
+  "type": "emergency_stop"
+}
+```
+
+Response:
+```json
+{
+  "type": "emergency_stop_result",
+  "success": true,
+  "affected_robots": ["bot_001", "bot_002"],
+  "timestamp": "2024-04-02T10:30:00Z"
+}
+```
+
+### Subscribe to Telemetry
+
+Request:
+```json
+{
+  "type": "subscribe_telemetry",
+  "robot_id": "bot_001",
+  "interval": 1.0
+}
+```
+
+Continuous responses (every 1 second):
+```json
+{
+  "type": "telemetry",
+  "robot_id": "bot_001",
+  "data": { ... }
+}
+```
+
+Unsubscribe:
+```json
+{
+  "type": "unsubscribe_telemetry",
+  "robot_id": "bot_001"
 }
 ```
 
 ---
 
-## Configuration
+## Actions Reference
 
-### Environment Variables
+### Movement Actions
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ROS_DOMAIN_ID` | ROS2 domain ID | `0` |
-| `GAZEBO_MASTER_URI` | Gazebo master URI | `http://localhost:11345` |
-| `OPENAI_API_KEY` | OpenAI API key | - |
-| `ANTHROPIC_API_KEY` | Anthropic API key | - |
-| `MOONSHOT_API_KEY` | Moonshot API key | - |
-| `SHADOW_DATA_DIR` | Shadow data directory | `./shadow_data` |
-| `SHADOW_TARGET_HOURS` | Target collection hours | `200` |
-| `LOG_LEVEL` | Logging level | `INFO` |
+| Action | Parameters | Description |
+|--------|-----------|-------------|
+| `move` | `direction`, `distance`, `speed` | Linear movement |
+| `rotate` | `angle`, `speed` | Rotation in place |
+| `navigate` | `target`, `tolerance` | Navigate to location |
+| `stop` | None | Emergency stop |
 
-### Configuration File
+### Manipulation Actions
 
-YAML configuration at `/etc/agent-ros-bridge/config.yaml`:
+| Action | Parameters | Description |
+|--------|-----------|-------------|
+| `pick` | `object`, `height` | Pick up object |
+| `place` | `location`, `height` | Place object |
+| `grasp` | `force` | Grasp with force |
+| `release` | None | Release gripper |
 
-```yaml
-gateway:
-  host: "0.0.0.0"
-  port: 8080
+### System Actions
 
-shadow_mode:
-  enabled: true
-  confidence_threshold: 0.7
-  require_confirmation: true
+| Action | Parameters | Description |
+|--------|-----------|-------------|
+| `status` | None | Get robot status |
+| `home` | None | Return to home |
+| `dock` | None | Dock at charging station |
+| `explore` | `duration`, `area` | Autonomous exploration |
 
-simulation:
-  enabled: true
-  num_worlds: 4
-  headless: true
+---
 
-llm:
-  default_provider: "moonshot"
+## REST API
+
+### Shadow Mode Metrics
+
+#### GET /api/metrics
+
+Returns current shadow mode statistics.
+
+Response:
+```json
+{
+  "agreement_rate": 0.96,
+  "total_decisions": 144000,
+  "pending_count": 0,
+  "completed_decisions": 144000,
+  "hours_collected": 200.0,
+  "required_hours": 200.0
+}
+```
+
+#### GET /api/decisions
+
+Query parameters:
+- `limit`: Number of decisions (default: 10, max: 1000)
+- `offset`: Pagination offset
+- `robot_id`: Filter by robot
+- `since`: ISO timestamp filter
+
+Response:
+```json
+{
+  "decisions": [
+    {
+      "timestamp": "2024-04-02T10:30:00Z",
+      "robot_id": "bot_001",
+      "ai_proposal": {
+        "intent_type": "move_forward",
+        "confidence": 0.94,
+        "parameters": {"distance": 2.0}
+      },
+      "human_action": {
+        "command": "move_forward",
+        "parameters": {"distance": 2.0}
+      },
+      "agreement": true,
+      "agreement_score": 0.95
+    }
+  ],
+  "total": 144000
+}
+```
+
+### Robot Management
+
+#### GET /api/robots
+
+List all connected robots.
+
+Response:
+```json
+{
+  "robots": [
+    {
+      "id": "bot_001",
+      "name": "Warehouse Bot 1",
+      "type": "TurtleBot3",
+      "status": "online",
+      "battery": 85,
+      "location": "Zone A",
+      "last_seen": "2024-04-02T10:30:00Z"
+    }
+  ]
+}
+```
+
+#### GET /api/robots/{id}
+
+Get specific robot details.
+
+Response:
+```json
+{
+  "id": "bot_001",
+  "name": "Warehouse Bot 1",
+  "type": "TurtleBot3",
+  "status": "online",
+  "battery": 85,
+  "location": "Zone A",
+  "capabilities": ["move", "navigate", "sensors"],
+  "safety_status": "supervised"
+}
+```
+
+### Fleet Operations
+
+#### POST /api/fleet/broadcast
+
+Send command to multiple robots.
+
+Request:
+```json
+{
+  "command": {
+    "action": "return_home"
+  },
+  "selector": {
+    "battery_below": 20
+  }
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "affected_robots": ["bot_001", "bot_003"],
+  "results": [
+    {"robot_id": "bot_001", "success": true},
+    {"robot_id": "bot_003", "success": true}
+  ]
+}
+```
+
+### Health Check
+
+#### GET /health
+
+Returns service health status.
+
+Response:
+```json
+{
+  "status": "healthy",
+  "version": "0.6.5",
+  "timestamp": "2024-04-02T10:30:00Z",
+  "robots_connected": 5,
+  "uptime_seconds": 86400
+}
 ```
 
 ---
 
-## Examples
+## Error Handling
 
-### Complete Workflow
+### Error Response Format
+
+```json
+{
+  "type": "error",
+  "error": {
+    "code": "ROBOT_NOT_FOUND",
+    "message": "Robot 'bot_999' not found",
+    "details": {
+      "robot_id": "bot_999"
+    }
+  }
+}
+```
+
+### Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `AUTH_INVALID` | 401 | Invalid authentication token |
+| `AUTH_EXPIRED` | 401 | Token expired |
+| `ROBOT_NOT_FOUND` | 404 | Robot ID not found |
+| `ROBOT_OFFLINE` | 503 | Robot is offline |
+| `COMMAND_INVALID` | 400 | Invalid command format |
+| `SAFETY_VIOLATION` | 403 | Safety check failed |
+| `RATE_LIMITED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+
+---
+
+## Code Examples
+
+### Python
 
 ```python
-from agent_ros_bridge.gateway import AgentGateway
-from agent_ros_bridge.shadow.collector import ShadowModeCollector
-from agent_ros_bridge.ui.confirmation import ConfirmationUI
+import asyncio
+import websockets
+import json
 
-# Initialize components
-gateway = AgentGateway()
-collector = ShadowModeCollector(output_dir="shadow_data")
-ui = ConfirmationUI(port=8080)
+async def control_robot():
+    uri = "ws://localhost:8765?token=YOUR_TOKEN"
+    
+    async with websockets.connect(uri) as ws:
+        # Send command
+        await ws.send(json.dumps({
+            "type": "command",
+            "robot_id": "bot_001",
+            "command": {
+                "action": "move",
+                "parameters": {"direction": "forward", "distance": 2.0}
+            }
+        }))
+        
+        # Get response
+        response = await ws.recv()
+        data = json.loads(response)
+        print(f"Result: {data}")
 
-# Start collection
-collector.start_collection()
-ui.start_server()
+asyncio.run(control_robot())
+```
 
-# Handle AI proposal
-proposal_id = ui.receive_proposal({
-    'robot_id': 'bot1',
-    'intent_type': 'NAVIGATE',
-    'confidence': 0.95,
-    'entities': [{'type': 'LOCATION', 'value': 'kitchen'}]
-})
+### JavaScript
 
-# Log to collector
-collector.on_ai_proposal(
-    robot_id='bot1',
-    intent_type='NAVIGATE',
-    confidence=0.95,
-    entities=[...],
-    reasoning='...'
-)
+```javascript
+const ws = new WebSocket('ws://localhost:8765?token=YOUR_TOKEN');
 
-# Operator approves via UI
-ui.approve_proposal(proposal_id)
+ws.onopen = () => {
+  // Send natural language command
+  ws.send(JSON.stringify({
+    type: 'natural_language',
+    robot_id: 'bot_001',
+    text: 'Navigate to the kitchen'
+  }));
+};
 
-# Log human decision
-collector.on_human_decision(
-    robot_id='bot1',
-    command='navigate_to',
-    parameters={'location': 'kitchen'},
-    matched_ai_proposal=True
-)
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log('Response:', data);
+};
+```
+
+### cURL (REST API)
+
+```bash
+# Get metrics
+curl http://localhost:8765/api/metrics
+
+# List robots
+curl http://localhost:8765/api/robots
+
+# Get decisions
+curl "http://localhost:8765/api/decisions?limit=10"
 ```
 
 ---
 
-## Support
+## SDKs
 
-- **Issues**: https://github.com/webthree549-bot/agent-ros-bridge/issues
-- **Documentation**: https://github.com/webthree549-bot/agent-ros-bridge/tree/main/docs
-- **PyPI**: https://pypi.org/project/agent-ros-bridge/
+### Official SDKs
+
+- **Python**: `pip install agent-ros-bridge`
+- **JavaScript**: `npm install @agent-ros-bridge/sdk`
+
+### Community SDKs
+
+- **Go**: github.com/example/agent-ros-bridge-go
+- **Rust**: github.com/example/agent-ros-bridge-rs
+
+---
+
+## Rate Limits
+
+| Endpoint | Limit | Window |
+|----------|-------|--------|
+| WebSocket messages | 1000 | per minute |
+| REST API | 100 | per minute |
+| Telemetry subscriptions | 10 | per robot |
+
+---
+
+## Changelog
+
+### v0.6.5 (Current)
+- Added fleet broadcast API
+- Added shadow mode metrics endpoint
+- Improved telemetry streaming
+
+### v0.6.0
+- Added natural language processing
+- Added gRPC support
+- Breaking: Changed auth format
+
+See [CHANGELOG.md](../CHANGELOG.md) for full history.

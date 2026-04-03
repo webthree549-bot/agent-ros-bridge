@@ -23,6 +23,13 @@ from agent_ros_bridge.gateway_v2.plugins.greenhouse_plugin import GreenhousePlug
 # from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport  # noqa: E402
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport  # noqa: E402
 
+# HTTP transport is optional - requires aiohttp
+try:
+    from agent_ros_bridge.gateway_v2.transports.http_transport import HTTPTransport  # noqa: E402
+    _HTTP_AVAILABLE = True
+except ImportError:
+    _HTTP_AVAILABLE = False
+
 logger = logging.getLogger("agent_ros_bridge")
 
 
@@ -56,6 +63,11 @@ def create_bridge_from_config(config: BridgeConfig) -> Bridge:
             transport = WebSocketTransport(transport_config)
             bridge.transport_manager.register(transport)
             logger.info(f"Registered WebSocket transport on port {transport_cfg.port}")
+
+        elif name == "http" and _HTTP_AVAILABLE:
+            transport = HTTPTransport(transport_config)
+            bridge.transport_manager.register(transport)
+            logger.info(f"Registered HTTP transport on port {transport_cfg.port}")
 
         # elif name == "grpc":
         #     transport = GRPCTransport(transport_config)
@@ -165,6 +177,8 @@ Environment Variables:
 
     parser.add_argument("--tcp-port", type=int, help="TCP socket port (overrides config)")
 
+    parser.add_argument("--http-port", type=int, help="HTTP dashboard port (overrides config)")
+
     parser.add_argument(
         "--demo", action="store_true", help="Run in demo mode (WebSocket + greenhouse plugin)"
     )
@@ -194,6 +208,9 @@ Environment Variables:
 
     if args.tcp_port is not None:
         config.transports["tcp"].port = args.tcp_port
+
+    if args.http_port is not None:
+        config.transports["http"].port = args.http_port
 
     # Run bridge
     try:

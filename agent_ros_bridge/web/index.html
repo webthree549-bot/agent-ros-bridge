@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent ROS Bridge - Robot Control Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text">Agent ROS Bridge</div>
+            </div>
+            
+            <nav class="nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#robots" class="nav-item" data-section="robots">
+                    <span class="nav-icon">🤖</span>
+                    <span>Robots</span>
+                </a>
+                <a href="#control" class="nav-item" data-section="control">
+                    <span class="nav-icon">🎮</span>
+                    <span>Control</span>
+                </a>
+                <a href="#telemetry" class="nav-item" data-section="telemetry">
+                    <span class="nav-icon">📡</span>
+                    <span>Telemetry</span>
+                </a>
+                <a href="#fleet" class="nav-item" data-section="fleet">
+                    <span class="nav-icon">🚁</span>
+                    <span>Fleet</span>
+                </a>
+                <a href="#shadow" class="nav-item" data-section="shadow">
+                    <span class="nav-icon">🧠</span>
+                    <span>Shadow Mode</span>
+                </a>
+                <a href="#safety" class="nav-item" data-section="safety">
+                    <span class="nav-icon">🛡️</span>
+                    <span>Safety</span>
+                </a>
+                <a href="#logs" class="nav-item" data-section="logs">
+                    <span class="nav-icon">📋</span>
+                    <span>Logs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <div class="version">v0.6.5</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="connectBtn">
+                        <span class="btn-icon">🔌</span>
+                        Connect
+                    </button>
+                    <button class="btn btn-danger" id="emergencyStopBtn">
+                        <span class="btn-icon">⏹️</span>
+                        EMERGENCY STOP
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <div class="content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">🤖</div>
+                            <div class="stat-value" id="robotCount">0</div>
+                            <div class="stat-label">Active Robots</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-value" id="taskCount">0</div>
+                            <div class="stat-label">Tasks Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🔋</div>
+                            <div class="stat-value" id="avgBattery">--%</div>
+                            <div class="stat-label">Avg Battery</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-value" id="latency">--ms</div>
+                            <div class="stat-label">Latency</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Robot Fleet Status</h3>
+                                <button class="btn btn-sm btn-secondary">View All</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="robot-list" id="robotList">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">🤖</div>
+                                        <p>No robots connected</p>
+                                        <button class="btn btn-primary" onclick="app.connect()">Connect to Bridge</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recent Activity</h3>
+                                <button class="btn btn-sm btn-secondary" onclick="app.clearLogs()">Clear</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="activity-log" id="activityLog">
+                                    <div class="log-entry">
+                                        <span class="log-time">--:--:--</span>
+                                        <span class="log-level info">INFO</span>
+                                        <span class="log-message">Waiting for connection...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Robots Section -->
+                <section id="robots-section" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Connected Robots</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" onclick="app.discoverRobots()">
+                                    <span class="btn-icon">🔍</span>
+                                    Discover
+                                </button>
+                                <button class="btn btn-primary" onclick="app.addRobot()">
+                                    <span class="btn-icon">+</span>
+                                    Add Robot
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="robots-table-container">
+                                <table class="robots-table" id="robotsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Battery</th>
+                                            <th>Location</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="robotsTableBody">
+                                        <tr class="empty-row">
+                                            <td colspan="7" class="text-center">
+                                                <div class="empty-state">
+                                                    <div class="empty-icon">🤖</div>
+                                                    <p>No robots connected</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Control Section -->
+                <section id="control-section" class="section">
+                    <div class="control-layout">
+                        <div class="control-panel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Manual Control</h3>
+                                    <select class="select" id="controlRobotSelect">
+                                        <option value="">Select Robot...</option>
+                                    </select>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-pad">
+                                        <button class="d-btn d-up" data-cmd="forward" data-param="1.0">▲</button>
+                                        <button class="d-btn d-left" data-cmd="rotate" data-param="90">◀</button>
+                                        <button class="d-btn d-center" data-cmd="stop">⏹</button>
+                                        <button class="d-btn d-right" data-cmd="rotate" data-param="-90">▶</button>
+                                        <button class="d-btn d-down" data-cmd="forward" data-param="-1.0">▼</button>
+                                    </div>
+                                    
+                                    <div class="control-actions">
+                                        <button class="btn btn-primary" onclick="app.sendCommand('navigate', {x: 1, y: 0})">
+                                            Go to (1, 0)
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="app.sendCommand('return_to_dock')">
+                                            Return to Dock
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="app.sendCommand('explore')">
+                                            Explore
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="command-panel">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>Natural Language Commands</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chat-container" id="chatContainer">
+                                        <div class="chat-message system">
+                                            <div class="chat-bubble">
+                                                Welcome! Type natural language commands like "Move forward 2 meters" or "Navigate to the kitchen"
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="chat-input-group">
+                                        <input type="text" 
+                                               class="chat-input" 
+                                               id="nlCommandInput" 
+                                               placeholder="Type a command..."
+                                               onkeypress="if(event.key==='Enter') app.sendNLCommand()">
+                                        <button class="btn btn-primary" onclick="app.sendNLCommand()">
+                                            Send
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="quick-commands">
+                                        <button class="quick-cmd" onclick="app.quickCommand('Move forward')">Move forward</button>
+                                        <button class="quick-cmd" onclick="app.quickCommand('Turn left')">Turn left</button>
+                                        <button class="quick-cmd" onclick="app.quickCommand('Stop')">Stop</button>
+                                        <button class="quick-cmd" onclick="app.quickCommand('Return to base')">Return to base</button>
+                                        <button class="quick-cmd" onclick="app.quickCommand('What is your status?')">Status</button>
+                                        <button class="quick-cmd" onclick="app.quickCommand('Check surroundings')">Scan</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Telemetry Section -->
+                <section id="telemetry-section" class="section">
+                    <div class="telemetry-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Live Sensor Data</h3>
+                                <select class="select" id="telemetryRobotSelect">
+                                    <option value="">Select Robot...</option>
+                                </select>
+                            </div>
+                            <div class="card-body">
+                                <div class="sensor-grid">
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Position</div>
+                                        <div class="sensor-value" id="sensorPosition">--, --</div>
+                                    </div>
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Orientation</div>
+                                        <div class="sensor-value" id="sensorOrientation">--°</div>
+                                    </div>
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Linear Velocity</div>
+                                        <div class="sensor-value" id="sensorLinearVel">-- m/s</div>
+                                    </div>
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Angular Velocity</div>
+                                        <div class="sensor-value" id="sensorAngularVel">-- rad/s</div>
+                                    </div>
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Battery</div>
+                                        <div class="sensor-value" id="sensorBattery">--%</div>
+                                    </div>
+                                    <div class="sensor-card">
+                                        <div class="sensor-name">Obstacle Distance</div>
+                                        <div class="sensor-value" id="sensorObstacle">-- m</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>LiDAR Visualization</h3>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="lidarCanvas" width="400" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fleet Section -->
+                <section id="fleet-section" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Fleet Management</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" onclick="app.broadcastCommand('return_to_dock')">
+                                    Return All to Dock
+                                </button>
+                                <button class="btn btn-primary" onclick="app.broadcastCommand('patrol')">
+                                    Start Patrol
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="fleet-map" id="fleetMap">
+                                <div class="map-placeholder">
+                                    <div class="map-icon">🗺️</div>
+                                    <p>Fleet map will appear here when robots are connected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Safety Section -->
+                <section id="safety-section" class="section">
+                    <div class="safety-grid">
+                        <div class="card safety-card">
+                            <div class="card-header">
+                                <h3>🛡️ Safety Status</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="safety-status" id="safetyStatus">
+                                    <div class="safety-indicator safe">
+                                        <div class="indicator-icon">✅</div>
+                                        <div class="indicator-text">SAFE MODE</div>
+                                        <div class="indicator-sub">Human approval required</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="safety-settings">
+                                    <div class="setting-item">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="autonomousMode" disabled>
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">Autonomous Mode</span>
+                                        </label>
+                                        <span class="setting-hint">Requires 200+ hours shadow data</span>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="humanInLoop" checked disabled>
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">Human-in-the-Loop</span>
+                                        </label>
+                                        <span class="setting-hint">All AI proposals need approval</span>
+                                    </div>
+                                    <div class="setting-item">
+                                        <label class="toggle">
+                                            <input type="checkbox" id="shadowMode" checked disabled>
+                                            <span class="toggle-slider"></span>
+                                            <span class="toggle-label">Shadow Mode</span>
+                                        </label>
+                                        <span class="setting-hint">Collecting validation data</span>
+                                    </div>
+                                </div>
+
+                                <div class="shadow-stats">
+                                    <h4>Shadow Mode Statistics</h4>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="shadowProgress" style="width: 0%"></div>
+                                    </div>
+                                    <div class="progress-labels">
+                                        <span>0 hours collected</span>
+                                        <span>200 hours required</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Agreement Rate:</span>
+                                        <span id="agreementRate">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Validation Gates</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="gate-list">
+                                    <div class="gate-item passed">
+                                        <div class="gate-icon">✅</div>
+                                        <div class="gate-info">
+                                            <div class="gate-name">Gate 1: Unit Tests</div>
+                                            <div class="gate-desc">2,021 tests passed</div>
+                                        </div>
+                                        <div class="gate-status">PASSED</div>
+                                    </div>
+                                    <div class="gate-item passed">
+                                        <div class="gate-icon">✅</div>
+                                        <div class="gate-info">
+                                            <div class="gate-name">Gate 2: Simulation</div>
+                                            <div class="gate-desc">10,000 scenarios, 95.93% success</div>
+                                        </div>
+                                        <div class="gate-status">PASSED</div>
+                                    </div>
+                                    <div class="gate-item pending">
+                                        <div class="gate-icon">⏳</div>
+                                        <div class="gate-info">
+                                            <div class="gate-name">Gate 3: Shadow Mode</div>
+                                            <div class="gate-desc">200+ hours supervised operation</div>
+                                        </div>
+                                        <div class="gate-status">PENDING</div>
+                                    </div>
+                                    <div class="gate-item pending">
+                                        <div class="gate-icon">⏳</div>
+                                        <div class="gate-info">
+                                            <div class="gate-name">Gate 4: Gradual Rollout</div>
+                                            <div class="gate-desc">10% → 25% → 50% → 100% autonomy</div>
+                                        </div>
+                                        <div class="gate-status">PENDING</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Shadow Mode Section -->
+                <section id="shadow-section" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🧠 Shadow Mode Metrics</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" onclick="app.refreshShadowMetrics()">🔄 Refresh</button>
+                                <span id="shadowLastUpdated" style="color: var(--text-secondary); font-size: 13px;"></span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stats-grid" style="margin-bottom: 24px;">
+                                <div class="stat-card">
+                                    <div class="stat-icon">🤝</div>
+                                    <div class="stat-value" id="shadowAgreementRate">--%</div>
+                                    <div class="stat-label">Agreement Rate</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">📊</div>
+                                    <div class="stat-value" id="shadowTotalDecisions">--</div>
+                                    <div class="stat-label">Total Decisions</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">⏳</div>
+                                    <div class="stat-value" id="shadowPendingCount">--</div>
+                                    <div class="stat-label">Pending</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">✅</div>
+                                    <div class="stat-value" id="shadowCompletedCount">--</div>
+                                    <div class="stat-label">Completed</div>
+                                </div>
+                            </div>
+                            
+                            <h4 style="margin-bottom: 16px;">Recent AI-Human Decisions</h4>
+                            <div class="robots-table-container">
+                                <table class="robots-table" id="shadowDecisionsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Time</th>
+                                            <th>Robot</th>
+                                            <th>AI Intent</th>
+                                            <th>Human Action</th>
+                                            <th>Agreement</th>
+                                            <th>Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="shadowDecisionsBody">
+                                        <tr class="empty-row">
+                                            <td colspan="6" class="text-center">
+                                                <div class="empty-state">
+                                                    <div class="empty-icon">📊</div>
+                                                    <p>No decisions logged yet</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Logs Section -->
+                <section id="logs-section" class="section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>System Logs</h3>
+                            <div class="card-actions">
+                                <select class="select" id="logLevelFilter">
+                                    <option value="all">All Levels</option>
+                                    <option value="debug">Debug</option>
+                                    <option value="info">Info</option>
+                                    <option value="warn">Warning</option>
+                                    <option value="error">Error</option>
+                                </select>
+                                <button class="btn btn-secondary" onclick="app.exportLogs()">Export</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="logs-container" id="logsContainer">
+                                <div class="log-entry">
+                                    <span class="log-time">--:--:--</span>
+                                    <span class="log-level info">INFO</span>
+                                    <span class="log-message">System initialized. Waiting for connection...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Connection Modal -->
+    <div class="modal" id="connectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Connect to Bridge</h3>
+                <button class="modal-close" onclick="app.closeModal('connectModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>WebSocket URL</label>
+                    <input type="text" class="input" id="wsUrl" value="ws://localhost:8765">
+                </div>
+                <div class="form-group">
+                    <label>JWT Token (optional)</label>
+                    <input type="password" class="input" id="jwtToken" placeholder="Enter token if required">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('connectModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="app.connect()">Connect</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚠️ Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">Are you sure you want to execute this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="app.closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

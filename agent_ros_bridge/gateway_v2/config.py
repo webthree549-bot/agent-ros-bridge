@@ -129,6 +129,7 @@ class BridgeConfig:
     transports: dict[str, TransportConfig] = field(
         default_factory=lambda: {
             "websocket": TransportConfig(port=8765),
+            "http": TransportConfig(port=8080),  # HTTP dashboard
             "grpc": TransportConfig(port=50051),
             "tcp": TransportConfig(port=9999),
         }
@@ -249,48 +250,86 @@ class ConfigLoader:
     @classmethod
     def _dict_to_config(cls, data: dict[str, Any]) -> "BridgeConfig":
         """Convert dictionary to BridgeConfig."""
-        # Simplified conversion - full implementation would handle nested structures
+        # Start with default config
+        defaults = BridgeConfig()
+        
+        # Merge with loaded data
         return BridgeConfig(
-            name=data.get("name", "agent_ros_bridge"),
-            log_level=data.get("log_level", "INFO"),
-            transports=cls._parse_transports(data.get("transports", {})),
-            connectors=cls._parse_connectors(data.get("connectors", {})),
-            security=cls._parse_security(data.get("security", {})),
-            safety=cls._parse_safety(data.get("safety", {})),
-            plugins=cls._parse_plugins(data.get("plugins", [])),
-            discovery=data.get("discovery", {"enabled": True}),
-            telemetry=data.get("telemetry", {"enabled": True}),
-            storage=data.get("storage", {"type": "memory"}),
+            name=data.get("name", defaults.name),
+            log_level=data.get("log_level", defaults.log_level),
+            transports=cls._parse_transports(data.get("transports", {}), defaults.transports),
+            connectors=cls._parse_connectors(data.get("connectors", {}), defaults.connectors),
+            security=cls._parse_security(data.get("security", defaults.security)),
+            safety=cls._parse_safety(data.get("safety", defaults.safety)),
+            plugins=cls._parse_plugins(data.get("plugins", []), defaults.plugins),
+            discovery=data.get("discovery", defaults.discovery),
+            telemetry=data.get("telemetry", defaults.telemetry),
+            storage=data.get("storage", defaults.storage),
         )
 
     @classmethod
-    def _parse_transports(cls, data: dict[str, Any]) -> dict[str, TransportConfig]:
-        """Parse transport configurations."""
-        transports = {}
+    def _parse_transports(cls, data: dict[str, Any], defaults: dict[str, TransportConfig] | None = None) -> dict[str, TransportConfig]:
+        """Parse transport configurations.
+        
+        Args:
+            data: Transport configuration from file
+            defaults: Default transports to use as base
+            
+        Returns:
+            Merged transport configurations
+        """
+        # Start with defaults, update with file config
+        transports = dict(defaults) if defaults else {}
+        
         for name, cfg in data.items():
-            transports[name] = TransportConfig(
-                enabled=cfg.get("enabled", True),
-                host=cfg.get("host", "0.0.0.0"),  # nosec B104 - Allow external robot connections
-                port=cfg.get("port", 0),
-                tls_cert=cfg.get("tls_cert"),
-                tls_key=cfg.get("tls_key"),
-                options=cfg.get("options", {}),
-            )
+            if name in transports:
+                # Update existing transport
+                existing = transports[name]
+                transports[name] = TransportConfig(
+                    enabled=cfg.get("enabled", existing.enabled),
+                    host=cfg.get("host", existing.host),
+                    port=cfg.get("port", existing.port),
+                    tls_cert=cfg.get("tls_cert", existing.tls_cert),
+                    tls_key=cfg.get("tls_key", existing.tls_key),
+                    options={**existing.options, **cfg.get("options", {})},
+                )
+            else:
+                # Add new transport
+                transports[name] = TransportConfig(
+                    enabled=cfg.get("enabled", True),
+                    host=cfg.get("host", "0.0.0.0"),  # nosec B104 - Allow external robot connections
+                    port=cfg.get("port", 0),
+                    tls_cert=cfg.get("tls_cert"),
+                    tls_key=cfg.get("tls_key"),
+                    options=cfg.get("options", {}),
+                )
         return transports
 
     @classmethod
-    def _parse_connectors(cls, data: dict[str, Any]) -> dict[str, ConnectorConfig]:
+    def _parse_connectors(cls, data: dict[str, Any], defaults: dict[str, ConnectorConfig] | None = None) -> dict[str, ConnectorConfig]:
         """Parse connector configurations."""
-        connectors = {}
+        connectors = dict(defaults) if defaults else {}
         for name, cfg in data.items():
-            connectors[name] = ConnectorConfig(
-                enabled=cfg.get("enabled", True), options=cfg.get("options", {})
-            )
+            if name in connectors:
+                existing = connectors[name]
+                connectors[name] = ConnectorConfig(
+                    enabled=cfg.get("enabled", existing.enabled),
+                    options={**existing.options, **cfg.get("options", {})},
+                )
+            else:
+                connectors[name] = ConnectorConfig(
+                    enabled=cfg.get("enabled", True),
+                    options=cfg.get("options", {}),
+                )
         return connectors
 
     @classmethod
-    def _parse_security(cls, data: dict[str, Any]) -> SecurityConfig:
+    def _parse_security(cls, data: dict[str, Any] | SecurityConfig) -> SecurityConfig:
         """Parse security configuration."""
+        # Handle dataclass input
+        if isinstance(data, SecurityConfig):
+            return data
+        # Handle dict input
         return SecurityConfig(
             enabled=data.get("enabled", False),
             authentication=data.get("authentication", ["jwt"]),
@@ -303,8 +342,12 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_safety(cls, data: dict[str, Any]) -> SafetyConfig:
+    def _parse_safety(cls, data: dict[str, Any] | SafetyConfig) -> SafetyConfig:
         """Parse safety configuration."""
+        # Handle dataclass input
+        if isinstance(data, SafetyConfig):
+            return data
+        # Handle dict input
         return SafetyConfig(
             autonomous_mode=data.get("autonomous_mode", False),
             human_in_the_loop=data.get("human_in_the_loop", True),
@@ -319,19 +362,22 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_plugins(cls, data: list[dict[str, Any]]) -> list[PluginConfig]:
+    def _parse_plugins(cls, data: list[dict[str, Any]], defaults: list[PluginConfig] | None = None) -> list[PluginConfig]:
         """Parse plugin configurations."""
-        plugins = []
-        for p in data:
-            plugins.append(
-                PluginConfig(
-                    name=p.get("name", "unknown"),
-                    enabled=p.get("enabled", True),
-                    source=p.get("source"),
-                    options=p.get("options", {}),
+        # File plugins override defaults
+        if data:
+            plugins = []
+            for p in data:
+                plugins.append(
+                    PluginConfig(
+                        name=p.get("name", "unknown"),
+                        enabled=p.get("enabled", True),
+                        source=p.get("source"),
+                        options=p.get("options", {}),
+                    )
                 )
-            )
-        return plugins
+            return plugins
+        return defaults if defaults else []
 
     @classmethod
     def _set_nested_attr(cls, obj: Any, path: str, value: Any) -> None:

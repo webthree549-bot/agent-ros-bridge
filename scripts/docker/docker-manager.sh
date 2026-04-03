@@ -94,6 +94,7 @@ cmd_start() {
         --privileged \
         --restart unless-stopped \
         -p 8765:8765 \
+        -p 8080:8080 \
         -p 11311:11311 \
         -p 9090:9090 \
         -v "${PROJECT_ROOT}:/workspace:rw" \

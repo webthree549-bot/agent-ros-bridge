@@ -1,0 +1,85 @@
+# Optimized Dockerfile for Agent ROS Bridge v0.6.5
+# Pre-installs all dependencies for faster startup
+# Includes: ROS2 Jazzy, Nav2, Gazebo, Python deps, Dashboard features
+
+FROM ros:jazzy-ros-base AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-jazzy-nav2-bringup \
+    ros-jazzy-nav2-simple-commander \
+    ros-jazzy-turtlebot3-gazebo \
+    ros-jazzy-demo-nodes-cpp \
+    ros-jazzy-demo-nodes-py \
+    ros-jazzy-foxglove-bridge \
+    python3-pip \
+    python3-pytest \
+    python3-pytest-asyncio \
+    python3-websockets \
+    python3-aiohttp \
+    python3-numpy \
+    python3-yaml \
+    curl \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install Python packages for dashboard and testing
+RUN pip3 install --no-cache-dir \
+    pytest-asyncio>=0.21.0 \
+    websockets>=11.0 \
+    aiohttp>=3.8.0 \
+    numpy>=1.24.0 \
+    pyyaml>=6.0
+
+# Source ROS2 in bashrc
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+
+# Set environment
+ENV ROS_DISTRO=jazzy
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONPATH=/workspace
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create workspace
+WORKDIR /workspace
+
+# =============================================================================
+# Stage 2: Optimized production image with pre-installed code
+# =============================================================================
+FROM base AS optimized
+
+LABEL maintainer="Agent ROS Bridge Team"
+LABEL description="Agent ROS Bridge v0.6.5 - Optimized with all features"
+LABEL version="0.6.5"
+
+# Copy application code
+COPY agent_ros_bridge/ /workspace/agent_ros_bridge/
+COPY config/ /workspace/config/
+COPY tests/ /workspace/tests/
+COPY pyproject.toml /workspace/
+COPY README.md /workspace/
+
+# Pre-compile Python bytecode for faster startup
+RUN python3 -m compileall /workspace/agent_ros_bridge/
+
+# Install in editable mode
+RUN pip3 install -e /workspace --no-deps
+
+# Create log directory
+RUN mkdir -p /tmp/logs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/api/health || exit 1
+
+# Expose all service ports
+EXPOSE 8080 8765 9090 11311 7432
+
+# Entry point script
+COPY scripts/docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["start"]

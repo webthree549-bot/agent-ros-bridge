@@ -1,0 +1,23 @@
+{
+  "name": "agent-ros-bridge-dashboard-tests",
+  "version": "0.6.5",
+  "description": "E2E, Load, and Security tests for Agent ROS Bridge Web Dashboard",
+  "scripts": {
+    "test:e2e": "mocha dashboard-e2e.test.js --timeout 30000",
+    "test:e2e:headed": "HEADLESS=false npm run test:e2e",
+    "test:load": "node dashboard-load.test.js",
+    "test:load:100": "CONCURRENT_USERS=100 npm run test:load",
+    "test:load:500": "CONCURRENT_USERS=500 DURATION_MS=120000 npm run test:load",
+    "test:security": "node dashboard-security-audit.js",
+    "test:all": "npm run test:security && npm run test:e2e && npm run test:load",
+    "test:ci": "npm run test:security && npm run test:e2e"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "playwright": "^1.40.0",
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

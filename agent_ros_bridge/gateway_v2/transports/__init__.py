@@ -16,6 +16,14 @@ Example:
 from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
+# HTTP is optional - only import if aiohttp is available
+try:
+    from agent_ros_bridge.gateway_v2.transports.http_transport import HTTPTransport
+
+    _HTTP_AVAILABLE = True
+except ImportError:
+    _HTTP_AVAILABLE = False
+
 # gRPC is optional - only import if protobuf is available
 try:
     from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
@@ -40,6 +48,9 @@ except ImportError:
 
 # Build __all__ based on available transports
 __all__ = ["WebSocketTransport", "MQTTTransport"]
+
+if _HTTP_AVAILABLE:
+    __all__.append("HTTPTransport")
 
 if _GRPC_AVAILABLE:
     __all__.append("GRPCTransport")
