@@ -27,6 +27,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from agent_ros_bridge import Bridge
 from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
+# Mark all tests with timeout
+pytestmark = pytest.mark.timeout(30)  # 30 second timeout for all tests
+
 
 class TestWebSocketIntegration:
     """Integration tests for WebSocket transport"""
@@ -77,7 +80,7 @@ class TestWebSocketIntegration:
         await ws_client.send(json.dumps({"command": {"action": "list_robots"}}))
 
         # Wait for response
-        response = json.loads(await ws_client.recv())
+        response = json.loads(await asyncio.wait_for(ws_client.recv(), timeout=5.0))
 
         # Verify response structure
         assert "telemetry" in response or "event" in response
@@ -91,7 +94,7 @@ class TestWebSocketIntegration:
         """Test get_topics command returns topic list"""
         await ws_client.send(json.dumps({"command": {"action": "get_topics"}}))
 
-        response = json.loads(await ws_client.recv())
+        response = json.loads(await asyncio.wait_for(ws_client.recv(), timeout=5.0))
 
         assert "telemetry" in response
         assert response["telemetry"]["topic"] == "topics"
@@ -102,7 +105,7 @@ class TestWebSocketIntegration:
         """Test that invalid JSON is rejected gracefully"""
         await ws_client.send("not valid json")
 
-        response = json.loads(await ws_client.recv())
+        response = json.loads(await asyncio.wait_for(ws_client.recv(), timeout=5.0))
 
         assert "error" in response or "event" in response
 
