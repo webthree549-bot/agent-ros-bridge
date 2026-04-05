@@ -502,11 +502,13 @@ class RealGazeboSimulator:
                 # Real implementation would parse protobuf response properly
                 if "contact" in output.lower() or "collision" in output.lower():
                     # Extract contact pairs from response
-                    contacts.append({
-                        "robot": self._robot_name,
-                        "obstacle": "unknown",
-                        "contact_points": [],
-                    })
+                    contacts.append(
+                        {
+                            "robot": self._robot_name,
+                            "obstacle": "unknown",
+                            "contact_points": [],
+                        }
+                    )
 
             # Alternative: Query contacts topic directly
             cmd_contacts = [
@@ -528,11 +530,13 @@ class RealGazeboSimulator:
 
             if result_contacts.returncode == 0 and result_contacts.stdout.strip():
                 # Parse contact message
-                contacts.append({
-                    "robot": self._robot_name,
-                    "obstacle": "detected",
-                    "raw_data": result_contacts.stdout[:200],
-                })
+                contacts.append(
+                    {
+                        "robot": self._robot_name,
+                        "obstacle": "detected",
+                        "raw_data": result_contacts.stdout[:200],
+                    }
+                )
 
             return contacts
 

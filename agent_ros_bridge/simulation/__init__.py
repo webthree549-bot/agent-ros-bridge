@@ -167,10 +167,12 @@ class ScenarioRunner:
 
             if sim.connect():
                 # Run the scenario
-                result = sim.run_scenario({
-                    "robot_config": scenario.robot_config,
-                    "goal": scenario.goal,
-                })
+                result = sim.run_scenario(
+                    {
+                        "robot_config": scenario.robot_config,
+                        "goal": scenario.goal,
+                    }
+                )
 
                 # Collect metrics if execution was successful
                 trajectory = []

@@ -252,9 +252,7 @@ class MetricsCollector:
             # Find closest point on planned path
             min_dist = float("inf")
             for path_point in planned_path:
-                dist = math.sqrt(
-                    (pose[0] - path_point[0]) ** 2 + (pose[1] - path_point[1]) ** 2
-                )
+                dist = math.sqrt((pose[0] - path_point[0]) ** 2 + (pose[1] - path_point[1]) ** 2)
                 min_dist = min(min_dist, dist)
 
             max_deviation = max(max_deviation, min_dist)

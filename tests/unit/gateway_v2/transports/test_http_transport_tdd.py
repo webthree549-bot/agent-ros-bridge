@@ -25,8 +25,8 @@ from agent_ros_bridge.gateway_v2.core import (
 
 # Import HTTPTransport
 from agent_ros_bridge.gateway_v2.transports.http_transport import (
-    HTTPTransport,
     DASHBOARD_HTML,
+    HTTPTransport,
 )
 
 
@@ -116,10 +116,10 @@ class TestHTTPTransportLifecycle:
     async def test_start_already_running(self, transport):
         """Test starting transport that's already running"""
         await transport.start()
-        
+
         # Try to start again
         result = await transport.start()
-        
+
         # Should fail or return False since already running
         assert result is False or transport.running is True
 
@@ -143,20 +143,22 @@ class TestHTTPRequestHandling:
         # Simulate HTTP request
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
+
         # Mock request line and headers
-        reader.readline = mock.AsyncMock(side_effect=[
-            b"GET / HTTP/1.1\r\n",
-            b"Host: localhost:8080\r\n",
-            b"\r\n",
-        ])
-        
+        reader.readline = mock.AsyncMock(
+            side_effect=[
+                b"GET / HTTP/1.1\r\n",
+                b"Host: localhost:8080\r\n",
+                b"\r\n",
+            ]
+        )
+
         await running_transport._handle_request(reader, writer)
-        
+
         # Check that HTML was sent
         write_calls = writer.write.call_args_list
         assert len(write_calls) > 0
-        
+
         # Verify response contains HTML
         response_data = b"".join([call[0][0] for call in write_calls])
         assert b"HTTP/1.1 200 OK" in response_data
@@ -168,18 +170,20 @@ class TestHTTPRequestHandling:
         """Test handling GET /api/status request"""
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
-        reader.readline = mock.AsyncMock(side_effect=[
-            b"GET /api/status HTTP/1.1\r\n",
-            b"Host: localhost:8080\r\n",
-            b"\r\n",
-        ])
-        
+
+        reader.readline = mock.AsyncMock(
+            side_effect=[
+                b"GET /api/status HTTP/1.1\r\n",
+                b"Host: localhost:8080\r\n",
+                b"\r\n",
+            ]
+        )
+
         await running_transport._handle_request(reader, writer)
-        
+
         write_calls = writer.write.call_args_list
         response_data = b"".join([call[0][0] for call in write_calls])
-        
+
         assert b"HTTP/1.1 200 OK" in response_data
         assert b"application/json" in response_data
         assert b"running" in response_data
@@ -189,18 +193,20 @@ class TestHTTPRequestHandling:
         """Test handling GET /api/health request"""
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
-        reader.readline = mock.AsyncMock(side_effect=[
-            b"GET /api/health HTTP/1.1\r\n",
-            b"Host: localhost:8080\r\n",
-            b"\r\n",
-        ])
-        
+
+        reader.readline = mock.AsyncMock(
+            side_effect=[
+                b"GET /api/health HTTP/1.1\r\n",
+                b"Host: localhost:8080\r\n",
+                b"\r\n",
+            ]
+        )
+
         await running_transport._handle_request(reader, writer)
-        
+
         write_calls = writer.write.call_args_list
         response_data = b"".join([call[0][0] for call in write_calls])
-        
+
         assert b"HTTP/1.1 200 OK" in response_data
         assert b"healthy" in response_data
 
@@ -209,18 +215,20 @@ class TestHTTPRequestHandling:
         """Test handling unknown path returns 404"""
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
-        reader.readline = mock.AsyncMock(side_effect=[
-            b"GET /unknown/path HTTP/1.1\r\n",
-            b"Host: localhost:8080\r\n",
-            b"\r\n",
-        ])
-        
+
+        reader.readline = mock.AsyncMock(
+            side_effect=[
+                b"GET /unknown/path HTTP/1.1\r\n",
+                b"Host: localhost:8080\r\n",
+                b"\r\n",
+            ]
+        )
+
         await running_transport._handle_request(reader, writer)
-        
+
         write_calls = writer.write.call_args_list
         response_data = b"".join([call[0][0] for call in write_calls])
-        
+
         assert b"HTTP/1.1 404" in response_data
 
 
@@ -267,14 +275,14 @@ class TestHTTPMessageHandling:
         """Test sending message to specific client"""
         # Register a mock client
         transport._clients["client1"] = {}
-        
+
         message = Message(
             header=Header(),
             command=Command(action="test"),
         )
-        
+
         result = await transport.send(message, "client1")
-        
+
         assert result is True
         assert "pending" in transport._clients["client1"]
         assert len(transport._clients["client1"]["pending"]) == 1
@@ -286,9 +294,9 @@ class TestHTTPMessageHandling:
             header=Header(),
             command=Command(action="test"),
         )
-        
+
         result = await transport.send(message, "unknown_client")
-        
+
         assert result is False
 
     @pytest.mark.asyncio
@@ -297,14 +305,14 @@ class TestHTTPMessageHandling:
         # Register mock clients
         transport._clients["client1"] = {}
         transport._clients["client2"] = {}
-        
+
         message = Message(
             header=Header(),
             command=Command(action="broadcast"),
         )
-        
+
         recipients = await transport.broadcast(message)
-        
+
         assert len(recipients) == 2
         assert "client1" in recipients
         assert "client2" in recipients
@@ -317,20 +325,18 @@ class TestHTTPIntegration:
     async def test_full_request_response_cycle(self):
         """Test full HTTP request/response cycle"""
         transport = HTTPTransport({"host": "127.0.0.1", "port": 0})
-        
+
         # Start transport
         await transport.start()
         assert transport.running
-        
+
         # Make actual HTTP request
         import urllib.request
+
         try:
-            response = urllib.request.urlopen(
-                f"http://127.0.0.1:{transport.port}/",
-                timeout=2
-            )
+            response = urllib.request.urlopen(f"http://127.0.0.1:{transport.port}/", timeout=2)
             html = response.read().decode()
-            
+
             assert "<!DOCTYPE html>" in html
             assert response.status == 200
         except Exception as e:
@@ -343,24 +349,24 @@ class TestHTTPIntegration:
         """Test handling concurrent HTTP requests"""
         transport = HTTPTransport({"host": "127.0.0.1", "port": 0})
         await transport.start()
-        
+
         try:
             # Simulate multiple concurrent requests
             import urllib.request
-            
+
             urls = [
                 f"http://127.0.0.1:{transport.port}/",
                 f"http://127.0.0.1:{transport.port}/api/status",
                 f"http://127.0.0.1:{transport.port}/api/health",
             ]
-            
+
             for url in urls:
                 try:
                     response = urllib.request.urlopen(url, timeout=2)
                     assert response.status == 200
                 except Exception:
                     pass  # Individual failures OK for this test
-                    
+
         finally:
             await transport.stop()
 
@@ -372,16 +378,16 @@ class TestHTTPErrorHandling:
     async def test_handle_invalid_request(self):
         """Test handling invalid HTTP request"""
         transport = HTTPTransport({})
-        
+
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
+
         # Invalid request line
         reader.readline = mock.AsyncMock(return_value=b"INVALID\r\n")
-        
+
         # Should not raise exception
         await transport._handle_request(reader, writer)
-        
+
         # Cleanup
         writer.close.assert_called_once()
 
@@ -389,12 +395,12 @@ class TestHTTPErrorHandling:
     async def test_handle_empty_request(self):
         """Test handling empty request"""
         transport = HTTPTransport({})
-        
+
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
+
         reader.readline = mock.AsyncMock(return_value=b"")
-        
+
         # Should not raise exception, just return
         await transport._handle_request(reader, writer)
 
@@ -407,22 +413,25 @@ class TestHTTPPerformance:
     async def test_dashboard_serve_speed(self):
         """Test dashboard serving performance"""
         transport = HTTPTransport({})
-        
+
         reader = mock.AsyncMock()
         writer = mock.AsyncMock()
-        
-        reader.readline = mock.AsyncMock(side_effect=[
-            b"GET / HTTP/1.1\r\n",
-            b"\r\n",
-        ])
-        
+
+        reader.readline = mock.AsyncMock(
+            side_effect=[
+                b"GET / HTTP/1.1\r\n",
+                b"\r\n",
+            ]
+        )
+
         import time
+
         start = time.time()
-        
+
         await transport._handle_request(reader, writer)
-        
+
         elapsed = time.time() - start
-        
+
         # Should serve dashboard in under 100ms
         assert elapsed < 0.1
 

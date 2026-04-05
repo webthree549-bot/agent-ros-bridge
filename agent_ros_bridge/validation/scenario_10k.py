@@ -218,10 +218,12 @@ class Scenario10KGenerator:
 
             if sim.connect():
                 # Execute scenario
-                result = sim.run_scenario({
-                    "robot_config": scenario.get("robot_config", {}),
-                    "goal": scenario.get("goal", {}),
-                })
+                result = sim.run_scenario(
+                    {
+                        "robot_config": scenario.get("robot_config", {}),
+                        "goal": scenario.get("goal", {}),
+                    }
+                )
 
                 # Collect collision data
                 collision_count = 0
@@ -240,7 +242,7 @@ class Scenario10KGenerator:
                     "file": filepath,
                 }
 
-        except Exception as e:
+        except Exception:
             # Real simulation not available, use mock fallback
             pass
 

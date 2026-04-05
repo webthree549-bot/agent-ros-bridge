@@ -115,7 +115,9 @@ class RealGazeboSimulator:
                 await asyncio.sleep(1)
 
                 # Check if gzserver is running
-                result = subprocess.run(["pgrep", "-x", "gzserver"], capture_output=True)  # nosec B603 B607
+                result = subprocess.run(
+                    ["pgrep", "-x", "gzserver"], capture_output=True
+                )  # nosec B603 B607
                 if result.returncode == 0:
                     print("  ✅ Gazebo started")
                     return True
@@ -155,7 +157,9 @@ class RealGazeboSimulator:
                 await asyncio.sleep(1)
 
                 # Check if robot topics exist
-                result = subprocess.run(["ros2", "topic", "list"], capture_output=True, text=True)  # nosec B603 B607
+                result = subprocess.run(
+                    ["ros2", "topic", "list"], capture_output=True, text=True
+                )  # nosec B603 B607
 
                 if "/odom" in result.stdout:
                     print(f"  ✅ {self.robot_model} spawned")
@@ -192,7 +196,9 @@ class RealGazeboSimulator:
                 await asyncio.sleep(1)
 
                 # Check if Nav2 action server is available
-                result = subprocess.run(["ros2", "action", "list"], capture_output=True, text=True)  # nosec B603 B607
+                result = subprocess.run(
+                    ["ros2", "action", "list"], capture_output=True, text=True
+                )  # nosec B603 B607
 
                 if "/navigate_to_pose" in result.stdout:
                     print("  ✅ Nav2 ready")

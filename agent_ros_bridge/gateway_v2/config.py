@@ -21,7 +21,9 @@ class TransportConfig:
     """Transport configuration."""
 
     enabled: bool = True
-    host: str = "0.0.0.0"  # nosec B104 - Robot gateway requires binding to all interfaces for remote robot access
+    host: str = (
+        "0.0.0.0"  # nosec B104 - Robot gateway requires binding to all interfaces for remote robot access
+    )
     port: int = 0  # 0 means disabled
     tls_cert: str | None = None
     tls_key: str | None = None
@@ -252,7 +254,7 @@ class ConfigLoader:
         """Convert dictionary to BridgeConfig."""
         # Start with default config
         defaults = BridgeConfig()
-        
+
         # Merge with loaded data
         return BridgeConfig(
             name=data.get("name", defaults.name),
@@ -268,19 +270,21 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_transports(cls, data: dict[str, Any], defaults: dict[str, TransportConfig] | None = None) -> dict[str, TransportConfig]:
+    def _parse_transports(
+        cls, data: dict[str, Any], defaults: dict[str, TransportConfig] | None = None
+    ) -> dict[str, TransportConfig]:
         """Parse transport configurations.
-        
+
         Args:
             data: Transport configuration from file
             defaults: Default transports to use as base
-            
+
         Returns:
             Merged transport configurations
         """
         # Start with defaults, update with file config
         transports = dict(defaults) if defaults else {}
-        
+
         for name, cfg in data.items():
             if name in transports:
                 # Update existing transport
@@ -297,7 +301,9 @@ class ConfigLoader:
                 # Add new transport
                 transports[name] = TransportConfig(
                     enabled=cfg.get("enabled", True),
-                    host=cfg.get("host", "0.0.0.0"),  # nosec B104 - Allow external robot connections
+                    host=cfg.get(
+                        "host", "0.0.0.0"
+                    ),  # nosec B104 - Allow external robot connections
                     port=cfg.get("port", 0),
                     tls_cert=cfg.get("tls_cert"),
                     tls_key=cfg.get("tls_key"),
@@ -306,7 +312,9 @@ class ConfigLoader:
         return transports
 
     @classmethod
-    def _parse_connectors(cls, data: dict[str, Any], defaults: dict[str, ConnectorConfig] | None = None) -> dict[str, ConnectorConfig]:
+    def _parse_connectors(
+        cls, data: dict[str, Any], defaults: dict[str, ConnectorConfig] | None = None
+    ) -> dict[str, ConnectorConfig]:
         """Parse connector configurations."""
         connectors = dict(defaults) if defaults else {}
         for name, cfg in data.items():
@@ -362,7 +370,9 @@ class ConfigLoader:
         )
 
     @classmethod
-    def _parse_plugins(cls, data: list[dict[str, Any]], defaults: list[PluginConfig] | None = None) -> list[PluginConfig]:
+    def _parse_plugins(
+        cls, data: list[dict[str, Any]], defaults: list[PluginConfig] | None = None
+    ) -> list[PluginConfig]:
         """Parse plugin configurations."""
         # File plugins override defaults
         if data:
@@ -555,4 +565,6 @@ if __name__ == "__main__":
     print(f"  Human-in-the-loop: {config.safety.human_in_the_loop}")
     print(f"  Shadow mode enabled: {config.safety.shadow_mode_enabled}")
     print(f"  Validation status: {config.safety.safety_validation_status}")
-    print(f"  Shadow hours collected: {config.safety.shadow_mode_hours_collected:.1f}/{config.safety.required_shadow_hours:.0f}")
+    print(
+        f"  Shadow hours collected: {config.safety.shadow_mode_hours_collected:.1f}/{config.safety.required_shadow_hours:.0f}"
+    )

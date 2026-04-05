@@ -20,27 +20,24 @@ from datetime import UTC, datetime
 from typing import Any
 
 # Add scripts to path for auth and rate limiting
-sys.path.insert(0, '/workspace/scripts')
+sys.path.insert(0, "/workspace/scripts")
 
 from agent_ros_bridge.gateway_v2.core import (
-    Command,
-    Event,
-    Header,
-    Identity,
     Message,
-    Telemetry,
     Transport,
 )
 
 # Try to import optional features
 try:
-    from auth_manager import get_auth_manager
+    from auth_manager import get_auth_manager  # noqa: F401
+
     AUTH_AVAILABLE = True
 except ImportError:
     AUTH_AVAILABLE = False
 
 try:
-    from rate_limiter import get_rate_limiter
+    from rate_limiter import get_rate_limiter  # noqa: F401
+
     RATE_LIMIT_AVAILABLE = True
 except ImportError:
     RATE_LIMIT_AVAILABLE = False
@@ -49,7 +46,7 @@ logger = logging.getLogger("transport.http")
 
 
 # Advanced dashboard with all features
-DASHBOARD_HTML = '''<!DOCTYPE html>
+DASHBOARD_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -350,8 +347,8 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
         }
         .property-row:last-child { border-bottom: none; }
         .property-label { color: #888; }
-        .property-value { 
-            color: #fff; 
+        .property-value {
+            color: #fff;
             font-family: 'SF Mono', Monaco, monospace;
             font-weight: 500;
         }
@@ -1308,12 +1305,12 @@ DASHBOARD_HTML = '''<!DOCTYPE html>
         };
     </script>
 </body>
-</html>'''
+</html>"""
 
 
 class HTTPTransport(Transport):
     """HTTP transport with advanced visualization dashboard.
-    
+
     Features:
     - Foxglove-like 3D visualization
     - WebRTC video streaming support
@@ -1321,7 +1318,7 @@ class HTTPTransport(Transport):
     - Robot camera feed display
     - Map/navigation view
     - Real-time telemetry
-    
+
     Uses only Python standard library.
     """
 
@@ -1338,9 +1335,7 @@ class HTTPTransport(Transport):
     async def start(self) -> bool:
         """Start HTTP server."""
         try:
-            self.server = await asyncio.start_server(
-                self._handle_request, self.host, self.port
-            )
+            self.server = await asyncio.start_server(self._handle_request, self.host, self.port)
             self.running = True
             logger.info(f"HTTP transport started on http://{self.host}:{self.port}/")
             return True
@@ -1380,9 +1375,9 @@ class HTTPTransport(Transport):
             request_line = await reader.readline()
             if not request_line:
                 return
-            
+
             method, path, _ = request_line.decode().strip().split(" ", 2)
-            
+
             # Read headers
             headers = {}
             while True:
@@ -1392,42 +1387,51 @@ class HTTPTransport(Transport):
                 if b":" in line:
                     key, value = line.decode().strip().split(":", 1)
                     headers[key.strip().lower()] = value.strip()
-            
+
             # Handle routes
             if path == "/" or path == "/index.html":
                 await self._send_dashboard(writer)
             elif path == "/api/status":
-                await self._send_json(writer, {
-                    "status": "running",
-                    "transport": "http",
-                    "features": ["3d", "camera", "map", "plots", "webrtc"],
-                    "clients": len(self._clients),
-                    "timestamp": datetime.now(UTC).isoformat()
-                })
+                await self._send_json(
+                    writer,
+                    {
+                        "status": "running",
+                        "transport": "http",
+                        "features": ["3d", "camera", "map", "plots", "webrtc"],
+                        "clients": len(self._clients),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
             elif path == "/api/health":
                 await self._send_json(writer, {"status": "healthy"})
             elif path == "/api/topics":
-                await self._send_json(writer, {
-                    "topics": [
-                        {"name": "/tf", "type": "tf2_msgs/TFMessage"},
-                        {"name": "/odom", "type": "nav_msgs/Odometry"},
-                        {"name": "/scan", "type": "sensor_msgs/LaserScan"},
-                        {"name": "/camera/image_raw", "type": "sensor_msgs/Image"},
-                        {"name": "/cmd_vel", "type": "geometry_msgs/Twist"},
-                        {"name": "/map", "type": "nav_msgs/OccupancyGrid"},
-                    ]
-                })
+                await self._send_json(
+                    writer,
+                    {
+                        "topics": [
+                            {"name": "/tf", "type": "tf2_msgs/TFMessage"},
+                            {"name": "/odom", "type": "nav_msgs/Odometry"},
+                            {"name": "/scan", "type": "sensor_msgs/LaserScan"},
+                            {"name": "/camera/image_raw", "type": "sensor_msgs/Image"},
+                            {"name": "/cmd_vel", "type": "geometry_msgs/Twist"},
+                            {"name": "/map", "type": "nav_msgs/OccupancyGrid"},
+                        ]
+                    },
+                )
             elif path == "/api/cameras":
-                await self._send_json(writer, {
-                    "cameras": [
-                        {"id": "front", "name": "Front Camera", "resolution": "640x480"},
-                        {"id": "rear", "name": "Rear Camera", "resolution": "640x480"},
-                        {"id": "depth", "name": "Depth Camera", "resolution": "640x480"},
-                    ]
-                })
+                await self._send_json(
+                    writer,
+                    {
+                        "cameras": [
+                            {"id": "front", "name": "Front Camera", "resolution": "640x480"},
+                            {"id": "rear", "name": "Rear Camera", "resolution": "640x480"},
+                            {"id": "depth", "name": "Depth Camera", "resolution": "640x480"},
+                        ]
+                    },
+                )
             else:
                 await self._send_error(writer, 404, "Not Found")
-                
+
         except Exception as e:
             logger.error(f"HTTP request error: {e}")
             await self._send_error(writer, 500, "Internal Server Error")

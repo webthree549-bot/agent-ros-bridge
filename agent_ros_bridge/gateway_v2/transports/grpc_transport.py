@@ -82,7 +82,9 @@ class GRPCTransport(Transport):
     def __init__(self, config: dict[str, Any] | None = None):
         self.name = "grpc"
         self.config = config or {}
-        self.host = self.config.get("host", "0.0.0.0")  # nosec B104 - Gateway accepts remote robot connections
+        self.host = self.config.get(
+            "host", "0.0.0.0"
+        )  # nosec B104 - Gateway accepts remote robot connections
         self.port = self.config.get("port", 50051)
         self.max_workers = self.config.get("max_workers", 10)
         self.reflection = self.config.get("reflection", True)

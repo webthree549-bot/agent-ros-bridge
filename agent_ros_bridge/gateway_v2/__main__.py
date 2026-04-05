@@ -26,6 +26,7 @@ from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport 
 # HTTP transport is optional - requires aiohttp
 try:
     from agent_ros_bridge.gateway_v2.transports.http_transport import HTTPTransport  # noqa: E402
+
     _HTTP_AVAILABLE = True
 except ImportError:
     _HTTP_AVAILABLE = False

@@ -163,7 +163,8 @@ class GazeboBatchRunner:
             "sim",
             "-s",  # Server only (headless if headless=True)
             "-r",  # Run on startup
-            "-p", str(world.gzserver_port),
+            "-p",
+            str(world.gzserver_port),
         ]
 
         if self.world_template:
@@ -355,7 +356,7 @@ class GazeboBatchRunner:
             # Return robot name for mock fallback
             return robot_config.get("name", f"robot_{world_id}")
 
-        world_obj = self.worlds[world_id]
+        _ = self.worlds[world_id]  # noqa: F841 - verify world exists
         robot_name = robot_config.get("name", f"robot_{world_id}")
         robot_type = robot_config.get("type", "turtlebot3")
         x, y, yaw = robot_config.get("pose", [0.0, 0.0, 0.0])
@@ -543,9 +544,7 @@ class GazeboBatchRunner:
         # Calculate aggregate metrics
         total_duration = sum(r.duration_sec for r in results)
         total_collisions = sum(r.collision_count for r in results)
-        all_violations = [
-            v for r in results for v in r.safety_violations
-        ]
+        all_violations = [v for r in results for v in r.safety_violations]
 
         return BatchResults(
             results_list=results,
@@ -603,7 +602,10 @@ class GazeboBatchRunner:
             if "foxglove_bridge" in result.stdout:
                 # Start foxglove_bridge node
                 cmd = [
-                    "ros2", "launch", "foxglove_bridge", "foxglove_bridge_launch.xml",
+                    "ros2",
+                    "launch",
+                    "foxglove_bridge",
+                    "foxglove_bridge_launch.xml",
                     f"port:={port}",
                 ]
 
@@ -638,10 +640,14 @@ class GazeboBatchRunner:
                 """Handle WebSocket client connection."""
                 try:
                     # Send server capabilities
-                    websocket.send(json.dumps({
-                        "op": "serverInfo",
-                        "capability": ["clientPublish", "connectionGraph", "assets"],
-                    }))
+                    websocket.send(
+                        json.dumps(
+                            {
+                                "op": "serverInfo",
+                                "capability": ["clientPublish", "connectionGraph", "assets"],
+                            }
+                        )
+                    )
 
                     # Handle client messages
                     while True:
@@ -654,13 +660,25 @@ class GazeboBatchRunner:
 
                         if op == "subscribe":
                             # Client wants to subscribe to topics
-                            websocket.send(json.dumps({
-                                "op": "advertise",
-                                "channels": [
-                                    {"id": 1, "topic": "/robot_pose", "schemaName": "geometry_msgs/Pose"},
-                                    {"id": 2, "topic": "/collision", "schemaName": "std_msgs/Bool"},
-                                ],
-                            }))
+                            websocket.send(
+                                json.dumps(
+                                    {
+                                        "op": "advertise",
+                                        "channels": [
+                                            {
+                                                "id": 1,
+                                                "topic": "/robot_pose",
+                                                "schemaName": "geometry_msgs/Pose",
+                                            },
+                                            {
+                                                "id": 2,
+                                                "topic": "/collision",
+                                                "schemaName": "std_msgs/Bool",
+                                            },
+                                        ],
+                                    }
+                                )
+                            )
 
                 except Exception as e:
                     logger.debug(f"WebSocket client error: {e}")
@@ -725,7 +743,9 @@ class GazeboBatchRunner:
 
         return collision_count
 
-    def _collect_trajectory(self, world_id: int, duration: float = 1.0, sample_rate_hz: float = 10.0):
+    def _collect_trajectory(
+        self, world_id: int, duration: float = 1.0, sample_rate_hz: float = 10.0
+    ):
         """Collect trajectory (backward compatibility)."""
         import time
 

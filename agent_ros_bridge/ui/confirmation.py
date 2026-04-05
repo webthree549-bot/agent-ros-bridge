@@ -18,11 +18,13 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+# Standard library imports complete
+
 # Optional FastAPI imports
 try:
     from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
-    from fastapi.responses import HTMLResponse
     from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import HTMLResponse
 
     FASTAPI_AVAILABLE = True
 except ImportError:
@@ -380,7 +382,7 @@ class ConfirmationUI:
     ) -> dict[str, Any]:
         """Execute the approved/modified command"""
         # Execute via shadow hooks if available
-        if self._shadow_hooks and hasattr(self._shadow_hooks, '_bridge'):
+        if self._shadow_hooks and hasattr(self._shadow_hooks, "_bridge"):
             bridge = self._shadow_hooks._bridge
             if bridge:
                 try:

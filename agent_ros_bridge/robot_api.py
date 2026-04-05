@@ -282,6 +282,7 @@ class RobotController:
             )
 
         import time
+
         start_time = time.time()
 
         try:
@@ -311,7 +312,7 @@ class RobotController:
             return RobotCommandResult(
                 success=success,
                 execution_time=execution_time,
-                error_message=None if success else "MoveIt2 execution failed"
+                error_message=None if success else "MoveIt2 execution failed",
             )
 
         except ImportError:
@@ -320,7 +321,7 @@ class RobotController:
             return RobotCommandResult(
                 success=True,
                 execution_time=execution_time,
-                error_message="MoveIt2 not available (mock execution)"
+                error_message="MoveIt2 not available (mock execution)",
             )
 
         except Exception as e:
@@ -328,7 +329,7 @@ class RobotController:
             return RobotCommandResult(
                 success=False,
                 execution_time=execution_time,
-                error_message=f"Manipulation failed: {e}"
+                error_message=f"Manipulation failed: {e}",
             )
 
     def stop(self) -> bool:

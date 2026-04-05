@@ -6,7 +6,6 @@ High-level, agentic API that provides real value beyond basic command sending.
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import Any
 
 
@@ -85,10 +84,14 @@ class RobotAgent:
         # If human_in_the_loop is required by safety config, force require_confirmation=True
         if self.safety.human_in_the_loop:
             if not require_confirmation:
-                print("⚠️  SAFETY: require_confirmation forced to True (human_in_the_loop required)")
+                print(
+                    "⚠️  SAFETY: require_confirmation forced to True (human_in_the_loop required)"
+                )
             self.require_confirmation = True
             # Use stricter confidence threshold from safety config if available
-            self.confidence_threshold = max(confidence_threshold, self.safety.min_confidence_for_auto)
+            self.confidence_threshold = max(
+                confidence_threshold, self.safety.min_confidence_for_auto
+            )
         else:
             self.require_confirmation = require_confirmation
             self.confidence_threshold = confidence_threshold
@@ -109,6 +112,7 @@ class RobotAgent:
         """Load safety configuration from config files."""
         try:
             from agent_ros_bridge.gateway_v2.config import ConfigLoader, SafetyConfig
+
             config = ConfigLoader.from_file_or_env()
             return config.safety
         except Exception:
@@ -121,16 +125,24 @@ class RobotAgent:
         print("🛡️  SAFETY STATUS")
         print("=" * 60)
         print(f"Device: {self.device_id} ({self.device_type})")
-        print(f"Autonomous Mode: {self.safety.autonomous_mode} {'⚠️' if self.safety.autonomous_mode else '✅'}")
-        print(f"Human-in-the-Loop: {self.safety.human_in_the_loop} {'✅' if self.safety.human_in_the_loop else '⚠️'}")
-        print(f"Shadow Mode: {self.safety.shadow_mode_enabled} {'✅' if self.safety.shadow_mode_enabled else '⚠️'}")
+        print(
+            f"Autonomous Mode: {self.safety.autonomous_mode} {'⚠️' if self.safety.autonomous_mode else '✅'}"
+        )
+        print(
+            f"Human-in-the-Loop: {self.safety.human_in_the_loop} {'✅' if self.safety.human_in_the_loop else '⚠️'}"
+        )
+        print(
+            f"Shadow Mode: {self.safety.shadow_mode_enabled} {'✅' if self.safety.shadow_mode_enabled else '⚠️'}"
+        )
         print(f"Validation Status: {self.safety.safety_validation_status}")
         print(f"Confidence Threshold: {self.confidence_threshold:.2f}")
 
         if not self.safety.autonomous_mode:
             print("\n✅ SAFE MODE: Human approval required for all actions")
         else:
-            print(f"\n⚠️  AUTONOMOUS MODE: AI may execute without approval (confidence > {self.safety.min_confidence_for_auto:.2f})")
+            print(
+                f"\n⚠️  AUTONOMOUS MODE: AI may execute without approval (confidence > {self.safety.min_confidence_for_auto:.2f})"
+            )
 
         if self.safety.safety_validation_status in ["simulation_only", "supervised"]:
             hours = self.safety.shadow_mode_hours_collected
@@ -525,17 +537,14 @@ class RobotAgent:
         # SAFETY: Check gradual rollout stage
         # If rollout is not at 100%, only allow autonomy for a percentage of decisions
         import random
+
         if self.safety.gradual_rollout_stage < 100:
             # Only allow autonomy for rollout_stage% of decisions
             if random.randint(1, 100) > self.safety.gradual_rollout_stage:
                 return True
 
         # SAFETY: Check confidence threshold
-        if confidence < self.safety.min_confidence_for_auto:
-            return True
-
-        # All safety checks passed - can execute autonomously
-        return False
+        return confidence < self.safety.min_confidence_for_auto
 
     def _log_rejection(self, step, confidence: float, reason: str):
         """Log human rejection to shadow mode for analysis.
@@ -546,12 +555,12 @@ class RobotAgent:
             reason: Rejection reason
         """
         try:
-            if hasattr(self, 'shadow_hooks') and self.safety.shadow_mode_enabled:
+            if hasattr(self, "shadow_hooks") and self.safety.shadow_mode_enabled:
                 # Log via shadow hooks if available
-                if hasattr(self.shadow_hooks, 'on_human_rejected'):
+                if hasattr(self.shadow_hooks, "on_human_rejected"):
                     self.shadow_hooks.on_human_rejected(
                         robot_id=self.device_id,
-                        ai_proposal_id=getattr(step, 'ai_proposal_id', 'unknown'),
+                        ai_proposal_id=getattr(step, "ai_proposal_id", "unknown"),
                         rejection_reason=reason,
                     )
         except Exception as e:
@@ -652,7 +661,9 @@ class RobotAgent:
             else:
                 # Auto-execute (autonomous mode with high confidence)
                 human_approvals += 0  # No human involved
-                print(f"🤖 AUTONOMOUS: Executing {step.name} (confidence: {intent_result.confidence:.2f})")
+                print(
+                    f"🤖 AUTONOMOUS: Executing {step.name} (confidence: {intent_result.confidence:.2f})"
+                )
 
             # Execute capability on device
             result = self.device.execute_capability(
@@ -860,6 +871,7 @@ Return as JSON list of {{"action": str, "params": dict}}"""
 
         try:
             import openai
+
             client = openai.OpenAI(
                 api_key=os.environ.get("OPENAI_API_KEY") or os.environ.get("MOONSHOT_API_KEY"),
                 base_url=os.environ.get("LLM_BASE_URL", "https://api.openai.com/v1"),
@@ -872,10 +884,12 @@ Return as JSON list of {{"action": str, "params": dict}}"""
             )
 
             import json
+
             content = response.choices[0].message.content
             # Extract JSON from response
             import re
-            json_match = re.search(r'\[.*\]', content, re.DOTALL)
+
+            json_match = re.search(r"\[.*\]", content, re.DOTALL)
             if json_match:
                 plan_data = json.loads(json_match.group())
                 return plan_data[:max_steps]

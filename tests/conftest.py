@@ -20,7 +20,8 @@ import pytest
 # Configure pytest-asyncio
 try:
     import pytest_asyncio
-    pytest_plugins = ('pytest_asyncio',)
+
+    pytest_plugins = ("pytest_asyncio",)
 except ImportError:
     pass
 

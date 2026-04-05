@@ -383,7 +383,7 @@ Rules:
             if not intent_type or intent_type == "UNKNOWN":
                 # Empty or unknown intent - treat as parse failure
                 if not data.get("entities") and not data.get("reasoning"):
-                    print(f"Debug: Unknown intent with no entities/reasoning")
+                    print("Debug: Unknown intent with no entities/reasoning")
                     return None
 
             return LLMIntentResult(
