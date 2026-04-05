@@ -1,0 +1,28 @@
+# Bandit Security Scanner Configuration
+# https://bandit.readthedocs.io/en/latest/config.html
+
+# Skip tests that are false positives for this project
+skips:
+  # B311: Random generators - Used for simulation/testing, not crypto
+  - B311
+  # B104: Binding to all interfaces - Required for robot gateway functionality
+  - B104
+  # B607/B603: Subprocess calls - Required for Gazebo/ROS2 integration
+  - B607
+  - B603
+
+# Specific file exclusions (test files, etc.)
+exclude_dirs:
+  - tests
+  - test
+  - .venv
+  - venv
+  - __pycache__
+  - .pytest_cache
+  - build
+  - dist
+
+# Severity and confidence filters
+# Only report MEDIUM and HIGH severity issues
+severity: MEDIUM
+confidence: MEDIUM

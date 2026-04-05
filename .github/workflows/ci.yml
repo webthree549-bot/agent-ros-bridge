@@ -135,14 +135,48 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-latest
     needs: code-quality
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install security tools
+        run: |
+          pip install bandit pip-audit
+
       - name: Run Bandit security scan
         run: |
-          pip install bandit
-          bandit -r agent_ros_bridge/ -f screen -ll || true
+          bandit -r agent_ros_bridge/ -f json -o bandit-results.json -ll || true
+          bandit -r agent_ros_bridge/ -f screen -ll
         continue-on-error: true
+
+      - name: Upload Bandit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-results
+          path: bandit-results.json
+          retention-days: 30
+
+      - name: Run pip-audit dependency scan
+        run: |
+          pip-audit --format=json --output=pip-audit-results.json || true
+          pip-audit --format=summary
+        continue-on-error: true
+
+      - name: Upload pip-audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-results
+          path: pip-audit-results.json
+          retention-days: 30
 
       - name: Install Trivy
         run: |
@@ -164,6 +198,18 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
         continue-on-error: true
+
+      - name: Fail on CRITICAL vulnerabilities
+        run: |
+          echo "Checking for CRITICAL vulnerabilities..."
+          if [ -f trivy-results.sarif ]; then
+            CRITICAL_COUNT=$(grep -c '"severity": "critical"' trivy-results.sarif || echo "0")
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "❌ Found $CRITICAL_COUNT CRITICAL vulnerabilities"
+              exit 1
+            fi
+          fi
+          echo "✅ No CRITICAL vulnerabilities found"
 
   # Stage 4: Docker Build
   # Only build on main/develop branches and PRs (not on every push)
