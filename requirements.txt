@@ -1,5 +1,5 @@
 # Agent ROS Bridge - Core Dependencies
-cryptography==46.0.6
+cryptography>=46.0.6
 # Generated from pyproject.toml
 # Install with: pip install -r requirements.txt
 
@@ -10,7 +10,7 @@ python-dotenv>=1.0.0
 pyjwt>=2.8.0
 paho-mqtt>=1.6.0
 prometheus-client>=0.17.0
-aiohttp>=3.9.0
+aiohttp>=3.13.5
 typing-extensions>=4.7.0; python_version<"3.10"
 
 # Transport dependencies (optional but recommended)
