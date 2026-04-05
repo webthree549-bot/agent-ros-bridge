@@ -74,6 +74,7 @@ class TestGRPCTransportStart:
         return GRPCTransport()
 
     @pytest.mark.skipif(GRPC_AVAILABLE, reason="Test only when gRPC not available")
+    @pytest.mark.asyncio
     async def test_start_grpc_not_available(self, transport, caplog):
         """Test start when gRPC not available."""
         with caplog.at_level("ERROR"):

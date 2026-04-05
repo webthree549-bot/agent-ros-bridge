@@ -15,6 +15,7 @@ from datetime import datetime
 from unittest import mock
 
 import pytest
+import pytest_asyncio
 
 from agent_ros_bridge.gateway_v2.core import (
     Command,
@@ -129,7 +130,7 @@ class TestHTTPTransportLifecycle:
 class TestHTTPRequestHandling:
     """Test HTTP request handling"""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def running_transport(self):
         """Create and start HTTP transport"""
         transport = HTTPTransport({"host": "127.0.0.1", "port": 0})
