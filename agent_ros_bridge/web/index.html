@@ -6,9 +6,49 @@
     <title>Agent ROS Bridge - Robot Control Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Global Safety Status Bar -->
+    <div class="safety-status-bar" id="safetyStatusBar">
+        <div class="safety-status-content">
+            <div class="safety-indicator" id="safetyIndicator">
+                <span class="status-dot"></span>
+                <span class="status-label">SIMULATION ONLY</span>
+            </div>
+            <div class="safety-metrics">
+                <div class="metric">
+                    <span class="metric-label">Mode:</span>
+                    <span class="metric-value" id="safetyMode">Human-in-the-Loop</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Shadow Hours:</span>
+                    <span class="metric-value mono" id="shadowHours">0.0 / 200.0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Agreement:</span>
+                    <span class="metric-value mono" id="agreementRate">0.0%</span>
+                </div>
+            </div>
+            <div class="safety-actions">
+                <button class="btn-safety-settings" onclick="app.openSafetySettings()">
+                    <span>⚙️</span> Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Stop - Fixed Position -->
+    <button class="emergency-stop-fab" id="emergencyStopFab" onclick="app.emergencyStop()" title="EMERGENCY STOP">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+        </svg>
+        <span class="sr-only">Emergency Stop</span>
+    </button>
+
     <div class="app">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -569,6 +609,68 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="app.closeModal('confirmModal')">Cancel</button>
                 <button class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Human Approval Workflow Modal -->
+    <div class="modal approval-modal" id="approvalModal">
+        <div class="modal-content approval-content">
+            <div class="approval-header">
+                <div class="approval-badge">
+                    <span class="ai-icon">🤖</span>
+                    <span>AI PROPOSAL</span>
+                </div>
+                <div class="approval-confidence">
+                    <span class="confidence-value" id="approvalConfidence">94%</span>
+                    <span class="confidence-label">confident</span>
+                </div>
+            </div>
+            
+            <div class="approval-body">
+                <div class="proposal-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Robot ID:</span>
+                        <code class="detail-value" id="approvalRobotId">bot_01</code>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Intent:</span>
+                        <span class="detail-value" id="approvalIntent">NAVIGATE_TO</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Command:</span>
+                        <code class="detail-value command-code" id="approvalCommand">/cmd_vel: linear.x=0.5, angular.z=0.0</code>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Reasoning:</span>
+                        <p class="detail-reasoning" id="approvalReasoning">Navigating to waypoint (3.2m away) with obstacle avoidance.</p>
+                    </div>
+                </div>
+                
+                <div class="safety-warning" id="approvalSafetyWarning">
+                    <span class="warning-icon">⚠️</span>
+                    <span>This action requires human approval per safety policy.</span>
+                </div>
+            </div>
+            
+            <div class="approval-actions">
+                <button class="btn-approve" onclick="app.approveProposal()">
+                    <span class="btn-icon">✓</span>
+                    <span>Approve</span>
+                </button>
+                <button class="btn-modify" onclick="app.modifyProposal()">
+                    <span class="btn-icon">✎</span>
+                    <span>Modify</span>
+                </button>
+                <button class="btn-reject" onclick="app.rejectProposal()">
+                    <span class="btn-icon">✕</span>
+                    <span>Reject</span>
+                </button>
+            </div>
+            
+            <div class="approval-reason" id="approvalReasonSection" style="display: none;">
+                <textarea class="input" id="approvalReasonInput" placeholder="Enter reason for rejection or modification..."></textarea>
+                <button class="btn btn-primary" onclick="app.submitApprovalResponse()">Submit</button>
             </div>
         </div>
     </div>
