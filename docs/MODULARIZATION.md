@@ -22,9 +22,9 @@ agent_ros_bridge/          # ~30 MB
 
 ### Optional Packages
 ```
-agent_ros_bridge_fleet/    # Multi-robot orchestration
-agent_ros_bridge_sim/      # Gazebo integration (planned)
-agent_ros_bridge_tools/    # Tool ecosystem (planned)
+agent_ros_bridge_fleet/    # Multi-robot orchestration ✅
+agent_ros_bridge_sim/      # Gazebo integration ✅
+agent_ros_bridge_tools/    # Tool ecosystem ✅ (5 NASA ROSA tools)
 ```
 
 ## Installation
@@ -91,8 +91,22 @@ pytest tests/
 |---------|--------|------|------|
 | agent_ros_bridge | Stable | ~30 MB | ✅ v0.6.5 |
 | agent_ros_bridge_fleet | Dev | ~5 MB | 🚧 v0.7.0.dev1 |
-| agent_ros_bridge_sim | Planned | ~50 MB | 📋 TBD |
-| agent_ros_bridge_tools | Planned | ~10 MB | 📋 TBD |
+| agent_ros_bridge_sim | Dev | ~50 MB | 🚧 v0.7.0.dev1 |
+| agent_ros_bridge_tools | Dev | ~10 MB | 🚧 v0.7.0.dev1 |
+
+### Tools Package Contents
+
+The tools package includes 5 NASA ROSA-compatible tools:
+
+| Tool | Purpose |
+|------|---------|
+| `rostopic_echo` | Echo messages from ROS topics |
+| `rosservice_call` | Call ROS services |
+| `rosnode_list` | List running ROS nodes |
+| `rosparam_get` | Get ROS parameters |
+| `rosbag_play` | Play recorded bag files |
+
+All tools support both ROS1 and ROS2.
 
 ## Repository Structure
 
