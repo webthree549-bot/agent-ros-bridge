@@ -1,9 +1,9 @@
 ---
 name: agent-ros-bridge
-description: Control ROS1/ROS2 robots via natural language. Use when users want to control robots, navigate, check sensors, manage fleets, or perform robot tasks. Supports ROS1 (Noetic) and ROS2 (Jazzy/Humble) through WebSocket, MQTT, or gRPC. Features include intelligent navigation, sensor interpretation, fleet coordination, and safety management.
+description: Control ROS1/ROS2 robots via natural language with real-time feedback. Use when users want to control robots, navigate, check sensors, manage fleets, or perform robot tasks. Supports ROS1 (Noetic) and ROS2 (Jazzy/Humble) through WebSocket, MQTT, or gRPC. Features include intelligent navigation, sensor interpretation, fleet coordination, safety management, and bidirectional real-time streaming to OpenClaw and Web UI.
 ---
 
-# Agent ROS Bridge - Intelligent Robot Control
+# Agent ROS Bridge - Intelligent Robot Control with Real-Time Feedback
 
 Control robots through natural language conversations with Agent ROS Bridge's universal gateway.
 
@@ -397,6 +397,170 @@ Before autonomous operations:
 
 ---
 
+## Real-Time OpenClaw Integration
+
+Agent ROS Bridge provides bidirectional real-time communication with OpenClaw and Web UI through the **OpenClaw Bridge**.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Real-Time Data Flow                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│   OpenClaw Agent        OpenClaw Bridge      Agent ROS Bridge   │
+│        │                       │                       │         │
+│        │  Command             │                       │         │
+│        │ ───────────────────> │                       │         │
+│        │                       │  Forward Command      │         │
+│        │                       │ ───────────────────> │         │
+│        │                       │                       │         │
+│        │  Telemetry           │  Robot Telemetry      │         │
+│        │ <─────────────────── │ <─────────────────── │         │
+│        │                       │                       │         │
+│        │                       │                       │         │
+│   Web UI Clients              │                       │         │
+│        │                       │                       │         │
+│        │  Status/Control      │                       │         │
+│        │ <──────────────────> │                       │         │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Starting the OpenClaw Bridge
+
+```bash
+# Start Agent ROS Bridge first
+agent-ros-bridge --websocket-port 8765
+
+# Start OpenClaw Bridge
+python skills/agent-ros-bridge/scripts/openclaw_bridge.py --port 8766
+```
+
+### OpenClaw Real-Time Commands
+
+#### Live Telemetry Streaming
+```python
+# OpenClaw receives continuous telemetry updates
+"Start monitoring robot telemetry"
+→ Streaming: battery, position, velocity, sensor data
+→ Updates every 500ms (2Hz)
+```
+
+#### Command with Progress Updates
+```python
+# Commands send real-time progress to OpenClaw
+"Navigate to the kitchen"
+→ "Navigating... 10% complete"
+→ "Navigating... 45% complete - avoiding obstacle"
+→ "Navigating... 90% complete"
+→ "Arrived at kitchen"
+```
+
+#### Multi-Client Synchronization
+```python
+# Web UI and OpenClaw stay in sync
+"All clients see the same robot state"
+→ OpenClaw sees: "Robot moving to kitchen"
+→ Web UI shows: Live map with robot position
+→ Both update simultaneously
+```
+
+### WebSocket Events
+
+#### From Robot to OpenClaw/Web UI
+```json
+{
+  "type": "telemetry_update",
+  "data": {
+    "position": {"x": 1.5, "y": 2.0, "theta": 0.5},
+    "battery": 85,
+    "velocity": {"linear": 0.5, "angular": 0.0},
+    "sensors": {"lidar": "active", "camera": "active"}
+  },
+  "timestamp": "2026-04-06T14:20:00Z"
+}
+```
+
+#### Command Result
+```json
+{
+  "type": "command_result",
+  "command": {"action": "navigate", "target": "kitchen"},
+  "response": {
+    "status": "success",
+    "execution_time": 12.5,
+    "path_deviation": 0.1
+  },
+  "timestamp": "2026-04-06T14:20:12Z"
+}
+```
+
+#### Emergency Events
+```json
+{
+  "type": "emergency_stop",
+  "source": "web_ui",
+  "reason": "user_triggered",
+  "timestamp": "2026-04-06T14:20:30Z"
+}
+```
+
+### OpenClaw Skill Usage
+
+```python
+from skills.agent_ros_bridge.scripts.openclaw_bridge import OpenClawSkillInterface
+
+async def control_robot():
+    # Connect to bridge
+    interface = OpenClawSkillInterface(port=8766)
+    await interface.connect()
+    
+    # Send command with real-time feedback
+    result = await interface.send_command(
+        "Navigate to charging station",
+        speed="normal"
+    )
+    
+    # Get live telemetry
+    telemetry = await interface.get_telemetry()
+    print(f"Battery: {telemetry['battery']}%")
+    print(f"Position: {telemetry['position']}")
+    
+    # Query status
+    status = await interface.query_status()
+    
+    await interface.disconnect()
+```
+
+### Web UI Integration
+
+The Web UI connects to the same bridge for synchronized control:
+
+```javascript
+// Web UI connection
+const ws = new WebSocket('ws://localhost:8766', ['openclaw-bridge']);
+
+ws.onopen = () => {
+  ws.send(JSON.stringify({ client_type: 'web_ui' }));
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  
+  if (data.type === 'telemetry_update') {
+    updateMap(data.data.position);
+    updateBatteryIndicator(data.data.battery);
+  }
+  
+  if (data.type === 'command_result') {
+    showNotification('Command completed');
+  }
+};
+```
+
+---
+
 ## Examples Gallery
 
 ### Example 1: Morning House Check
@@ -443,8 +607,19 @@ Robot: "Item found by Robot-2 in Zone C, Shelf 12. All robots returning."
 
 ## Version Info
 
-- **Skill Version**: 0.5.0
-- **Agent ROS Bridge**: 0.5.0+
+- **Skill Version**: 0.7.0
+- **Agent ROS Bridge**: 0.6.5+
+- **OpenClaw Bridge**: Real-time bidirectional communication
 - **ROS1 Support**: Noetic
 - **ROS2 Support**: Jazzy, Humble
-- **Last Updated**: 2026-03-04
+- **Last Updated**: 2026-04-06
+
+## Quick Reference
+
+| Feature | Command | Real-Time Feedback |
+|---------|---------|-------------------|
+| Navigate | `"Go to kitchen"` | ✅ Progress updates |
+| Move | `"Move forward 2m"` | ✅ Position updates |
+| Query | `"What's your status?"` | ✅ Live telemetry |
+| Emergency | `"Stop now!"` | ✅ Instant broadcast |
+| Fleet | `"Search warehouse"` | ✅ Multi-robot sync |

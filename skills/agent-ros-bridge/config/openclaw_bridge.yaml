@@ -1,0 +1,64 @@
+# OpenClaw Bridge Configuration
+# Real-time bidirectional communication between OpenClaw, Agent ROS Bridge, and Web UI
+
+bridge:
+  # WebSocket port for OpenClaw and Web UI connections
+  websocket_port: 8766
+  
+  # Agent ROS Bridge connection
+  agent_ros_host: "localhost"
+  agent_ros_port: 8765
+  
+  # Telemetry settings
+  telemetry:
+    # Update frequency in Hz (2 = every 500ms)
+    update_rate: 2
+    
+    # Cache duration in seconds
+    cache_duration: 60
+    
+    # Fields to include in telemetry stream
+    fields:
+      - position
+      - orientation
+      - battery
+      - velocity
+      - sensor_status
+      - current_task
+      - safety_status
+
+  # Command settings
+  commands:
+    # Default timeout for commands in seconds
+    default_timeout: 30
+    
+    # Retry attempts for failed commands
+    retry_attempts: 2
+    
+    # Progress update interval in seconds
+    progress_interval: 2
+
+  # Safety settings
+  safety:
+    # Emergency stop requires confirmation
+    emergency_stop_confirmation: false
+    
+    # Max velocity before safety warning (m/s)
+    max_velocity_warning: 1.5
+    
+    # Auto-stop on connection loss (seconds)
+    connection_timeout: 5.0
+
+  # Logging
+  logging:
+    level: INFO
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file: null  # null = stdout only, or set to file path
+
+  # Client authentication
+  auth:
+    # Require JWT token for connections
+    require_token: false
+    
+    # Token validation endpoint (if require_token is true)
+    token_validation_url: null
