@@ -1,4 +1,6 @@
-"""Performance benchmarks for Agent ROS Bridge.
+"""Performance benchmarks for Agent ROS Bridge (no ROS2 required).
+
+For ROS2-dependent benchmarks, see test_ros2_benchmarks.py
 
 TDD for Performance:
 1. Write benchmarks to measure current performance
@@ -16,34 +18,33 @@ from unittest.mock import Mock, patch
 class TestIntentParsingPerformance:
     """Benchmark intent parsing performance."""
     
-    @pytest.mark.skip(reason="Requires rclpy")
     def test_intent_parsing_under_100ms(self):
         """Intent parsing should complete in under 100ms."""
-        from agent_ros_bridge.ai.intent_parser import LLMIntentParser
+        # Skip if rclpy not available (use test_ros2_benchmarks.py for ROS2 tests)
+        try:
+            from agent_ros_bridge.ai.intent_parser import IntentParser
+        except ImportError:
+            pytest.skip("rclpy not available - use test_ros2_benchmarks.py")
         
-        parser = LLMIntentParser(llm_provider="mock")
-        
-        # Mock LLM to avoid network delay
-        parser.llm = Mock()
-        parser.llm.generate = Mock(return_value='{"intent_type": "NAVIGATE", "entities": []}')
+        parser = IntentParser()
         
         start = time.time()
         result = parser.parse("Go to the kitchen", robot_id="bot1")
         elapsed = (time.time() - start) * 1000
         
-        # Should be fast with mocked LLM
+        # Should be fast with pattern matching
         assert elapsed < 100, f"Intent parsing took {elapsed:.2f}ms"
     
-    @pytest.mark.skip(reason="Requires rclpy")
     def test_batch_intent_parsing_performance(self):
         """Batch intent parsing should handle 100 commands quickly."""
-        from agent_ros_bridge.ai.intent_parser import LLMIntentParser
+        try:
+            from agent_ros_bridge.ai.intent_parser import IntentParser
+        except ImportError:
+            pytest.skip("rclpy not available - use test_ros2_benchmarks.py")
         
-        parser = LLMIntentParser(llm_provider="mock")
-        parser.llm = Mock()
-        parser.llm.generate = Mock(return_value='{"intent_type": "NAVIGATE"}')
+        parser = IntentParser()
         
-        commands = [f"Command {i}" for i in range(100)]
+        commands = ["Go to kitchen", "Pick up cup", "Return to base"] * 33 + ["Stop"]
         
         start = time.time()
         for cmd in commands:
