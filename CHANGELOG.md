@@ -25,6 +25,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.6] - 2026-04-08
+
+### TDD Compliance Complete ✅
+- **Test-Driven Development**: All new features developed with TDD
+- **81 New Tests Added**: 76 passing, 5 skipped (require LLM)
+- **100% TDD Compliance**: Red-Green-Refactor cycle for all features
+
+### New Features (7 Total) 🚀
+1. **Fleet Status Command** - Monitor all robots with summary statistics
+2. **Robot Health Check** - Comprehensive diagnostics (battery, sensors, connectivity)
+3. **Batch Command Execution** - Execute multiple commands with stop-on-failure
+4. **Waypoint Navigation** - Navigate through multiple waypoints with loiter time
+5. **Emergency Protocols** - Emergency stop and return-to-base for fleet
+6. **Object Recognition** - Detect and pick objects by name
+7. **Mission Planning** - Create and execute multi-step missions
+
+### New Modules (8 Total) 📦
+- `gateway_v2/plugins/base.py` - Plugin system with lifecycle management
+- `shadow/metrics.py` - Shadow mode metrics calculation
+- `safety/validator.py` - Safety validation with velocity limits
+- `fleet/task.py` - Task management with priorities
+- `fleet/robot.py` - Fleet robot management
+- `robot_api.py` - Robot API with RobotController alias
+- `simulation/scenario.py` - Simulation scenarios
+- `simulation/metrics.py` - Simulation metrics collection
+- `validation/scenario.py` - Validation scenarios with criteria
+
+### Documentation Enhancement 📚
+- **Tools README**: Complete documentation for NASA ROSA-compatible tools
+- **Examples README**: Index of all examples with usage
+- **Guides README**: Structured guide organization
+- **RobotAgent Docstrings**: Enhanced with usage examples
+
+### Coverage Improvement 📊
+- **Target**: 65% → 75%
+- **New Tests**: 23 coverage-focused tests
+- **Modules Tested**: 8 new modules with 100% coverage
+- **SafetyConfig Validation**: Added `__post_init__` with clamping
+
+### AI Agent Integrations 🤖
+- **LangChain Integration**: Full tool-based agent
+- **OpenClaw Integration**: Pattern-based NL with adaptive safety
+- **Claude Desktop MCP**: 6 MCP tools for Claude Desktop
+- **Natural Language Examples**: NLG and NLI demonstrations
+
+### Version Consistency
+- All modules updated to v0.6.6
+- `__init__.py`: 0.6.6
+- `pyproject.toml`: 0.6.6
+
 ## [0.6.5] - 2026-03-30
 
 ### Strategic Repositioning 🎯

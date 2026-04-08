@@ -17,6 +17,58 @@ class ROSServiceCallTool(ROSTool):
     description = "Call a ROS service"
     version = "1.0.0"
 
+    def get_schema(self) -> dict[str, Any]:
+        """Get tool parameter schema."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "service": {
+                    "type": "string",
+                    "description": "ROS service name (e.g., '/get_plan', '/clear_costmap')",
+                    "required": True,
+                },
+                "request": {
+                    "type": "object",
+                    "description": "Service request parameters",
+                    "required": False,
+                },
+                "timeout_sec": {
+                    "type": "number",
+                    "description": "Timeout in seconds",
+                    "default": 5.0,
+                },
+            },
+        }
+
+    def _validate_service_name(self, service: str) -> bool:
+        """Validate service name format."""
+        if not service:
+            return False
+        if not service.startswith("/"):
+            return False
+        return True
+
+    def _validate_timeout(self, timeout: float) -> bool:
+        """Validate timeout value."""
+        return timeout > 0
+
+    def _service_exists(self, node, service: str) -> bool:
+        """Check if service exists."""
+        service_names_and_types = node.get_service_names_and_types()
+        for name, _ in service_names_and_types:
+            if name == service:
+                return True
+        return False
+
+    def _get_service_type(self, node, service: str) -> str | None:
+        """Get service type."""
+        service_names_and_types = node.get_service_names_and_types()
+        for name, types in service_names_and_types:
+            if name == service:
+                return types[0] if types else None
+        return None
+
     def execute(
         self,
         service: str,
@@ -36,15 +88,35 @@ class ROSServiceCallTool(ROSTool):
         """
         start_time = time.time()
         request = request or {}
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Validate inputs
+        if not self._validate_service_name(service):
+            return ToolResult(
+                success=False,
+                output="",
+                error=f"Invalid service name: '{service}'. Must start with '/'",
+                data={"service": service, "request": request, "timestamp": timestamp},
+                execution_time_ms=(time.time() - start_time) * 1000,
+            )
+
+        if not self._validate_timeout(timeout_sec):
+            return ToolResult(
+                success=False,
+                output="",
+                error=f"Invalid timeout: {timeout_sec}. Must be positive.",
+                data={"service": service, "request": request, "timestamp": timestamp},
+                execution_time_ms=(time.time() - start_time) * 1000,
+            )
 
         try:
-            return self._execute_ros2(service, request, timeout_sec)
+            return self._execute_ros2(service, request, timeout_sec, timestamp)
         except ImportError:
             return ToolResult(
                 success=False,
                 output="",
                 error="ROS2 not available. Install ros-humble-desktop.",
-                data={"service": service, "request": request},
+                data={"service": service, "request": request, "timestamp": timestamp},
                 execution_time_ms=(time.time() - start_time) * 1000,
             )
         except Exception as e:
@@ -57,7 +129,7 @@ class ROSServiceCallTool(ROSTool):
             )
 
     def _execute_ros2(
-        self, service: str, request: dict[str, Any], timeout_sec: float
+        self, service: str, request: dict[str, Any], timeout_sec: float, timestamp: str
     ) -> ToolResult:
         """Execute with ROS2."""
         import rclpy
@@ -84,6 +156,7 @@ class ROSServiceCallTool(ROSTool):
                 success=False,
                 output="",
                 error=f"Service '{service}' not found",
+                data={"service": service, "timestamp": timestamp},
             )
 
         # Import service type dynamically
@@ -97,6 +170,7 @@ class ROSServiceCallTool(ROSTool):
                 success=False,
                 output="",
                 error=f"Failed to import service type: {e}",
+                data={"service": service, "timestamp": timestamp},
             )
 
         # Create client
@@ -109,6 +183,7 @@ class ROSServiceCallTool(ROSTool):
                 success=False,
                 output="",
                 error=f"Service '{service}' not available within {timeout_sec}s",
+                data={"service": service, "timestamp": timestamp},
             )
 
         # Create request
@@ -154,6 +229,7 @@ class ROSServiceCallTool(ROSTool):
                 "service": service,
                 "service_type": service_type,
                 "response": str(response),
+                "timestamp": timestamp,
             },
             execution_time_ms=execution_time,
         )

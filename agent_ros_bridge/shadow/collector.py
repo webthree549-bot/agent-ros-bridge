@@ -461,3 +461,7 @@ if __name__ == "__main__":
     # Export data
     collector.export_data("json")
     collector.export_data("csv")
+
+
+# Alias for convenience
+ShadowDataCollector = ShadowModeCollector
