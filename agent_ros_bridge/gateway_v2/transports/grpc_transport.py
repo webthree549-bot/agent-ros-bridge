@@ -134,8 +134,13 @@ class GRPCTransport(Transport):
         """Stop gRPC server."""
         if self.server:
             logger.info("Stopping gRPC server...")
-            await self.server.stop(grace_period=5)
-            logger.info("gRPC server stopped")
+            try:
+                await self.server.stop(grace_period=5)
+                logger.info("gRPC server stopped")
+            except Exception as e:
+                logger.warning(f"Error stopping gRPC server: {e}")
+            finally:
+                self.server = None
         self.running = False
 
     async def send(self, message: Any, recipient: str) -> bool:
