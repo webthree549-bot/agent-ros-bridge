@@ -67,14 +67,15 @@ class TestRobotControllerNavigationDetailed:
             ):
                 robot = RobotController()
                 robot._connected = True
-                robot._nav_client = MagicMock()
+                # Use Mock with spec to avoid MagicMock creating new attributes
+                robot._nav_client = Mock()
                 robot._node = MagicMock()
 
                 # Mock goal handle with rejected goal
                 mock_future = MagicMock()
                 mock_future.result.return_value = None  # Goal rejected
-                robot._nav_client.wait_for_server = MagicMock(return_value=True)
-                robot._nav_client.send_goal_async = MagicMock(return_value=mock_future)
+                robot._nav_client.wait_for_server = Mock(return_value=True)
+                robot._nav_client.send_goal_async = Mock(return_value=mock_future)
 
                 goal = NavigationGoal(x=5.0, y=5.0)
                 result = robot.navigate_to(goal)
@@ -100,11 +101,12 @@ class TestRobotControllerNavigationDetailed:
             ):
                 robot = RobotController()
                 robot._connected = True
-                robot._nav_client = MagicMock()
+                # Use Mock with spec to avoid MagicMock creating new attributes
+                robot._nav_client = Mock()
                 robot._node = MagicMock()
 
                 # Server not available
-                robot._nav_client.wait_for_server = MagicMock(return_value=False)
+                robot._nav_client.wait_for_server = Mock(return_value=False)
 
                 goal = NavigationGoal(x=5.0, y=5.0)
                 result = robot.navigate_to(goal)

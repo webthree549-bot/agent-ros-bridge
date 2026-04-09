@@ -84,20 +84,20 @@ class TestAILLMIntegration:
     def test_llm_parser_parse(self):
         """Test LLM parser with mocked response."""
         from agent_ros_bridge.ai.llm_parser import LLMIntentParser
+        from unittest.mock import patch
 
         parser = LLMIntentParser(provider="openai", api_key="test")
 
-        # Mock the parse method
-        parser.parse = Mock(
-            return_value={
-                "intent_type": "NAVIGATE",
-                "confidence": 0.95,
-                "entities": [{"type": "LOCATION", "value": "kitchen"}],
-            }
-        )
+        # Mock the parse method using patch.object
+        mock_result = {
+            "intent_type": "NAVIGATE",
+            "confidence": 0.95,
+            "entities": [{"type": "LOCATION", "value": "kitchen"}],
+        }
 
-        result = parser.parse("Go to kitchen")
-        assert result["intent_type"] == "NAVIGATE"
+        with patch.object(parser, "parse", return_value=mock_result):
+            result = parser.parse("Go to kitchen")
+            assert result["intent_type"] == "NAVIGATE"
 
     def test_llm_parser_fallback(self):
         """Test LLM parser fallback behavior."""
