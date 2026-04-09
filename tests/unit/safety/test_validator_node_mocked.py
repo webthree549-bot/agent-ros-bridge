@@ -386,63 +386,53 @@ class TestSafetyValidatorROSNodeMocked:
     @pytest.fixture
     def mock_ros_node(self):
         """Create a mocked ROS node."""
-        with patch.dict(
-            "sys.modules",
-            {
-                "rclpy": Mock(),
-                "rclpy.node": Mock(),
-                "rclpy.callback_groups": Mock(),
-                "agent_ros_bridge_msgs.msg": Mock(),
-                "agent_ros_bridge_msgs.srv": Mock(),
-            },
-        ):
-            # Create mock classes
-            mock_msgs = Mock()
-            mock_msgs.SafetyCertificate = Mock
-            mock_msgs.SafetyLimits = Mock
-            mock_msgs.SafetyLimits.return_value = Mock(
-                max_velocity=0.0,
-                max_acceleration=0.0,
-                max_force=0.0,
-                workspace_x_min=0.0,
-                workspace_x_max=0.0,
-                workspace_y_min=0.0,
-                workspace_y_max=0.0,
-                workspace_z_min=0.0,
-                workspace_z_max=0.0,
-            )
+        # Create mock classes first
+        mock_msgs = Mock()
+        mock_msgs.SafetyCertificate = Mock()
+        mock_msgs.SafetyLimits = Mock()
+        mock_msgs.SafetyLimits.return_value = Mock(
+            max_velocity=0.0,
+            max_acceleration=0.0,
+            max_force=0.0,
+            workspace_x_min=0.0,
+            workspace_x_max=0.0,
+            workspace_y_min=0.0,
+            workspace_y_max=0.0,
+            workspace_z_min=0.0,
+            workspace_z_max=0.0,
+        )
 
-            mock_srvs = Mock()
-            mock_srvs.ValidateTrajectory = Mock()
-            mock_srvs.ValidateTrajectory.Request = Mock
-            mock_srvs.ValidateTrajectory.Response = Mock
-            mock_srvs.GetSafetyLimits = Mock()
-            mock_srvs.GetSafetyLimits.Request = Mock
-            mock_srvs.GetSafetyLimits.Response = Mock
-            mock_srvs.GetSafetyLimits.Response.return_value = Mock(limits=None)
-            mock_srvs.GetSafetyStatus = Mock()
-            mock_srvs.GetSafetyStatus.Request = Mock
-            mock_srvs.GetSafetyStatus.Response = Mock
-            mock_srvs.GetSafetyStatus.Response.return_value = Mock(
-                validation_count=0,
-                rejection_count=0,
-                average_validation_time_ms=0.0,
-                uptime_seconds=0.0,
-            )
+        mock_srvs = Mock()
+        mock_srvs.ValidateTrajectory = Mock()
+        mock_srvs.ValidateTrajectory.Request = Mock()
+        mock_srvs.ValidateTrajectory.Response = Mock()
+        mock_srvs.GetSafetyLimits = Mock()
+        mock_srvs.GetSafetyLimits.Request = Mock()
+        mock_srvs.GetSafetyLimits.Response = Mock()
+        mock_srvs.GetSafetyLimits.Response.return_value = Mock(limits=None)
+        mock_srvs.GetSafetyStatus = Mock()
+        mock_srvs.GetSafetyStatus.Request = Mock()
+        mock_srvs.GetSafetyStatus.Response = Mock()
+        mock_srvs.GetSafetyStatus.Response.return_value = Mock(
+            validation_count=0,
+            rejection_count=0,
+            average_validation_time_ms=0.0,
+            uptime_seconds=0.0,
+        )
 
-            sys_modules = {
-                "rclpy": Mock(),
-                "rclpy.node": Mock(),
-                "rclpy.callback_groups": Mock(),
-                "agent_ros_bridge_msgs.msg": mock_msgs,
-                "agent_ros_bridge_msgs.srv": mock_srvs,
+        sys_modules = {
+            "rclpy": Mock(),
+            "rclpy.node": Mock(),
+            "rclpy.callback_groups": Mock(),
+            "agent_ros_bridge_msgs.msg": mock_msgs,
+            "agent_ros_bridge_msgs.srv": mock_srvs,
+        }
+
+        with patch.dict("sys.modules", sys_modules, clear=False):
+            yield {
+                "msgs": mock_msgs,
+                "srvs": mock_srvs,
             }
-
-            with patch.dict("sys.modules", sys_modules):
-                yield {
-                    "msgs": mock_msgs,
-                    "srvs": mock_srvs,
-                }
 
     def test_ros_node_creation_mocked(self, mock_ros_node):
         """ROS node can be created with mocked dependencies."""
