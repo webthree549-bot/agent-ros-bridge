@@ -81,6 +81,39 @@ class SafetyValidator:
 
         return ValidationResult(is_safe=True, reason="Velocity within safe limits", severity="info")
 
+    def validate_trajectory(
+        self, trajectory: dict[str, Any], limits: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Validate a trajectory for safety.
+
+        Args:
+            trajectory: Trajectory with type and parameters
+            limits: Device limits
+
+        Returns:
+            Dict with 'approved' key and optional 'reason'
+        """
+        # Check if trajectory type is supported
+        traj_type = trajectory.get("type", "")
+        if not traj_type:
+            return {"approved": False, "reason": "Trajectory type not specified"}
+
+        # Check limits
+        params = trajectory.get("parameters", {})
+
+        # Validate velocity if present
+        velocity = params.get("velocity")
+        if velocity is not None:
+            max_vel = limits.get("max_velocity", float("inf"))
+            if velocity > max_vel:
+                return {
+                    "approved": False,
+                    "reason": f"velocity_exceeded: {velocity} > {max_vel}",
+                }
+
+        # Default: approved
+        return {"approved": True}
+
 
 # Alias for backwards compatibility
 SafetyValidatorNode = SafetyValidator
