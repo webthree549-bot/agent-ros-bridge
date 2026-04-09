@@ -22,7 +22,8 @@ from ..auth import AuthConfig, Authenticator
 from ..core import Transport
 
 # Generated protobuf imports (would be generated from .proto files)
-# from . import bridge_pb2
+from . import bridge_pb2
+
 # from . import bridge_pb2_grpc
 
 logger = logging.getLogger(__name__)
