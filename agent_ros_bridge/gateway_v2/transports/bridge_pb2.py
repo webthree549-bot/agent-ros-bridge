@@ -71,17 +71,6 @@ def add_BridgeServiceServicer_to_server(servicer, server):
         servicer: The servicer implementation
         server: The gRPC server
     """
-    # This is a stub - real implementation would register RPC handlers
-    pass
-
-
-def add_BridgeServiceServicer_to_server(servicer, server):
-    """Register BridgeService servicer to gRPC server.
-
-    Args:
-        servicer: The servicer implementation
-        server: The gRPC server
-    """
     # In real implementation, this would add the service to the server
     if hasattr(server, "add_servicer"):
         server.add_servicer(servicer)

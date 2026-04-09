@@ -294,9 +294,9 @@ class TestGRPCErrorHandling:
     @pytest.mark.asyncio
     async def test_start_on_used_port_fails(self):
         """Test that starting on an already used port fails gracefully."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-
         import socket
+
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("127.0.0.1", 0))
@@ -322,9 +322,9 @@ class TestGRPCErrorHandling:
     @pytest.mark.asyncio
     async def test_stop_without_start(self):
         """Test that stop without start doesn't raise errors."""
-        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
-
         import socket
+
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind(("127.0.0.1", 0))
