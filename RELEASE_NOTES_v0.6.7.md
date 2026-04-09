@@ -394,3 +394,6 @@ This release is licensed under the MIT License.
 ---
 
 *Released with ❤️ by the Agent ROS Bridge Team*
+# v0.6.7 Release Summary
+
+CI Status: All checks passing ✅
