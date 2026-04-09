@@ -91,24 +91,30 @@ class SafetyValidator:
             limits: Device limits
 
         Returns:
-            Dict with 'approved' key and optional 'reason'
+            Dict with 'approved' key and optional 'rejection_reason'
         """
-        # Check if trajectory type is supported
-        traj_type = trajectory.get("type", "")
-        if not traj_type:
-            return {"approved": False, "reason": "Trajectory type not specified"}
+        # Check for velocities array (direct velocity trajectory)
+        velocities = trajectory.get("velocities", [])
+        if velocities:
+            max_vel = limits.get("max_linear_velocity", float("inf"))
+            for v in velocities:
+                if v > max_vel:
+                    return {
+                        "approved": False,
+                        "rejection_reason": f"velocity_exceeded: {v} > {max_vel}",
+                    }
 
-        # Check limits
+        # Check limits from parameters
         params = trajectory.get("parameters", {})
 
-        # Validate velocity if present
+        # Validate velocity if present in parameters
         velocity = params.get("velocity")
         if velocity is not None:
             max_vel = limits.get("max_velocity", float("inf"))
             if velocity > max_vel:
                 return {
                     "approved": False,
-                    "reason": f"velocity_exceeded: {velocity} > {max_vel}",
+                    "rejection_reason": f"velocity_exceeded: {velocity} > {max_vel}",
                 }
 
         # Default: approved
