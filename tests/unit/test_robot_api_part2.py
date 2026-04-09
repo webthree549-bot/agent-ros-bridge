@@ -67,8 +67,8 @@ class TestRobotControllerNavigationDetailed:
             ):
                 robot = RobotController()
                 robot._connected = True
-                # Use Mock with spec to avoid MagicMock creating new attributes
-                robot._nav_client = Mock()
+                # Use spec=True to prevent Mock from auto-creating attributes
+                robot._nav_client = Mock(spec=True)
                 robot._node = MagicMock()
 
                 # Mock goal handle with rejected goal
@@ -101,8 +101,8 @@ class TestRobotControllerNavigationDetailed:
             ):
                 robot = RobotController()
                 robot._connected = True
-                # Use Mock with spec to avoid MagicMock creating new attributes
-                robot._nav_client = Mock()
+                # Use spec=True to prevent Mock from auto-creating attributes
+                robot._nav_client = Mock(spec=True)
                 robot._node = MagicMock()
 
                 # Server not available

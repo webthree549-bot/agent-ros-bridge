@@ -87,16 +87,16 @@ class TestAILLMIntegration:
 
         parser = LLMIntentParser(provider="openai", api_key="test")
 
-        # Mock the parse method using patch.object
+        # Mock the parse method directly
         mock_result = {
             "intent_type": "NAVIGATE",
             "confidence": 0.95,
             "entities": [{"type": "LOCATION", "value": "kitchen"}],
         }
+        parser.parse = Mock(return_value=mock_result)
 
-        with patch.object(parser, "parse", return_value=mock_result):
-            result = parser.parse("Go to kitchen")
-            assert result["intent_type"] == "NAVIGATE"
+        result = parser.parse("Go to kitchen")
+        assert result["intent_type"] == "NAVIGATE"
 
     def test_llm_parser_fallback(self):
         """Test LLM parser fallback behavior."""
