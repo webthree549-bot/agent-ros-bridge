@@ -1,7 +1,6 @@
 """Base plugin system for Agent ROS Bridge."""
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 
 class Plugin(ABC):

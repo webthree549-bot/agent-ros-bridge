@@ -1,8 +1,8 @@
 """Real-time dashboard for monitoring fleet and tasks."""
 
 from dataclasses import dataclass, field
-from typing import Any
 from datetime import datetime
+from typing import Any
 
 
 @dataclass

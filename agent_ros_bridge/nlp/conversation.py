@@ -59,7 +59,7 @@ class ConversationManager:
         """Extract target location from text."""
         # Simple extraction - in real implementation, use NLP
         locations = [
-            "kitchen", "living room", "bedroom", "office", 
+            "kitchen", "living room", "bedroom", "office",
             "conference room", "garage", "basement"
         ]
         

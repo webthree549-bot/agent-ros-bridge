@@ -1,7 +1,7 @@
 """Advanced mission planning with conditionals and optimization."""
 
-from typing import Any
 import math
+from typing import Any
 
 
 class AdvancedMissionPlanner:
@@ -38,8 +38,8 @@ class AdvancedMissionPlanner:
         return mission.get("parallel", [])
     
     def replan_on_failure(
-        self, 
-        original_plan: list[dict[str, Any]], 
+        self,
+        original_plan: list[dict[str, Any]],
         failed_step: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """Generate alternative plan when step fails."""
@@ -59,8 +59,8 @@ class AdvancedMissionPlanner:
         return new_plan
     
     def optimize_task_order(
-        self, 
-        tasks: list[dict[str, Any]], 
+        self,
+        tasks: list[dict[str, Any]],
         start_location: tuple[float, float]
     ) -> list[dict[str, Any]]:
         """Optimize task order to minimize travel distance."""
@@ -77,7 +77,7 @@ class AdvancedMissionPlanner:
             closest = min(
                 remaining,
                 key=lambda t: self._distance(
-                    current_pos, 
+                    current_pos,
                     t.get("location", (0, 0))
                 )
             )
@@ -89,8 +89,8 @@ class AdvancedMissionPlanner:
         return optimized
     
     def _distance(
-        self, 
-        p1: tuple[float, float], 
+        self,
+        p1: tuple[float, float],
         p2: tuple[float, float]
     ) -> float:
         """Calculate Euclidean distance."""

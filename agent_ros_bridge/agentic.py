@@ -865,7 +865,7 @@ class RobotAgent:
         
         for i, command in enumerate(commands):
             # Execute command
-            result = await self.execute(command) if hasattr(self.execute, '__call__') and hasattr(self.execute, '__await__') else self.execute(command)
+            result = await self.execute(command) if callable(self.execute) and hasattr(self.execute, '__await__') else self.execute(command)
             
             result_dict = {
                 "command": command,

@@ -1,6 +1,5 @@
 """Tool registry for managing ROS tools."""
 
-from typing import Any, Optional
 from .base import ROSTool
 
 
@@ -21,7 +20,7 @@ class ToolRegistry:
             return True
         return False
 
-    def get_tool(self, name: str) -> Optional[ROSTool]:
+    def get_tool(self, name: str) -> ROSTool | None:
         """Get a tool by name."""
         return self._tools.get(name)
 

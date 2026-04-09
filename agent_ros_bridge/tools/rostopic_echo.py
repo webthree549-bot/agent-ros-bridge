@@ -5,7 +5,6 @@ Compatible with NASA ROSA rostopic_echo tool.
 """
 
 import time
-from typing import Any
 
 from agent_ros_bridge.tools.base import ROSTool, ToolResult
 

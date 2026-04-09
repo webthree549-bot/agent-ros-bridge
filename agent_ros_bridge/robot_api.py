@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-
 # Forward declarations for compatibility
 NavigationGoal = None
 ManipulationGoal = None

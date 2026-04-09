@@ -1,7 +1,8 @@
 """ROS Service call tool."""
 
 from typing import Any
-from .base import ROSTool, ToolResult
+
+from .base import ROSTool
 
 
 class ROSServiceCallTool(ROSTool):

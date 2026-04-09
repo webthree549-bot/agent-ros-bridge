@@ -132,8 +132,12 @@ class ROSServiceCallTool(ROSTool):
         self, service: str, request: dict[str, Any], timeout_sec: float, timestamp: str
     ) -> ToolResult:
         """Execute with ROS2."""
+        import time
+
         import rclpy
         from rclpy.node import Node
+
+        start_time = time.time()
 
         # Initialize ROS2 if needed
         if not rclpy.ok():

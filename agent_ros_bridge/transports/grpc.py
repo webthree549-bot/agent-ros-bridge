@@ -1,7 +1,7 @@
 """gRPC transport for Agent ROS Bridge."""
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass

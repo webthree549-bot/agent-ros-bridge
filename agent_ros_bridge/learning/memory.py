@@ -1,8 +1,8 @@
 """Robot memory system for learning from experience."""
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
-from datetime import datetime, timedelta
 
 
 @dataclass
@@ -72,6 +72,6 @@ class RobotMemory:
         if blocked:
             for key in list(self.paths.keys()):
                 self.paths[key] = [
-                    p for p in self.paths[key] 
+                    p for p in self.paths[key]
                     if p.get("via") != via
                 ]

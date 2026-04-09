@@ -1,7 +1,7 @@
 """Multi-robot coordination and swarm behaviors."""
 
-from typing import Any
 import math
+from typing import Any
 
 
 class SwarmCoordinator:
@@ -49,7 +49,6 @@ class SwarmCoordinator:
         
         elif formation_type == "triangle":
             # Triangle formation
-            side = spacing * (n - 1)
             for i, robot in enumerate(robots):
                 row = int(math.sqrt(2 * i + 0.25) - 0.5)
                 col = i - row * (row + 1) // 2
