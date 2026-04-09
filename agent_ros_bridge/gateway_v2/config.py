@@ -137,6 +137,24 @@ class PluginConfig:
 
 
 @dataclass
+class GatewayConfig:
+    """High-level gateway configuration."""
+
+    host: str = "0.0.0.0"
+    port: int = 8080
+    log_level: str = "INFO"
+    max_connections: int = 100
+    timeout_seconds: float = 30.0
+
+    def __post_init__(self):
+        """Validate configuration values."""
+        # Clamp port to valid range
+        self.port = max(1, min(65535, self.port))
+        # Ensure positive timeout
+        self.timeout_seconds = max(1.0, self.timeout_seconds)
+
+
+@dataclass
 class BridgeConfig:
     """Main gateway configuration."""
 

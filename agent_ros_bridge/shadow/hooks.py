@@ -442,6 +442,10 @@ class ShadowModeHooks:
         gateway_class.send_command = hooked_send
 
 
+# Legacy alias for backward compatibility
+ShadowModeHook = ShadowModeHooks
+
+
 # Convenience functions
 
 

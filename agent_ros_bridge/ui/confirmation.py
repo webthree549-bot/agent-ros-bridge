@@ -655,6 +655,28 @@ class ConfirmationUI:
         )
 
 
+@dataclass
+class ConfirmationDialog:
+    """Simple confirmation dialog for AI proposals."""
+
+    title: str
+    message: str
+    timeout_sec: float = 30.0
+    status: str = "pending"  # pending, approved, rejected, timeout
+
+    def approve(self) -> None:
+        """Approve the dialog."""
+        self.status = "approved"
+
+    def reject(self) -> None:
+        """Reject the dialog."""
+        self.status = "rejected"
+
+    def on_timeout(self) -> None:
+        """Handle timeout."""
+        self.status = "timeout"
+
+
 # Convenience function
 def create_confirmation_ui(
     port: int = 8080,

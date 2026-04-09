@@ -82,6 +82,21 @@ class Command:
     parameters: dict[str, Any] = field(default_factory=dict)
     timeout_ms: int = 5000
     priority: int = 5  # 1-10, lower = higher priority
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    robot_id: str = ""
+    status: str = "pending"  # pending, executing, completed, failed
+    
+    def to_dict(self) -> dict[str, Any]:
+        """Convert command to dictionary."""
+        return {
+            "id": self.id,
+            "action": self.action,
+            "parameters": self.parameters,
+            "timeout_ms": self.timeout_ms,
+            "priority": self.priority,
+            "robot_id": self.robot_id,
+            "status": self.status,
+        }
 
 
 @dataclass
@@ -810,6 +825,37 @@ class Bridge:
             yield self
         finally:
             await self.stop()
+
+
+class Gateway:
+    """High-level gateway interface for command management."""
+
+    def __init__(self):
+        self.commands: dict[str, Command] = {}
+        self._lock = asyncio.Lock()
+
+    async def submit_command(self, cmd: Command) -> None:
+        """Submit a command to the gateway."""
+        async with self._lock:
+            self.commands[cmd.id] = cmd
+            cmd.status = "pending"
+
+    async def complete_command(self, cmd_id: str, success: bool = True) -> None:
+        """Mark a command as completed."""
+        async with self._lock:
+            if cmd_id in self.commands:
+                self.commands[cmd_id].status = "completed" if success else "failed"
+
+    async def get_command(self, cmd_id: str) -> Command | None:
+        """Get a command by ID."""
+        return self.commands.get(cmd_id)
+
+    async def list_commands(self, status: str | None = None) -> list[Command]:
+        """List commands, optionally filtered by status."""
+        cmds = list(self.commands.values())
+        if status:
+            cmds = [c for c in cmds if c.status == status]
+        return cmds
 
 
 # =============================================================================
