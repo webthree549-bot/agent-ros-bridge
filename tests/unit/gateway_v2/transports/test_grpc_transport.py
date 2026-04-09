@@ -114,8 +114,10 @@ class TestGRPCTransportStop:
     async def test_stop_with_server(self, transport, caplog):
         """Test stop with server running."""
         with caplog.at_level("INFO"):
+            # Capture mock server before stop() sets it to None
+            mock_server = transport.server
             await transport.stop()
-            transport.server.stop.assert_called_once_with(grace_period=5)
+            mock_server.stop.assert_called_once_with(grace_period=5)
             assert transport.running is False
             assert "gRPC server stopped" in caplog.text
 
