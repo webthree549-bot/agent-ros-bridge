@@ -167,7 +167,7 @@ jobs:
       - name: Run pip-audit dependency scan
         run: |
           pip-audit --format=json --output=pip-audit-results.json || true
-          pip-audit --format=summary
+          pip-audit --format=text || true
         continue-on-error: true
 
       - name: Upload pip-audit results
