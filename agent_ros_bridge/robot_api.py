@@ -75,7 +75,7 @@ class RobotController:
             # In real implementation, establish ROS connection
             self._connected = True
             return True
-        except Exception as e:
+        except Exception:
             self._connected = False
             return False
 
