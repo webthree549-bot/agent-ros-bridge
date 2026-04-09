@@ -163,11 +163,12 @@ class ROSServiceCallTool(ROSTool):
                 data={"service": service, "timestamp": timestamp},
             )
 
-        # Import service type dynamically
+        # Import service type dynamically using importlib (secure)
         try:
+            import importlib
             srv_module, srv_class = service_type.split("/")
-            exec(f"from {srv_module}.srv import {srv_class} as SrvType")
-            SrvType = locals()["SrvType"]
+            module = importlib.import_module(f"{srv_module}.srv")
+            SrvType = getattr(module, srv_class)
         except Exception as e:
             node.destroy_node()
             return ToolResult(

@@ -91,12 +91,12 @@ class ROSTopicEchoTool(ROSTool):
                 error=f"Topic '{topic}' not found or has no type",
             )
 
-        # Import message type dynamically
+        # Import message type dynamically using importlib (secure)
         try:
+            import importlib
             msg_module, msg_class = topic_type.split("/")
-            msg_module = msg_module.replace("_", "_")  # Ensure valid module name
-            exec(f"from {msg_module}.msg import {msg_class} as MsgType")
-            MsgType = locals()["MsgType"]
+            module = importlib.import_module(f"{msg_module}.msg")
+            MsgType = getattr(module, msg_class)
         except Exception as e:
             node.destroy_node()
             return ToolResult(
