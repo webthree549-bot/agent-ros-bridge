@@ -1,8 +1,9 @@
 """UI confirmation module coverage tests."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 
 
 class TestConfirmationUI:
@@ -485,8 +486,8 @@ class TestUIShadowHooks:
 
     def test_shadow_hooks_logging_on_approve(self):
         """Test that approval logs to shadow hooks."""
-        from agent_ros_bridge.ui.confirmation import ConfirmationUI
         from agent_ros_bridge.shadow.hooks import ShadowModeHooks
+        from agent_ros_bridge.ui.confirmation import ConfirmationUI
 
         hooks = Mock(spec=ShadowModeHooks)
 
@@ -507,8 +508,8 @@ class TestUIShadowHooks:
 
     def test_shadow_hooks_logging_on_reject(self):
         """Test that rejection logs to shadow hooks."""
-        from agent_ros_bridge.ui.confirmation import ConfirmationUI
         from agent_ros_bridge.shadow.hooks import ShadowModeHooks
+        from agent_ros_bridge.ui.confirmation import ConfirmationUI
 
         hooks = Mock(spec=ShadowModeHooks)
 

@@ -9,10 +9,11 @@ TDD for Performance:
 4. Verify improvements
 """
 
-import pytest
-import time
 import asyncio
+import time
 from unittest.mock import Mock, patch
+
+import pytest
 
 
 class TestIntentParsingPerformance:

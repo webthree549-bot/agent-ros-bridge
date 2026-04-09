@@ -109,7 +109,7 @@ class ROSTopicEchoTool(ROSTool):
         def callback(msg):
             messages.append(msg)
 
-        subscription = node.create_subscription(MsgType, topic, callback, 10)
+        _subscription = node.create_subscription(MsgType, topic, callback, 10)
 
         # Spin until we get enough messages or timeout
         while len(messages) < count and (time.time() - start_time) < timeout_sec:

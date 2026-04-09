@@ -175,8 +175,8 @@ class TestExceptionChaining:
         try:
             try:
                 raise ConnectionError("Network down")
-            except ConnectionError:
-                raise TransportError("Transport failed")
+            except ConnectionError as err:
+                raise TransportError("Transport failed") from err
         except TransportError as e:
             assert e.__context__ is not None
 

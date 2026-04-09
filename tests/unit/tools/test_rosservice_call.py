@@ -7,8 +7,9 @@ Test-Driven Development approach:
 4. Refactor if needed
 """
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from agent_ros_bridge.tools import ROSServiceCallTool
 from agent_ros_bridge.tools.base import ToolResult

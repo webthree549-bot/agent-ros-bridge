@@ -9,9 +9,10 @@ Or use the docker-manager script:
     ./scripts/docker/docker-manager.sh exec "pytest tests/performance/test_ros2_benchmarks.py -v"
 """
 
-import pytest
 import time
 from unittest.mock import Mock
+
+import pytest
 
 
 @pytest.mark.ros2

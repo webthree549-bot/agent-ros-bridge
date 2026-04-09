@@ -28,9 +28,7 @@ class WebSocketTransport:
 
     async def send(self, message: dict[str, Any]) -> bool:
         """Send message via WebSocket."""
-        if not self._connected:
-            return False
-        return True
+        return self._connected
 
     async def receive(self) -> dict[str, Any] | None:
         """Receive message from WebSocket."""

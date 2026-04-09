@@ -25,9 +25,7 @@ class MQTTTransport:
 
     async def publish(self, topic: str, message: dict[str, Any]) -> bool:
         """Publish message to topic."""
-        if not self._connected:
-            return False
-        return True
+        return self._connected
 
     async def subscribe(self, topic: str, callback: Callable) -> bool:
         """Subscribe to topic."""

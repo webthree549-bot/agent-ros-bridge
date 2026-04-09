@@ -43,11 +43,7 @@ class ROSServiceCallTool(ROSTool):
 
     def _validate_service_name(self, service: str) -> bool:
         """Validate service name format."""
-        if not service:
-            return False
-        if not service.startswith("/"):
-            return False
-        return True
+        return bool(service) and service.startswith("/")
 
     def _validate_timeout(self, timeout: float) -> bool:
         """Validate timeout value."""
@@ -56,10 +52,7 @@ class ROSServiceCallTool(ROSTool):
     def _service_exists(self, node, service: str) -> bool:
         """Check if service exists."""
         service_names_and_types = node.get_service_names_and_types()
-        for name, _ in service_names_and_types:
-            if name == service:
-                return True
-        return False
+        return any(name == service for name, _ in service_names_and_types)
 
     def _get_service_type(self, node, service: str) -> str | None:
         """Get service type."""

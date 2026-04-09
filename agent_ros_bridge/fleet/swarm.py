@@ -76,10 +76,7 @@ class SwarmCoordinator:
                 return True
         
         # Urgent tasks with available robots
-        if task.get("priority", 5) <= 2 and available_robots:
-            return True
-        
-        return False
+        return task.get("priority", 5) <= 2 and bool(available_robots)
     
     def check_collision_risk(
         self,

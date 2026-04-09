@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path("/Users/webthree/.openclaw/workspace")
 
 

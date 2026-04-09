@@ -8,10 +8,10 @@ Target areas with low coverage:
 - ui/ confirmation.py (estimated 30%)
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
+import pytest
 
 # ============================================================================
 # gateway_v2/core.py Coverage
@@ -52,7 +52,7 @@ class TestGatewayCore:
     
     def test_message_creation(self):
         """Test Message dataclass."""
-        from agent_ros_bridge.gateway_v2.core import Message, Command, Header
+        from agent_ros_bridge.gateway_v2.core import Command, Header, Message
         
         cmd = Command(action="stop")
         msg = Message(
@@ -74,7 +74,7 @@ class TestGatewayCore:
     @pytest.mark.asyncio
     async def test_gateway_command_lifecycle(self):
         """Test full command lifecycle."""
-        from agent_ros_bridge.gateway_v2.core import Gateway, Command
+        from agent_ros_bridge.gateway_v2.core import Command, Gateway
         
         gateway = Gateway()
         
@@ -484,8 +484,9 @@ class TestFleetTaskManagement:
     
     def test_task_duration_calculation(self):
         """Test task duration calculation."""
-        from agent_ros_bridge.fleet.task import Task
         from datetime import datetime, timedelta
+
+        from agent_ros_bridge.fleet.task import Task
         
         task = Task(id="t1", type="navigate")
         task.mark_executing()

@@ -8,10 +8,11 @@ TDD Approach:
 4. Verify all pass
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, patch, MagicMock
 from dataclasses import dataclass
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 pytestmark = pytest.mark.integration
 

@@ -5,14 +5,16 @@ These tests simulate real user interactions.
 """
 
 import asyncio
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
+from agent_ros_bridge.actions import SimulatedActionClient, create_action_client
 
 # Import main components
 from agent_ros_bridge.agentic import RobotAgent
-from agent_ros_bridge.actions import create_action_client, SimulatedActionClient
-from agent_ros_bridge.tools import ROSTopicEchoTool, ROSServiceCallTool
 from agent_ros_bridge.exceptions import RobotConnectionError, SafetyValidationError
+from agent_ros_bridge.tools import ROSServiceCallTool, ROSTopicEchoTool
 
 
 class TestUserJourneyBasic:
@@ -247,11 +249,11 @@ class TestUserJourneyBackwardCompatibility:
         """E2E: Old import paths still work."""
         # These are the imports users were using before
         from agent_ros_bridge.actions import (
+            ActionResult,
+            ActionStatus,
             BaseActionClient,
             SimulatedActionClient,
             create_action_client,
-            ActionResult,
-            ActionStatus,
         )
         
         # All should be importable

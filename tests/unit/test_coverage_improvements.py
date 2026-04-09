@@ -6,9 +6,10 @@ Target modules with low coverage:
 - agent_ros_bridge/simulation/ (estimated 45%)
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 import asyncio
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 
 class TestGatewayPlugins:

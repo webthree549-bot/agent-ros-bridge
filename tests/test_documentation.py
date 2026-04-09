@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path("/Users/webthree/.openclaw/workspace")
 
 
@@ -68,7 +67,7 @@ class TestAPIDocumentation:
     
     def test_tools_have_docstrings(self):
         """Tool classes must have docstrings."""
-        from agent_ros_bridge.tools import ROSTopicEchoTool, ROSServiceCallTool
+        from agent_ros_bridge.tools import ROSServiceCallTool, ROSTopicEchoTool
         
         assert ROSTopicEchoTool.__doc__, "ROSTopicEchoTool missing docstring"
         assert ROSTopicEchoTool.execute.__doc__, "ROSTopicEchoTool.execute missing docstring"

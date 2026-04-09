@@ -25,7 +25,7 @@ def create_action_client(
     # Try to use real ROS client
     if ros_version == "ros2":
         try:
-            import rclpy
+            import rclpy  # noqa: F401
 
             return ROS2ActionClient(action_name, action_type)
         except ImportError:

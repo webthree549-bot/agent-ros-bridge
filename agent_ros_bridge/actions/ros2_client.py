@@ -32,7 +32,7 @@ class ROS2ActionClient(BaseActionClient):
         try:
             import rclpy
             from rclpy.action import ActionClient
-            from rclpy.node import Node
+            from rclpy.node import Node  # noqa: F401
 
             # Get or create node
             with contextlib.suppress(Exception):

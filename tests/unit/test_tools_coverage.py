@@ -1,9 +1,10 @@
 """Tools module coverage tests - comprehensive tool testing."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-import json
 import asyncio
+import json
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
+import pytest
 
 
 class TestROSServiceCallTool:
@@ -180,8 +181,8 @@ class TestToolRegistry:
 
     def test_register_tool(self):
         """Test registering a tool."""
-        from agent_ros_bridge.tools.registry import ToolRegistry
         from agent_ros_bridge.tools.base import BaseTool
+        from agent_ros_bridge.tools.registry import ToolRegistry
 
         registry = ToolRegistry()
         mock_tool = Mock(spec=BaseTool)
@@ -194,8 +195,8 @@ class TestToolRegistry:
 
     def test_unregister_tool(self):
         """Test unregistering a tool."""
-        from agent_ros_bridge.tools.registry import ToolRegistry
         from agent_ros_bridge.tools.base import BaseTool
+        from agent_ros_bridge.tools.registry import ToolRegistry
 
         registry = ToolRegistry()
         mock_tool = Mock(spec=BaseTool)

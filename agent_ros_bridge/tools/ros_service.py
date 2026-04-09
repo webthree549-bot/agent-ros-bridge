@@ -70,7 +70,7 @@ class ROSServiceCallTool(ROSTool):
 
             # Call service
             request = self._create_request(data)
-            future = self._client.call_async(request)
+            _future = self._client.call_async(request)
             # In real implementation, would wait for future
 
             return {

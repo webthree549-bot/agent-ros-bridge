@@ -1,7 +1,8 @@
 """AI module coverage tests - works without rclpy via mocking."""
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 
 class TestAIIntentParserNoROS2:
