@@ -84,7 +84,6 @@ class TestAILLMIntegration:
     def test_llm_parser_parse(self):
         """Test LLM parser with mocked response."""
         from agent_ros_bridge.ai.llm_parser import LLMIntentParser
-        from unittest.mock import patch
 
         parser = LLMIntentParser(provider="openai", api_key="test")
 
