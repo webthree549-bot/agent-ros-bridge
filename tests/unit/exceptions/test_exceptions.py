@@ -26,7 +26,7 @@ class TestAgentROSBridgeError:
     def test_basic_exception(self):
         """Test basic exception creation."""
         exc = AgentROSBridgeError("Test error")
-        
+
         assert str(exc) == "Test error"
         assert exc.details == {}
 
@@ -34,7 +34,7 @@ class TestAgentROSBridgeError:
         """Test exception with details."""
         details = {"key": "value", "number": 42}
         exc = AgentROSBridgeError("Test error", details)
-        
+
         assert exc.details == details
         assert exc.details["key"] == "value"
 
@@ -48,7 +48,7 @@ class TestAgentROSBridgeError:
             ConfigurationError("test"),
             ValidationError("test"),
         ]
-        
+
         for exc in exceptions:
             assert isinstance(exc, AgentROSBridgeError)
 
@@ -59,7 +59,7 @@ class TestRobotConnectionError:
     def test_without_robot_id(self):
         """Test error without robot ID."""
         exc = RobotConnectionError("Connection failed")
-        
+
         assert "Connection failed" in str(exc)
         assert "Robot connection failed:" in str(exc)
         assert exc.robot_id is None
@@ -68,7 +68,7 @@ class TestRobotConnectionError:
     def test_with_robot_id(self):
         """Test error with robot ID."""
         exc = RobotConnectionError("Connection failed", robot_id="bot_01")
-        
+
         assert "bot_01" in str(exc)
         assert exc.robot_id == "bot_01"
         assert exc.details["robot_id"] == "bot_01"
@@ -76,7 +76,7 @@ class TestRobotConnectionError:
     def test_error_message_format(self):
         """Test error message formatting."""
         exc = RobotConnectionError("Timeout after 30s", robot_id="arm_01")
-        
+
         expected = "Robot connection failed for arm_01: Timeout after 30s"
         assert str(exc) == expected
 
@@ -87,7 +87,7 @@ class TestSafetyValidationError:
     def test_without_violation_type(self):
         """Test error without violation type."""
         exc = SafetyValidationError("Velocity limit exceeded")
-        
+
         assert "Safety validation failed" in str(exc)
         assert "Velocity limit exceeded" in str(exc)
         assert exc.violation_type is None
@@ -95,7 +95,7 @@ class TestSafetyValidationError:
     def test_with_violation_type(self):
         """Test error with violation type."""
         exc = SafetyValidationError("Too fast", violation_type="velocity")
-        
+
         assert exc.violation_type == "velocity"
         assert exc.details["violation_type"] == "velocity"
 
@@ -107,7 +107,7 @@ class TestSafetyValidationError:
             ("force", "Excessive force"),
             ("collision", "Collision detected"),
         ]
-        
+
         for vtype, message in violations:
             exc = SafetyValidationError(message, violation_type=vtype)
             assert exc.violation_type == vtype
@@ -119,14 +119,14 @@ class TestToolExecutionError:
     def test_without_tool_name(self):
         """Test error without tool name."""
         exc = ToolExecutionError("Tool crashed")
-        
+
         assert "Tool execution failed" in str(exc)
         assert exc.tool_name is None
 
     def test_with_tool_name(self):
         """Test error with tool name."""
         exc = ToolExecutionError("Not found", tool_name="rostopic_echo")
-        
+
         assert "rostopic_echo" in str(exc)
         assert exc.tool_name == "rostopic_echo"
         assert exc.details["tool_name"] == "rostopic_echo"
@@ -138,21 +138,21 @@ class TestOtherExceptions:
     def test_transport_error(self):
         """Test TransportError."""
         exc = TransportError("Connection reset")
-        
+
         assert "Connection reset" in str(exc)
         assert isinstance(exc, AgentROSBridgeError)
 
     def test_configuration_error(self):
         """Test ConfigurationError."""
         exc = ConfigurationError("Invalid config")
-        
+
         assert "Invalid config" in str(exc)
         assert isinstance(exc, AgentROSBridgeError)
 
     def test_validation_error(self):
         """Test ValidationError."""
         exc = ValidationError("Invalid parameter")
-        
+
         assert "Invalid parameter" in str(exc)
         assert isinstance(exc, AgentROSBridgeError)
 
@@ -163,7 +163,7 @@ class TestExceptionChaining:
     def test_cause_chain(self):
         """Test that exceptions can chain."""
         original = ValueError("Original error")
-        
+
         try:
             raise RobotConnectionError("Failed to connect") from original
         except RobotConnectionError as e:
@@ -191,7 +191,7 @@ class TestExceptionCatching:
             SafetyValidationError("test"),
             TransportError("test"),
         ]
-        
+
         for exc in exceptions:
             try:
                 raise exc
@@ -222,7 +222,7 @@ class TestExceptionAttributes:
             ConfigurationError("config"),
             ValidationError("validation"),
         ]
-        
+
         for exc in exceptions:
             assert len(str(exc)) > 0
             assert isinstance(str(exc), str)
@@ -234,7 +234,7 @@ class TestExceptionAttributes:
             RobotConnectionError("robot"),
             SafetyValidationError("safety"),
         ]
-        
+
         for exc in exceptions:
             assert hasattr(exc, "details")
             assert isinstance(exc.details, dict)

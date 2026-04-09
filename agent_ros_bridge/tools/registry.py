@@ -35,8 +35,7 @@ class ToolRegistry:
     def get_tools_by_category(self, category: str) -> list[ROSTool]:
         """Get tools by category."""
         return [
-            tool for tool in self._tools.values()
-            if getattr(tool, 'category', None) == category
+            tool for tool in self._tools.values() if getattr(tool, "category", None) == category
         ]
 
     def clear(self) -> None:

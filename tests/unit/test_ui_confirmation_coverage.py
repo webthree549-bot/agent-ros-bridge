@@ -156,13 +156,15 @@ class TestConfirmationUI:
 
         # Add proposals
         for i in range(3):
-            ui.receive_proposal({
-                "proposal_id": f"prop_{i}",
-                "robot_id": "bot1",
-                "intent_type": "NAVIGATE",
-                "confidence": 0.8,
-                "entities": [],
-            })
+            ui.receive_proposal(
+                {
+                    "proposal_id": f"prop_{i}",
+                    "robot_id": "bot1",
+                    "intent_type": "NAVIGATE",
+                    "confidence": 0.8,
+                    "entities": [],
+                }
+            )
 
         # Approve one
         ui.approve_proposal("prop_0")
@@ -177,22 +179,26 @@ class TestConfirmationUI:
         ui = ConfirmationUI()
 
         # Add and process proposals
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.8,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.8,
+                "entities": [],
+            }
+        )
         ui.approve_proposal("p1")
 
-        ui.receive_proposal({
-            "proposal_id": "p2",
-            "robot_id": "bot1",
-            "intent_type": "PICKUP",
-            "confidence": 0.7,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p2",
+                "robot_id": "bot1",
+                "intent_type": "PICKUP",
+                "confidence": 0.7,
+                "entities": [],
+            }
+        )
         ui.reject_proposal("p2", reason="unsafe")
 
         metrics = ui.get_metrics()
@@ -216,13 +222,15 @@ class TestConfirmationUI:
 
         ui = ConfirmationUI()
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.5,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.5,
+                "entities": [],
+            }
+        )
 
         with pytest.raises(ValueError, match="Rejection reason is required"):
             ui.reject_proposal("p1", reason="")
@@ -425,13 +433,15 @@ class TestUIAPI:
 
         ui = ConfirmationUI()
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.8,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.8,
+                "entities": [],
+            }
+        )
 
         pending = ui.api_get_pending()
         assert len(pending) == 1
@@ -443,13 +453,15 @@ class TestUIAPI:
 
         ui = ConfirmationUI()
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.8,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.8,
+                "entities": [],
+            }
+        )
 
         result = ui.api_approve("p1")
         assert result["success"] is True
@@ -460,13 +472,15 @@ class TestUIAPI:
 
         ui = ConfirmationUI()
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.5,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.5,
+                "entities": [],
+            }
+        )
 
         result = ui.api_reject("p1", reason="unsafe")
         assert result["success"] is True
@@ -493,13 +507,15 @@ class TestUIShadowHooks:
 
         ui = ConfirmationUI(shadow_hooks=hooks)
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.8,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.8,
+                "entities": [],
+            }
+        )
 
         ui.approve_proposal("p1")
 
@@ -515,13 +531,15 @@ class TestUIShadowHooks:
 
         ui = ConfirmationUI(shadow_hooks=hooks)
 
-        ui.receive_proposal({
-            "proposal_id": "p1",
-            "robot_id": "bot1",
-            "intent_type": "NAVIGATE",
-            "confidence": 0.5,
-            "entities": [],
-        })
+        ui.receive_proposal(
+            {
+                "proposal_id": "p1",
+                "robot_id": "bot1",
+                "intent_type": "NAVIGATE",
+                "confidence": 0.5,
+                "entities": [],
+            }
+        )
 
         ui.reject_proposal("p1", reason="unsafe")
 

@@ -27,6 +27,7 @@ try:
         run_scenarios,
         validate_for_gate2,
     )
+
     _using_standalone = True
 except ImportError:
     _using_standalone = False
@@ -272,14 +273,17 @@ if not _using_standalone:
             else:
                 return [self.run_scenario(path) for path in scenario_paths]
 
-        def _run_parallel(self, scenario_paths: list[str], max_workers: int) -> list[ScenarioResult]:
+        def _run_parallel(
+            self, scenario_paths: list[str], max_workers: int
+        ) -> list[ScenarioResult]:
             """Run scenarios in parallel using process pool"""
             results = []
 
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all tasks
                 future_to_path = {
-                    executor.submit(self._run_scenario_worker, path): path for path in scenario_paths
+                    executor.submit(self._run_scenario_worker, path): path
+                    for path in scenario_paths
                 }
 
                 # Collect results as they complete
@@ -385,6 +389,7 @@ if not _using_standalone:
         )
 
         return report
+
 
 __all__ = [
     "GazeboSimulator",

@@ -17,7 +17,7 @@ class TestToolResult:
     def test_default_creation(self):
         """Test creating ToolResult with defaults."""
         result = ToolResult(success=True, output="test output")
-        
+
         assert result.success is True
         assert result.output == "test output"
         assert result.error is None
@@ -33,7 +33,7 @@ class TestToolResult:
             data={"key": "value"},
             execution_time_ms=123.45,
         )
-        
+
         assert result.success is False
         assert result.output == ""
         assert result.error == "Test error"
@@ -48,7 +48,7 @@ class TestToolResult:
             data={"result": "data"},
             execution_time_ms=50.0,
         )
-        
+
         assert result.success is True
         assert result.error is None
 
@@ -60,18 +60,18 @@ class TestToolResult:
             error="Command failed: timeout",
             execution_time_ms=5000.0,
         )
-        
+
         assert result.success is False
         assert result.error is not None
 
 
 class ConcreteTool(ROSTool):
     """Concrete implementation for testing."""
-    
+
     name = "test_tool"
     description = "A test tool"
     version = "1.0.0"
-    
+
     def execute(self, param: str = "default", **kwargs) -> ToolResult:
         """Execute test tool."""
         if param == "fail":
@@ -80,7 +80,7 @@ class ConcreteTool(ROSTool):
                 output="",
                 error="Intentional failure",
             )
-        
+
         return ToolResult(
             success=True,
             output=f"Result: {param}",
@@ -94,7 +94,7 @@ class TestROSTool:
     def test_tool_attributes(self):
         """Test tool has required attributes."""
         tool = ConcreteTool()
-        
+
         assert tool.name == "test_tool"
         assert tool.description == "A test tool"
         assert tool.version == "1.0.0"
@@ -103,7 +103,7 @@ class TestROSTool:
         """Test successful execution."""
         tool = ConcreteTool()
         result = tool.execute(param="test_value")
-        
+
         assert result.success is True
         assert result.output == "Result: test_value"
         assert result.data["param"] == "test_value"
@@ -112,7 +112,7 @@ class TestROSTool:
         """Test failed execution."""
         tool = ConcreteTool()
         result = tool.execute(param="fail")
-        
+
         assert result.success is False
         assert result.error == "Intentional failure"
 
@@ -120,7 +120,7 @@ class TestROSTool:
         """Test default parameter validation."""
         tool = ConcreteTool()
         valid, error = tool.validate_params({})
-        
+
         assert valid is True
         assert error == ""
 
@@ -128,7 +128,7 @@ class TestROSTool:
         """Test schema generation."""
         tool = ConcreteTool()
         schema = tool.get_schema()
-        
+
         assert schema["name"] == "test_tool"
         assert schema["description"] == "A test tool"
         assert schema["version"] == "1.0.0"
@@ -139,11 +139,11 @@ class TestToolInheritance:
 
     def test_abstract_execute(self):
         """Test that execute is abstract."""
-        
+
         class IncompleteTool(ROSTool):
             name = "incomplete"
             description = "Incomplete tool"
-        
+
         with pytest.raises(TypeError):
             IncompleteTool()
 

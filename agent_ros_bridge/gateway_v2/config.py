@@ -113,14 +113,14 @@ class SafetyConfig:
         """Validate and clamp configuration values."""
         # Clamp min_confidence_for_auto to [0, 1]
         self.min_confidence_for_auto = max(0.0, min(1.0, self.min_confidence_for_auto))
-        
+
         # Clamp gradual_rollout_stage to [0, 100]
         self.gradual_rollout_stage = max(0, min(100, self.gradual_rollout_stage))
-        
+
         # Ensure non-negative hours
         self.shadow_mode_hours_collected = max(0.0, self.shadow_mode_hours_collected)
         self.required_shadow_hours = max(0.0, self.required_shadow_hours)
-        
+
         # Clamp agreement rates to [0, 1]
         self.shadow_mode_agreement_rate = max(0.0, min(1.0, self.shadow_mode_agreement_rate))
         self.min_agreement_rate = max(0.0, min(1.0, self.min_agreement_rate))

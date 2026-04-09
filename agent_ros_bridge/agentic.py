@@ -23,7 +23,7 @@ class TaskResult:
     safety_violations: int
     message: str
     data: dict[str, Any] = None
-    
+
     def __post_init__(self):
         if self.data is None:
             self.data = {}
@@ -805,7 +805,7 @@ class RobotAgent:
     def health_check(self) -> dict[str, Any]:
         """
         Perform comprehensive health check on robot.
-        
+
         Returns:
             Dictionary with diagnostic information:
             - status: Overall health status
@@ -816,14 +816,14 @@ class RobotAgent:
             - timestamp: When check was performed
         """
         import time
-        
+
         warnings = []
-        
+
         # Check battery (simulated)
-        battery_level = getattr(self, '_battery_level', 100.0)
+        battery_level = getattr(self, "_battery_level", 100.0)
         if battery_level < 20:
             warnings.append(f"Low battery: {battery_level}%")
-        
+
         # Build health report
         health = {
             "status": "healthy" if not warnings else "degraded",
@@ -843,7 +843,7 @@ class RobotAgent:
             "warnings": warnings,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        
+
         return health
 
     async def execute_batch(
@@ -853,26 +853,30 @@ class RobotAgent:
     ) -> list[dict[str, Any]]:
         """
         Execute multiple commands in batch.
-        
+
         Args:
             commands: List of natural language commands
             stop_on_failure: Whether to stop at first failure
-            
+
         Returns:
             List of results for each command
         """
         results = []
-        
+
         for i, command in enumerate(commands):
             # Execute command
-            result = await self.execute(command) if callable(self.execute) and hasattr(self.execute, '__await__') else self.execute(command)
-            
+            result = (
+                await self.execute(command)
+                if callable(self.execute) and hasattr(self.execute, "__await__")
+                else self.execute(command)
+            )
+
             result_dict = {
                 "command": command,
                 "status": "success" if result.success else "failed",
                 "step": i + 1,
             }
-            
+
             if not result.success:
                 result_dict["error"] = result.message
                 results.append(result_dict)
@@ -880,7 +884,7 @@ class RobotAgent:
                     break
             else:
                 results.append(result_dict)
-        
+
         return results
 
     def navigate_waypoints(
@@ -889,18 +893,19 @@ class RobotAgent:
     ) -> TaskResult:
         """
         Navigate through multiple waypoints.
-        
+
         Args:
             waypoints: List of locations or dicts with 'location' and optional 'loiter_sec'
-            
+
         Returns:
             TaskResult with navigation summary
         """
         import time
+
         start_time = time.time()
         steps = []
         visited = []
-        
+
         for i, wp in enumerate(waypoints):
             # Parse waypoint
             if isinstance(wp, dict):
@@ -909,16 +914,16 @@ class RobotAgent:
             else:
                 location = wp
                 loiter_sec = 0
-            
+
             # Navigate to waypoint
             step_result = self.execute(f"navigate to {location}")
-            
+
             step = {
                 "step": f"navigate_to_{location}",
                 "status": "success" if step_result.success else "failed",
                 "location": location,
             }
-            
+
             if step_result.success:
                 visited.append(location)
                 # Simulate loiter time
@@ -926,16 +931,16 @@ class RobotAgent:
                     step["loiter_sec"] = loiter_sec
             else:
                 step["error"] = step_result.message
-            
+
             steps.append(step)
-            
+
             # Stop if navigation failed
             if not step_result.success:
                 break
-        
+
         duration = time.time() - start_time
         all_success = all(s["status"] == "success" for s in steps)
-        
+
         return TaskResult(
             success=all_success,
             task="waypoint_navigation",
@@ -945,13 +950,17 @@ class RobotAgent:
             human_approvals=0,
             human_rejections=0,
             safety_violations=0,
-            message=f"Visited {len(visited)} waypoints: {', '.join(visited)}" if visited else "Navigation failed",
+            message=(
+                f"Visited {len(visited)} waypoints: {', '.join(visited)}"
+                if visited
+                else "Navigation failed"
+            ),
         )
 
     def recognize_objects(self) -> list[dict[str, Any]]:
         """
         Recognize objects in the environment.
-        
+
         Returns:
             List of detected objects with name, confidence, and location
         """
@@ -974,26 +983,27 @@ class RobotAgent:
     def pick_object(self, object_name: str) -> TaskResult:
         """
         Pick up an object by name.
-        
+
         Args:
             object_name: Name of object to pick
-            
+
         Returns:
             TaskResult with pick operation result
         """
         import time
+
         start_time = time.time()
-        
+
         # First recognize objects
         objects = self.recognize_objects()
-        
+
         # Find target object
         target = None
         for obj in objects:
             if obj["name"] == object_name:
                 target = obj
                 break
-        
+
         if not target:
             return TaskResult(
                 success=False,
@@ -1006,13 +1016,17 @@ class RobotAgent:
                 safety_violations=0,
                 message=f"Object '{object_name}' not found",
             )
-        
+
         # Simulate pick operation
         steps = [
             {"step": "recognize_objects", "status": "success"},
-            {"step": f"pick_{object_name}", "status": "success", "confidence": target["confidence"]},
+            {
+                "step": f"pick_{object_name}",
+                "status": "success",
+                "confidence": target["confidence"],
+            },
         ]
-        
+
         return TaskResult(
             success=True,
             task=f"pick_{object_name}",
@@ -1028,19 +1042,19 @@ class RobotAgent:
     def plan_mission(self, description: str) -> dict[str, Any]:
         """
         Create mission plan from natural language description.
-        
+
         Args:
             description: Natural language mission description
-            
+
         Returns:
             Mission plan with tasks and estimated duration
         """
         # Parse description into tasks
         tasks = []
-        
+
         # Simple keyword-based parsing (in production, use LLM)
         description_lower = description.lower()
-        
+
         if "kitchen" in description_lower:
             tasks.append({"task": "navigate", "target": "kitchen", "estimated_time": 30})
         if "living room" in description_lower or "livingroom" in description_lower:
@@ -1049,13 +1063,13 @@ class RobotAgent:
             tasks.append({"task": "clean", "area": "current", "estimated_time": 120})
         if "check" in description_lower:
             tasks.append({"task": "inspect", "target": "environment", "estimated_time": 15})
-        
+
         # Default task if none recognized
         if not tasks:
             tasks.append({"task": "execute", "command": description, "estimated_time": 60})
-        
+
         total_time = sum(t["estimated_time"] for t in tasks)
-        
+
         return {
             "description": description,
             "tasks": tasks,
@@ -1066,44 +1080,61 @@ class RobotAgent:
     async def execute_mission(self, mission: dict[str, Any]) -> TaskResult:
         """
         Execute a mission plan.
-        
+
         Args:
             mission: Mission plan dictionary
-            
+
         Returns:
             TaskResult with mission execution results
         """
         import time
+
         start_time = time.time()
-        
+
         tasks = mission.get("tasks", [])
         completed = 0
         steps = []
-        
+
         for i, task in enumerate(tasks):
             # Execute task
             if task["task"] == "navigate":
-                result = await self.execute(f"navigate to {task['target']}") if hasattr(self.execute, '__await__') else self.execute(f"navigate to {task['target']}")
+                result = (
+                    await self.execute(f"navigate to {task['target']}")
+                    if hasattr(self.execute, "__await__")
+                    else self.execute(f"navigate to {task['target']}")
+                )
             elif task["task"] == "clean":
-                result = await self.execute("clean area") if hasattr(self.execute, '__await__') else self.execute("clean area")
+                result = (
+                    await self.execute("clean area")
+                    if hasattr(self.execute, "__await__")
+                    else self.execute("clean area")
+                )
             elif task["task"] == "inspect":
-                result = await self.execute("inspect environment") if hasattr(self.execute, '__await__') else self.execute("inspect environment")
+                result = (
+                    await self.execute("inspect environment")
+                    if hasattr(self.execute, "__await__")
+                    else self.execute("inspect environment")
+                )
             else:
-                result = await self.execute(task.get("command", "")) if hasattr(self.execute, '__await__') else self.execute(task.get("command", ""))
-            
+                result = (
+                    await self.execute(task.get("command", ""))
+                    if hasattr(self.execute, "__await__")
+                    else self.execute(task.get("command", ""))
+                )
+
             step = {
                 "step": task["task"],
                 "status": "success" if result.success else "failed",
                 "target": task.get("target", ""),
             }
             steps.append(step)
-            
+
             if result.success:
                 completed += 1
-        
+
         duration = time.time() - start_time
         progress = (completed / len(tasks) * 100) if tasks else 0
-        
+
         return TaskResult(
             success=completed == len(tasks),
             task="mission_execution",
@@ -1118,7 +1149,7 @@ class RobotAgent:
                 "progress": progress,
                 "completed_tasks": completed,
                 "total_tasks": len(tasks),
-            }
+            },
         )
 
     def _get_human_approval(

@@ -65,9 +65,7 @@ class ROS2ActionClient(BaseActionClient):
             self._client.destroy()
         self._connected = False
 
-    async def send_goal(
-        self, goal_data: dict[str, Any], timeout_sec: float = 30.0
-    ) -> ActionResult:
+    async def send_goal(self, goal_data: dict[str, Any], timeout_sec: float = 30.0) -> ActionResult:
         """Send goal to ROS2 action server."""
         if not self._connected:
             return ActionResult(

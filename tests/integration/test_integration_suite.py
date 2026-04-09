@@ -172,9 +172,7 @@ class TestMissionPlanningIntegration:
         robot = RobotAgent(device_id="test_bot")
 
         # Plan mission
-        mission = robot.plan_mission(
-            "Clean the kitchen"
-        )
+        mission = robot.plan_mission("Clean the kitchen")
 
         # Should create structured plan
         assert "tasks" in mission
@@ -204,7 +202,7 @@ class TestToolRobotIntegration:
 
         # Verify tool properties
         assert tool.name == "rostopic_echo"
-        assert hasattr(tool, 'execute')
+        assert hasattr(tool, "execute")
 
     def test_rosservice_tool_has_correct_interface(self):
         """ROSServiceCallTool should have correct interface."""
@@ -214,7 +212,7 @@ class TestToolRobotIntegration:
 
         # Verify tool properties
         assert tool.name == "rosservice_call"
-        assert hasattr(tool, 'execute')
+        assert hasattr(tool, "execute")
 
 
 class TestEndToEndScenarios:

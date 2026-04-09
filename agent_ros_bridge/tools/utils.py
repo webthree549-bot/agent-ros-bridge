@@ -10,11 +10,11 @@ def sanitize_tool_name(name: str) -> str:
     Converts to lowercase, replaces special chars with underscores.
     """
     # Replace spaces and special chars with underscores
-    sanitized = re.sub(r'[^a-zA-Z0-9_]', '_', name)
+    sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", name)
     # Remove multiple consecutive underscores
-    sanitized = re.sub(r'_+', '_', sanitized)
+    sanitized = re.sub(r"_+", "_", sanitized)
     # Remove leading/trailing underscores
-    sanitized = sanitized.strip('_')
+    sanitized = sanitized.strip("_")
     # Convert to lowercase
     return sanitized.lower()
 
@@ -28,10 +28,10 @@ def parse_ros_type(ros_type: str) -> tuple[str, str]:
     Returns:
         Tuple of (package_name, message_name)
     """
-    parts = ros_type.split('/')
+    parts = ros_type.split("/")
     if len(parts) == 2:
         return parts[0], parts[1]
-    elif len(parts) == 3 and parts[1] == 'msg':
+    elif len(parts) == 3 and parts[1] == "msg":
         return parts[0], parts[2]
     else:
         raise ValueError(f"Invalid ROS type format: {ros_type}")

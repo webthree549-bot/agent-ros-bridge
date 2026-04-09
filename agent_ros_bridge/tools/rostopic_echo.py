@@ -56,9 +56,7 @@ class ROSTopicEchoTool(ROSTool):
                 execution_time_ms=(time.time() - start_time) * 1000,
             )
 
-    def _execute_ros2(
-        self, topic: str, count: int, timeout_sec: float
-    ) -> ToolResult:
+    def _execute_ros2(self, topic: str, count: int, timeout_sec: float) -> ToolResult:
         """Execute with ROS2."""
         import time
 
@@ -94,6 +92,7 @@ class ROSTopicEchoTool(ROSTool):
         # Import message type dynamically using importlib (secure)
         try:
             import importlib
+
             msg_module, msg_class = topic_type.split("/")
             module = importlib.import_module(f"{msg_module}.msg")
             MsgType = getattr(module, msg_class)

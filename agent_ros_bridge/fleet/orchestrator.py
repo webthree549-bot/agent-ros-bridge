@@ -325,7 +325,7 @@ class FleetOrchestrator:
 
     def get_fleet_status(self) -> dict[str, Any]:
         """Get complete fleet status summary.
-        
+
         Returns:
             Dictionary with fleet status including:
             - total: Total number of robots
@@ -340,14 +340,14 @@ class FleetOrchestrator:
         online_count = 0
         total_battery = 0.0
         battery_count = 0
-        
+
         for r in self.robots.values():
-            if hasattr(r, 'robot_id'):
+            if hasattr(r, "robot_id"):
                 # Robot object
                 robot_data = {
                     "id": r.robot_id,
                     "name": r.name,
-                    "status": r.status.name if hasattr(r.status, 'name') else str(r.status),
+                    "status": r.status.name if hasattr(r.status, "name") else str(r.status),
                     "location": r.current_location,
                     "battery": r.battery_percent,
                     "current_task": r.current_task,
@@ -368,9 +368,9 @@ class FleetOrchestrator:
                 total_battery += r.get("battery", 0.0)
                 battery_count += 1
             robot_list.append(robot_data)
-        
+
         battery_avg = total_battery / battery_count if battery_count > 0 else 0.0
-        
+
         # Build metrics manually to handle dict robots
         metrics = {
             "total_robots": len(self.robots),
@@ -378,7 +378,7 @@ class FleetOrchestrator:
             "active_robots": 0,  # Would need Robot objects for accurate count
             "avg_battery_percent": round(battery_avg, 1),
         }
-        
+
         return {
             "total": len(self.robots),
             "online": online_count,
@@ -545,32 +545,32 @@ class FleetOrchestrator:
     async def emergency_stop_all(self) -> dict[str, Any]:
         """
         Emergency stop all robots in the fleet.
-        
+
         Returns:
             Dictionary with emergency stop results
         """
         stopped_count = 0
         failed_robots = []
-        
+
         for robot_id, robot in self.robots.items():
             try:
                 # Handle both Robot objects and dicts
-                if hasattr(robot, 'status'):
+                if hasattr(robot, "status"):
                     robot.status = RobotStatus.ERROR
                     robot.current_task = None
-                    robot_name = robot.name if hasattr(robot, 'name') else robot_id
+                    robot_name = robot.name if hasattr(robot, "name") else robot_id
                 else:
                     # Dict robot (for testing)
-                    robot['status'] = 'error'
-                    robot['current_task'] = None
+                    robot["status"] = "error"
+                    robot["current_task"] = None
                     robot_name = robot_id
-                
+
                 stopped_count += 1
                 logger.warning(f"🚨 Emergency stop sent to {robot_name}")
             except Exception as e:
                 failed_robots.append({"robot_id": robot_id, "error": str(e)})
                 logger.error(f"Failed to stop {robot_id}: {e}")
-        
+
         return {
             "success": len(failed_robots) == 0,
             "robots_stopped": stopped_count,
@@ -582,40 +582,54 @@ class FleetOrchestrator:
     async def emergency_return_to_base(self) -> dict[str, Any]:
         """
         Send all robots to their base/safe zones in emergency.
-        
+
         Returns:
             Dictionary with return to base results
         """
         returning_count = 0
-        
+
         for robot_id, robot in self.robots.items():
             # Handle both Robot objects and dicts
-            robot_status = robot.status if hasattr(robot, 'status') else robot.get('status', '')
-            valid_statuses = [RobotStatus.IDLE, RobotStatus.BUSY, RobotStatus.ERROR] if hasattr(RobotStatus, 'IDLE') else ['idle', 'busy', 'error']
-            
+            robot_status = robot.status if hasattr(robot, "status") else robot.get("status", "")
+            valid_statuses = (
+                [RobotStatus.IDLE, RobotStatus.BUSY, RobotStatus.ERROR]
+                if hasattr(RobotStatus, "IDLE")
+                else ["idle", "busy", "error"]
+            )
+
             if robot_status in valid_statuses:
                 # Cancel current task
-                current_task = robot.current_task if hasattr(robot, 'current_task') else robot.get('current_task')
-                if current_task and hasattr(self, 'tasks'):
+                current_task = (
+                    robot.current_task
+                    if hasattr(robot, "current_task")
+                    else robot.get("current_task")
+                )
+                if current_task and hasattr(self, "tasks"):
                     task = self.tasks.get(current_task)
-                    if task and hasattr(task, 'status'):
-                        task.status = TaskStatus.CANCELLED if hasattr(TaskStatus, 'CANCELLED') else 'cancelled'
-                
+                    if task and hasattr(task, "status"):
+                        task.status = (
+                            TaskStatus.CANCELLED
+                            if hasattr(TaskStatus, "CANCELLED")
+                            else "cancelled"
+                        )
+
                 # Set status to returning
-                if hasattr(robot, 'status'):
-                    robot.status = RobotStatus.RETURNING if hasattr(RobotStatus, 'RETURNING') else 'returning'
+                if hasattr(robot, "status"):
+                    robot.status = (
+                        RobotStatus.RETURNING if hasattr(RobotStatus, "RETURNING") else "returning"
+                    )
                     robot.current_task = "emergency_return"
-                    robot_name = robot.name if hasattr(robot, 'name') else robot_id
+                    robot_name = robot.name if hasattr(robot, "name") else robot_id
                 else:
-                    robot['status'] = 'returning'
-                    robot['current_task'] = 'emergency_return'
+                    robot["status"] = "returning"
+                    robot["current_task"] = "emergency_return"
                     robot_name = robot_id
-                
+
                 returning_count += 1
-                
+
                 # In real implementation, send return to base command
                 logger.warning(f"🚨 Emergency return to base for {robot_name}")
-        
+
         return {
             "success": True,
             "robots_returning": returning_count,

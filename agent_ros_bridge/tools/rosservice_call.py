@@ -159,6 +159,7 @@ class ROSServiceCallTool(ROSTool):
         # Import service type dynamically using importlib (secure)
         try:
             import importlib
+
             srv_module, srv_class = service_type.split("/")
             module = importlib.import_module(f"{srv_module}.srv")
             SrvType = getattr(module, srv_class)

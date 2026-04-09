@@ -85,7 +85,7 @@ class Command:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     robot_id: str = ""
     status: str = "pending"  # pending, executing, completed, failed
-    
+
     def to_dict(self) -> dict[str, Any]:
         """Convert command to dictionary."""
         return {

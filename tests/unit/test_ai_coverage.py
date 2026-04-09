@@ -19,12 +19,16 @@ class TestAIIntentParserNoROS2:
         mock_rclpy.spin_once = Mock()
         mock_rclpy.shutdown = Mock()
 
-        with patch.dict("sys.modules", {
-            "rclpy": mock_rclpy,
-            "rclpy.node": mock_rclpy.node,
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "rclpy": mock_rclpy,
+                "rclpy.node": mock_rclpy.node,
+            },
+        ):
             try:
                 from agent_ros_bridge.ai.intent_parser import IntentParserNode
+
                 assert IntentParserNode is not None
             except ImportError:
                 pytest.skip("IntentParserNode not available")
@@ -33,9 +37,9 @@ class TestAIIntentParserNoROS2:
         """Test that intent patterns are defined."""
         # Check the patterns file exists and has content
         import os
+
         patterns_file = os.path.join(
-            os.path.dirname(__file__),
-            "../../agent_ros_bridge/ai/intent_patterns.py"
+            os.path.dirname(__file__), "../../agent_ros_bridge/ai/intent_patterns.py"
         )
         if os.path.exists(patterns_file):
             with open(patterns_file) as f:
@@ -45,12 +49,16 @@ class TestAIIntentParserNoROS2:
     def test_llm_provider_config(self):
         """Test LLM provider configuration."""
         # Mock rclpy
-        with patch.dict("sys.modules", {
-            "rclpy": Mock(),
-            "rclpy.node": Mock(),
-        }):
+        with patch.dict(
+            "sys.modules",
+            {
+                "rclpy": Mock(),
+                "rclpy.node": Mock(),
+            },
+        ):
             try:
                 from agent_ros_bridge.ai.intent_parser import IntentParser
+
                 parser = IntentParser()
                 assert parser is not None
             except ImportError:
@@ -80,11 +88,13 @@ class TestAILLMIntegration:
         parser = LLMIntentParser(provider="openai", api_key="test")
 
         # Mock the parse method
-        parser.parse = Mock(return_value={
-            "intent_type": "NAVIGATE",
-            "confidence": 0.95,
-            "entities": [{"type": "LOCATION", "value": "kitchen"}],
-        })
+        parser.parse = Mock(
+            return_value={
+                "intent_type": "NAVIGATE",
+                "confidence": 0.95,
+                "entities": [{"type": "LOCATION", "value": "kitchen"}],
+            }
+        )
 
         result = parser.parse("Go to kitchen")
         assert result["intent_type"] == "NAVIGATE"
@@ -97,7 +107,7 @@ class TestAILLMIntegration:
 
         # Parser should have fallback mechanisms
         assert parser is not None
-        assert hasattr(parser, 'parse')
+        assert hasattr(parser, "parse")
 
 
 class TestAIRuleBasedParser:
@@ -152,7 +162,7 @@ class TestAIContextManager:
         conv = ConversationManager()
 
         # Add messages (using correct method name)
-        if hasattr(conv, 'add_message'):
+        if hasattr(conv, "add_message"):
             conv.add_message("user", "Go to kitchen")
             conv.add_message("assistant", "Navigating to kitchen")
             conv.add_message("user", "Now pick up the cup")
@@ -173,7 +183,7 @@ class TestAIContextManager:
 
             # Add many messages
             for i in range(10):
-                if hasattr(conv, 'add_message'):
+                if hasattr(conv, "add_message"):
                     conv.add_message("user", f"Message {i}")
 
             # Should only keep last 5
