@@ -189,7 +189,9 @@ class TestGRPCServiceRegistration:
     """Test 4: gRPC service should be registered correctly."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="TDD test - complex async mocking needed")
+    @pytest.mark.skip(
+        reason="TDD test - requires grpc module restructuring for proper async mocking"
+    )
     async def test_bridge_service_registered(self):
         """Red: BridgeService should be registered to server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:
