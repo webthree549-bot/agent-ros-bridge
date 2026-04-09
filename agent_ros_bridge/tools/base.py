@@ -42,3 +42,7 @@ class ROSTool(ABC):
             "description": self.description,
             "version": self.version,
         }
+
+
+# Alias for backward compatibility
+BaseTool = ROSTool
