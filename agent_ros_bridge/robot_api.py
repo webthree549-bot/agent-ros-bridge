@@ -82,17 +82,17 @@ class RobotController:
     def _disconnect(self) -> None:
         """Disconnect from the robot."""
         if self._nav_client:
-            if hasattr(self._nav_client, 'destroy'):
+            if hasattr(self._nav_client, "destroy"):
                 self._nav_client.destroy()
         if self._cmd_vel_pub:
-            if hasattr(self._cmd_vel_pub, 'destroy'):
+            if hasattr(self._cmd_vel_pub, "destroy"):
                 self._cmd_vel_pub.destroy()
         # Handle odometry subscriber if it exists
-        if hasattr(self, '_odom_sub') and self._odom_sub:
-            if hasattr(self._odom_sub, 'destroy'):
+        if hasattr(self, "_odom_sub") and self._odom_sub:
+            if hasattr(self._odom_sub, "destroy"):
                 self._odom_sub.destroy()
         if self._node:
-            if hasattr(self._node, 'destroy_node'):
+            if hasattr(self._node, "destroy_node"):
                 self._node.destroy_node()
         self._connected = False
 
@@ -135,15 +135,13 @@ class RobotController:
             Command result
         """
         if not self._connected:
-            return RobotCommandResult(
-                success=False, error_message="Not connected to robot"
-            )
+            return RobotCommandResult(success=False, error_message="Not connected to robot")
 
         try:
             # In real implementation, send navigation goal
             if self._nav_client:
                 # Check if server is available
-                if hasattr(self._nav_client, 'wait_for_server'):
+                if hasattr(self._nav_client, "wait_for_server"):
                     server_available = self._nav_client.wait_for_server()
                     if not server_available:
                         return RobotCommandResult(
@@ -151,14 +149,12 @@ class RobotController:
                         )
 
                 # Send goal and check if accepted
-                if hasattr(self._nav_client, 'send_goal_async'):
+                if hasattr(self._nav_client, "send_goal_async"):
                     future = self._nav_client.send_goal_async(None)
-                    if future and hasattr(future, 'result'):
+                    if future and hasattr(future, "result"):
                         goal_handle = future.result()
                         if goal_handle is None:
-                            return RobotCommandResult(
-                                success=False, error_message="Goal rejected"
-                            )
+                            return RobotCommandResult(success=False, error_message="Goal rejected")
 
                 return RobotCommandResult(success=True, execution_time=5.0)
             return RobotCommandResult(
@@ -177,9 +173,7 @@ class RobotController:
             Command result
         """
         if not self._connected:
-            return RobotCommandResult(
-                success=False, error_message="Not connected to robot"
-            )
+            return RobotCommandResult(success=False, error_message="Not connected to robot")
 
         goal = ManipulationGoal(object_name=object_name, action="pick")
         return self._execute_manipulation(goal)
@@ -209,9 +203,7 @@ class RobotController:
             Command result
         """
         if not self._connected:
-            return RobotCommandResult(
-                success=False, error_message="Not connected to robot"
-            )
+            return RobotCommandResult(success=False, error_message="Not connected to robot")
 
         # In real implementation, send manipulation command
         return RobotCommandResult(success=True, execution_time=2.0)

@@ -123,7 +123,9 @@ class SafetyValidator:
             return "empty"
         return f"{len(waypoints)}_waypoints"
 
-    def _is_point_in_polygon(self, point: dict[str, float], polygon: list[dict[str, float]]) -> bool:
+    def _is_point_in_polygon(
+        self, point: dict[str, float], polygon: list[dict[str, float]]
+    ) -> bool:
         """Check if a point is inside a polygon using ray casting.
 
         Args:
@@ -235,7 +237,11 @@ class SafetyValidator:
                     x_max = workspace_bounds.get("x_max", float("inf"))
                     y_min = workspace_bounds.get("y_min", float("-inf"))
                     y_max = workspace_bounds.get("y_max", float("inf"))
-                elif isinstance(workspace_bounds, list) and len(workspace_bounds) == 4 and all(isinstance(x, (int, float)) for x in workspace_bounds):
+                elif (
+                    isinstance(workspace_bounds, list)
+                    and len(workspace_bounds) == 4
+                    and all(isinstance(x, (int, float)) for x in workspace_bounds)
+                ):
                     # Simple list format: [x_min, x_max, y_min, y_max]
                     x_min, x_max, y_min, y_max = workspace_bounds
                 elif isinstance(workspace_bounds, list) and len(workspace_bounds) >= 4:
@@ -245,7 +251,12 @@ class SafetyValidator:
                     x_min, x_max = min(xs) if xs else float("-inf"), max(xs) if xs else float("inf")
                     y_min, y_max = min(ys) if ys else float("-inf"), max(ys) if ys else float("inf")
                 else:
-                    x_min, x_max, y_min, y_max = float("-inf"), float("inf"), float("-inf"), float("inf")
+                    x_min, x_max, y_min, y_max = (
+                        float("-inf"),
+                        float("inf"),
+                        float("-inf"),
+                        float("inf"),
+                    )
 
                 for wp in waypoints:
                     x = wp.get("x", 0.0)
@@ -312,7 +323,11 @@ class SafetyValidator:
         Returns:
             Dict with validation statistics
         """
-        avg_time = sum(self._validation_times) / len(self._validation_times) if self._validation_times else 0.0
+        avg_time = (
+            sum(self._validation_times) / len(self._validation_times)
+            if self._validation_times
+            else 0.0
+        )
         max_time = max(self._validation_times) if self._validation_times else 0.0
 
         return {
