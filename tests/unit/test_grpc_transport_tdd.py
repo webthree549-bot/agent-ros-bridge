@@ -3,7 +3,7 @@
 Tests written BEFORE implementation (following TDD Red-Green-Refactor).
 """
 
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
@@ -189,7 +189,7 @@ class TestGRPCServiceRegistration:
     """Test 4: gRPC service should be registered correctly."""
 
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="TDD test - needs full gRPC mock setup")
+    @pytest.mark.skip(reason="TDD test - complex async mocking needed")
     async def test_bridge_service_registered(self):
         """Red: BridgeService should be registered to server."""
         with patch("agent_ros_bridge.gateway_v2.transports.grpc_transport.grpc") as mock_grpc:

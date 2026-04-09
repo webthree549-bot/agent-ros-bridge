@@ -116,10 +116,9 @@ class GRPCTransport(Transport):
         )
 
         # Add servicer
-        # bridge_pb2_grpc.add_BridgeServicer_to_server(
-        #     GRPCServicer(self.handle_command, self.authenticator),
-        #     self.server
-        # )
+        bridge_pb2.add_BridgeServiceServicer_to_server(
+            GRPCServicer(self.handle_command, self.authenticator), self.server
+        )
 
         # Bind port
         listen_addr = f"{self.host}:{self.port}"
