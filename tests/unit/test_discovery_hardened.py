@@ -1,14 +1,14 @@
 """
 TDD Tests for Hardened Discovery
 
-Tests for discovery_hardened.py to boost coverage.
+Tests for hardened discovery classes in discovery.py.
 """
 
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from agent_ros_bridge.discovery_hardened import (
+from agent_ros_bridge.discovery import (
     CapabilityVerifier,
     DiscoveryConfidenceLevel,
     DiscoveryEvidence,
@@ -361,12 +361,12 @@ class TestTDDPrinciples:
     """Verify TDD principles"""
 
     def test_hardened_discovery_has_tests(self):
-        """Red: discovery_hardened.py must have tests"""
-        import agent_ros_bridge.discovery_hardened
+        """Red: Hardened discovery classes must exist in discovery.py"""
+        import agent_ros_bridge.discovery
 
-        assert hasattr(agent_ros_bridge.discovery_hardened, "HardenedROSDiscovery")
-        assert hasattr(agent_ros_bridge.discovery_hardened, "DiscoveryResult")
-        assert hasattr(agent_ros_bridge.discovery_hardened, "CapabilityVerifier")
+        assert hasattr(agent_ros_bridge.discovery, "HardenedROSDiscovery")
+        assert hasattr(agent_ros_bridge.discovery, "DiscoveryResult")
+        assert hasattr(agent_ros_bridge.discovery, "CapabilityVerifier")
 
     def test_all_classes_have_tests(self):
         """Red: All public classes must be tested"""

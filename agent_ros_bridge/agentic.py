@@ -238,13 +238,11 @@ class RobotAgent:
             >>> agent = RobotAgent.discover('bot1', user_confirmation_callback=confirm)
         """
         from agent_ros_bridge.discovery import (
+            CapabilityVerifier,
             DeviceHealthStatus,
+            HardenedROSDiscovery,
             ROSHealthMonitor,
             SelfHealingController,
-        )
-        from agent_ros_bridge.discovery_hardened import (
-            CapabilityVerifier,
-            HardenedROSDiscovery,
         )
 
         # Step 1: Discover with confidence scoring
