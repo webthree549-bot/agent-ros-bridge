@@ -73,19 +73,19 @@ agent_ros_bridge/
 
 **Issue:** Safety timing claims not validated
 **Implementation:**
-- [ ] Add timing measurement hooks in safety nodes
-- [ ] Create `scripts/validate_safety_timing.py`
-- [ ] Document RT-PREEMPT requirements
-- [ ] Add timing metrics to dashboard
+- [x] Add timing measurement hooks in safety nodes
+- [x] Create `scripts/validate_safety_timing.py`
+- [x] Document RT-PREEMPT requirements
+- [ ] Add timing metrics to dashboard (pending)
 
 ### 3.2 From Critique: Production Config Generator
 
 **Issue:** Config examples look "toy"
 **Implementation:**
-- [ ] Create `scripts/generate_production_config.py`
-- [ ] Interactive robot specification input
-- [ ] ISO 10218 compliance checks
-- [ ] Safety zone visualization
+- [x] Create `scripts/generate_production_config.py`
+- [x] Interactive robot specification input
+- [x] ISO 10218 compliance checks
+- [x] Safety zone visualization guidance
 
 ### 3.3 From Critique: Fleet Coordination Algorithms
 
@@ -138,9 +138,9 @@ agent_ros_bridge/
 
 | Guide | Status | Priority |
 |-------|--------|----------|
-| Fleet Management | ❌ Missing | High |
-| Safety Configuration | ⚠️ Partial | High |
-| Troubleshooting | ⚠️ Partial | Medium |
+| Fleet Management | ✅ Complete | High |
+| Safety Configuration | ✅ Complete | High |
+| Troubleshooting | ✅ Complete | Medium |
 | Performance Tuning | ❌ Missing | Medium |
 
 ---
@@ -196,4 +196,12 @@ agent_ros_bridge/
 | Date | Phase | Task | Status |
 |------|-------|------|--------|
 | 2026-04-10 | 1 | Create rebuild plan | ✅ Complete |
-| 2026-04-10 | 1 | Analyze dead code | 🔄 In Progress |
+| 2026-04-10 | 1 | Analyze dead code | ✅ Complete |
+| 2026-04-10 | 1 | Consolidate discovery modules | ✅ Complete - merged discovery_hardened.py into discovery.py (-1 file) |
+| 2026-04-10 | 1 | Remove old stub transports | ✅ Complete - removed transports/ directory (-130 lines, -4 files) |
+| 2026-04-10 | 3 | Safety timing validation script | ✅ Complete - scripts/validate_safety_timing.py |
+| 2026-04-10 | 3 | Production config generator | ✅ Complete - scripts/generate_production_config.py |
+| 2026-04-10 | 3 | Dead code finder tool | ✅ Complete - scripts/find_dead_code.py |
+| 2026-04-10 | 4 | Fleet Management guide | ✅ Complete - docs/FLEET_MANAGEMENT.md |
+| 2026-04-10 | 4 | Troubleshooting guide | ✅ Complete - docs/TROUBLESHOOTING.md |
+| 2026-04-10 | - | Push to remote | ✅ Complete - main branch pushed to origin |
