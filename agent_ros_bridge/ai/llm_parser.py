@@ -115,7 +115,7 @@ Rules:
         """
         # Import security utilities
         try:
-            from ..middleware.rate_limit import RateLimiter, RateLimitConfig
+            from ..middleware.rate_limit import RateLimiter
             from ..security_utils import SecureConfig, sanitize_input
 
             self._secure_config = SecureConfig

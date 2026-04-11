@@ -699,7 +699,7 @@ Production-ready auto-discovery with confidence scoring,
 validation, and safety mechanisms.
 """
 
-import time
+# Note: time already imported at module level
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable
