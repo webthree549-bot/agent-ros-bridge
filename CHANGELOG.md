@@ -25,6 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.7] - 2026-04-10
+
+### Documentation & Transparency Improvements
+- **Version Consistency**: All modules now aligned to v0.6.7
+- **Safety Documentation**: Updated status from "Draft" to "Implementation Complete - Validation Pending"
+- **Added Clarifying Notes**: Safety timing specifications are design targets, not yet validated on production hardware
+- **Config Documentation**: Added production deployment guidance to safety_limits.yaml
+- **Badge Accuracy**: Changed "safety-validated" to "safety-architecture" to reflect implementation status
+
+### Important Notes
+- Safety timing targets (10ms validation, 50ms e-stop) require RT-PREEMPT kernel and hardware validation
+- Hardware oscilloscope testing pending production deployment schedule
+- All safety framework code is implemented and unit-tested
+
 ## [0.6.6] - 2026-04-08
 
 ### TDD Compliance Complete ✅

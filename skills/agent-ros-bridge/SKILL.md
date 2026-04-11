@@ -607,12 +607,12 @@ Robot: "Item found by Robot-2 in Zone C, Shelf 12. All robots returning."
 
 ## Version Info
 
-- **Skill Version**: 0.7.0
-- **Agent ROS Bridge**: 0.6.5+
+- **Skill Version**: 0.6.7
+- **Agent ROS Bridge**: 0.6.7
 - **OpenClaw Bridge**: Real-time bidirectional communication
 - **ROS1 Support**: Noetic
 - **ROS2 Support**: Jazzy, Humble
-- **Last Updated**: 2026-04-06
+- **Last Updated**: 2026-04-10
 
 ## Quick Reference
 

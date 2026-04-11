@@ -1,11 +1,11 @@
 # Agent ROS Bridge 🔒
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.6.5-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.6.7-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/tests-2,021%2B-passing.svg" alt="Tests">
   <img src="https://img.shields.io/badge/coverage-65%25-yellow.svg" alt="Coverage">
-  <img src="https://img.shields.io/badge/safety-validated-success.svg" alt="Safety">
+  <img src="https://img.shields.io/badge/safety-architecture-blue.svg" alt="Safety">
   <img src="https://img.shields.io/badge/Gate%202-PASSED-brightgreen.svg" alt="Gate 2">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
 </p>
