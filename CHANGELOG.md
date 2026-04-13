@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - None
 
+## [0.6.8] - 2026-04-13
+
+### Fixed
+- **Rate Limiter API**: Updated `llm_parser.py` to use new `RateLimitConfig` dataclass API
+- **Transport Tests**: Updated test imports to use `gateway_v2` transport paths (WebSocket, gRPC, MQTT)
+
+### Changed
+- **Version Bump**: All modules aligned to v0.6.8
+
 ## [0.6.7] - 2026-04-10
 
 ### Documentation & Transparency Improvements

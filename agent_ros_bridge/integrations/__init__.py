@@ -26,7 +26,7 @@ Example:
     bridge.tools = ToolDiscovery(bridge)
 """
 
-__version__ = "0.6.7"
+__version__ = "0.6.8"
 
 from .autogpt_adapter import AutoGPTAdapter
 from .dashboard_server import DashboardServer

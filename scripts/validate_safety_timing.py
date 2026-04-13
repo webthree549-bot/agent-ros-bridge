@@ -53,7 +53,7 @@ class TimingResult:
 class ValidationReport:
     """Complete validation report"""
     
-    version: str = "0.6.7"
+    version: str = "0.6.8"
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     kernel_info: str = ""
     rt_preempt: bool = False

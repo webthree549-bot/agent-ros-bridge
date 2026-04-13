@@ -151,7 +151,14 @@ Rules:
 
         # Initialize rate limiter
         if self._use_security:
-            self._rate_limiter = RateLimiter(rate_limit_calls, rate_limit_window)
+            from ..middleware.rate_limit import RateLimitConfig
+            config = RateLimitConfig(
+                requests_per_minute=rate_limit_calls,
+                burst_size=rate_limit_calls // 6,  # ~10% of per-minute as burst
+                cooldown_seconds=rate_limit_window
+            )
+            self._rate_limiter = RateLimiter()
+            self._rate_limiter.config = config
         else:
             self._rate_limiter = None
 
@@ -259,9 +266,17 @@ Rules:
             return None
 
         # Check rate limit
-        if self._rate_limiter and not self._rate_limiter.is_allowed():
-            print("Rate limit exceeded. Try again later.")
-            return None
+        if self._rate_limiter:
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+                allowed = loop.run_until_complete(self._rate_limiter.is_allowed("llm_parser", self._rate_limiter.config))
+            except RuntimeError:
+                # No event loop running
+                allowed = True
+            if not allowed:
+                print("Rate limit exceeded. Try again later.")
+                return None
 
         # Sanitize input
         utterance = self._sanitize(utterance, max_length=500)

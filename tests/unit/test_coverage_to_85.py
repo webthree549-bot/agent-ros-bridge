@@ -386,27 +386,30 @@ class TestTransportLayer:
 
     def test_websocket_transport_creation(self):
         """Test WebSocket transport initialization."""
-        from agent_ros_bridge.transports.websocket import WebSocketTransport
+        from agent_ros_bridge.gateway_v2.transports.websocket import WebSocketTransport
 
-        transport = WebSocketTransport(host="localhost", port=8765)
-        assert transport.host == "localhost"
-        assert transport.port == 8765
+        config = {"host": "localhost", "port": 8765}
+        transport = WebSocketTransport(config=config, name="websocket")
+        assert transport.config["host"] == "localhost"
+        assert transport.config["port"] == 8765
 
     def test_grpc_transport_creation(self):
         """Test gRPC transport initialization."""
-        from agent_ros_bridge.transports.grpc import GRPCTransport
+        from agent_ros_bridge.gateway_v2.transports.grpc_transport import GRPCTransport
 
-        transport = GRPCTransport(host="localhost", port=50051)
-        assert transport.host == "localhost"
-        assert transport.port == 50051
+        config = {"host": "localhost", "port": 50051}
+        transport = GRPCTransport(config=config)
+        assert transport.config["host"] == "localhost"
+        assert transport.config["port"] == 50051
 
     def test_mqtt_transport_creation(self):
         """Test MQTT transport initialization."""
-        from agent_ros_bridge.transports.mqtt import MQTTTransport
+        from agent_ros_bridge.gateway_v2.transports.mqtt_transport import MQTTTransport
 
-        transport = MQTTTransport(broker="localhost", port=1883)
-        assert transport.broker == "localhost"
-        assert transport.port == 1883
+        config = {"broker_host": "localhost", "broker_port": 1883}
+        transport = MQTTTransport(config=config)
+        assert transport.config["broker_host"] == "localhost"
+        assert transport.config["broker_port"] == 1883
 
 
 # ============================================================================
